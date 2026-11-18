@@ -1,0 +1,70 @@
+<ol class="chat-transcript" aria-label="Conversation">
+  <li class="chat-message chat-message-user">
+    <p class="chat-speaker">You</p>
+    <div class="chat-message-body"><p>I want to read Latin inscriptions on old maps without a dictionary open beside me.</p></div>
+  </li>
+  <li class="chat-message chat-message-construct">
+    <p class="chat-speaker"><!-- include:avatar construct="vellum" -->Vellum</p>
+    <div class="chat-message-body">
+      <p>Your construct is ready. Type a command to act.</p>
+      <p>Available commands:</p>
+      <ul>
+        <li><code>brainstorm</code> — cast Brainstorm and save subsequent messages to Ideas.</li>
+        <li><code>tasks</code> — cast Tasks and save subsequent messages as tasks.</li>
+        <li><code>stop</code> — stop the active spell and return to Chat.</li>
+        <li><code>help</code> — show these commands.</li>
+        <li><code>look</code> — read the construct's visual description.</li>
+        <li><code>exp</code> — show your experience, circle and title.</li>
+        <li><code>cast &lt;spell name&gt;</code> — cast a built-in or own spell until stopped.</li>
+      </ul>
+      <p>Commands can also start with <code>/</code>. Tasks and Brainstorm stay active until stopped. Use the Tasks, Ideas and Progress controls to manage this quest.</p>
+    </div>
+  </li>
+  <li class="chat-message chat-message-user">
+    <p class="chat-speaker">You</p>
+    <div class="chat-message-body">
+      <p>/add Make flash cards for compass words</p>
+      <aside class="tasks-change" aria-label="Tasks change">
+        <p class="tasks-change-heading"><span class="icon-line"><svg class="icon" aria-hidden="true"><use href="#i-list-checks"/></svg>Tasks change</span><button class="button-quiet" type="button"><svg class="icon" aria-hidden="true"><use href="#i-undo-2"/></svg>Undo</button></p>
+        <p>Added “Make flash cards for compass words”</p>
+      </aside>
+    </div>
+  </li>
+  <li class="chat-message chat-message-user">
+    <p class="chat-speaker">You</p>
+    <div class="chat-message-body">
+      <p>/done 2</p>
+      <aside class="tasks-change" aria-label="Tasks change">
+        <p class="tasks-change-heading"><span class="icon-line"><svg class="icon" aria-hidden="true"><use href="#i-list-checks"/></svg>Tasks change</span><button class="button-quiet" type="button"><svg class="icon" aria-hidden="true"><use href="#i-undo-2"/></svg>Undo</button></p>
+        <p>Checked off “Translate the cartouche on the 1570 Ortelius map”</p>
+      </aside>
+    </div>
+  </li>
+  <li class="chat-message chat-message-user">
+    <p class="chat-speaker">You</p>
+    <div class="chat-message-body"><p>I translated the whole cartouche on the Ortelius map today, every word.</p></div>
+  </li>
+  <li class="chat-message chat-message-construct">
+    <p class="chat-speaker"><!-- include:avatar construct="vellum" -->Vellum</p>
+    <div class="chat-message-body">
+      <aside class="card" aria-label="Milestone">
+        <p class="icon-line"><svg class="icon" aria-hidden="true"><use href="#i-flag"/></svg><strong>Added to the progress timeline</strong></p>
+        <p>Translated the whole cartouche on the Ortelius map</p>
+        <a class="text-link" href="#progress">See the progress timeline</a>
+      </aside>
+      <p>Well done. I added it to your progress timeline. <strong>Next</strong>, try the same map’s legend: it uses the <em>same</em> second-declension endings you just practised.</p>
+      <ul>
+        <li><strong>Theatrum</strong> — theatre, showplace</li>
+        <li><strong>orbis terrarum</strong> — the circle of the lands, the world</li>
+      </ul>
+    </div>
+  </li>
+  {{?tail=loading}}<li class="chat-message chat-message-user">
+    <p class="chat-speaker">You</p>
+    <div class="chat-message-body"><p>look</p></div>
+  </li>
+  <li class="chat-message chat-message-construct" aria-busy="true">
+    <p class="chat-speaker"><!-- include:avatar construct="vellum" -->Vellum</p>
+    <div class="chat-message-body"><p class="icon-line"><span class="working-dots" aria-hidden="true"><span></span><span></span><span></span></span>Vellum is thinking…</p></div>
+  </li>{{/?}}
+</ol>

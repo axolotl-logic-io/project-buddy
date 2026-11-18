@@ -1,0 +1,163 @@
+/* Soot & Brass: token values for the "soot-brass" appearance.
+   Copied from apps/web/src/themes/parchment.css on 2026-11-17, so the
+   build works before this appearance has its own theme. A theme thread
+   copies this folder to themes/soot-brass/ and changes values only.
+   THEME-INTERFACE.md lists and explains every token. */
+
+@layer appearance {
+  [data-mode="soot-brass"] {
+    color-scheme: dark;
+
+    /* Colour */
+    --background: rgb(33 23 26);
+    --surface: rgb(41 36 38);
+    --field: rgb(25 23 25);
+    --foreground: rgb(238 228 210);
+    --muted: rgb(199 187 169);
+    --line: rgb(162 147 126);
+    --primary: rgb(205 179 124);
+    --on-primary: rgb(40 34 22);
+    --accent: rgb(194 181 155);
+    --on-accent: rgb(43 35 32);
+    --danger: rgb(232 170 146);
+    --on-danger: rgb(45 25 22);
+    --focus: rgb(232 211 160);
+    --shadow: rgb(14 11 12);
+    --code-surface: rgb(36 29 32);
+    --code-comment: rgb(199 187 169);
+    --code-keyword: rgb(224 178 159);
+    --code-string: rgb(199 199 151);
+    --code-function: rgb(198 187 212);
+    --code-constant: rgb(221 191 141);
+    --navigation-surface: rgb(41 30 34);
+    --trail-surface: rgb(52 36 40);
+    --sidebar-surface: rgb(45 37 40);
+    --secondary-surface: rgb(59 45 48);
+    --header-ink: rgb(29 24 26);
+    --header-paper: rgb(238 228 210);
+    --header-line: rgb(142 128 107);
+    --header-gold: rgb(185 160 106);
+    --action-fill: rgb(205 179 124);
+    --on-action: rgb(40 34 22);
+    --action-paper: rgb(41 36 38);
+    --action-ink: rgb(238 228 210);
+
+    /* Page texture: the unchanged file in apps/web/public/textures/. */
+    --page-decoration: url("/textures/soot-brass.webp");
+
+    /* Type, shape and site panel */
+    --body-font: var(--typeface-nunito);
+    --heading-font: var(--typeface-source-serif-4);
+    --mono-font: var(--typeface-jetbrains-mono);
+    --conversation-font: var(--typeface-source-serif-4);
+    --conversation-text-size: 1.0625rem;
+    --conversation-leading: 1.55;
+    --conversation-field-radius: 0.125rem;
+    --space-unit: 0.25rem;
+    --action-radius: 2px;
+    --action-line-width: 1px;
+    --action-font: var(--typeface-source-serif-4);
+    --action-hover-shadow: 0 2px 5px color-mix(in srgb, var(--shadow) 18%, transparent);
+    --action-pressed-shadow: inset 0 1px 2px color-mix(in srgb, var(--shadow) 20%, transparent);
+    --control-radius: 0.625rem;
+    --box-radius: 1rem;
+    --line-width: 2px;
+    --control-shadow: 0 2px 0 color-mix(in oklab, var(--shadow) 22%, transparent);
+    --raised-shadow: 0 10px 28px -8px color-mix(in oklab, var(--shadow) 35%, transparent), 0 2px 6px color-mix(in oklab, var(--shadow) 15%, transparent);
+    --focus-glow: 0 0 transparent;
+    --site-title-size: 2.25rem;
+    --site-title-wide-size: 3rem;
+    --page-heading-size: 1.875rem;
+    --page-heading-phone-size: 1.5rem;
+    --section-heading-size: 1.25rem;
+    --header-title-size: 1.25rem;
+    --card-title-size: 1.125rem;
+    --panel-decoration: linear-gradient( 110deg, transparent, color-mix(in oklab, var(--primary) 5%, transparent) );
+    --panel-label-case: none;
+    --panel-label-tracking: 0.04em;
+    --panel-separator: linear-gradient( to right, transparent, var(--line), transparent );
+    --panel-separator-size: 1px;
+
+    /* Ornament: roles and slot sizes. The --orn-* images come from
+       ornaments.svg in this folder; the build writes them. */
+    --display-font: var(--heading-font);
+    --label-font: var(--heading-font);
+    --rubric: var(--accent);
+    --ornament-ink: var(--line);
+    --ornament-accent-ink: var(--primary);
+    --rule-ink: var(--line);
+    --frame-ink: var(--line);
+    --rule-style: solid;
+    --frame-inset: 0.25rem;
+    --frame-keyline: 1px;
+    --orn-corner-size: 1.25rem;
+    --orn-divider-width: 1.5rem;
+    --orn-heading-width: 1rem;
+    --orn-band-height: 0.375rem;
+    --orn-emblem-size: 3rem;
+    --orn-portrait-bleed: 0.375rem;
+    --orn-bullet-size: 0.4375rem;
+
+    /* Labels and numerals */
+    --label-ink: var(--muted);
+    --label-case: none;
+    --label-caps: normal;
+    --label-tracking: 0em;
+    --numeral-font: var(--heading-font);
+
+    /* Corner size per frame kind; 0px turns that kind's corners off. */
+    --orn-corner-panel-size: var(--orn-corner-size);
+    --orn-corner-dialog-size: var(--orn-corner-size);
+    --orn-corner-feature-size: var(--orn-corner-size);
+    --orn-corner-card-size: 0px;
+
+    /* Optional slots. 0px leaves a slot out, even if ornaments.svg draws it. */
+    --orn-vignette-width: 0px;
+    --orn-notice-size: 0px;
+    --orn-rule-end-height: 0px;
+
+    /* Timer: illustration, inks and type, then layout. */
+    --timer-body-font: var(--typeface-im-fell-english);
+    --timer-phase-font: var(--heading-font);
+    --timer-numeral-font: var(--typeface-cormorant-garamond);
+    --timer-blackletter-font: var(--typeface-unifrakturmaguntia);
+    --timer-phase-size: 1.75rem;
+    --timer-numeral-size: 6rem;
+    --timer-number-scale: 26cqi;
+    --timer-hours-scale: 16cqi;
+    --timer-number-leading: 1.1;
+    --timer-next-font: var(--heading-font);
+    --timer-hourglass-display: none;
+    --timer-ring-display: block;
+    --timer-face-columns: 1fr;
+    --timer-face-width: min(100%, 30rem);
+    --timer-face-ratio: 1;
+    --timer-face-height: auto;
+    --timer-stage-padding: 1.5rem 4rem;
+    --timer-face-padding: 0;
+    --timer-readout-align: center;
+    --timer-phase-position: absolute;
+    --timer-phase-gap: 0;
+    --timer-next-position: absolute;
+    --timer-next-offset: calc(100% + 1.25rem);
+    --timer-next-margin: 0;
+    --timer-next-padding: 0;
+    --timer-next-rule: none;
+    --timer-sand: rgb(165 119 40);
+    --timer-radius: 164px;
+    --timer-stroke: 12px;
+    --timer-arc: var(--primary);
+    --timer-marker-active: var(--foreground);
+    --timer-track: var(--line);
+    --timer-ornament-ink: var(--muted);
+    --timer-guide-outer: 186px;
+    --timer-guide-middle: 176px;
+    --timer-guide-inner: 151px;
+    --timer-inscription-display: none;
+    --timer-sigil-display: none;
+    --timer-chapter-display: block;
+    --timer-seal-display: none;
+    --timer-mark-glow: drop-shadow( 0 0 3px color-mix(in srgb, var(--timer-marker-active) 45%, transparent) );
+    --timer-hatch-opacity: 0.16;
+  }
+}

@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="en" data-mode="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Quests list, empty · Theme redesign mockup</title>
+<link rel="stylesheet" href="assets/bundle.css">
+<script src="assets/view.js"></script>
+</head>
+<body>
+<!-- Icons. The app's own 16-unit set, copied from
+     apps/web/src/components/ui/icon.tsx, then Lucide icons (ISC licence,
+     credited on the Credits page) for the rest. Use:
+     <svg class="icon" aria-hidden="true"><use href="#i-NAME"/></svg> -->
+<svg xmlns="http://www.w3.org/2000/svg" hidden>
+  <symbol id="i-alert" viewBox="0 0 16 16"><path d="M8 1.75a6.25 6.25 0 1 1 0 12.5 6.25 6.25 0 0 1 0-12.5zM8 4.75v3.75M8 11.25v.01"/></symbol>
+  <symbol id="i-grip" viewBox="0 0 16 16"><path d="M5.5 3h.01M10.5 3h.01M5.5 8h.01M10.5 8h.01M5.5 13h.01M10.5 13h.01"/></symbol>
+  <symbol id="i-check" viewBox="0 0 16 16"><path d="M3 8l3 3 7-7"/></symbol>
+  <symbol id="i-arrow-up" viewBox="0 0 16 16"><path d="M8 13V3M4 7l4-4 4 4"/></symbol>
+  <symbol id="i-arrow-down" viewBox="0 0 16 16"><path d="M8 3v10M4 9l4 4 4-4"/></symbol>
+  <symbol id="i-arrow-left" viewBox="0 0 16 16"><path d="M13 8H3M7 4 3 8l4 4"/></symbol>
+  <symbol id="i-book" viewBox="0 0 16 16"><path d="M8 4C6.5 3 4.5 2.75 2 3v9.5c2.5-.25 4.5 0 6 1 1.5-1 3.5-1.25 6-1V3c-2.5-.25-4.5 0-6 1zM8 4v9.5"/></symbol>
+  <symbol id="i-chevron-down" viewBox="0 0 16 16"><path d="m4 6 4 4 4-4"/></symbol>
+  <symbol id="i-chevron-right" viewBox="0 0 16 16"><path d="m6 4 4 4-4 4"/></symbol>
+  <symbol id="i-close" viewBox="0 0 16 16"><path d="M4 4l8 8M12 4l-8 8"/></symbol>
+  <symbol id="i-flag" viewBox="0 0 16 16"><path d="M3.5 14V2.5M3.5 3h8.5l-2.25 3 2.25 3H3.5"/></symbol>
+  <symbol id="i-sidebar" viewBox="0 0 16 16"><path d="M2 2.5h12v11H2zM10 2.5v11"/></symbol>
+  <symbol id="i-site-panel" viewBox="0 0 16 16"><path d="M2 2.5h12v11H2zM6 2.5v11M3.5 5h1M3.5 7h1"/></symbol>
+  <symbol id="i-more" viewBox="0 0 16 16"><path d="M3 8h.01M8 8h.01M13 8h.01"/></symbol>
+  <symbol id="i-sparkle" viewBox="0 0 16 16"><path d="M8 2c.5 3 1.5 4.5 5 6-3.5 1.5-4.5 3-5 6-.5-3-1.5-4.5-5-6 3.5-1.5 4.5-3 5-6z"/></symbol>
+  <symbol id="i-note" viewBox="0 0 16 16"><path d="M3.5 2h6l3 3v9h-9zM9.5 2v3h3M5.5 8.5h5M5.5 11h3.5"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 16 16"><path d="M8 3v10M3 8h10"/></symbol>
+  <symbol id="i-trash" viewBox="0 0 16 16"><path d="M2.5 4h11M6 4V2.5h4V4M4 4l.75 9.5h6.5L12 4"/></symbol>
+  <symbol id="i-send" viewBox="0 0 16 16"><path d="M2.5 8 13.5 2.5 11 13.5 8 9.5zM8 9.5l5.5-7"/></symbol>
+  <symbol id="i-stop" viewBox="0 0 16 16"><path d="M4.5 4.5h7v7h-7z"/><path d="M4.5 4.5h7v7h-7z" fill="currentColor" stroke="none"/></symbol>
+  <symbol id="i-sun" viewBox="0 0 16 16"><path d="M8 5a3 3 0 1 1 0 6 3 3 0 0 1 0-6zM8 1v1.5M8 13.5V15M1 8h1.5M13.5 8H15M3.05 3.05l1.06 1.06M11.89 11.89l1.06 1.06M12.95 3.05l-1.06 1.06M4.11 11.89l-1.06 1.06"/></symbol>
+  <symbol id="i-compass" viewBox="0 0 16 16"><path d="M8 1.5a6.5 6.5 0 1 1 0 13 6.5 6.5 0 0 1 0-13zM10.75 5.25 9 9l-3.75 1.75L7 7z"/></symbol>
+  <symbol id="i-list-checks" viewBox="0 0 24 24"><path d="M13 5h8"/><path d="M13 12h8"/><path d="M13 19h8"/><path d="m3 17 2 2 4-4"/><path d="m3 7 2 2 4-4"/></symbol>
+  <symbol id="i-pencil" viewBox="0 0 24 24"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/></symbol>
+  <symbol id="i-repeat" viewBox="0 0 24 24"><path d="m17 2 4 4-4 4"/><path d="M3 11v-1a4 4 0 0 1 4-4h14"/><path d="m7 22-4-4 4-4"/><path d="M21 13v1a4 4 0 0 1-4 4H3"/></symbol>
+  <symbol id="i-undo-2" viewBox="0 0 24 24"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5a5.5 5.5 0 0 1-5.5 5.5H11"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><path d="m21 21-4.34-4.34"/><circle cx="11" cy="11" r="8"/></symbol>
+  <symbol id="i-hourglass" viewBox="0 0 24 24"><path d="M5 22h14"/><path d="M5 2h14"/><path d="M17 22v-4.172a2 2 0 0 0-.586-1.414L12 12l-4.414 4.414A2 2 0 0 0 7 17.828V22"/><path d="M7 2v4.172a2 2 0 0 0 .586 1.414L12 12l4.414-4.414A2 2 0 0 0 17 6.172V2"/></symbol>
+  <symbol id="i-settings" viewBox="0 0 24 24"><path d="M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915"/><circle cx="12" cy="12" r="3"/></symbol>
+  <symbol id="i-user" viewBox="0 0 24 24"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></symbol>
+  <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></symbol>
+  <symbol id="i-link" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></symbol>
+  <symbol id="i-log-out" viewBox="0 0 24 24"><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/></symbol>
+  <symbol id="i-graduation-cap" viewBox="0 0 24 24"><path d="M21.42 10.922a1 1 0 0 0-.019-1.838L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z"/><path d="M22 10v6"/><path d="M6 12.5V16a6 3 0 0 0 12 0v-3.5"/></symbol>
+  <symbol id="i-hammer" viewBox="0 0 24 24"><path d="m15 12-9.373 9.373a1 1 0 0 1-3.001-3L12 9"/><path d="m18 15 4-4"/><path d="m21.5 11.5-1.914-1.914A2 2 0 0 1 19 8.172v-.344a2 2 0 0 0-.586-1.414l-1.657-1.657A6 6 0 0 0 12.516 3H9l1.243 1.243A6 6 0 0 1 12 8.485V10l2 2h1.172a2 2 0 0 1 1.414.586L18.5 14.5"/></symbol>
+  <symbol id="i-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></symbol>
+  <symbol id="i-scroll-text" viewBox="0 0 24 24"><path d="M15 12h-5"/><path d="M15 8h-5"/><path d="M19 17V5a2 2 0 0 0-2-2H4"/><path d="M8 21h12a2 2 0 0 0 2-2v-1a1 1 0 0 0-1-1H11a1 1 0 0 0-1 1v1a2 2 0 1 1-4 0V5a2 2 0 1 0-4 0v2a1 1 0 0 0 1 1h3"/></symbol>
+  <symbol id="i-book-open" viewBox="0 0 24 24"><path d="M12 5v16"/><path d="M20.001 19A2 2 0 0022 17V5a2 2 0 00-1.999-2L16 3.002A5 5 0 0012 5a5 5 0 00-4-2H4a2 2 0 00-2 2v12a2 2 0 001.999 2H8a5 5 0 014 2 5 5 0 014-2z"/></symbol>
+  <symbol id="i-wand-sparkles" viewBox="0 0 24 24"><path d="m21.64 3.64-1.28-1.28a1.21 1.21 0 0 0-1.72 0L2.36 18.64a1.21 1.21 0 0 0 0 1.72l1.28 1.28a1.2 1.2 0 0 0 1.72 0L21.64 5.36a1.2 1.2 0 0 0 0-1.72"/><path d="m14 7 3 3"/><path d="M5 6v4"/><path d="M19 14v4"/><path d="M10 2v2"/><path d="M7 8H3"/><path d="M21 16h-4"/><path d="M11 3H9"/></symbol>
+  <symbol id="i-users" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><path d="M16 3.128a4 4 0 0 1 0 7.744"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><circle cx="9" cy="7" r="4"/></symbol>
+  <symbol id="i-mail" viewBox="0 0 24 24"><path d="m22 7-8.991 5.727a2 2 0 0 1-2.009 0L2 7"/><rect x="2" y="4" width="20" height="16" rx="2"/></symbol>
+</svg>
+
+<div class="app">
+<header class="site-header">
+  <a class="hud-title" href="quests--list.html">
+    <span class="hud-medallion" aria-hidden="true"><svg class="icon"><use href="#i-compass"/></svg></span>
+    <span class="hud-name">Project Buddy</span>
+  </a>
+  <div class="site-header-tools">
+    <a class="progress-ring" href="profile--experience.html" aria-label="Circle 4 · Initiate: 4 more experience to reach circle 5. Open your experience.">
+      <svg class="progress-ring-svg" viewBox="0 0 40 40" aria-hidden="true">
+        <circle class="progress-ring-disc" cx="20" cy="20" r="18"/>
+        <circle class="progress-ring-track" cx="20" cy="20" r="16" pathLength="100"/>
+        <circle class="progress-ring-arc" cx="20" cy="20" r="16" pathLength="100" stroke-dasharray="60 100"/>
+      </svg>
+      <span class="progress-ring-label" aria-hidden="true">4</span>
+    </a>
+  </div>
+</header>
+
+<section class="trail-band" aria-label="Page trail">
+  <button class="icon-button" type="button" aria-controls="site-panel" aria-expanded="false" title="Site panel"><svg class="icon" aria-hidden="true"><use href="#i-site-panel"/></svg><span class="sr-only">Site panel</span></button>
+  <span class="trail-divider" aria-hidden="true"></span>
+  <div class="trail-content">
+    <div class="trail-path">
+      
+      <h1 class="trail-heading">Quests</h1>
+    </div>
+    
+  </div>
+</section>
+
+<dialog class="site-panel" id="site-panel" aria-labelledby="site-panel-title">
+  <div class="site-panel-heading">
+    <button class="icon-button" type="button" aria-controls="site-panel" aria-expanded="true" aria-label="Close site panel" title="Close site panel"><svg class="icon" aria-hidden="true"><use href="#i-close"/></svg></button>
+    <h2 id="site-panel-title">Site panel</h2>
+  </div>
+  <button class="button-primary" type="button"><svg class="icon" aria-hidden="true"><use href="#i-note"/></svg>Quick Note</button>
+  <div class="divider"><span class="ornament" data-ornament="divider" aria-hidden="true"></span></div>
+  <nav class="panel-nav" aria-label="Site panel">
+  <div class="panel-group">
+    <p class="panel-label" id="site-panel-places">Places</p>
+    <ul class="panel-links" aria-labelledby="site-panel-places">
+      <li><a class="panel-link" href="quests--list.html" aria-current="page">Quests</a></li>
+      <li><a class="panel-link" href="spellbook--list.html">Spellbook</a></li>
+      <li><a class="panel-link" href="timer--setup.html">Timer</a></li>
+    </ul>
+  </div>
+  <div class="panel-group">
+    <p class="panel-label" id="site-panel-you">You</p>
+    <ul class="panel-links" aria-labelledby="site-panel-you">
+      <li><a class="panel-link" href="profile--experience.html">Profile</a></li>
+      <li><a class="panel-link" href="settings--default.html">Settings</a></li>
+    </ul>
+  </div>
+  </nav>
+  <div class="divider"><span class="ornament" data-ornament="divider" aria-hidden="true"></span></div>
+  <section class="panel-group" aria-labelledby="site-panel-appearance">
+    <h3 class="panel-label" id="site-panel-appearance">Appearance</h3>
+    <fieldset class="appearance-fieldset">
+  <legend class="panel-label">Theme</legend>
+  <div class="appearance-swatches">
+    <label class="appearance-swatch" data-size="">
+      <input class="appearance-swatch-input" type="radio" name="panel-theme" value="light" aria-label="Ivory Vellum">
+      <span class="appearance-swatch-face" data-mode="light" aria-hidden="true"></span>
+      <span class="appearance-swatch-tooltip" aria-hidden="true">Ivory Vellum</span>
+    </label>
+    <label class="appearance-swatch" data-size="">
+      <input class="appearance-swatch-input" type="radio" name="panel-theme" value="soot-brass" aria-label="Soot &amp; Brass">
+      <span class="appearance-swatch-face" data-mode="soot-brass" aria-hidden="true"></span>
+      <span class="appearance-swatch-tooltip" aria-hidden="true">Soot &amp; Brass</span>
+    </label>
+    <label class="appearance-swatch" data-size="">
+      <input class="appearance-swatch-input" type="radio" name="panel-theme" value="dark" aria-label="Espresso Leather">
+      <span class="appearance-swatch-face" data-mode="dark" aria-hidden="true"></span>
+      <span class="appearance-swatch-tooltip" aria-hidden="true">Espresso Leather</span>
+    </label>
+  </div>
+</fieldset>
+
+  </section>
+  <div class="divider"><span class="ornament" data-ornament="divider" aria-hidden="true"></span></div>
+  <ul class="panel-links"><li><a class="panel-link" href="#credits">Credits</a></li></ul>
+</dialog>
+
+<main class="page">
+  <div class="page-column">
+    
+
+    <section class="settings-section" aria-labelledby="start-heading">
+      <h2 class="section-heading" id="start-heading"><span class="ornament" data-ornament="heading" aria-hidden="true"></span>Start a quest</h2>
+      <div class="choice-tiles">
+        <button class="choice-tile" type="button"><svg class="icon" aria-hidden="true"><use href="#i-sun"/></svg><span class="choice-tile-name">Dailies</span><span class="choice-tile-hint">Start your day</span></button>
+        <button class="choice-tile" type="button"><svg class="icon" aria-hidden="true"><use href="#i-graduation-cap"/></svg><span class="choice-tile-name">Learn a thing</span><span class="choice-tile-hint">Practise a skill</span></button>
+        <button class="choice-tile" type="button"><svg class="icon" aria-hidden="true"><use href="#i-hammer"/></svg><span class="choice-tile-name">Make a thing</span><span class="choice-tile-hint">Build a first version</span></button>
+        <button class="choice-tile" type="button"><svg class="icon" aria-hidden="true"><use href="#i-target"/></svg><span class="choice-tile-name">Do a thing</span><span class="choice-tile-hint">Reach an outcome</span></button>
+      </div>
+    </section>
+
+    <section class="settings-section" aria-labelledby="yours-heading">
+      <h2 class="section-heading" id="yours-heading"><span class="ornament" data-ornament="heading" aria-hidden="true"></span>Your quests</h2>
+      <div>
+        <nav class="collection-tabs" aria-label="Quest status">
+          <a class="collection-tab" href="#" aria-current="page">Active <span class="collection-count">0</span></a>
+          <a class="collection-tab" href="#">Completed <span class="collection-count">0</span></a>
+          <a class="collection-tab" href="#">Abandoned <span class="collection-count">0</span></a>
+          <a class="collection-tab" href="#">Pending <span class="collection-count">0</span></a>
+        </nav>
+        <div class="collection-panel">
+          
+          <div class="empty-state">
+            <span class="ornament" data-ornament="vignette" aria-hidden="true"></span><span class="ornament" data-ornament="emblem" aria-hidden="true"></span>
+            <p class="empty-state-heading">No quests yet</p>
+            <p class="empty-state-copy lede-initial">Choose a way to start one above.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+</main>
+
+
+</div>
+</body>
+</html>

@@ -1,0 +1,25 @@
+<!--meta
+title: Timer setup
+note: The select fields carry their chevron as part of the component. The two durations sit side by side even at 320 px.
+capture: timer--setup
+-->
+<!-- include:site-header circle="4" -->
+<!-- include:trail-band panel="" parents="" heading="Timer" tools="" -->
+<!-- include:site-panel open="" current="timer" swatch-focus="" -->
+<main class="page">
+  <div class="page-column">
+    <section class="panel" aria-labelledby="timer-prefs">
+      <h2 class="section-heading" id="timer-prefs"><span class="ornament" data-ornament="heading" aria-hidden="true"></span>Timer preferences</h2>
+      <p class="lede">Work and take breaks on a repeating schedule. Share the timer's link and others follow the same schedule.</p>
+      <div class="duration-fields">
+        <div class="field"><label class="field-label" for="work-for">Work for</label><span class="select-field"><select class="input-field" id="work-for"><option>10 minutes</option><option>15 minutes</option><option>25 minutes</option><option>30 minutes</option><option>45 minutes</option><option selected>50 minutes</option><option>60 minutes (1 hour)</option><option>120 minutes (2 hours)</option></select><svg class="icon select-chevron" aria-hidden="true"><use href="#i-chevron-down"/></svg></span></div>
+        <div class="field"><label class="field-label" for="break-for">Break for</label><span class="select-field"><select class="input-field" id="break-for"><option selected>10 minutes</option><option>15 minutes</option><option>25 minutes</option><option>30 minutes</option><option>45 minutes</option><option>50 minutes</option><option>60 minutes (1 hour)</option><option>120 minutes (2 hours)</option></select><svg class="icon select-chevron" aria-hidden="true"><use href="#i-chevron-down"/></svg></span></div>
+      </div>
+      <div class="divider"><span class="ornament" data-ornament="divider" aria-hidden="true"></span></div>
+      <div class="form-stack">
+        <div class="field"><p><a class="button-primary" href="timer--running-work.html"><svg class="icon" aria-hidden="true"><use href="#i-hourglass"/></svg>Start</a></p><p class="field-hint">Starts a new schedule now, beginning with work.</p></div>
+        <div class="field"><p><a class="button-secondary" href="timer--running-work.html"><svg class="icon" aria-hidden="true"><use href="#i-users"/></svg>Join global timer</a></p><p class="field-hint">Joins the schedule everyone with these durations shares. It is already running, so you may join partway through work or a break.</p></div>
+      </div>
+    </section>
+  </div>
+</main>

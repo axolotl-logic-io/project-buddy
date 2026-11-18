@@ -1,0 +1,27 @@
+<!--meta
+title: Quick Note dialog
+note: A framed dialog panel over the scrim. The select's chevron is part of the select field component.
+capture: quick-note--dialog
+-->
+<!-- include:quests-body panel="" empty="" -->
+<div class="dialog-overlay">
+  <form class="dialog-panel" role="dialog" aria-modal="true" aria-labelledby="qn-title" aria-describedby="qn-copy">
+    <div class="card-header">
+      <h2 class="dialog-title" id="qn-title">Quick Note</h2>
+      <button class="icon-button" type="button" aria-label="Close" title="Close"><svg class="icon" aria-hidden="true"><use href="#i-close"/></svg></button>
+    </div>
+    <p class="muted" id="qn-copy">Save a short note to a quest without opening it. Find it later in the quest's Quick Notes tab.</p>
+    <div class="field">
+      <label class="field-label" for="qn-quest">Quick Note for</label>
+      <span class="select-field"><select class="input-field" id="qn-quest"><option>Build a walnut bookshelf</option><option selected>Read Latin on old maps</option></select><svg class="icon select-chevron" aria-hidden="true"><use href="#i-chevron-down"/></svg></span>
+    </div>
+    <div class="field">
+      <label class="field-label" for="qn-text">Quick Note</label>
+      <textarea class="input-field" id="qn-text" rows="4" aria-describedby="qn-hint">Ask Ines whether the library scans include the margins.</textarea>
+      <p class="field-hint" id="qn-hint">Up to 1000 characters.</p>
+    </div>
+    <div class="dialog-actions">
+      <button class="button-primary" type="submit">Save Quick Note</button>
+    </div>
+  </form>
+</div>

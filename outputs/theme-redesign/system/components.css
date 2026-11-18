@@ -1,0 +1,2480 @@
+/* Theme redesign: the component layer.
+
+   Every rule reads semantic tokens (contract.css and system/tokens.css).
+   No rule names a colour or an appearance. Ornament comes in through
+   the --orn-* tokens, painted as masks in ornament-ink and
+   ornament-accent-ink, so a theme changes its art without touching this
+   file. components.md describes each component, its markup and states. */
+
+@layer elements, components;
+
+/* ==== Elements ========================================================= */
+@layer elements {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    margin: 0;
+    min-block-size: 100dvh;
+    background-color: var(--background);
+    background-image: var(--page-decoration);
+    background-size: cover;
+    background-attachment: fixed;
+    color: var(--foreground);
+    font-family: var(--body-font);
+    font-size: 1rem;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    margin: 0;
+    font-family: var(--heading-font);
+    font-weight: 600;
+    line-height: 1.25;
+    text-wrap: balance;
+  }
+
+  p,
+  ul,
+  ol,
+  fieldset,
+  figure {
+    margin: 0;
+    padding: 0;
+  }
+
+  ul,
+  ol {
+    list-style: none;
+  }
+
+  fieldset {
+    border: 0;
+    min-inline-size: 0;
+  }
+
+  button,
+  input,
+  select,
+  textarea {
+    font: inherit;
+    color: inherit;
+  }
+
+  a {
+    color: inherit;
+  }
+
+  img,
+  svg {
+    display: block;
+  }
+
+  code {
+    padding: 0.05em 0.3em;
+    border-radius: 0.25rem;
+    background: var(--code-surface);
+    font-family: var(--mono-font);
+    font-size: 0.875em;
+  }
+
+  :focus-visible {
+    outline: var(--focus-outline);
+    outline-offset: var(--focus-offset);
+    box-shadow: var(--focus-glow);
+  }
+
+  ::selection {
+    background: var(--primary);
+    color: var(--on-primary);
+  }
+
+  .sr-only {
+    position: absolute;
+    inline-size: 1px;
+    block-size: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+}
+
+@layer components {
+  /* ==== Icon ============================================================ */
+  .icon {
+    flex: none;
+    inline-size: 1rem;
+    block-size: 1rem;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .icon-line {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .text-link {
+    color: var(--primary);
+    text-decoration-line: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.2em;
+  }
+
+  .text-link:hover {
+    text-decoration-thickness: 2px;
+  }
+
+  .muted {
+    color: var(--muted);
+  }
+
+  /* ==== Ornament slot ===================================================
+     <span class="ornament" data-ornament="divider" aria-hidden="true">.
+     The slot's size comes from the theme's size token, so a slot the
+     theme leaves blank takes no room. */
+  .ornament {
+    position: relative;
+    display: inline-block;
+    flex: none;
+    inline-size: var(--orn-w, 0px);
+    block-size: var(--orn-h, 0px);
+    vertical-align: middle;
+    pointer-events: none;
+  }
+
+  .ornament::before,
+  .ornament::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    -webkit-mask: var(--orn-main, var(--orn-blank)) center / contain no-repeat;
+    mask: var(--orn-main, var(--orn-blank)) center / contain no-repeat;
+    background-color: var(--ornament-ink);
+  }
+
+  .ornament::after {
+    -webkit-mask-image: var(--orn-accent, var(--orn-blank));
+    mask-image: var(--orn-accent, var(--orn-blank));
+    background-color: var(--ornament-accent-ink);
+  }
+
+  .ornament[data-ornament="divider"] {
+    --orn-main: var(--orn-divider);
+    --orn-accent: var(--orn-divider-accent);
+    --orn-w: var(--orn-divider-width);
+    --orn-h: calc(var(--orn-divider-width) / 2);
+  }
+
+  .ornament[data-ornament="heading"] {
+    --orn-main: var(--orn-heading);
+    --orn-accent: var(--orn-heading-accent);
+    --orn-w: var(--orn-heading-width);
+    --orn-h: var(--orn-heading-width);
+    margin-inline-end: min(0.5em, var(--orn-heading-width));
+  }
+
+  .ornament[data-ornament="emblem"] {
+    --orn-main: var(--orn-emblem);
+    --orn-accent: var(--orn-emblem-accent);
+    --orn-w: var(--orn-emblem-size);
+    --orn-h: var(--orn-emblem-size);
+  }
+
+  /* Optional and wide: never wider than its container, and its height
+     follows from the symbol's ratio. */
+  .ornament[data-ornament="vignette"] {
+    --orn-main: var(--orn-vignette);
+    --orn-accent: var(--orn-vignette-accent);
+    inline-size: min(var(--orn-vignette-width), 100%);
+    block-size: auto;
+    aspect-ratio: var(--orn-vignette-ratio);
+  }
+
+  /* ==== Frame (card, panel, dialog panel, sign-in card) =================
+     A framed box: border, an optional inner keyline and four corner
+     ornaments, the main ink on ::before and the accent on ::after.
+     Corners go on outer frames only. Each kind reads its own size token:
+     a page-level panel, a dialog, a feature card (data-frame="feature",
+     such as the sign-in card) and a plain card, which has none by default.
+     A frame inside another frame, a list or a side menu never has any. */
+  .panel {
+    --frame-corner: var(--orn-corner-panel-size);
+  }
+
+  .dialog-panel {
+    --frame-corner: var(--orn-corner-dialog-size);
+  }
+
+  .card {
+    --frame-corner: var(--orn-corner-card-size);
+  }
+
+  .card[data-frame="feature"] {
+    --frame-corner: var(--orn-corner-feature-size);
+  }
+
+  :is(.card, .panel, .dialog-panel, .collection-panel, .chat-transcript,
+      .quest-sidebar, .site-panel, li) :is(.card, .panel) {
+    --frame-corner: 0px;
+  }
+
+  :is(.card, .panel, .dialog-panel) {
+    position: relative;
+    isolation: isolate;
+    border: var(--frame-width) var(--frame-style) var(--frame-ink);
+    border-radius: var(--frame-radius);
+    background-color: var(--surface);
+    background-image: var(--frame-decoration);
+    box-shadow:
+      inset 0 0 0 var(--frame-inset) var(--surface),
+      inset 0 0 0 calc(var(--frame-inset) + var(--frame-keyline))
+        var(--frame-ink);
+  }
+
+  :is(.card, .panel, .dialog-panel)::before,
+  :is(.card, .panel, .dialog-panel)::after {
+    content: "";
+    position: absolute;
+    inset: calc(var(--frame-inset) - var(--frame-corner, 0px) / 4);
+    pointer-events: none;
+    background-color: var(--ornament-ink);
+    -webkit-mask:
+      var(--orn-corner-tl) top left / var(--frame-corner, 0px) no-repeat,
+      var(--orn-corner-tr) top right / var(--frame-corner, 0px) no-repeat,
+      var(--orn-corner-bl) bottom left / var(--frame-corner, 0px) no-repeat,
+      var(--orn-corner-br) bottom right / var(--frame-corner, 0px) no-repeat;
+    mask:
+      var(--orn-corner-tl) top left / var(--frame-corner, 0px) no-repeat,
+      var(--orn-corner-tr) top right / var(--frame-corner, 0px) no-repeat,
+      var(--orn-corner-bl) bottom left / var(--frame-corner, 0px) no-repeat,
+      var(--orn-corner-br) bottom right / var(--frame-corner, 0px) no-repeat;
+  }
+
+  :is(.card, .panel, .dialog-panel)::after {
+    background-color: var(--ornament-accent-ink);
+    -webkit-mask-image:
+      var(--orn-corner-accent-tl), var(--orn-corner-accent-tr),
+      var(--orn-corner-accent-bl), var(--orn-corner-accent-br);
+    mask-image:
+      var(--orn-corner-accent-tl), var(--orn-corner-accent-tr),
+      var(--orn-corner-accent-bl), var(--orn-corner-accent-br);
+  }
+
+  .card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    padding: calc(1rem + var(--frame-inset));
+  }
+
+  .panel {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    padding: calc(1.5rem + var(--frame-inset));
+  }
+
+  .card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+
+  .card-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    align-items: center;
+  }
+
+  /* ==== Headings ======================================================== */
+  .site-title {
+    font-family: var(--display-font);
+    font-weight: var(--display-weight);
+    letter-spacing: var(--display-tracking);
+    font-size: var(--site-title-size);
+    line-height: 1.1;
+    text-align: center;
+  }
+
+  .page-heading {
+    font-family: var(--display-font);
+    font-weight: var(--display-weight);
+    letter-spacing: var(--display-tracking);
+    font-size: var(--page-heading-phone-size);
+  }
+
+  .section-heading {
+    display: flex;
+    align-items: center;
+    font-size: var(--section-heading-size);
+    line-height: 1.4;
+  }
+
+  .card-title {
+    font-size: var(--card-title-size);
+    line-height: 1.4;
+    overflow-wrap: anywhere;
+  }
+
+  .lede {
+    color: var(--muted);
+  }
+
+  .lede-initial::first-letter {
+    float: var(--initial-float);
+    font-family: var(--initial-font);
+    font-size: var(--initial-size);
+    line-height: 0.85;
+    padding-inline-end: 0.08em;
+    color: var(--rubric);
+  }
+
+  @media (width >= 40rem) {
+    .site-title {
+      font-size: var(--site-title-wide-size);
+    }
+    .page-heading {
+      font-size: var(--page-heading-size);
+    }
+  }
+
+  /* ==== Rule and divider ================================================ */
+  /* A free-standing rule. With the optional rule-end slot, the line
+     shortens by one terminal at each end and the terminals sit there. */
+  .rule {
+    --rule-end-width: calc(var(--orn-rule-end-height) * var(--orn-rule-end-ratio));
+    position: relative;
+    margin-block: 0;
+    margin-inline: var(--rule-end-width);
+    border: 0;
+    border-block-start: var(--rule-width) var(--rule-style) var(--rule-ink);
+  }
+
+  .rule::before,
+  .rule::after {
+    content: "";
+    position: absolute;
+    inset-inline: calc(-1 * var(--rule-end-width));
+    inset-block-start: calc((var(--rule-width) + var(--orn-rule-end-height)) / -2);
+    block-size: var(--orn-rule-end-height);
+    pointer-events: none;
+    background-color: var(--ornament-ink);
+    -webkit-mask:
+      var(--orn-rule-end-l) left center / auto 100% no-repeat,
+      var(--orn-rule-end-r) right center / auto 100% no-repeat;
+    mask:
+      var(--orn-rule-end-l) left center / auto 100% no-repeat,
+      var(--orn-rule-end-r) right center / auto 100% no-repeat;
+  }
+
+  .rule::after {
+    background-color: var(--ornament-accent-ink);
+    -webkit-mask-image: var(--orn-rule-end-accent-l), var(--orn-rule-end-accent-r);
+    mask-image: var(--orn-rule-end-accent-l), var(--orn-rule-end-accent-r);
+  }
+
+  [dir="rtl"] .rule::before,
+  [dir="rtl"] .rule::after {
+    scale: -1 1;
+  }
+
+  .divider {
+    display: flex;
+    align-items: center;
+    gap: min(0.5rem, var(--orn-divider-width));
+    color: var(--rule-ink);
+  }
+
+  .divider::before,
+  .divider::after {
+    content: "";
+    flex: 1;
+    border-block-start: var(--rule-width) var(--rule-style) var(--rule-ink);
+  }
+
+  /* ==== Letterpress actions ============================================ */
+  :is(
+      .button-primary,
+      .button-secondary,
+      .button-quiet,
+      .button-danger,
+      .button-quiet-danger
+    ) {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    min-block-size: var(--target-size);
+    padding: 0.5rem 0.875rem;
+    border: var(--action-line-width) solid transparent;
+    border-radius: var(--action-radius);
+    background: transparent;
+    font-family: var(--action-font);
+    font-size: 1rem;
+    font-weight: 600;
+    line-height: 1.2;
+    text-decoration: none;
+    white-space: nowrap;
+    cursor: pointer;
+  }
+
+  .button-primary {
+    background-color: var(--action-fill);
+    border-color: var(--action-fill);
+    color: var(--on-action);
+  }
+
+  .button-secondary {
+    background-color: var(--action-paper);
+    border-color: var(--line);
+    color: var(--action-ink);
+  }
+
+  .button-quiet {
+    color: var(--action-ink);
+    text-decoration-line: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.2em;
+  }
+
+  .button-danger {
+    background-color: var(--danger);
+    border-color: var(--danger);
+    color: var(--on-danger);
+  }
+
+  .button-quiet-danger {
+    color: var(--danger);
+    text-decoration-line: underline;
+    text-underline-offset: 0.2em;
+  }
+
+  :is(.button-primary, .button-secondary, .button-danger):hover {
+    box-shadow: var(--action-hover-shadow);
+    text-decoration-line: underline;
+    text-underline-offset: 0.2em;
+  }
+
+  :is(.button-quiet, .button-quiet-danger):hover {
+    text-decoration-thickness: 2px;
+  }
+
+  :is(
+      .button-primary,
+      .button-secondary,
+      .button-quiet,
+      .button-danger,
+      .button-quiet-danger
+    ):active {
+    box-shadow: var(--action-pressed-shadow);
+    transform: translateY(1px);
+  }
+
+  :is(.button-primary, .button-secondary, .button-danger)[aria-busy="true"] {
+    border-style: dashed;
+    cursor: progress;
+  }
+
+  :is(
+      .button-primary,
+      .button-secondary,
+      .button-quiet,
+      .button-danger,
+      .button-quiet-danger
+    ):disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+    box-shadow: none;
+    transform: none;
+  }
+
+  /* An icon-only quiet action. Its accessible name is aria-label. */
+  .icon-button {
+    display: inline-grid;
+    place-items: center;
+    flex: none;
+    inline-size: var(--target-size);
+    block-size: var(--target-size);
+    padding: 0;
+    border: var(--action-line-width) solid transparent;
+    border-radius: var(--action-radius);
+    background: transparent;
+    color: var(--action-ink);
+    cursor: pointer;
+  }
+
+  .icon-button:hover {
+    border-color: var(--line);
+  }
+
+  .icon-button .icon {
+    inline-size: 1.25rem;
+    block-size: 1.25rem;
+  }
+
+  .icon-button[aria-expanded="true"],
+  .icon-button[aria-pressed="true"] {
+    border-color: var(--line);
+    background: var(--action-paper);
+  }
+
+  /* ==== Fields ========================================================== */
+  .form-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+    min-inline-size: 0;
+  }
+
+  .field-label {
+    font-size: 0.875rem;
+    font-weight: 600;
+  }
+
+  .field-hint {
+    color: var(--muted);
+    font-size: 0.875rem;
+  }
+
+  .field-error {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.375rem;
+    color: var(--danger);
+    font-size: 0.875rem;
+    font-weight: 600;
+  }
+
+  .field-error .icon {
+    margin-block-start: 0.1875rem;
+  }
+
+  .input-field {
+    inline-size: 100%;
+    min-block-size: var(--target-size);
+    padding: 0.5rem 0.75rem;
+    border: var(--line-width) solid var(--line);
+    border-radius: var(--control-radius);
+    background: var(--field);
+    color: var(--foreground);
+    box-shadow: var(--control-shadow);
+  }
+
+  textarea.input-field {
+    min-block-size: 6rem;
+    resize: vertical;
+  }
+
+  .input-field::placeholder {
+    color: var(--muted);
+  }
+
+  .input-field[aria-invalid="true"] {
+    border-color: var(--danger);
+    border-style: double;
+    border-width: calc(var(--line-width) + 1px);
+  }
+
+  /* A select's chevron is part of the component, not a utility cluster. */
+  .select-field {
+    position: relative;
+    display: block;
+  }
+
+  .select-field select {
+    appearance: none;
+    padding-inline-end: 2.5rem;
+  }
+
+  .select-chevron {
+    position: absolute;
+    inset-block-start: 50%;
+    inset-inline-end: 0.875rem;
+    translate: 0 -50%;
+    pointer-events: none;
+    color: var(--muted);
+  }
+
+  /* A box that shows its control's focus: the composer, a search box. */
+  .field-box {
+    display: flex;
+    align-items: flex-end;
+    gap: 0.5rem;
+    padding: 0.375rem;
+    border: var(--line-width) solid var(--line);
+    border-radius: var(--control-radius);
+    background: var(--field);
+    box-shadow: var(--control-shadow);
+  }
+
+  .field-box:has(:focus-visible) {
+    outline: var(--focus-outline);
+    outline-offset: var(--focus-offset);
+  }
+
+  .field-box-control {
+    flex: 1;
+    min-inline-size: 0;
+    min-block-size: var(--target-size);
+    padding: 0.5rem;
+    border: 0;
+    background: transparent;
+    resize: none;
+    outline: none;
+  }
+
+  /* ==== Notice and form status ========================================= */
+  .notice {
+    position: relative;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.625rem;
+    padding: 0.75rem 1rem;
+    border: var(--rule-width) var(--rule-style) var(--line);
+    border-inline-start: 0.25rem solid var(--primary);
+    border-radius: var(--action-radius);
+    background: var(--surface);
+    color: var(--foreground);
+  }
+
+  /* The optional notice mark, set on the top start corner over the
+     border. It takes no room, so a theme without one shows nothing. */
+  .notice::before,
+  .notice::after {
+    content: "";
+    position: absolute;
+    inset-block-start: calc(var(--orn-notice-size) / -2);
+    inset-inline-start: calc(var(--orn-notice-size) / -2 - 0.125rem);
+    inline-size: var(--orn-notice-size);
+    block-size: var(--orn-notice-size);
+    pointer-events: none;
+    background-color: var(--ornament-ink);
+    -webkit-mask: var(--orn-notice) center / contain no-repeat;
+    mask: var(--orn-notice) center / contain no-repeat;
+  }
+
+  .notice::after {
+    background-color: var(--ornament-accent-ink);
+    -webkit-mask-image: var(--orn-notice-accent);
+    mask-image: var(--orn-notice-accent);
+  }
+
+  .notice .icon {
+    margin-block-start: 0.25rem;
+    color: var(--primary);
+  }
+
+  .notice-error {
+    border-inline-start-color: var(--danger);
+    color: var(--danger);
+    font-weight: 600;
+  }
+
+  .notice-error .icon {
+    color: var(--danger);
+  }
+
+  .notice-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    min-inline-size: 0;
+  }
+
+  .form-status {
+    min-block-size: 1.5em;
+    color: var(--muted);
+    font-size: 0.875rem;
+  }
+
+  /* ==== Page frame ====================================================== */
+  .app {
+    --header-height: 3.75rem;
+    --header-rim: 4px;
+    --trail-height: 4rem;
+    --site-panel-width: 18rem;
+    --quest-panel-width: 22rem;
+    --chrome-height: calc(var(--header-height) + var(--header-rim));
+    min-block-size: 100dvh;
+  }
+
+  .page {
+    padding: 1.5rem 1rem 4rem;
+  }
+
+  .page-column,
+  .page-frame-wide {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    margin-inline: auto;
+    max-inline-size: 45rem;
+  }
+
+  .page-frame-wide {
+    max-inline-size: 72rem;
+  }
+
+  .page-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem 1rem;
+    flex-wrap: wrap;
+  }
+
+  .page-centre {
+    display: grid;
+    place-items: center;
+    min-block-size: calc(100dvh - var(--chrome-height) - var(--trail-height) - 6rem);
+  }
+
+  @media (width >= 40rem) {
+    .page {
+      padding: 2rem 1.5rem 4rem;
+    }
+  }
+
+  /* With the site panel docked open, the page and the trail make room for
+     it instead of running under it. */
+  @media (width >= 64rem) {
+    .app:has(.site-panel[data-open]) :is(.page, .trail-band) {
+      margin-inline-start: var(--site-panel-width);
+    }
+  }
+
+  /* ==== Site header ===================================================== */
+  .site-header {
+    position: relative;
+    z-index: 30;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    block-size: calc(var(--header-height) + var(--header-rim));
+    padding-inline: 1.5rem 0.75rem;
+    border-block-end: var(--header-rim) solid var(--hud-line);
+    background-color: var(--hud-ink);
+    background-image: var(--header-decoration);
+    color: var(--hud-paper);
+  }
+
+  .hud-title {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.625rem;
+    min-block-size: var(--target-size);
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .hud-medallion {
+    display: grid;
+    place-items: center;
+    inline-size: 2.125rem;
+    block-size: 2.125rem;
+    border: 2px solid var(--hud-gold);
+    border-radius: 50%;
+    background: var(--hud-paper);
+    color: var(--hud-ink);
+  }
+
+  .hud-name {
+    font-family: var(--heading-font);
+    font-size: var(--header-title-size);
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  .hud-medallion .icon {
+    inline-size: 1.125rem;
+    block-size: 1.125rem;
+  }
+
+  .site-header-tools {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-inline-start: auto;
+  }
+
+  @media (width < 24rem) {
+    .hud-name {
+      font-size: 1.0625rem;
+    }
+  }
+
+  /* ==== Trail band ======================================================
+     Opaque: content scrolls under it, never through it. The band ornament
+     runs along its foot. */
+  .trail-band {
+    position: sticky;
+    inset-block-start: 0;
+    z-index: 20;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-block-size: var(--trail-height);
+    padding: 0.5rem 0.75rem 0.5rem 0.75rem;
+    border-block-end: var(--line-width) solid var(--line);
+    background-color: var(--trail-surface);
+    background-image: var(--trail-decoration);
+    box-shadow: 0 6px 14px -10px var(--shadow);
+  }
+
+  .trail-band::before,
+  .trail-band::after {
+    content: "";
+    position: absolute;
+    inset-inline: 0;
+    inset-block-start: calc(100% + var(--line-width));
+    block-size: var(--orn-band-height);
+    background: var(--ornament-ink);
+    -webkit-mask: var(--orn-band) left center / auto 100% repeat-x;
+    mask: var(--orn-band) left center / auto 100% repeat-x;
+    pointer-events: none;
+  }
+
+  .trail-band::after {
+    background: var(--ornament-accent-ink);
+    -webkit-mask-image: var(--orn-band-accent);
+    mask-image: var(--orn-band-accent);
+  }
+
+  .trail-divider {
+    align-self: stretch;
+    margin-block: 0.25rem;
+    border-inline-start: var(--line-width) solid var(--line);
+  }
+
+  .trail-content {
+    display: flex;
+    flex: 1;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.25rem 0.75rem;
+    min-inline-size: 0;
+    padding-inline-start: 0.5rem;
+  }
+
+  .trail-path {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 0 0.375rem;
+    min-inline-size: 0;
+    flex: 1 1 12rem;
+  }
+
+  .trail-parents,
+  .trail-parents ol {
+    display: contents;
+  }
+
+  .trail-parents a {
+    color: inherit;
+  }
+
+  .trail-parents li {
+    display: inline-flex;
+    gap: 0.375rem;
+    color: var(--muted);
+    font-size: 0.875rem;
+  }
+
+  .trail-heading {
+    min-inline-size: 0;
+    font-family: var(--display-font);
+    font-size: var(--header-title-size);
+    line-height: 1.3;
+    overflow-wrap: anywhere;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .trail-tools {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.5rem;
+    margin-inline-start: auto;
+  }
+
+  .trail-note {
+    color: var(--muted);
+    font-size: 0.875rem;
+  }
+
+  @media (width < 40rem) {
+    .trail-band {
+      padding-inline: 0.25rem 0.5rem;
+    }
+    .trail-heading {
+      font-size: 1.125rem;
+    }
+    .trail-tools .button-label {
+      position: absolute;
+      inline-size: 1px;
+      block-size: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+    }
+  }
+
+  /* ==== Site panel ======================================================
+     Docked beside the page from 64rem; a modal drawer below it. */
+  .site-panel {
+    position: fixed;
+    inset-block: var(--chrome-height) 0;
+    inset-inline-start: 0;
+    z-index: 25;
+    display: none;
+    flex-direction: column;
+    gap: 1rem;
+    inset-inline-end: auto;
+    inline-size: min(var(--site-panel-width), 88vw);
+    max-inline-size: none;
+    block-size: auto;
+    max-block-size: none;
+    margin: 0;
+    padding: 1rem 1rem 2rem;
+    border-block: 0;
+    border-inline-start: 0;
+    color: inherit;
+    overflow-y: auto;
+    border-inline-end: var(--line-width) solid var(--line);
+    background-color: var(--navigation-surface);
+    background-image: var(--panel-decoration);
+  }
+
+  .site-panel[data-open="always"] {
+    display: flex;
+  }
+
+  @media (width >= 64rem) {
+    .site-panel[data-open] {
+      display: flex;
+    }
+  }
+
+  @media (width < 64rem) {
+    .site-panel[data-open="always"] {
+      box-shadow: var(--raised-shadow);
+    }
+    .app:has(.site-panel[data-open="always"])::after {
+      content: "";
+      position: fixed;
+      inset: var(--chrome-height) 0 0;
+      z-index: 24;
+      background: var(--scrim);
+    }
+  }
+
+  .site-panel-heading {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: var(--section-heading-size);
+  }
+
+  .panel-label {
+    color: var(--label-ink);
+    font-variant-caps: var(--label-caps);
+    font-family: var(--label-font);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    letter-spacing: var(--panel-label-tracking);
+    text-transform: var(--panel-label-case);
+  }
+
+  .panel-links {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .panel-link {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    min-block-size: var(--target-size);
+    padding-inline: 0.5rem;
+    border-radius: var(--action-radius);
+    font-family: var(--heading-font);
+    font-size: 1.0625rem;
+    text-decoration: none;
+  }
+
+  .panel-link::before {
+    content: "";
+    flex: none;
+    inline-size: var(--orn-bullet-size);
+    block-size: var(--orn-bullet-size);
+    background: var(--ornament-ink);
+    -webkit-mask: var(--orn-bullet) center / contain no-repeat;
+    mask: var(--orn-bullet) center / contain no-repeat;
+  }
+
+  .panel-link:hover {
+    background: color-mix(in oklab, var(--primary) 8%, transparent);
+  }
+
+  .panel-link[aria-current="page"] {
+    color: var(--primary);
+    font-weight: 600;
+    box-shadow: inset 3px 0 0 var(--primary);
+  }
+
+  .panel-link[aria-current="page"]::before {
+    background: var(--ornament-accent-ink);
+  }
+
+  .panel-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .site-panel > .button-primary {
+    justify-content: flex-start;
+  }
+
+  .panel-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .panel-rule {
+    border: 0;
+    margin: 0;
+    block-size: var(--panel-separator-size);
+    background: var(--panel-separator);
+  }
+
+  /* ==== Appearance swatch ===============================================
+     A native radio per appearance. The face sets data-mode, so it shows
+     that appearance's own texture, palette and ornament. Selection is a
+     solid ring on the label; keyboard focus is a dashed outline outside
+     it; the tooltip names the appearance. */
+  .appearance-swatches {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+
+  .appearance-swatch {
+    --swatch-size: 3.25rem;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.375rem;
+    min-inline-size: var(--target-size);
+    padding: 0.25rem;
+    border-radius: calc(var(--control-radius) + 0.25rem);
+    cursor: pointer;
+  }
+
+  .appearance-swatch[data-size="large"] {
+    --swatch-size: 5.5rem;
+  }
+
+  .appearance-swatch-input {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    margin: 0;
+    opacity: 0;
+    cursor: pointer;
+  }
+
+  .appearance-swatch-face {
+    position: relative;
+    display: block;
+    inline-size: var(--swatch-size);
+    block-size: var(--swatch-size);
+    overflow: hidden;
+    border: 1px solid var(--line);
+    border-radius: var(--control-radius);
+    background-color: var(--background);
+    background-image: var(--page-decoration);
+    background-size: cover;
+    background-position: center;
+  }
+
+  .appearance-swatch-face::before,
+  .appearance-swatch-face::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-color: var(--ornament-ink);
+    -webkit-mask: var(--orn-swatch) center / contain no-repeat;
+    mask: var(--orn-swatch) center / contain no-repeat;
+  }
+
+  .appearance-swatch-face::after {
+    background-color: var(--ornament-accent-ink);
+    -webkit-mask-image: var(--orn-swatch-accent);
+    mask-image: var(--orn-swatch-accent);
+  }
+
+  .appearance-swatch-name {
+    font-size: 0.875rem;
+    text-align: center;
+  }
+
+  .appearance-swatch:has(:checked) {
+    box-shadow: 0 0 0 2px var(--foreground);
+  }
+
+  .appearance-swatch:has(:checked) .appearance-swatch-name {
+    font-weight: 700;
+  }
+
+  .appearance-swatch:has(:focus-visible) {
+    outline: 2px dashed var(--focus);
+    outline-offset: 4px;
+  }
+
+  .appearance-swatch-tooltip {
+    position: absolute;
+    inset-block-start: calc(100% + 0.5rem);
+    inset-inline-start: 50%;
+    z-index: 5;
+    translate: -50% 0;
+    padding: 0.25rem 0.5rem;
+    border: 1px solid var(--line);
+    border-radius: var(--action-radius);
+    background: var(--foreground);
+    color: var(--background);
+    font-size: 0.8125rem;
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 0;
+    visibility: hidden;
+  }
+
+  .appearance-swatch:hover .appearance-swatch-tooltip,
+  .appearance-swatch:has(:focus-visible) .appearance-swatch-tooltip,
+  .appearance-swatch[data-show-tooltip] .appearance-swatch-tooltip {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  /* ==== Tabs ============================================================ */
+  .tabs {
+    display: flex;
+    gap: 0.25rem;
+    overflow-x: auto;
+    border-block-end: var(--rule-width) var(--rule-style) var(--rule-ink);
+    scrollbar-width: none;
+  }
+
+  .tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    min-block-size: var(--target-size);
+    padding: 0.5rem 0.625rem;
+    border: 0;
+    border-block-end: 3px solid transparent;
+    background: transparent;
+    color: var(--muted);
+    font-family: var(--heading-font);
+    font-size: 0.9375rem;
+    white-space: nowrap;
+    text-decoration: none;
+    cursor: pointer;
+  }
+
+  .tab:hover {
+    color: var(--foreground);
+  }
+
+  .tab[aria-selected="true"],
+  .tab[aria-current="page"] {
+    border-block-end-color: var(--primary);
+    color: var(--foreground);
+    font-weight: 600;
+  }
+
+  .tabs[aria-orientation="vertical"] {
+    flex-direction: column;
+    border-block-end: 0;
+    border-inline-start: var(--rule-width) var(--rule-style) var(--rule-ink);
+  }
+
+  .tabs[aria-orientation="vertical"] .tab {
+    justify-content: flex-start;
+    border-block-end: 0;
+    border-inline-start: 3px solid transparent;
+    white-space: normal;
+    text-align: start;
+  }
+
+  .tabs[aria-orientation="vertical"] .tab[aria-selected="true"] {
+    border-inline-start-color: var(--primary);
+    background: color-mix(in oklab, var(--primary) 7%, transparent);
+  }
+
+  /* ==== Collection: folder tabs over a list of rows =====================
+     The quests list and the Spellbook share it. */
+  .collection-tabs {
+    display: flex;
+    gap: 0.25rem;
+    overflow-x: auto;
+    padding-inline: 0.5rem;
+    scrollbar-width: none;
+  }
+
+  .collection-tab {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-block-size: var(--target-size);
+    padding: 0.5rem 0.875rem;
+    border: var(--line-width) solid var(--line);
+    border-block-end: 0;
+    border-radius: var(--action-radius) var(--action-radius) 0 0;
+    background: var(--secondary-surface);
+    color: var(--muted);
+    font-size: 0.9375rem;
+    text-decoration: none;
+    white-space: nowrap;
+  }
+
+  .collection-tab[aria-current="page"],
+  .collection-tab[aria-selected="true"] {
+    z-index: 1;
+    margin-block-end: calc(-1 * var(--line-width));
+    background: var(--surface);
+    color: var(--foreground);
+    font-weight: 600;
+  }
+
+  .collection-count {
+    display: inline-grid;
+    place-items: center;
+    min-inline-size: 1.375rem;
+    padding-inline: 0.375rem;
+    border: 1px solid currentColor;
+    border-radius: 999px;
+    font-family: var(--numeral-font);
+    font-size: 0.75rem;
+    font-variant-numeric: tabular-nums;
+    line-height: 1.375rem;
+  }
+
+  .collection-panel {
+    position: relative;
+    border: var(--line-width) solid var(--line);
+    border-radius: var(--action-radius);
+    background: var(--surface);
+  }
+
+  .collection-list > li + li {
+    border-block-start: var(--rule-width) var(--rule-style) var(--rule-ink);
+  }
+
+  .collection-row {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 0.875rem;
+    min-block-size: 4.5rem;
+    padding: 0.75rem 1rem;
+  }
+
+  .collection-row:hover {
+    background: color-mix(in oklab, var(--primary) 6%, transparent);
+  }
+
+  .collection-mark {
+    display: grid;
+    place-items: center;
+    flex: none;
+    inline-size: 2.25rem;
+    block-size: 2.25rem;
+    border: var(--line-width) solid var(--line);
+    border-radius: var(--control-radius);
+    color: var(--primary);
+  }
+
+  .collection-mark img {
+    inline-size: 100%;
+    block-size: 100%;
+    border-radius: inherit;
+    object-fit: cover;
+  }
+
+  .collection-text {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 0.125rem;
+    min-inline-size: 0;
+  }
+
+  .collection-link {
+    font-family: var(--heading-font);
+    font-size: var(--card-title-size);
+    font-weight: 600;
+    line-height: 1.3;
+    text-decoration: none;
+    overflow-wrap: anywhere;
+  }
+
+  .collection-link::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+  }
+
+  .collection-link:focus-visible {
+    outline: none;
+  }
+
+  .collection-link:focus-visible::after {
+    outline: var(--focus-outline);
+    outline-offset: calc(-1 * var(--focus-offset) - 2px);
+  }
+
+  .collection-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 0.75rem;
+    color: var(--muted);
+    font-size: 0.875rem;
+  }
+
+  .collection-end {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    color: var(--muted);
+  }
+
+  /* ==== Choice tile ====================================================
+     A large button that starts something: the ways to start a quest. */
+  .choice-tiles {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(10.5rem, 1fr));
+    gap: 0.75rem;
+  }
+
+  .choice-tile {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+    inline-size: 100%;
+    min-block-size: 5.5rem;
+    padding: 0.875rem 1rem;
+    border: var(--line-width) solid var(--line);
+    border-radius: var(--control-radius);
+    background: var(--action-paper);
+    color: var(--foreground);
+    text-align: start;
+    cursor: pointer;
+  }
+
+  .choice-tile .icon {
+    inline-size: 1.25rem;
+    block-size: 1.25rem;
+    color: var(--primary);
+  }
+
+  .choice-tile:hover {
+    border-color: var(--primary);
+    box-shadow: var(--action-hover-shadow);
+  }
+
+  .choice-tile:active {
+    box-shadow: var(--action-pressed-shadow);
+  }
+
+  .choice-tile-name {
+    font-family: var(--heading-font);
+    font-size: var(--card-title-size);
+    font-weight: 600;
+    line-height: 1.3;
+  }
+
+  .choice-tile-hint {
+    color: var(--muted);
+    font-size: 0.875rem;
+  }
+
+  @media (width < 30rem) {
+    .choice-tiles {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.5rem;
+    }
+    .choice-tile {
+      min-block-size: 4.75rem;
+      padding: 0.625rem 0.75rem;
+    }
+  }
+
+  /* ==== Current quest card ============================================== */
+  .current-quest {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .current-quest-label {
+    color: var(--muted);
+    font-family: var(--label-font);
+    font-size: 0.875rem;
+  }
+
+  /* ==== Empty state ===================================================== */
+  .empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 2.5rem 1.5rem;
+    text-align: center;
+  }
+
+  .empty-state-heading {
+    font-size: var(--section-heading-size);
+  }
+
+  .empty-state-copy {
+    max-inline-size: 32rem;
+    color: var(--muted);
+  }
+
+  /* ==== Editable list (tasks, ideas, Quick Notes, spell replies) ======= */
+  .editable-list {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .editable-list > li + li {
+    border-block-start: var(--rule-width) var(--rule-style) var(--rule-ink);
+  }
+
+  .editable-row {
+    position: relative;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    padding-block: 0.375rem;
+  }
+
+  .editable-check {
+    display: grid;
+    place-items: center;
+    flex: none;
+    inline-size: var(--target-size);
+    block-size: var(--target-size);
+  }
+
+  .editable-check input {
+    inline-size: 1.25rem;
+    block-size: 1.25rem;
+    margin: 0;
+    accent-color: var(--primary);
+  }
+
+  .editable-text {
+    flex: 1;
+    min-inline-size: 0;
+    padding-block: 0.625rem;
+    overflow-wrap: anywhere;
+  }
+
+  .editable-actions {
+    display: flex;
+    flex: none;
+  }
+
+  .editable-actions .icon-button {
+    color: var(--muted);
+  }
+
+  .editable-done .editable-text {
+    color: var(--muted);
+    text-decoration: line-through;
+  }
+
+  .editable-add {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .editable-add .input-field {
+    flex: 1;
+    min-inline-size: 0;
+  }
+
+  .list-summary {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-block-size: var(--target-size);
+    color: var(--muted);
+    font-family: var(--heading-font);
+    cursor: pointer;
+  }
+
+  /* ==== Menu (row actions, commands) ==================================== */
+  .menu {
+    position: absolute;
+    z-index: 40;
+    display: flex;
+    flex-direction: column;
+    min-inline-size: 12rem;
+    padding: 0.375rem;
+    border: var(--line-width) solid var(--line);
+    border-radius: var(--control-radius);
+    background: var(--surface);
+    box-shadow: var(--raised-shadow);
+  }
+
+  .menu-label {
+    padding: 0.25rem 0.625rem;
+    color: var(--muted);
+    font-family: var(--label-font);
+    font-size: 0.8125rem;
+  }
+
+  .menu-item {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    min-block-size: var(--target-size);
+    padding: 0.375rem 0.625rem;
+    border: 0;
+    border-radius: var(--action-radius);
+    background: transparent;
+    text-align: start;
+    cursor: pointer;
+  }
+
+  .menu-item[data-highlighted],
+  .menu-item[aria-selected="true"],
+  .menu-item:hover {
+    background: color-mix(in oklab, var(--primary) 12%, transparent);
+  }
+
+  .menu-item[aria-disabled="true"] {
+    color: var(--muted);
+    opacity: 0.7;
+    cursor: not-allowed;
+  }
+
+  .menu-item-danger {
+    color: var(--danger);
+  }
+
+  .menu-hint {
+    margin-inline-start: auto;
+    color: var(--muted);
+    font-size: 0.8125rem;
+  }
+
+  .menu-item code {
+    font-weight: 600;
+  }
+
+  /* ==== Dialog ========================================================== */
+  .dialog-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    display: grid;
+    place-items: center;
+    padding: 1rem;
+    background: var(--scrim);
+  }
+
+  .dialog-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    inline-size: min(100%, 28rem);
+    padding: calc(1.5rem + var(--frame-inset));
+    box-shadow:
+      inset 0 0 0 var(--frame-inset) var(--surface),
+      inset 0 0 0 calc(var(--frame-inset) + var(--frame-keyline))
+        var(--frame-ink),
+      var(--raised-shadow);
+  }
+
+  .dialog-title {
+    font-size: var(--section-heading-size);
+  }
+
+  .dialog-actions {
+    display: flex;
+    flex-wrap: wrap-reverse;
+    justify-content: flex-end;
+    gap: 0.75rem;
+  }
+
+  /* ==== Progress ring ===================================================
+     One ring for the header's medallion and the Profile's card. */
+  .progress-ring {
+    --ring-size: 2.5rem;
+    position: relative;
+    display: inline-grid;
+    place-items: center;
+    flex: none;
+    inline-size: max(var(--ring-size), var(--target-size));
+    block-size: max(var(--ring-size), var(--target-size));
+    color: var(--ring-ink);
+    text-decoration: none;
+  }
+
+  .progress-ring-svg {
+    grid-area: 1 / 1;
+    inline-size: var(--ring-size);
+    block-size: var(--ring-size);
+    rotate: -90deg;
+  }
+
+  .progress-ring-disc {
+    fill: var(--ring-disc);
+  }
+
+  .progress-ring-track,
+  .progress-ring-arc {
+    fill: none;
+    stroke-width: calc(40px * var(--ring-stroke));
+  }
+
+  .progress-ring-track {
+    stroke: var(--ring-track);
+  }
+
+  .progress-ring-arc {
+    stroke: var(--ring-arc);
+    stroke-linecap: round;
+  }
+
+  .progress-ring-label {
+    grid-area: 1 / 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-family: var(--numeral-font);
+    font-size: calc(var(--ring-size) * 0.32);
+    font-weight: 700;
+    font-variant-numeric: lining-nums tabular-nums;
+    line-height: 1;
+  }
+
+  .progress-ring-caption {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--muted);
+    letter-spacing: 0.04em;
+  }
+
+  .progress-ring[data-size="card"] {
+    --ring-size: 8.5rem;
+    --ring-stroke: 0.07;
+  }
+
+  .progress-ring[data-size="card"] .progress-ring-label {
+    font-size: 2.75rem;
+    gap: 0.25rem;
+  }
+
+  .site-header .progress-ring {
+    --ring-track: color-mix(in oklab, var(--hud-line) 70%, transparent);
+    --ring-arc: var(--hud-gold);
+    --ring-disc: var(--hud-paper);
+    --ring-ink: var(--hud-ink);
+  }
+
+  /* ==== Profile ========================================================= */
+  .profile-card {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    align-items: center;
+    gap: 1.5rem;
+  }
+
+  .profile-standing {
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+  }
+
+  .profile-title {
+    font-family: var(--display-font);
+    font-size: var(--section-heading-size);
+  }
+
+  @media (width < 30rem) {
+    .profile-card {
+      grid-template-columns: 1fr;
+      justify-items: center;
+      text-align: center;
+    }
+  }
+
+  .ability-tiles {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(9.5rem, 1fr));
+    gap: 0.75rem;
+  }
+
+  .ability-tile {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    padding: 0.875rem;
+    border: var(--rule-width) var(--rule-style) var(--line);
+    border-radius: var(--control-radius);
+    background: var(--surface);
+  }
+
+  .ability-tile[data-most] {
+    border-width: var(--line-width);
+    border-color: var(--primary);
+  }
+
+  .ability-name {
+    font-family: var(--heading-font);
+    font-weight: 600;
+  }
+
+  .ability-number {
+    font-family: var(--numeral-font);
+    font-size: 1.75rem;
+    font-variant-numeric: lining-nums tabular-nums;
+    line-height: 1.1;
+  }
+
+  .ability-hint {
+    color: var(--muted);
+    font-size: 0.8125rem;
+  }
+
+  /* ==== Construct portrait and avatar ================================== */
+  .construct-portrait {
+    position: relative;
+    inline-size: min(100%, 16rem);
+    aspect-ratio: 1;
+    margin: var(--orn-portrait-bleed);
+  }
+
+  .construct-portrait img {
+    inline-size: 100%;
+    block-size: 100%;
+    object-fit: cover;
+    border-radius: var(--action-radius);
+  }
+
+  .construct-portrait::before,
+  .construct-portrait::after {
+    content: "";
+    position: absolute;
+    inset: calc(-1 * var(--orn-portrait-bleed));
+    background-color: var(--ornament-ink);
+    -webkit-mask: var(--orn-portrait) center / 100% 100% no-repeat;
+    mask: var(--orn-portrait) center / 100% 100% no-repeat;
+    pointer-events: none;
+  }
+
+  .construct-portrait::after {
+    background-color: var(--ornament-accent-ink);
+    -webkit-mask-image: var(--orn-portrait-accent);
+    mask-image: var(--orn-portrait-accent);
+  }
+
+  .construct-avatar {
+    position: relative;
+    display: inline-block;
+    flex: none;
+    inline-size: 2rem;
+    block-size: 2rem;
+    overflow: hidden;
+    border: 1px solid var(--line);
+    border-radius: 50%;
+    background: var(--field);
+  }
+
+  .construct-avatar img {
+    position: absolute;
+    max-inline-size: none;
+  }
+
+  /* ==== Conversation ==================================================== */
+  .chat-thread {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    inline-size: 100%;
+    max-inline-size: 43rem;
+    margin-inline: auto;
+  }
+
+  .chat-transcript {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .chat-message {
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+    padding: 0.875rem 1rem 1rem;
+    border: calc(var(--line-width) / 2) solid var(--line);
+    border-radius: var(--conversation-field-radius);
+    background: color-mix(in oklab, var(--field) 72%, transparent);
+    font-family: var(--conversation-font);
+    font-size: var(--conversation-text-size);
+    line-height: var(--conversation-leading);
+  }
+
+  .chat-message-user {
+    margin-inline-start: min(10%, 4rem);
+    border-inline-end: 3px solid var(--line);
+  }
+
+  .chat-message-construct {
+    margin-inline-end: min(10%, 4rem);
+    border-inline-start: 3px solid var(--primary);
+  }
+
+  .chat-speaker {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--primary);
+    font-family: var(--label-font);
+    font-size: 0.875rem;
+    font-weight: 700;
+  }
+
+  .chat-message-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.625rem;
+    overflow-wrap: anywhere;
+  }
+
+  .chat-message-body ul {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .chat-message-body li {
+    position: relative;
+    padding-inline-start: 1.125rem;
+  }
+
+  .chat-message-body li::before {
+    content: "";
+    position: absolute;
+    inset-inline-start: 0.125rem;
+    inset-block-start: 0.6em;
+    inline-size: max(0.375rem, var(--orn-bullet-size));
+    block-size: max(0.375rem, var(--orn-bullet-size));
+    background: var(--ornament-ink);
+    -webkit-mask: var(--orn-bullet) center / contain no-repeat;
+    mask: var(--orn-bullet) center / contain no-repeat;
+  }
+
+  .chat-message-body li:where(:not(:has(*)))::before {
+    border-radius: 50%;
+  }
+
+  .chat-message[data-tone="error"] {
+    border-color: var(--danger);
+    border-inline-start-color: var(--danger);
+  }
+
+  /* A change the conversation made to the quest's lists, with Undo. */
+  .tasks-change {
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+    padding: 0.625rem 0.75rem;
+    border: 1px dashed var(--line);
+    border-radius: var(--action-radius);
+    font-family: var(--body-font);
+    font-size: 0.9375rem;
+  }
+
+  .tasks-change-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    color: var(--muted);
+    font-weight: 600;
+  }
+
+  .tasks-change .button-quiet {
+    min-block-size: 2rem;
+    padding-block: 0.25rem;
+  }
+
+  .working-dots {
+    display: inline-flex;
+    gap: 0.3rem;
+    padding-block: 0.5rem;
+  }
+
+  .working-dots span {
+    inline-size: 0.4375rem;
+    block-size: 0.4375rem;
+    border-radius: 50%;
+    background: var(--primary);
+    opacity: 0.35;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .working-dots span {
+      animation: working-dot 1.2s ease-in-out infinite;
+    }
+    .working-dots span:nth-child(2) {
+      animation-delay: 0.2s;
+    }
+    .working-dots span:nth-child(3) {
+      animation-delay: 0.4s;
+    }
+  }
+
+  @keyframes working-dot {
+    40% {
+      opacity: 1;
+    }
+  }
+
+  /* ==== Composer ======================================================== */
+  .chat-composer-dock {
+    position: sticky;
+    inset-block-end: 0;
+    z-index: 10;
+    padding-block: 0.75rem 1rem;
+    background-color: var(--background);
+    background-image: var(--page-decoration);
+    background-size: cover;
+    background-attachment: fixed;
+  }
+
+  .chat-composer {
+    position: relative;
+    max-inline-size: 43rem;
+    margin-inline: auto;
+  }
+
+  .chat-composer .menu {
+    inset-block-end: calc(100% + 0.5rem);
+    inset-inline: 0;
+  }
+
+  .chat-composer-hint {
+    margin-block-start: 0.375rem;
+    color: var(--muted);
+    font-size: 0.8125rem;
+  }
+
+  /* ==== Skeleton (loading) ============================================ */
+  .skeleton {
+    display: block;
+    block-size: 1rem;
+    border-radius: var(--action-radius);
+    background: color-mix(in oklab, var(--line) 22%, transparent);
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .skeleton {
+      animation: skeleton-pulse 1.4s ease-in-out infinite;
+    }
+  }
+
+  @keyframes skeleton-pulse {
+    50% {
+      opacity: 0.55;
+    }
+  }
+
+  /* ==== Quest workspace ================================================= */
+  .page-frame-quest {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .quest-main {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    min-inline-size: 0;
+    padding: 1.5rem 1rem 0;
+    min-block-size: calc(100dvh - var(--chrome-height) - var(--trail-height));
+  }
+
+  .quest-main > .chat-thread {
+    flex: 1;
+  }
+
+  .quest-sidebar {
+    display: none;
+    flex-direction: column;
+    gap: 1rem;
+    padding: 1rem 1rem 2rem;
+    background-color: var(--sidebar-surface);
+    background-image: var(--panel-decoration);
+    border-inline-start: var(--line-width) solid var(--line);
+  }
+
+  .quest-sidebar-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    font-size: var(--section-heading-size);
+  }
+
+  .quest-next-task {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    padding: 0.5rem 0.875rem;
+    border-inline-start: 3px solid var(--primary);
+  }
+
+  .quest-next-task p:first-child {
+    color: var(--muted);
+    font-size: 0.875rem;
+  }
+
+  .quest-next-task p:last-child {
+    font-family: var(--heading-font);
+    font-size: 1.125rem;
+  }
+
+  .bucket {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .bucket-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    padding-block-end: 0.5rem;
+    border-block-end: var(--rule-width) var(--rule-style) var(--rule-ink);
+  }
+
+  .bucket-summary {
+    color: var(--muted);
+    font-size: 0.875rem;
+  }
+
+  .quest-sidebar .tabs {
+    margin-inline: -0.25rem;
+  }
+
+  .tab-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .tab-panel[hidden] {
+    display: none;
+  }
+
+  .dated-list > li {
+    display: flex;
+    flex-direction: column;
+    gap: 0.125rem;
+    padding-block: 0.625rem;
+  }
+
+  .dated-list > li + li {
+    border-block-start: var(--rule-width) var(--rule-style) var(--rule-ink);
+  }
+
+  .dated-list time {
+    color: var(--muted);
+    font-family: var(--label-font);
+    font-size: 0.8125rem;
+  }
+
+  .sidebar-sections > details {
+    border-block-start: var(--rule-width) var(--rule-style) var(--rule-ink);
+  }
+
+  .sidebar-sections summary {
+    list-style: none;
+  }
+
+  .sidebar-sections summary::-webkit-details-marker {
+    display: none;
+  }
+
+  @media (width >= 64rem) {
+    .page-frame-quest:has(.quest-sidebar[data-open]) {
+      grid-template-columns: minmax(0, 1fr) var(--quest-panel-width);
+    }
+    .quest-sidebar[data-open] {
+      display: flex;
+      position: sticky;
+      inset-block-start: var(--trail-height);
+      align-self: start;
+      max-block-size: calc(100dvh - var(--trail-height));
+      overflow-y: auto;
+    }
+    .quest-main {
+      padding-inline: 2rem;
+    }
+  }
+
+  @media (width < 64rem) {
+    .quest-sidebar[data-drawer-open] {
+      display: flex;
+      position: fixed;
+      inset-block: var(--chrome-height) 0;
+      inset-inline-end: 0;
+      z-index: 26;
+      inline-size: min(100%, var(--quest-panel-width));
+      overflow-y: auto;
+      box-shadow: var(--raised-shadow);
+    }
+  }
+
+  /* ==== Spell editor ==================================================== */
+  .editor-layout {
+    display: grid;
+    gap: 1.25rem;
+  }
+
+  @media (width >= 48rem) {
+    .editor-layout {
+      grid-template-columns: 14rem minmax(0, 1fr);
+      align-items: start;
+    }
+  }
+
+  .save-bar {
+    position: sticky;
+    inset-block-end: 0;
+    z-index: 5;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    border-block-start: var(--line-width) solid var(--line);
+    background: var(--surface);
+  }
+
+  /* ==== Timer ===========================================================
+     The appearance's timer art, unchanged from page-roles.css: the
+     hourglass for one appearance, the dial for the others, chosen by the
+     --timer-* display tokens. */
+  .timer-stage {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.25rem;
+    padding-block: var(--timer-stage-padding);
+    color: var(--foreground);
+    font-family: var(--timer-body-font);
+  }
+
+  .timer-face {
+    position: relative;
+    display: grid;
+    place-items: center;
+    grid-template-columns: var(--timer-face-columns);
+    gap: 0.625rem;
+    inline-size: var(--timer-face-width);
+    min-block-size: var(--timer-face-height);
+    padding: var(--timer-face-padding);
+    aspect-ratio: var(--timer-face-ratio);
+    container-type: inline-size;
+  }
+
+  .timer-ring {
+    display: var(--timer-ring-display);
+    position: absolute;
+    inset: 0;
+    inline-size: 100%;
+    block-size: 100%;
+  }
+
+  .timer-guide-lines {
+    fill: none;
+    stroke: var(--timer-ornament-ink);
+    stroke-width: 1.1px;
+  }
+
+  .timer-outer-guide {
+    r: var(--timer-guide-outer);
+  }
+
+  .timer-middle-guide {
+    r: var(--timer-guide-middle);
+  }
+
+  .timer-inner-guide {
+    r: var(--timer-guide-inner);
+  }
+
+  .timer-seal {
+    display: var(--timer-seal-display);
+  }
+
+  .timer-dial-labels {
+    fill: var(--foreground);
+    font-family: var(--timer-body-font);
+    font-size: 11px;
+  }
+
+  .timer-inscription {
+    display: var(--timer-inscription-display);
+    letter-spacing: 3px;
+  }
+
+  .timer-marker {
+    color: var(--timer-ornament-ink);
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.2px;
+  }
+
+  .timer-marker[data-passed="true"] {
+    color: var(--timer-marker-active);
+    stroke-width: 2.2px;
+    filter: var(--timer-mark-glow);
+  }
+
+  .timer-marker[data-passed="true"] .timer-marker-fill {
+    fill: currentColor;
+  }
+
+  .timer-sigil {
+    display: var(--timer-sigil-display);
+  }
+
+  .timer-chapter {
+    display: var(--timer-chapter-display);
+  }
+
+  .timer-track,
+  .timer-progress {
+    fill: none;
+    r: var(--timer-radius);
+    stroke-width: var(--timer-stroke);
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .timer-marker {
+      transition:
+        color 160ms ease-out,
+        stroke-width 160ms ease-out;
+    }
+  }
+
+  .timer-track {
+    stroke: var(--timer-track);
+    opacity: 0.2;
+  }
+
+  .timer-progress-rest {
+    stroke: var(--accent);
+  }
+
+  .timer-gilt {
+    fill: var(--timer-arc);
+  }
+
+  .timer-gilt-grain {
+    fill: none;
+    stroke: var(--background);
+    stroke-width: 0.7px;
+    opacity: var(--timer-hatch-opacity);
+  }
+
+  .timer-readout {
+    justify-self: stretch;
+    display: flex;
+    flex-direction: column;
+    align-items: var(--timer-readout-align);
+    text-align: var(--timer-readout-align);
+  }
+
+  .timer-value {
+    position: relative;
+  }
+
+  .timer-phase {
+    position: var(--timer-phase-position);
+    margin-block-end: var(--timer-phase-gap);
+    inset-inline: 0;
+    inset-block-end: calc(100% + 0.25rem);
+    font-family: var(--timer-phase-font);
+    font-size: min(var(--timer-phase-size), 10.5cqi);
+    font-weight: 400;
+    line-height: 1.3;
+  }
+
+  .timer-countdown {
+    font-family: var(--timer-numeral-font);
+    font-size: min(var(--timer-numeral-size), var(--timer-number-scale));
+    font-weight: 500;
+    font-variant-numeric: lining-nums tabular-nums;
+    letter-spacing: -0.05em;
+    line-height: var(--timer-number-leading);
+  }
+
+  .timer-countdown[data-hours="true"] {
+    font-size: min(var(--timer-numeral-size), var(--timer-hours-scale));
+  }
+
+  .timer-next {
+    color: var(--foreground);
+    font-size: 0.875rem;
+    font-family: var(--timer-next-font);
+    position: var(--timer-next-position);
+    inset-block-start: var(--timer-next-offset);
+    margin-block-start: var(--timer-next-margin);
+    padding-block-start: var(--timer-next-padding);
+    letter-spacing: 0.08em;
+  }
+
+  .timer-next::before {
+    content: "";
+    display: var(--timer-next-rule);
+    position: absolute;
+    inset-block-start: 0;
+    inline-size: 3rem;
+    border-block-start: 1px solid var(--line);
+  }
+
+  .timer-hourglass {
+    display: var(--timer-hourglass-display);
+    inline-size: 100%;
+    max-inline-size: 14.375rem;
+  }
+
+  .timer-hourglass-wood {
+    fill: var(--foreground);
+  }
+
+  .timer-hourglass-frame,
+  .timer-hourglass-glass {
+    fill: none;
+    stroke: var(--line);
+    stroke-width: 2px;
+  }
+
+  .timer-hourglass-glass {
+    stroke-width: 1.3px;
+  }
+
+  .timer-sand {
+    fill: var(--timer-sand);
+  }
+
+  .timer-sand-grain {
+    stroke: var(--background);
+    stroke-width: 0.7px;
+    opacity: 0.35;
+  }
+
+  .timer-sand-stream {
+    fill: none;
+    stroke: var(--timer-sand);
+    stroke-width: 1.7px;
+    stroke-dasharray: 1 4;
+  }
+
+  @media (width <= 28.75rem) {
+    .timer-hourglass {
+      max-inline-size: 8.25rem;
+    }
+    .timer-next::before {
+      inset-inline-start: calc(50% - 1.5rem);
+    }
+  }
+
+  .timer-others {
+    min-inline-size: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--muted);
+    font-size: 0.875rem;
+  }
+
+  .duration-fields {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+  }
+
+  /* ==== Settings ======================================================== */
+  .settings-section {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  /* ==== Label roles =====================================================
+     Small labels share the theme's label case, caps and tracking. The
+     :is() list keeps the specificity of its most specific entry, so these
+     win over each label's own rule. The site panel's labels keep
+     panel-label-case and panel-label-tracking. */
+  :is(.chat-speaker, .current-quest-label, .menu-label, .dated-list time,
+      .progress-ring-caption) {
+    font-variant-caps: var(--label-caps);
+    letter-spacing: var(--label-tracking);
+    text-transform: var(--label-case);
+  }
+
+  :is(.current-quest-label, .menu-label, .dated-list time,
+      .progress-ring-caption) {
+    color: var(--label-ink);
+  }
+}
