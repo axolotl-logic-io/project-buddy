@@ -1,0 +1,198 @@
+/* Ivory Vellum: token values for the "light" appearance.
+   Copied from apps/web/src/themes/parchment.css on 2026-11-17, so the
+   build works before this appearance has its own theme. A theme thread
+   copies this folder to themes/ivory-vellum/ and changes values only.
+   THEME-INTERFACE.md lists and explains every token. */
+
+@layer appearance {
+  :root,
+  [data-mode="light"] {
+    color-scheme: light;
+
+    /* Colour */
+    --background: rgb(244 236 216);
+    --surface: rgb(250 229 185);
+    --field: rgb(255 243 215);
+    --code-surface: rgb(244 220 173);
+    --foreground: rgb(53 33 17);
+    --muted: rgb(103 72 40);
+    --line: rgb(134 96 50);
+    --primary: rgb(92 55 22);
+    --on-primary: rgb(255 240 203);
+    --accent: rgb(128 75 17);
+    --on-accent: rgb(255 244 220);
+    --danger: rgb(139 41 27);
+    --on-danger: rgb(255 240 203);
+    --focus: rgb(115 65 18);
+    --shadow: rgb(70 43 19);
+    --code-comment: rgb(112 76 43);
+    --code-keyword: rgb(111 47 36);
+    --code-string: rgb(66 87 38);
+    --code-function: rgb(66 66 103);
+    --code-constant: rgb(119 65 20);
+    --navigation-surface: rgb(250 229 185);
+    --trail-surface: rgb(250 229 185);
+    --sidebar-surface: rgb(250 229 185);
+    --secondary-surface: rgb(250 229 185);
+    --header-ink: oklch(25% 0.04 60);
+    --header-paper: oklch(92% 0.065 85);
+    --header-line: oklch(51% 0.06 65);
+    --header-gold: oklch(78% 0.13 80);
+    --action-fill: rgb(128 80 20);
+    --on-action: rgb(255 244 220);
+    --action-paper: rgb(255 243 215);
+    --action-ink: rgb(53 33 17);
+
+    /* Page texture: the unchanged file in apps/web/public/textures/. */
+    --page-decoration: url("/textures/ivory-vellum.webp");
+
+    /* Type, shape and site panel */
+    --body-font: var(--typeface-nunito);
+    --heading-font: var(--typeface-source-serif-4);
+    --mono-font: var(--typeface-jetbrains-mono);
+    --conversation-font: var(--typeface-source-serif-4);
+    --conversation-text-size: 1.0625rem;
+    --conversation-leading: 1.55;
+    --conversation-field-radius: 0.125rem;
+    --space-unit: 0.25rem;
+    --action-radius: 2px;
+    --action-line-width: 1px;
+    --action-font: var(--typeface-source-serif-4);
+    --action-hover-shadow: 0 2px 5px color-mix(in srgb, var(--shadow) 18%, transparent);
+    --action-pressed-shadow: inset 0 1px 2px color-mix(in srgb, var(--shadow) 20%, transparent);
+    --control-radius: 0.625rem;
+    --box-radius: 1rem;
+    --line-width: 2px;
+    --control-shadow: 0 2px 0 color-mix(in oklab, var(--shadow) 22%, transparent);
+    --raised-shadow: 0 10px 28px -8px color-mix(in oklab, var(--shadow) 35%, transparent), 0 2px 6px color-mix(in oklab, var(--shadow) 15%, transparent);
+    --focus-glow: 0 0 transparent;
+    --site-title-size: 2.25rem;
+    --site-title-wide-size: 3rem;
+    --page-heading-size: 1.875rem;
+    --page-heading-phone-size: 1.5rem;
+    --section-heading-size: 1.25rem;
+    --header-title-size: 1.25rem;
+    --card-title-size: 1.125rem;
+    --panel-decoration: linear-gradient( 110deg, transparent, color-mix(in oklab, var(--primary) 5%, transparent) );
+    --panel-label-case: none;
+    --panel-label-tracking: 0.04em;
+    --panel-separator: linear-gradient( to right, transparent, var(--line), transparent );
+    --panel-separator-size: 1px;
+
+    /* Ornament: roles and slot sizes. The --orn-* images come from
+       ornaments.svg in this folder; the build writes them. */
+    --display-font: var(--heading-font);
+    --label-font: var(--heading-font);
+    --rubric: var(--accent);
+    --ornament-ink: var(--line);
+    --ornament-accent-ink: var(--primary);
+    --rule-ink: var(--line);
+    --frame-ink: var(--line);
+    /* 3:1 against header-ink. */
+    --header-focus: var(--header-gold);
+    --rule-style: solid;
+    --frame-inset: 0.25rem;
+    --frame-keyline: 1px;
+    --orn-corner-size: 1.25rem;
+    --orn-divider-width: 1.5rem;
+    --orn-heading-width: 1rem;
+    --orn-band-height: 0.375rem;
+    --orn-emblem-size: 3rem;
+    --orn-empty-emblem-size: var(--orn-emblem-size);
+    --orn-portrait-bleed: 0.375rem;
+    --portrait-radius: var(--action-radius);
+    --orn-bullet-size: 0.4375rem;
+
+    /* Labels and numerals */
+    --label-ink: var(--muted);
+    --label-case: none;
+    --label-caps: normal;
+    --label-tracking: 0em;
+    --label-weight: 400;
+    --initial-gap: 0.08em;
+    --numeral-font: var(--heading-font);
+
+    /* Corner size per frame kind; 0px turns that kind's corners off. */
+    --orn-corner-panel-size: var(--orn-corner-size);
+    --orn-corner-dialog-size: var(--orn-corner-size);
+    --orn-corner-feature-size: var(--orn-corner-size);
+    --orn-corner-card-size: 0px;
+
+    /* Optional slots. 0px leaves a slot out, even if ornaments.svg draws it. */
+    --orn-vignette-width: 0px;
+    --orn-notice-size: 0px;
+    --orn-rule-end-height: 0px;
+
+    /* Timer: illustration, inks and type, then layout. */
+    --timer-body-font: var(--typeface-im-fell-english);
+    --timer-phase-font: var(--typeface-im-fell-english-italic);
+    --timer-numeral-font: var(--typeface-cormorant-garamond);
+    --timer-blackletter-font: var(--typeface-unifrakturmaguntia);
+    --timer-phase-size: 2rem;
+    --timer-numeral-size: 7.25rem;
+    --timer-number-scale: max(4.25rem, 26cqi);
+    --timer-hours-scale: 23cqi;
+    --timer-number-leading: 1;
+    --timer-next-font: var(--timer-body-font);
+    --timer-hourglass-display: block;
+    --timer-ring-display: none;
+    --timer-face-columns: 1fr 1.12fr;
+    --timer-face-width: 100%;
+    --timer-face-ratio: auto;
+    --timer-face-height: 35.625rem;
+    --timer-stage-padding: 1.5rem 4rem;
+    --timer-face-padding: 2.5rem 3.4375rem;
+    --timer-readout-align: start;
+    --timer-phase-position: static;
+    --timer-phase-gap: 0.8125rem;
+    --timer-next-position: relative;
+    --timer-next-offset: auto;
+    --timer-next-margin: 2.1875rem;
+    --timer-next-padding: 1.0625rem;
+    --timer-next-rule: block;
+    --timer-sand: rgb(165 119 40);
+    --timer-radius: 173px;
+    --timer-stroke: 10px;
+    --timer-arc: var(--primary);
+    --timer-marker-active: var(--primary);
+    --timer-track: var(--line);
+    --timer-ornament-ink: var(--muted);
+    --timer-guide-outer: 182px;
+    --timer-guide-middle: 165px;
+    --timer-guide-inner: 0px;
+    --timer-inscription-display: none;
+    --timer-sigil-display: none;
+    --timer-chapter-display: none;
+    --timer-seal-display: none;
+    --timer-mark-glow: drop-shadow( 0 0 3px color-mix(in srgb, var(--timer-marker-active) 45%, transparent) );
+    --timer-hatch-opacity: 0;
+  }
+
+  /* The compact hourglass stacks above its readout on a narrow page. */
+  @media (width <= 28.75rem) {
+    :root,
+    [data-mode="light"] {
+      --timer-face-columns: 1fr;
+      --timer-face-height: 32.5rem;
+      --timer-face-padding: 2.5rem 1.5rem;
+      --timer-readout-align: center;
+      --timer-phase-size: 1.5625rem;
+      --timer-numeral-size: 4.25rem;
+      --timer-phase-gap: 0.3125rem;
+      --timer-next-margin: 1.125rem;
+      --timer-next-padding: 0.75rem;
+    }
+  }
+
+  /* Keep the readout visible below the header on short phones. */
+  @media (width <= 28.75rem) and (height <= 42rem) {
+    :root,
+    [data-mode="light"] {
+      --timer-face-height: auto;
+      --timer-face-padding: 0 1.5rem;
+      --timer-stage-padding: 0;
+      --timer-next-margin: 0.75rem;
+      --timer-next-padding: 0.5rem;
+    }
+  }
+}

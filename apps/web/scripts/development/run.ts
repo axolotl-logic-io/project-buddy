@@ -235,9 +235,13 @@ try {
     await doctor();
   } else if (action === "sign-in-link" && actionArgs.length <= 1) {
     console.log((await signInLink(actionArgs[0])).href);
+  } else if (action === "review-data" && actionArgs.length <= 1) {
+    // It imports the site's modules, so it waits for npm ci too.
+    const { reviewData } = await import("./review-data.ts");
+    await reviewData(actionArgs[0]);
   } else {
     throw new Error(
-      "Usage: mise setup | mise run doctor | mise run sign-in-link [EMAIL]",
+      "Usage: mise setup | mise run doctor | mise run sign-in-link [EMAIL] | mise run review-data [EMAIL]",
     );
   }
 } catch (error) {

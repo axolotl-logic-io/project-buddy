@@ -1,0 +1,128 @@
+<aside class="quest-sidebar" id="quest-sidebar" aria-label="Quest side menu" data-open{{?drawer}} data-drawer-open{{/?}}>
+  <div class="quest-sidebar-heading">
+    <h2>Quest</h2>
+    <button class="icon-button" type="button" aria-controls="quest-sidebar" aria-expanded="true" aria-label="Collapse quest sidebar" title="Collapse quest sidebar"><svg class="icon" aria-hidden="true"><use href="#i-sidebar"/></svg></button>
+  </div>
+  <section class="quest-next-task" aria-label="Next task">
+    <p>Next task</p>
+    {{!completed}}<p>Make flash cards for compass words</p>{{/!}}{{?completed}}<p>No open tasks. Add a task to choose your next step.</p>{{/?}}
+  </section>
+
+  <div class="tabs" role="tablist" aria-label="Collections">
+    <button class="tab" type="button" role="tab" id="tab-tasks" aria-controls="panel-tasks" aria-selected="{{?tab=tasks}}true{{/?}}{{!tab=tasks}}false{{/!}}">Tasks</button>
+    <button class="tab" type="button" role="tab" id="tab-ideas" aria-controls="panel-ideas" aria-selected="{{?tab=ideas}}true{{/?}}{{!tab=ideas}}false{{/!}}">Ideas</button>
+    <button class="tab" type="button" role="tab" id="tab-notes" aria-controls="panel-notes" aria-selected="{{?tab=notes}}true{{/?}}{{!tab=notes}}false{{/!}}">Quick Notes</button>
+    <button class="tab" type="button" role="tab" id="tab-progress" aria-controls="panel-progress" aria-selected="{{?tab=progress}}true{{/?}}{{!tab=progress}}false{{/!}}">Progress</button>
+  </div>
+
+  <div class="tab-panel" role="tabpanel" id="panel-tasks" aria-labelledby="tab-tasks"{{!tab=tasks}} hidden{{/!}}>
+    <section class="bucket" aria-labelledby="bucket-tasks">
+      <h3 class="section-heading" id="bucket-tasks"><span class="ornament" data-ornament="heading" aria-hidden="true"></span>Tasks</h3>
+      <p class="muted">Agreed work. One step at a time.</p>
+      {{!completed}}<div class="bucket-toolbar">
+        <p class="bucket-summary">2 open · Agreed work</p>
+        <button class="button-quiet" type="button"><svg class="icon" aria-hidden="true"><use href="#i-plus"/></svg>Add a task</button>
+      </div>
+      <ul class="editable-list" aria-label="Tasks">
+        <li class="editable-row">
+          <span class="editable-check"><input type="checkbox" aria-label="Check off “Make flash cards for compass words”"></span>
+          <span class="editable-check"><button class="icon-button" type="button" aria-label="Reorder “Make flash cards for compass words”" title="Reorder “Make flash cards for compass words”"><svg class="icon" aria-hidden="true"><use href="#i-grip"/></svg></button></span>
+          <span class="editable-text">Make flash cards for compass words</span>
+          <span class="editable-actions"><button class="icon-button" type="button" aria-label="Edit “Make flash cards for compass words”" title="Edit “Make flash cards for compass words”"><svg class="icon" aria-hidden="true"><use href="#i-pencil"/></svg></button><button class="icon-button" type="button" aria-haspopup="menu" aria-expanded="{{?menu}}true{{/?}}{{!menu}}false{{/!}}" aria-label="Actions for “Make flash cards for compass words”"><svg class="icon" aria-hidden="true"><use href="#i-more"/></svg></button></span>
+          {{?menu}}<div class="menu" role="menu" aria-label="Actions for “Make flash cards for compass words”">
+            <p class="menu-label" aria-hidden="true">#3</p>
+            <div class="menu-item" role="menuitem" aria-disabled="true"><svg class="icon" aria-hidden="true"><use href="#i-arrow-up"/></svg>Move up</div>
+            <div class="menu-item" role="menuitem" data-highlighted><svg class="icon" aria-hidden="true"><use href="#i-arrow-down"/></svg>Move down</div>
+            <div class="menu-item menu-item-danger" role="menuitem"><svg class="icon" aria-hidden="true"><use href="#i-trash"/></svg>Remove task</div>
+          </div>{{/?}}
+        </li>
+        <li class="editable-row">
+          <span class="editable-check"><input type="checkbox" aria-label="Check off “Read one inscription aloud each morning”"></span>
+          <span class="editable-check"><button class="icon-button" type="button" aria-label="Reorder “Read one inscription aloud each morning”" title="Reorder “Read one inscription aloud each morning”"><svg class="icon" aria-hidden="true"><use href="#i-grip"/></svg></button></span>
+          <span class="editable-text">Read one inscription aloud each morning</span>
+          <span class="editable-actions"><button class="icon-button" type="button" aria-label="Edit “Read one inscription aloud each morning”" title="Edit “Read one inscription aloud each morning”"><svg class="icon" aria-hidden="true"><use href="#i-pencil"/></svg></button><button class="icon-button" type="button" aria-haspopup="menu" aria-expanded="false" aria-label="Actions for “Read one inscription aloud each morning”"><svg class="icon" aria-hidden="true"><use href="#i-more"/></svg></button></span>
+        </li>
+      </ul>
+      <details class="done-list">
+        <summary class="list-summary"><svg class="icon" aria-hidden="true"><use href="#i-chevron-right"/></svg>Done (2)</summary>
+        <ul class="editable-list" aria-label="Done tasks">
+          <li class="editable-row editable-done"><span class="editable-check"><input type="checkbox" checked aria-label="Reopen “Gather examples of old maps”"></span><span class="editable-text">Gather examples of old maps</span></li>
+          <li class="editable-row editable-done"><span class="editable-check"><input type="checkbox" checked aria-label="Reopen “Find an introduction to map inscriptions”"></span><span class="editable-text">Find an introduction to map inscriptions</span></li>
+        </ul>
+      </details>{{/!}}
+      {{?completed}}<div class="empty-state">
+        <span class="ornament" data-ornament="vignette" aria-hidden="true"></span><span class="ornament" data-ornament="emblem" aria-hidden="true"></span>
+        <p class="empty-state-heading">No open tasks</p>
+        <p class="empty-state-copy">Add the next piece of agreed work.</p>
+        <button class="button-secondary" type="button"><svg class="icon" aria-hidden="true"><use href="#i-plus"/></svg>Add a task</button>
+      </div>
+      <details class="done-list">
+        <summary class="list-summary"><svg class="icon" aria-hidden="true"><use href="#i-chevron-right"/></svg>Done (3)</summary>
+        <ul class="editable-list" aria-label="Done tasks">
+          <li class="editable-row editable-done"><span class="editable-check"><input type="checkbox" checked aria-label="Reopen “Gather examples of old maps”"></span><span class="editable-text">Gather examples of old maps</span></li>
+          <li class="editable-row editable-done"><span class="editable-check"><input type="checkbox" checked aria-label="Reopen “Find an introduction to map inscriptions”"></span><span class="editable-text">Find an introduction to map inscriptions</span></li>
+          <li class="editable-row editable-done"><span class="editable-check"><input type="checkbox" checked aria-label="Reopen “Save a scan of the Ortelius map”"></span><span class="editable-text">Save a scan of the Ortelius map</span></li>
+        </ul>
+      </details>{{/?}}
+    </section>
+  </div>
+
+  <div class="tab-panel" role="tabpanel" id="panel-ideas" aria-labelledby="tab-ideas"{{!tab=ideas}} hidden{{/!}}>
+    <section class="bucket" aria-labelledby="bucket-ideas">
+      <h3 class="section-heading" id="bucket-ideas"><span class="ornament" data-ornament="heading" aria-hidden="true"></span>Ideas</h3>
+      <p class="muted">Possibilities you haven’t committed to.</p>
+      <div class="bucket-toolbar">
+        <p class="bucket-summary">2 saved · Uncommitted</p>
+        <button class="button-quiet" type="button"><svg class="icon" aria-hidden="true"><use href="#i-plus"/></svg>Add idea</button>
+      </div>
+      <ul class="editable-list" aria-label="Ideas">
+        <li class="editable-row"><span class="editable-check"><button class="icon-button" type="button" aria-label="Reorder “Ask the map library about their Latin reading group”" title="Reorder “Ask the map library about their Latin reading group”"><svg class="icon" aria-hidden="true"><use href="#i-grip"/></svg></button></span><span class="editable-text">Ask the map library about their Latin reading group<br><span class="muted">Possibility</span></span><span class="editable-actions"><button class="icon-button" type="button" aria-label="Edit “Ask the map library about their Latin reading group”" title="Edit “Ask the map library about their Latin reading group”"><svg class="icon" aria-hidden="true"><use href="#i-pencil"/></svg></button><button class="icon-button" type="button" aria-label="Actions for “Ask the map library about their Latin reading group”" title="Actions for “Ask the map library about their Latin reading group”"><svg class="icon" aria-hidden="true"><use href="#i-more"/></svg></button><button class="button-quiet" type="button">Move to Tasks</button></span></li>
+        <li class="editable-row"><span class="editable-check"><button class="icon-button" type="button" aria-label="Reorder “Keep a glossary of place-name abbreviations”" title="Reorder “Keep a glossary of place-name abbreviations”"><svg class="icon" aria-hidden="true"><use href="#i-grip"/></svg></button></span><span class="editable-text">Keep a glossary of place-name abbreviations<br><span class="muted">Possibility</span></span><span class="editable-actions"><button class="icon-button" type="button" aria-label="Edit “Keep a glossary of place-name abbreviations”" title="Edit “Keep a glossary of place-name abbreviations”"><svg class="icon" aria-hidden="true"><use href="#i-pencil"/></svg></button><button class="icon-button" type="button" aria-label="Actions for “Keep a glossary of place-name abbreviations”" title="Actions for “Keep a glossary of place-name abbreviations”"><svg class="icon" aria-hidden="true"><use href="#i-more"/></svg></button><button class="button-quiet" type="button">Move to Tasks</button></span></li>
+      </ul>
+    </section>
+  </div>
+
+  <div class="tab-panel" role="tabpanel" id="panel-notes" aria-labelledby="tab-notes"{{!tab=notes}} hidden{{/!}}>
+    <section class="bucket" aria-labelledby="bucket-notes">
+      <h3 class="section-heading" id="bucket-notes"><span class="ornament" data-ornament="heading" aria-hidden="true"></span>Quick Notes</h3>
+      <p class="muted">Dated thoughts, kept for later.</p>
+      <form class="form-stack">
+        <div class="field">
+          <label class="field-label" for="quick-note-text">Quick Note</label>
+          <textarea class="input-field" id="quick-note-text" rows="3" aria-describedby="quick-note-hint"></textarea>
+          <p class="field-hint" id="quick-note-hint">1–1000 characters · 0/1000</p>
+        </div>
+        <div class="card-actions">
+          <button class="button-primary" type="submit">Save Quick Note</button>
+          <button class="button-secondary" type="button">Clear</button>
+        </div>
+      </form>
+      <div class="bucket-toolbar"><p class="bucket-summary">3 saved · Newest first</p></div>
+      <ul class="dated-list" aria-label="Quick Notes">
+        <li><time datetime="2026-11-17">2026-11-17</time><p>Ask Ines whether the library scans include the margins.</p></li>
+        <li><time datetime="2026-11-17">2026-11-17</time><p>Abbreviation: “fl.” on rivers means flumen, not floruit.</p></li>
+        <li><time datetime="2026-11-17">2026-11-17</time><p>“Terra incognita” keeps appearing near the coast of Australia on the 1570 maps.</p></li>
+      </ul>
+    </section>
+  </div>
+
+  <div class="tab-panel" role="tabpanel" id="panel-progress" aria-labelledby="tab-progress"{{!tab=progress}} hidden{{/!}}>
+    <section class="bucket" aria-labelledby="bucket-progress">
+      <h3 class="section-heading" id="bucket-progress"><span class="ornament" data-ornament="heading" aria-hidden="true"></span>Progress</h3>
+      <ul class="dated-list" aria-label="Progress timeline">
+        <li><time datetime="2026-11-17">2026-11-17</time><p>Translated the whole cartouche on the Ortelius map</p><span class="card-actions"><button class="button-quiet" type="button">Edit</button><button class="button-quiet-danger" type="button" aria-label="Delete milestone “Translated the whole cartouche on the Ortelius map”"{{?confirm}} aria-expanded="true"{{/?}}>Delete</button></span></li>
+        <li><time datetime="2026-11-15">2026-11-15</time><p>Learned the compass words: septentrio, meridies, oriens, occidens</p><span class="card-actions"><button class="button-quiet" type="button">Edit</button><button class="button-quiet-danger" type="button" aria-label="Delete milestone “Learned the compass words: septentrio, meridies, oriens, occidens”">Delete</button></span></li>
+        <li><time datetime="2026-11-11">2026-11-11</time><p>Read the first declension table without notes</p><span class="card-actions"><button class="button-quiet" type="button">Edit</button><button class="button-quiet-danger" type="button" aria-label="Delete milestone “Read the first declension table without notes”">Delete</button></span></li>
+      </ul>
+    </section>
+  </div>
+
+  <div class="sidebar-sections">
+    <details>
+      <summary class="list-summary"><svg class="icon" aria-hidden="true"><use href="#i-chevron-right"/></svg>Spells &amp; status</summary>
+    </details>
+    <details>
+      <summary class="list-summary"><svg class="icon" aria-hidden="true"><use href="#i-chevron-right"/></svg>Members</summary>
+    </details>
+  </div>
+</aside>

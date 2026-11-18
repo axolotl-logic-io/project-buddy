@@ -20,8 +20,10 @@ function subscribeToNothing(): () => void {
   return (): void => undefined;
 }
 
+// The trail band marks its heading with data-trail-heading (site-header.tsx),
+// so this doesn't depend on how the band is styled.
 function hasTrailHeading(): boolean {
-  return document.querySelector(".trail-heading") !== null;
+  return document.querySelector("[data-trail-heading]") !== null;
 }
 
 function noTrailHeadingOnServer(): boolean {

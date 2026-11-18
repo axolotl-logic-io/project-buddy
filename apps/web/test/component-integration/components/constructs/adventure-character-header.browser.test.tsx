@@ -8,8 +8,6 @@ import { CONSTRUCT_DISCOVERY_COPY } from "@/ui/copy/construct-discovery.ts";
 import { tabForward } from "../../../support/keyboard-test-kit.ts";
 import { NARROWEST_VIEWPORT, setViewport } from "../../viewports-test-kit.ts";
 
-const PROFILE_VISUAL_PATH =
-  /^\/constructs\/vellum-v1-(?:64|128|256|512|1024)\.webp$/u;
 const PRIVATE_TEXT = "Private instructions that must stay hidden";
 const OWN: ConstructSnapshot = {
   name: "Lumen",
@@ -31,11 +29,10 @@ describe("use_case_view_character_profile", () => {
     await expect
       .element(page.getByText(CONSTRUCT_DISCOVERY_COPY.vellum.approach))
       .toBeVisible();
-    const image = dialog.element().querySelector("img");
-    const source = new URL(image?.src ?? "", globalThis.location.href);
-    expect(source.origin).toBe(globalThis.location.origin);
-    expect(source.pathname).toMatch(PROFILE_VISUAL_PATH);
-    expect(image?.getAttribute("srcset")).toBeTruthy();
+    const portrait = dialog
+      .getByText("OM", { exact: true })
+      .element().parentElement;
+    expect(portrait?.querySelector("svg")).toBeInstanceOf(SVGSVGElement);
     await tabForward();
     expect(dialog.element().contains(document.activeElement)).toBe(true);
     await userEvent.keyboard("{Escape}");
@@ -61,10 +58,11 @@ describe("use_case_view_character_profile", () => {
     await expect
       .element(page.getByText(CONSTRUCT_DISCOVERY_COPY.lumen.temperament))
       .not.toBeInTheDocument();
-    expect(page.getByRole("dialog").element().querySelector("img")).toBeNull();
-    await expect
-      .element(page.getByRole("dialog").getByText("L", { exact: true }))
-      .toBeVisible();
+    const initials = page.getByRole("dialog").getByText("L", { exact: true });
+    await expect.element(initials).toBeVisible();
+    expect(
+      initials.element().parentElement?.querySelector("img, svg"),
+    ).toBeNull();
   });
 
   test("the profile fits a 320px phone, and closing leaves the composer usable", async () => {

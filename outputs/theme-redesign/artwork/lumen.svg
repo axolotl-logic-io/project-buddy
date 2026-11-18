@@ -1,0 +1,128 @@
+<svg xmlns="http://www.w3.org/2000/svg" class="construct-art" viewBox="0 0 256 256" role="img" aria-labelledby="title desc">
+<title id="title">Lumen</title>
+<desc id="desc">A small smiling mote of golden light, crackling with sparks, inside a brass ring of runes and two crossing gyroscope rings.</desc>
+<style>
+/* Construct artwork: the paint roles of the built-in SVG portraits.
+
+   The drawings in lumen.svg, vellum.svg and their avatar cuts name no
+   colour. Every shape carries a fill class (f-*) and a stroke class (s-*),
+   and this file maps those classes to the construct paint roles below.
+
+   An appearance sets the --construct-* roles. Each role falls back to an
+   existing contract token, so the art renders in any appearance that sets
+   nothing new. The fallbacks resolve on the drawing's own root element,
+   so an appearance swatch or a specimen panel with its own data-mode gets
+   its own values. */
+
+.construct-art {
+  /* The portrait's backdrop: vellum, night or leather. */
+  --ca-ground: var(--construct-ground, var(--field, transparent));
+  /* Faint backdrop detail: map coastlines, routes, motes. */
+  --ca-ground-ink: var(--construct-ground-ink, var(--line, currentColor));
+  /* Outlines and line work. Drawn over metal, paper or light only. */
+  --ca-ink: var(--construct-ink, var(--header-ink, currentColor));
+  /* The lit face of brass: Vellum's body, Lumen's rune ring. */
+  --ca-metal: var(--construct-metal, var(--header-gold, currentColor));
+  /* The shadowed face of brass: bands, joints, gears. */
+  --ca-metal-shade: var(
+    --construct-metal-shade,
+    color-mix(in oklab, var(--ca-metal) 58%, var(--ca-ink))
+  );
+  /* Polish highlights on brass. */
+  --ca-metal-light: var(
+    --construct-metal-light,
+    color-mix(in oklab, var(--ca-metal) 45%, var(--ca-paper))
+  );
+  /* Map paper, the quill's vane, the compass plate. */
+  --ca-paper: var(--construct-paper, var(--header-paper, currentColor));
+  /* Lumen's light and Vellum's lenses. */
+  --ca-glow: var(--construct-glow, var(--ca-metal));
+  /* The hottest centre of a light. */
+  --ca-glow-core: var(--construct-glow-core, var(--ca-paper));
+  /* One rubric accent: jewels, the compass's north, the map's ribbon. */
+  --ca-accent: var(--construct-accent, var(--rubric, var(--accent, currentColor)));
+
+  display: block;
+  inline-size: 100%;
+  block-size: 100%;
+}
+
+.construct-art .f-none { fill: none; }
+.construct-art .f-ground { fill: var(--ca-ground); }
+.construct-art .f-ground-ink { fill: var(--ca-ground-ink); }
+.construct-art .f-ink { fill: var(--ca-ink); }
+.construct-art .f-metal { fill: var(--ca-metal); }
+.construct-art .f-shade { fill: var(--ca-metal-shade); }
+.construct-art .f-light { fill: var(--ca-metal-light); }
+.construct-art .f-paper { fill: var(--ca-paper); }
+.construct-art .f-glow { fill: var(--ca-glow); }
+.construct-art .f-core { fill: var(--ca-glow-core); }
+.construct-art .f-accent { fill: var(--ca-accent); }
+
+.construct-art [class*="s-"] {
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.construct-art .s-ink { stroke: var(--ca-ink); }
+.construct-art .s-ground-ink { stroke: var(--ca-ground-ink); }
+.construct-art .s-metal { stroke: var(--ca-metal); }
+.construct-art .s-shade { stroke: var(--ca-metal-shade); }
+.construct-art .s-light { stroke: var(--ca-metal-light); }
+.construct-art .s-paper { stroke: var(--ca-paper); }
+.construct-art .s-glow { stroke: var(--ca-glow); }
+.construct-art .s-core { stroke: var(--ca-glow-core); }
+.construct-art .s-accent { stroke: var(--ca-accent); }
+
+.construct-art .st-ground { stop-color: var(--ca-ground); }
+.construct-art .st-ground-edge {
+  stop-color: color-mix(in oklab, var(--ca-ground) 84%, var(--ca-ink));
+}
+.construct-art .st-glow { stop-color: var(--ca-glow); }
+.construct-art .st-core { stop-color: var(--ca-glow-core); }
+
+/* Fine detail (hatching, motes, map margins, rune ticks) drops out when
+   the portrait is drawn small. The nearest size container is the
+   construct frame (.construct-visual, container-type: inline-size). */
+@container (max-width: 96px) {
+  .construct-art .fine { display: none; }
+}
+</style>
+<defs>
+<radialGradient id="lumen-sky" cx="50%" cy="50%" r="72%"><stop offset="0.45" class="st-ground"/><stop offset="1" class="st-ground-edge"/></radialGradient>
+<radialGradient id="lumen-halo" cx="50%" cy="50%" r="50%"><stop offset="0" class="st-glow" stop-opacity=".7"/><stop offset=".45" class="st-glow" stop-opacity=".3"/><stop offset="1" class="st-glow" stop-opacity="0"/></radialGradient>
+<radialGradient id="lumen-orb" cx="44%" cy="40%" r="62%"><stop offset="0" class="st-core"/><stop offset=".5" class="st-core"/><stop offset=".9" class="st-glow"/></radialGradient>
+</defs>
+<rect width="256" height="256" fill="url(#lumen-sky)"/>
+<g class="f-glow fine"><circle cx="17" cy="112.07" r="0.9" opacity="0.35"/><circle cx="206.44" cy="37.71" r="1.2" opacity="0.7"/><circle cx="242.3" cy="19.18" r="1.2" opacity="0.5"/><circle cx="145.09" cy="53.09" r="0.9" opacity="0.7"/><circle cx="178.91" cy="143.45" r="3" opacity="0.35"/><circle cx="194.53" cy="119.74" r="2.2" opacity="0.5"/><circle cx="175.76" cy="66.58" r="3" opacity="0.5"/><circle cx="183.07" cy="77.11" r="0.9" opacity="0.35"/><circle cx="109.21" cy="238.88" r="0.9" opacity="0.7"/><circle cx="83.3" cy="174.87" r="3" opacity="0.5"/><circle cx="209.59" cy="234.72" r="2.2" opacity="0.7"/><circle cx="167.4" cy="22.56" r="1.6" opacity="0.7"/><circle cx="146.71" cy="171.5" r="2.2" opacity="0.5"/><circle cx="126.49" cy="60.37" r="1.6" opacity="0.35"/><circle cx="185.21" cy="103.5" r="2.2" opacity="0.35"/><circle cx="177.54" cy="244.75" r="2.2" opacity="0.35"/><circle cx="44.22" cy="50.29" r="1.2" opacity="0.7"/><circle cx="64" cy="124.39" r="3" opacity="0.35"/><circle cx="71.06" cy="8.98" r="2.2" opacity="0.7"/><circle cx="236.74" cy="173.72" r="3" opacity="0.7"/><circle cx="165.19" cy="185.55" r="2.2" opacity="0.7"/><circle cx="199.49" cy="102.17" r="2.2" opacity="0.5"/><circle cx="22.94" cy="24.16" r="1.2" opacity="0.5"/><circle cx="20.62" cy="8.06" r="1.2" opacity="0.7"/><circle cx="14.12" cy="217.84" r="3" opacity="0.5"/><circle cx="91.37" cy="95.4" r="0.9" opacity="0.35"/></g>
+<circle cx="128" cy="128" r="86" fill="url(#lumen-halo)"/>
+<path class="f-none s-glow fine" stroke-width="1.6" opacity=".55" stroke-dasharray="10 4 3 4" d="M33.02 68.65A112 112 0 0 1 82.45 25.68 M226.89 75.42A112 112 0 0 1 239.93 124.09 M187.35 222.98A112 112 0 0 1 131.91 239.93 M39.74 196.95A112 112 0 0 1 20.34 158.87"/>
+<g class="rune-ring">
+<circle class="f-none s-ink" cx="128" cy="128" r="96" stroke-width="19"/>
+<circle class="f-none s-metal" cx="128" cy="128" r="96" stroke-width="16"/>
+<path class="f-none s-shade" stroke-width="16" opacity=".55" d="M224 128A96 96 0 0 1 32 128"/>
+<path class="f-none s-light" stroke-width="2.4" opacity=".9" d="M45 82A97 97 0 0 1 174 43"/>
+<circle class="f-none s-ink fine" cx="128" cy="128" r="91" stroke-width=".7"/>
+<circle class="f-none s-ink fine" cx="128" cy="128" r="101" stroke-width=".7"/>
+<g class="f-none s-ink" stroke-width="1.5"><path transform="rotate(12.86 128 128) translate(128 32) scale(.82)" d="M-2 5V-5L2 -1V5"/><path transform="rotate(25.71 128 128) translate(128 32) scale(.82)" d="M-2 -5V5M-2 -2l3 2 -3 2"/><path transform="rotate(38.57 128 128) translate(128 32) scale(.82)" d="M-2 -5V5M2 -5V5M-2 -1l4 2"/><path transform="rotate(51.43 128 128) translate(128 32) scale(.82)" d="M0 -5V5M-3 -2l3 3 3 -3"/><path transform="rotate(64.29 128 128) translate(128 32) scale(.82)" d="M-3 -5L3 5M3 -5L-3 5"/><path transform="rotate(77.14 128 128) translate(128 32) scale(.82)" d="M0 -5V5M-3 -5l3 3 3 -3"/><path transform="rotate(102.86 128 128) translate(128 32) scale(.82)" d="M0 -5L-3 0 0 5 3 0Z"/><path transform="rotate(115.71 128 128) translate(128 32) scale(.82)" d="M-3 5V-5l3 4 3 -4V5"/><path transform="rotate(128.57 128 128) translate(128 32) scale(.82)" d="M0 -5V5M-3 0h6"/><path transform="rotate(141.43 128 128) translate(128 32) scale(.82)" d="M-3 -5l3 4 3 -4M0 -1V5"/><path transform="rotate(154.29 128 128) translate(128 32) scale(.82)" d="M0 -5V5M0 -2l3 -3M0 1l3 -3"/><path transform="rotate(167.14 128 128) translate(128 32) scale(.82)" d="M-2 5V-5L2 -1V5"/><path transform="rotate(192.86 128 128) translate(128 32) scale(.82)" d="M-2 -5V5M2 -5V5M-2 -1l4 2"/><path transform="rotate(205.71 128 128) translate(128 32) scale(.82)" d="M0 -5V5M-3 -2l3 3 3 -3"/><path transform="rotate(218.57 128 128) translate(128 32) scale(.82)" d="M-3 -5L3 5M3 -5L-3 5"/><path transform="rotate(231.43 128 128) translate(128 32) scale(.82)" d="M0 -5V5M-3 -5l3 3 3 -3"/><path transform="rotate(244.29 128 128) translate(128 32) scale(.82)" d="M-2 5V-5l4 3 -4 3l4 4"/><path transform="rotate(257.14 128 128) translate(128 32) scale(.82)" d="M0 -5L-3 0 0 5 3 0Z"/><path transform="rotate(282.86 128 128) translate(128 32) scale(.82)" d="M0 -5V5M-3 0h6"/><path transform="rotate(295.71 128 128) translate(128 32) scale(.82)" d="M-3 -5l3 4 3 -4M0 -1V5"/><path transform="rotate(308.57 128 128) translate(128 32) scale(.82)" d="M0 -5V5M0 -2l3 -3M0 1l3 -3"/><path transform="rotate(321.43 128 128) translate(128 32) scale(.82)" d="M-2 5V-5L2 -1V5"/><path transform="rotate(334.29 128 128) translate(128 32) scale(.82)" d="M-2 -5V5M-2 -2l3 2 -3 2"/><path transform="rotate(347.14 128 128) translate(128 32) scale(.82)" d="M-2 -5V5M2 -5V5M-2 -1l4 2"/></g>
+<path class="f-none s-ink fine" stroke-width=".8" d="M137.85 40.55L138.19 37.57 M157.06 44.94L158.06 42.11 M174.82 53.49L176.41 50.95 M190.23 65.77L192.35 63.65 M202.51 81.18L205.05 79.59 M211.06 98.94L213.89 97.94 M215.45 118.15L218.43 117.81 M215.45 137.85L218.43 138.19 M211.06 157.06L213.89 158.06 M202.51 174.82L205.05 176.41 M190.23 190.23L192.35 192.35 M174.82 202.51L176.41 205.05 M157.06 211.06L158.06 213.89 M137.85 215.45L138.19 218.43 M118.15 215.45L117.81 218.43 M98.94 211.06L97.94 213.89 M81.18 202.51L79.59 205.05 M65.77 190.23L63.65 192.35 M53.49 174.82L50.95 176.41 M44.94 157.06L42.11 158.06 M40.55 137.85L37.57 138.19 M40.55 118.15L37.57 117.81 M44.94 98.94L42.11 97.94 M53.49 81.18L50.95 79.59 M65.77 65.77L63.65 63.65 M81.18 53.49L79.59 50.95 M98.94 44.94L97.94 42.11 M118.15 40.55L117.81 37.57"/>
+<g transform="rotate(0 128 128)"><path class="f-accent s-ink" stroke-width="1.6" d="M128 19L136 32 128 45 120 32Z"/><path class="f-core" d="M128 26.15L131.2 32 128 37.85 124.8 32Z"/></g><g transform="rotate(90 128 128)"><path class="f-accent s-ink" stroke-width="1.6" d="M128 22L134.5 32 128 42 121.5 32Z"/><path class="f-core" d="M128 27.5L130.6 32 128 36.5 125.4 32Z"/></g><g transform="rotate(180 128 128)"><path class="f-accent s-ink" stroke-width="1.6" d="M128 22L134.5 32 128 42 121.5 32Z"/><path class="f-core" d="M128 27.5L130.6 32 128 36.5 125.4 32Z"/></g><g transform="rotate(270 128 128)"><path class="f-accent s-ink" stroke-width="1.6" d="M128 22L134.5 32 128 42 121.5 32Z"/><path class="f-core" d="M128 27.5L130.6 32 128 36.5 125.4 32Z"/></g>
+</g>
+<g transform="translate(128 128) rotate(-28)"><path class="f-none s-ink" stroke-width="8.6" d="M-78 0A78 25 0 0 1 78 0"/><path class="f-none s-metal" stroke-width="5.6" d="M-78 0A78 25 0 0 1 78 0"/><path class="f-none s-light fine" stroke-width="1.2" opacity=".8" d="M-78 0A78 25 0 0 1 78 0"/></g>
+<g transform="translate(128 128) rotate(36)"><path class="f-none s-ink" stroke-width="8.6" d="M-78 0A78 25 0 0 1 78 0"/><path class="f-none s-metal" stroke-width="5.6" d="M-78 0A78 25 0 0 1 78 0"/><path class="f-none s-light fine" stroke-width="1.2" opacity=".8" d="M-78 0A78 25 0 0 1 78 0"/></g>
+<path class="f-glow s-shade" stroke-width="1.2" d="M123.61 92.27L128 66 132.39 92.27Z M150.16 99.63L166.18 89.82 156.37 105.84Z M163.73 123.61L190 128 163.73 132.39Z M156.37 150.16L166.18 166.18 150.16 156.37Z M132.39 163.73L128 190 123.61 163.73Z M105.84 156.37L89.82 166.18 99.63 150.16Z M92.27 132.39L66 128 92.27 123.61Z M99.63 105.84L89.82 89.82 105.84 99.63Z"/>
+<path class="f-none s-shade" stroke-width="3.8" opacity=".6" d="M142.16 93.82 L148.32 88.97 L143.23 82.48 L152.54 78.78 L149.99 72.17 M162.18 113.84 L169.96 114.77 L170.96 106.58 L180.16 110.55 L183.02 104.08 M162.18 142.16 L167.03 148.32 L173.52 143.23 L177.22 152.54 L183.83 149.99 M142.16 162.18 L141.23 169.96 L149.42 170.96 L145.45 180.16 L151.92 183.02 M113.84 162.18 L107.68 167.03 L112.77 173.52 L103.46 177.22 L106.01 183.83 M93.82 142.16 L86.04 141.23 L85.04 149.42 L75.84 145.45 L72.98 151.92 M93.82 113.84 L88.97 107.68 L82.48 112.77 L78.78 103.46 L72.17 106.01 M113.84 93.82 L114.77 86.04 L106.58 85.04 L110.55 75.84 L104.08 72.98"/>
+<path class="f-none s-glow" stroke-width="2.4" d="M142.16 93.82 L148.32 88.97 L143.23 82.48 L152.54 78.78 L149.99 72.17 M162.18 113.84 L169.96 114.77 L170.96 106.58 L180.16 110.55 L183.02 104.08 M162.18 142.16 L167.03 148.32 L173.52 143.23 L177.22 152.54 L183.83 149.99 M142.16 162.18 L141.23 169.96 L149.42 170.96 L145.45 180.16 L151.92 183.02 M113.84 162.18 L107.68 167.03 L112.77 173.52 L103.46 177.22 L106.01 183.83 M93.82 142.16 L86.04 141.23 L85.04 149.42 L75.84 145.45 L72.98 151.92 M93.82 113.84 L88.97 107.68 L82.48 112.77 L78.78 103.46 L72.17 106.01 M113.84 93.82 L114.77 86.04 L106.58 85.04 L110.55 75.84 L104.08 72.98"/>
+<path class="f-none s-core" stroke-width=".8" d="M142.16 93.82 L148.32 88.97 L143.23 82.48 L152.54 78.78 L149.99 72.17 M162.18 113.84 L169.96 114.77 L170.96 106.58 L180.16 110.55 L183.02 104.08 M162.18 142.16 L167.03 148.32 L173.52 143.23 L177.22 152.54 L183.83 149.99 M142.16 162.18 L141.23 169.96 L149.42 170.96 L145.45 180.16 L151.92 183.02 M113.84 162.18 L107.68 167.03 L112.77 173.52 L103.46 177.22 L106.01 183.83 M93.82 142.16 L86.04 141.23 L85.04 149.42 L75.84 145.45 L72.98 151.92 M93.82 113.84 L88.97 107.68 L82.48 112.77 L78.78 103.46 L72.17 106.01 M113.84 93.82 L114.77 86.04 L106.58 85.04 L110.55 75.84 L104.08 72.98"/>
+<circle class="f-none s-glow" cx="128" cy="128" r="38" stroke-width="3" opacity=".5"/>
+<circle cx="128" cy="128" r="34" fill="url(#lumen-orb)"/>
+<circle class="f-none s-shade" cx="128" cy="128" r="34" stroke-width="1.4"/>
+<path class="f-none s-core" stroke-width="2" opacity=".9" d="M106 116A24 24 0 0 1 120 104"/>
+<g class="face"><ellipse class="f-ink" cx="117" cy="125" rx="4.2" ry="5.8"/><ellipse class="f-ink" cx="139" cy="125" rx="4.2" ry="5.8"/><circle class="f-core" cx="118.6" cy="122.6" r="1.6"/><circle class="f-core" cx="140.6" cy="122.6" r="1.6"/><path class="f-none s-ink" stroke-width="2.8" d="M117 137.5Q128 147 139 137.5"/><ellipse class="f-accent fine" cx="108" cy="135" rx="3.6" ry="2.2" opacity=".35"/><ellipse class="f-accent fine" cx="148" cy="135" rx="3.6" ry="2.2" opacity=".35"/></g>
+<g transform="translate(128 128) rotate(-28)"><path class="f-none s-ink" stroke-width="8.6" d="M78 0A78 25 0 0 1 -78 0"/><path class="f-none s-metal" stroke-width="5.6" d="M78 0A78 25 0 0 1 -78 0"/><path class="f-none s-light fine" stroke-width="1.2" opacity=".8" d="M78 0A78 25 0 0 1 -78 0"/><circle class="f-core fine" cx="63.1" cy="14.69" r="1.3"/><circle class="f-core fine" cx="24.1" cy="23.78" r="1.3"/><circle class="f-core fine" cx="-24.1" cy="23.78" r="1.3"/><circle class="f-core fine" cx="-63.1" cy="14.69" r="1.3"/></g>
+<g transform="translate(128 128) rotate(36)"><path class="f-none s-ink" stroke-width="8.6" d="M78 0A78 25 0 0 1 -78 0"/><path class="f-none s-metal" stroke-width="5.6" d="M78 0A78 25 0 0 1 -78 0"/><path class="f-none s-light fine" stroke-width="1.2" opacity=".8" d="M78 0A78 25 0 0 1 -78 0"/><circle class="f-core fine" cx="63.1" cy="14.69" r="1.3"/><circle class="f-core fine" cx="24.1" cy="23.78" r="1.3"/><circle class="f-core fine" cx="-24.1" cy="23.78" r="1.3"/><circle class="f-core fine" cx="-63.1" cy="14.69" r="1.3"/></g>
+<path class="f-core s-glow" stroke-width=".9" d="M176 64 L177.19 68.81 L182 70 L177.19 71.19 L176 76 L174.81 71.19 L170 70 L174.81 68.81Z"/>
+<path class="f-core s-glow" stroke-width=".9" d="M74 181 L74.99 185.01 L79 186 L74.99 186.99 L74 191 L73.01 186.99 L69 186 L73.01 185.01Z"/>
+<path class="f-accent s-ink" stroke-width=".9" d="M184 172 L184.79 175.21 L188 176 L184.79 176.79 L184 180 L183.21 176.79 L180 176 L183.21 175.21Z"/>
+<path class="f-accent s-ink" stroke-width=".9" d="M68.47 77.53 L66.98 80 L68.47 82.47 L66 80.98 L63.53 82.47 L65.02 80 L63.53 77.53 L66 79.02Z"/>
+<path class="f-core s-glow" stroke-width=".9" d="M162.12 49.88 L160.84 52 L162.12 54.12 L160 52.84 L157.88 54.12 L159.16 52 L157.88 49.88 L160 51.16Z"/>
+</svg>

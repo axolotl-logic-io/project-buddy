@@ -1,0 +1,24 @@
+<!-- include:site-header circle="" -->
+<!-- include:trail-band panel="" parents="" heading="Sign in" tools="" -->
+<!-- include:site-panel open="" current="sign-in" signed-out="yes" swatch-focus="" -->
+<main class="page">
+  <div class="page-centre">
+    <section class="card" data-frame="feature" style="inline-size:min(100%,26rem)" aria-labelledby="sign-in-title">
+      <span class="ornament" data-ornament="emblem" aria-hidden="true" style="align-self:center"></span>
+      <h1 class="site-title" id="sign-in-title">Project Buddy</h1>
+      <div class="divider"><span class="ornament" data-ornament="divider" aria-hidden="true"></span></div>
+      {{!sent}}<p class="lede lede-initial">Enter your email address to log in or sign up. We'll email you a link to continue.</p>
+      <form class="form-stack">
+        <div class="field">
+          <label class="field-label" for="email">Email address</label>
+          <input class="input-field" id="email" type="email" autocomplete="email">
+        </div>
+        <button class="button-primary" type="submit"><svg class="icon" aria-hidden="true"><use href="#i-mail"/></svg>Email me a link</button>
+        <p class="form-status" role="status"></p>
+      </form>
+      <p class="muted">New here? <a class="text-link" href="#">Sign up</a></p>{{/!}}
+      {{?sent}}<div class="notice" role="status"><svg class="icon" aria-hidden="true"><use href="#i-mail"/></svg><div class="notice-body"><p>Check your email for a link to log in or sign up. It works for 30 minutes.</p></div></div>
+      <p class="muted"><a class="text-link" href="sign-in--default.html">Use a different email address</a></p>{{/?}}
+    </section>
+  </div>
+</main>

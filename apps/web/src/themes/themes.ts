@@ -17,10 +17,15 @@
 // A theme's CSS file sets the tokens on the left; components use the
 // Tailwind utilities on the right (contract.css exposes them).
 //
+// Ornament roles in contract.css provide neutral defaults for display type,
+// labels, rules, frames, masked decoration and progress rings. The artwork
+// masks are generated from the SVG symbols in the redesign sources.
+//
 // Colours. A theme sets each one for light, soot-brass and dark, and
 // contract.css picks the fixed appearance. Each "on-" colour
-// is the text and icons on the filled colour it names. contrast.test.ts
-// checks every pair that meets on the page for WCAG AA, in all three appearances.
+// is the text and icons on the filled colour it names.
+// theme-tokens.browser.test.tsx checks every pair that meets on the page for
+// WCAG AA, in all three appearances.
 //   background      the page                           bg-background
 //   surface         panels on the page: menus, cards   bg-surface
 //   navigation-surface  site panel                     bg-navigation-surface
@@ -73,7 +78,7 @@
 //                     (Tailwind's own)                  gap-2, size-4
 // Heading sizes, one value for all three appearances, each in rem and larger than body
 // text (1rem), from the site's title down to a section's heading, with a
-// page's heading at least 1.2 times a section's (contract.test.ts checks
+// page's heading at least 1.2 times a section's (theme-tokens.browser.test.tsx checks
 // both). page-roles.css's heading roles use them; the line heights are the
 // contract's.
 //   --site-title-size       the site's name, as the   text-site-title
@@ -87,7 +92,7 @@
 //                           clearly above a section's
 //   --section-heading-size  a heading inside a page   text-section-heading
 // Title sizes, one value for all three appearances, each in rem, for titles that
-// aren't a page's headings (contract.test.ts checks each sits below the
+// aren't a page's headings (theme-tokens.browser.test.tsx checks each sits below the
 // heading named). page-roles.css's title roles use them.
 //   --header-title-size     the site's name in the    text-header-title
 //                           header, below a page's
@@ -134,6 +139,19 @@
 //   --header-paper    light text and medallion on the HUD
 //   --header-line     HUD separators and button shadow
 //   --header-gold     HUD accent, controls and focus rings
+// The built-in constructs' drawings (components/constructs/artwork/), set
+// per mode and read by construct-art.css. Ink stays dark in every mode,
+// because it only draws over metal, paper and light:
+//   --construct-ground       the portrait's backdrop
+//   --construct-ground-ink   faint backdrop detail: coastlines, motes
+//   --construct-ink          outlines, eyes and runes
+//   --construct-metal        the lit face of brass
+//   --construct-metal-shade  the shadowed face of brass
+//   --construct-metal-light  polish highlights on brass
+//   --construct-paper        map paper, the quill, the compass plate
+//   --construct-glow         Lumen's light and Vellum's lenses
+//   --construct-glow-core    the hottest centre of a light
+//   --construct-accent       one rubric red: jewels, the compass's north
 // A shadow or decoration that should differ by mode uses colour tokens, as
 // in color-mix(in oklab, var(--shadow) 30%, transparent).
 //

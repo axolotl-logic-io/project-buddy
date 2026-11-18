@@ -198,7 +198,14 @@ function SpellIndex({
                 {SPELLBOOK_COPY.results(filtered.length)}
               </p>
               {filtered.length === 0 && (
-                <p className="quests-index-empty">{empty}</p>
+                <p className="quests-index-empty">
+                  <span
+                    className="ornament"
+                    data-ornament="vignette"
+                    aria-hidden="true"
+                  />
+                  {empty}
+                </p>
               )}
               <ul className="quests-index-list">
                 {filtered.map((entry) => (

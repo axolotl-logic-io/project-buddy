@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, onTestFinished, test } from "vitest";
 import { page, userEvent } from "vitest/browser";
 import { render } from "vitest-browser-react";
 import { SiteHeader, TrailBand } from "@/components/site-header.tsx";
+import { TextField } from "@/components/ui/field.tsx";
 import { SITE_COPY } from "@/ui/copy/site.ts";
 import { applyTheme } from "../themes/theme-test-kit.ts";
 import {
@@ -24,6 +25,9 @@ const PROGRESS_CONTENT = "Recorded milestones";
 const MESSAGE_LABEL = "Message";
 const DRAFT_LABEL = "Idea draft";
 const ACTIONS_CONTENT = "Spells to cast";
+// A system font wider than the site's faces, as CI falls back to when they
+// are unavailable.
+const WIDE_FALLBACK_FONT = '"DejaVu Sans", sans-serif';
 const QUEST_NAME = "A useful quest";
 const EDGE_TAB_MINIMUM_PX = 56;
 
@@ -57,12 +61,7 @@ async function sidebar(initialSection?: string): Promise<void> {
             id: "ideas",
             label: "Ideas",
             bucket: true,
-            content: (
-              <label>
-                {DRAFT_LABEL}
-                <input className="input-field" />
-              </label>
-            ),
+            content: <TextField label={DRAFT_LABEL} />,
           },
           {
             id: "progress",
@@ -77,10 +76,7 @@ async function sidebar(initialSection?: string): Promise<void> {
           },
         ]}
       >
-        <label>
-          {MESSAGE_LABEL}
-          <input className="input-field" />
-        </label>
+        <TextField label={MESSAGE_LABEL} />
       </QuestSidebar>
     </>,
   );
@@ -267,19 +263,14 @@ describe("the sidebar's direct collection tabs", () => {
     "all remain unclipped, the selected one included, at $width px",
     async (viewport) => {
       await setViewport(viewport);
-      // CI's system fallback is wider than the site's loaded face. Keep the
-      // no-clipping promise while fonts are unavailable as well.
-      const originalFont =
-        document.documentElement.style.getPropertyValue("--typeface-nunito");
-      document.documentElement.style.setProperty(
-        "--typeface-nunito",
-        "DejaVu Sans, sans-serif",
-      );
+      // CI's system fallback is wider than the site's loaded faces. Keep
+      // the no-clipping promise while fonts are unavailable as well, by
+      // setting every text in that fallback, whichever fonts the theme uses.
+      const fallback = document.createElement("style");
+      fallback.textContent = `body * { font-family: ${WIDE_FALLBACK_FONT} !important; }`;
+      document.head.append(fallback);
       onTestFinished(() => {
-        document.documentElement.style.setProperty(
-          "--typeface-nunito",
-          originalFont,
-        );
+        fallback.remove();
       });
       await render(
         <QuestSidebar

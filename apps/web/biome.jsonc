@@ -106,7 +106,8 @@
         "src/components/ui/form-message.tsx",
         "src/app/page-roles.css",
         "src/components/chat/chat.css",
-        "src/components/constructs/construct-discovery.css"
+        "src/components/constructs/construct-discovery.css",
+        "src/components/constructs/construct-art.css"
       ],
       "linter": {
         "rules": {
@@ -271,6 +272,26 @@
     // before dependencies have been installed. Neither imports app settings.
     {
       "includes": ["scripts/ops/query.ts", "scripts/development/*.ts"],
+      "linter": {
+        "rules": {
+          "correctness": {
+            "noNodejsModules": "off"
+          },
+          "style": {
+            "noProcessEnv": "off"
+          },
+          "suspicious": {
+            "noConsole": "off"
+          }
+        }
+      }
+    },
+
+    // The visual comparison and baseline commands start the local site in a
+    // child process with its local settings, write screenshots and results
+    // to disk, and report on the terminal.
+    {
+      "includes": ["scripts/visual/*.ts"],
       "linter": {
         "rules": {
           "correctness": {

@@ -1,0 +1,1235 @@
+{
+  "texture": {
+    "size": [
+      1024,
+      1024
+    ],
+    "mean": [
+      45,
+      16,
+      18
+    ],
+    "pixels": [
+      {
+        "q": 0,
+        "rgb": [
+          21,
+          0,
+          0
+        ],
+        "L": 0.001594294212389885
+      },
+      {
+        "q": 0.01,
+        "rgb": [
+          34,
+          7,
+          9
+        ],
+        "L": 0.005117621293856282
+      },
+      {
+        "q": 0.05,
+        "rgb": [
+          37,
+          9,
+          11
+        ],
+        "L": 0.006128509169154201
+      },
+      {
+        "q": 0.5,
+        "rgb": [
+          45,
+          15,
+          16
+        ],
+        "L": 0.009369466410146075
+      },
+      {
+        "q": 0.95,
+        "rgb": [
+          56,
+          26,
+          27
+        ],
+        "L": 0.01658673783789104
+      },
+      {
+        "q": 0.99,
+        "rgb": [
+          64,
+          32,
+          34
+        ],
+        "L": 0.02238505617123678
+      },
+      {
+        "q": 0.999,
+        "rgb": [
+          71,
+          41,
+          44
+        ],
+        "L": 0.03107318342238961
+      },
+      {
+        "q": 1,
+        "rgb": [
+          95,
+          62,
+          64
+        ],
+        "L": 0.062483104057291856
+      }
+    ],
+    "blocks": [
+      {
+        "q": 0,
+        "rgb": [
+          38,
+          11,
+          14
+        ],
+        "L": 0.0069160554512838895
+      },
+      {
+        "q": 0.01,
+        "rgb": [
+          41,
+          13,
+          16
+        ],
+        "L": 0.007784489744617535
+      },
+      {
+        "q": 0.05,
+        "rgb": [
+          41,
+          14,
+          16
+        ],
+        "L": 0.008255949475868345
+      },
+      {
+        "q": 0.5,
+        "rgb": [
+          45,
+          15,
+          18
+        ],
+        "L": 0.009634476834250354
+      },
+      {
+        "q": 0.95,
+        "rgb": [
+          50,
+          18,
+          22
+        ],
+        "L": 0.01167595213646942
+      },
+      {
+        "q": 0.99,
+        "rgb": [
+          51,
+          21,
+          24
+        ],
+        "L": 0.013007733354675356
+      },
+      {
+        "q": 0.999,
+        "rgb": [
+          56,
+          23,
+          25
+        ],
+        "L": 0.01540347661852937
+      },
+      {
+        "q": 1,
+        "rgb": [
+          67,
+          28,
+          30
+        ],
+        "L": 0.0212161927203635
+      }
+    ]
+  },
+  "grounds": {
+    "texture darkest pixel": [
+      21,
+      0,
+      0
+    ],
+    "texture dark (1st pct block)": [
+      41,
+      13,
+      16
+    ],
+    "texture median block": [
+      45,
+      15,
+      18
+    ],
+    "texture light (99th pct block)": [
+      51,
+      21,
+      24
+    ],
+    "texture lightest block": [
+      67,
+      28,
+      30
+    ],
+    "texture lightest pixel": [
+      95,
+      62,
+      64
+    ],
+    "surface": [
+      37,
+      29,
+      32
+    ],
+    "field": [
+      24,
+      19,
+      21
+    ],
+    "action-paper": [
+      37,
+      29,
+      32
+    ],
+    "navigation-surface": [
+      40,
+      29,
+      33
+    ],
+    "trail-surface": [
+      50,
+      33,
+      38
+    ],
+    "sidebar-surface": [
+      42,
+      33,
+      36
+    ],
+    "secondary-surface": [
+      58,
+      42,
+      46
+    ],
+    "header-ink": [
+      27,
+      22,
+      24
+    ],
+    "code-surface": [
+      33,
+      26,
+      29
+    ]
+  },
+  "rows": [
+    {
+      "fg": "foreground",
+      "on": "texture darkest pixel",
+      "ratio": 16.15,
+      "need": 4.5,
+      "pass": true
+    },
+    {
+      "fg": "foreground",
+      "on": "texture dark (1st pct block)",
+      "ratio": 14.37,
+      "need": 4.5,
+      "pass": true
+    },
+    {
+      "fg": "foreground",
+      "on": "texture median block",
+      "ratio": 14.02,
+      "need": 4.5,
+      "pass": true
+    },
+    {
+      "fg": "foreground",
+      "on": "texture light (99th pct block)",
+      "ratio": 13.21,
+      "need": 4.5,
+      "pass": true
+    },
+    {
+      "fg": "foreground",
+      "on": "texture lightest block",
+      "ratio": 11.71,
+      "need": 4.5,
+      "pass": true
+    },
+    {
+      "fg": "foreground",
+      "on": "texture lightest pixel",
+      "ratio": 7.41,
+      "need": 4.5,
+      "pass": true
+    },
+    {
+      "fg": "foreground",
+      "on": "surface",
+      "ratio": 13.07,
+      "need": 4.5,
+      "pass": true
+    },
+    {
+      "fg": "foreground",
+      "on": "field",
+      "ratio": 14.58,
+      "need": 4.5,
+      "pass": true
+    },
+    {
+      "fg": "foreground",
+      "on": "action-paper",
+      "ratio": 13.07,
+      "need": 4.5,
+      "pass": true
+    },
+    {
+      "fg": "foreground",
+      "on": "navigation-surface",
+      "ratio": 12.94,
+      "need": 4.5,
+      "pass": true
+    },
+    {
+      "fg": "foreground",
+      "on": "trail-surface",
+      "ratio": 12.06,
+      "need": 4.5,
+      "pass": true
+    },
+    {
+      "fg": "foreground",
+      "on": "sidebar-surface",
+      "ratio": 12.42,
+      "need": 4.5,
+      "pass": true
+    },
+    {
+      "fg": "foreground",
+      "on": "secondary-surface",
+      "ratio": 10.75,
+      "need": 4.5,
+      "pass": true
+    },
+    {
+      "fg": "foreground",
+      "on": "header-ink",
+      "ratio": 14.19,
+      "need": 4.5,
+      "pass": true
+    },
+    {
+      "fg": "foreground",
+      "on": "code-surface",
+      "ratio": 13.55,
+      "need": 4.5,
+      "pass": true
+    },
+    {
+      "fg": "muted",
+      "on": "texture darkest pixel",
+      "ratio": 11.35,
+      "need": 4.5,
+      "pass": true
+    },
+    {
+      "fg": "muted",
+      "on": "texture dark (1st pct block)",
+      "ratio": 10.1,
+      "need": 4.5,
+      "pass": true
+    },
+    {
+      "fg": "muted",
+      "on": "texture median block",
+      "ratio": 9.86,
+      "need": 4.5,
+      "pass": true
+    },
+    {
+      "fg": "muted",
+      "on": "texture light (99th pct block)",
+      "ratio": 9.29,
+      "need": 4.5,
+      "pass": true
+    },
+    {
+      "fg": "muted",
+      "on": "texture lightest block",
+      "ratio": 8.23,
+      "need": 4.5,
+      "pass": true
+    },
+    {
+      "fg": "muted",
+      "on": "texture lightest pixel",
+      "ratio": 5.21,
+      "need": 4.5,
+      "pass": true
+    },
+    {
+      "fg": "muted",
+      "on": "surface",
+      "ratio": 9.19,
+      "need": 4.5,
+      "pass": true
+    },
+    {
+      "fg": "muted",
+      "on": "field",
+      "ratio": 10.25,
+      "need": 4.5,
+      "pass": true
+    },
+    {
+      "fg": "muted",
+      "on": "action-paper",
+      "ratio": 9.19,
+      "need": 4.5,
+      "pass": true
+    },
+    {
+      "fg": "muted",
+      "on": "navigation-surface",
+      "ratio": 9.1,
+      "need": 4.5,
+      "pass": true
+    },
+    {
+      "fg": "muted",
+      "on": "trail-surface",
+      "ratio": 8.48,
+      "need": 4.5,
+      "pass": true
+    },
+    {
+      "fg": "muted",
+      "on": "sidebar-surface",
+      "ratio": 8.73,
+      "need": 4.5,
+      "pass": true
+    },
+    {
+      "fg": "muted",
+      "on": "secondary-surface",
+      "ratio": 7.56,
+      "need": 4.5,
+      "pass": true
+    },
+    {
+      "fg": "muted",
+      "on": "header-ink",
+      "ratio": 9.97,
+      "need": 4.5,
+      "pass": true
+    },
+    {
+      "fg": "muted",
+      "on": "code-surface",
+      "ratio": 9.52,
+      "need": 4.5,
+      "pass": true
+    },
+    {
+      "fg": "primary",
+      "on": "texture darkest pixel",
+      "ratio": 10.17,
+      "need": 4.5,
+      "pass": true
+    },
+    {
+      "fg": "primary",
+      "on": "texture dark (1st pct block)",
+      "ratio": 9.05,
+      "need": 4.5,
+      "pass": true
+    },
+    {
+      "fg": "primary",
+      "on": "texture median block",
+      "ratio": 8.83,
+      "need": 4.5,
+      "pass": true
+    },
+    {
+      "fg": "primary",
+      "on": "texture light (99th pct block)",
+      "ratio": 8.32,
+      "need": 4.5,
+      "pass": true
+    },
+    {
+      "fg": "primary",
+      "on": "texture lightest block",
+      "ratio": 7.37,
+      "need": 4.5,
+      "pass": true
+    },
+    {
+      "fg": "primary",
+      "on": "texture lightest pixel",
+      "ratio": 4.66,
+      "need": 4.5,
+      "pass": true
+    },
+    {
+      "fg": "primary",
+      "on": "surface",
+      "ratio": 8.23,
+      "need": 4.5,
+      "pass": true
+    },
+    {
+      "fg": "primary",
+      "on": "field",
+      "ratio": 9.18,
+      "need": 4.5,
+      "pass": true
+    },
+    {
+      "fg": "primary",
+      "on": "action-paper",
+      "ratio": 8.23,
+      "need": 4.5,
+      "pass": true
+    },
+    {
+      "fg": "primary",
+      "on": "navigation-surface",
+      "ratio": 8.15,
+      "need": 4.5,
+      "pass": true
+    },
+    {
+      "fg": "primary",
+      "on": "trail-surface",
+      "ratio": 7.6,
+      "need": 4.5,
+      "pass": true
+    },
+    {
+      "fg": "primary",
+      "on": "sidebar-surface",
+      "ratio": 7.82,
+      "need": 4.5,
+      "pass": true
+    },
+    {
+      "fg": "primary",
+      "on": "secondary-surface",
+      "ratio": 6.77,
+      "need": 4.5,
+      "pass": true
+    },
+    {
+      "fg": "primary",
+      "on": "header-ink",
+      "ratio": 8.93,
+      "need": 4.5,
+      "pass": true
+    },
+    {
+      "fg": "primary",
+      "on": "code-surface",
+      "ratio": 8.53,
+      "need": 4.5,
+      "pass": true
+    },
+    {
+      "fg": "danger",
+      "on": "texture darkest pixel",
+      "ratio": 10.27,
+      "need": 4.5,
+      "pass": true
+    },
+    {
+      "fg": "danger",
+      "on": "texture dark (1st pct block)",
+      "ratio": 9.14,
+      "need": 4.5,
+      "pass": true
+    },
+    {
+      "fg": "danger",
+      "on": "texture median block",
+      "ratio": 8.91,
+      "need": 4.5,
+      "pass": true
+    },
+    {
+      "fg": "danger",
+      "on": "texture light (99th pct block)",
+      "ratio": 8.4,
+      "need": 4.5,
+      "pass": true
+    },
+    {
+      "fg": "danger",
+      "on": "texture lightest block",
+      "ratio": 7.44,
+      "need": 4.5,
+      "pass": true
+    },
+    {
+      "fg": "danger",
+      "on": "texture lightest pixel",
+      "ratio": 4.71,
+      "need": 4.5,
+      "pass": true
+    },
+    {
+      "fg": "danger",
+      "on": "surface",
+      "ratio": 8.31,
+      "need": 4.5,
+      "pass": true
+    },
+    {
+      "fg": "danger",
+      "on": "field",
+      "ratio": 9.27,
+      "need": 4.5,
+      "pass": true
+    },
+    {
+      "fg": "danger",
+      "on": "action-paper",
+      "ratio": 8.31,
+      "need": 4.5,
+      "pass": true
+    },
+    {
+      "fg": "danger",
+      "on": "navigation-surface",
+      "ratio": 8.23,
+      "need": 4.5,
+      "pass": true
+    },
+    {
+      "fg": "danger",
+      "on": "trail-surface",
+      "ratio": 7.67,
+      "need": 4.5,
+      "pass": true
+    },
+    {
+      "fg": "danger",
+      "on": "sidebar-surface",
+      "ratio": 7.9,
+      "need": 4.5,
+      "pass": true
+    },
+    {
+      "fg": "danger",
+      "on": "secondary-surface",
+      "ratio": 6.83,
+      "need": 4.5,
+      "pass": true
+    },
+    {
+      "fg": "danger",
+      "on": "header-ink",
+      "ratio": 9.02,
+      "need": 4.5,
+      "pass": true
+    },
+    {
+      "fg": "danger",
+      "on": "code-surface",
+      "ratio": 8.61,
+      "need": 4.5,
+      "pass": true
+    },
+    {
+      "fg": "rubric",
+      "on": "texture darkest pixel",
+      "ratio": 12.08,
+      "need": 4.5,
+      "pass": true
+    },
+    {
+      "fg": "rubric",
+      "on": "texture dark (1st pct block)",
+      "ratio": 10.75,
+      "need": 4.5,
+      "pass": true
+    },
+    {
+      "fg": "rubric",
+      "on": "texture median block",
+      "ratio": 10.49,
+      "need": 4.5,
+      "pass": true
+    },
+    {
+      "fg": "rubric",
+      "on": "texture light (99th pct block)",
+      "ratio": 9.88,
+      "need": 4.5,
+      "pass": true
+    },
+    {
+      "fg": "rubric",
+      "on": "texture lightest block",
+      "ratio": 8.76,
+      "need": 4.5,
+      "pass": true
+    },
+    {
+      "fg": "rubric",
+      "on": "texture lightest pixel",
+      "ratio": 5.54,
+      "need": 4.5,
+      "pass": true
+    },
+    {
+      "fg": "rubric",
+      "on": "surface",
+      "ratio": 9.77,
+      "need": 4.5,
+      "pass": true
+    },
+    {
+      "fg": "rubric",
+      "on": "field",
+      "ratio": 10.91,
+      "need": 4.5,
+      "pass": true
+    },
+    {
+      "fg": "rubric",
+      "on": "action-paper",
+      "ratio": 9.77,
+      "need": 4.5,
+      "pass": true
+    },
+    {
+      "fg": "rubric",
+      "on": "navigation-surface",
+      "ratio": 9.68,
+      "need": 4.5,
+      "pass": true
+    },
+    {
+      "fg": "rubric",
+      "on": "trail-surface",
+      "ratio": 9.02,
+      "need": 4.5,
+      "pass": true
+    },
+    {
+      "fg": "rubric",
+      "on": "sidebar-surface",
+      "ratio": 9.29,
+      "need": 4.5,
+      "pass": true
+    },
+    {
+      "fg": "rubric",
+      "on": "secondary-surface",
+      "ratio": 8.04,
+      "need": 4.5,
+      "pass": true
+    },
+    {
+      "fg": "rubric",
+      "on": "header-ink",
+      "ratio": 10.61,
+      "need": 4.5,
+      "pass": true
+    },
+    {
+      "fg": "rubric",
+      "on": "code-surface",
+      "ratio": 10.13,
+      "need": 4.5,
+      "pass": true
+    },
+    {
+      "fg": "focus",
+      "on": "texture darkest pixel",
+      "ratio": 14.24,
+      "need": 3,
+      "pass": true
+    },
+    {
+      "fg": "focus",
+      "on": "texture dark (1st pct block)",
+      "ratio": 12.67,
+      "need": 3,
+      "pass": true
+    },
+    {
+      "fg": "focus",
+      "on": "texture median block",
+      "ratio": 12.36,
+      "need": 3,
+      "pass": true
+    },
+    {
+      "fg": "focus",
+      "on": "texture light (99th pct block)",
+      "ratio": 11.65,
+      "need": 3,
+      "pass": true
+    },
+    {
+      "fg": "focus",
+      "on": "texture lightest block",
+      "ratio": 10.32,
+      "need": 3,
+      "pass": true
+    },
+    {
+      "fg": "focus",
+      "on": "texture lightest pixel",
+      "ratio": 6.53,
+      "need": 3,
+      "pass": true
+    },
+    {
+      "fg": "focus",
+      "on": "surface",
+      "ratio": 11.52,
+      "need": 3,
+      "pass": true
+    },
+    {
+      "fg": "focus",
+      "on": "field",
+      "ratio": 12.86,
+      "need": 3,
+      "pass": true
+    },
+    {
+      "fg": "focus",
+      "on": "action-paper",
+      "ratio": 11.52,
+      "need": 3,
+      "pass": true
+    },
+    {
+      "fg": "focus",
+      "on": "navigation-surface",
+      "ratio": 11.41,
+      "need": 3,
+      "pass": true
+    },
+    {
+      "fg": "focus",
+      "on": "trail-surface",
+      "ratio": 10.64,
+      "need": 3,
+      "pass": true
+    },
+    {
+      "fg": "focus",
+      "on": "sidebar-surface",
+      "ratio": 10.95,
+      "need": 3,
+      "pass": true
+    },
+    {
+      "fg": "focus",
+      "on": "secondary-surface",
+      "ratio": 9.48,
+      "need": 3,
+      "pass": true
+    },
+    {
+      "fg": "focus",
+      "on": "header-ink",
+      "ratio": 12.51,
+      "need": 3,
+      "pass": true
+    },
+    {
+      "fg": "focus",
+      "on": "code-surface",
+      "ratio": 11.94,
+      "need": 3,
+      "pass": true
+    },
+    {
+      "fg": "line",
+      "on": "texture darkest pixel",
+      "ratio": 7.11,
+      "need": 3,
+      "pass": true
+    },
+    {
+      "fg": "line",
+      "on": "texture dark (1st pct block)",
+      "ratio": 6.33,
+      "need": 3,
+      "pass": true
+    },
+    {
+      "fg": "line",
+      "on": "texture median block",
+      "ratio": 6.17,
+      "need": 3,
+      "pass": true
+    },
+    {
+      "fg": "line",
+      "on": "texture light (99th pct block)",
+      "ratio": 5.81,
+      "need": 3,
+      "pass": true
+    },
+    {
+      "fg": "line",
+      "on": "texture lightest block",
+      "ratio": 5.15,
+      "need": 3,
+      "pass": true
+    },
+    {
+      "fg": "line",
+      "on": "texture lightest pixel",
+      "ratio": 3.26,
+      "need": 3,
+      "pass": true
+    },
+    {
+      "fg": "line",
+      "on": "surface",
+      "ratio": 5.75,
+      "need": 3,
+      "pass": true
+    },
+    {
+      "fg": "line",
+      "on": "field",
+      "ratio": 6.42,
+      "need": 3,
+      "pass": true
+    },
+    {
+      "fg": "line",
+      "on": "action-paper",
+      "ratio": 5.75,
+      "need": 3,
+      "pass": true
+    },
+    {
+      "fg": "line",
+      "on": "navigation-surface",
+      "ratio": 5.69,
+      "need": 3,
+      "pass": true
+    },
+    {
+      "fg": "line",
+      "on": "trail-surface",
+      "ratio": 5.31,
+      "need": 3,
+      "pass": true
+    },
+    {
+      "fg": "line",
+      "on": "sidebar-surface",
+      "ratio": 5.47,
+      "need": 3,
+      "pass": true
+    },
+    {
+      "fg": "line",
+      "on": "secondary-surface",
+      "ratio": 4.73,
+      "need": 3,
+      "pass": true
+    },
+    {
+      "fg": "line",
+      "on": "header-ink",
+      "ratio": 6.24,
+      "need": 3,
+      "pass": true
+    },
+    {
+      "fg": "line",
+      "on": "code-surface",
+      "ratio": 5.96,
+      "need": 3,
+      "pass": true
+    },
+    {
+      "fg": "action-fill",
+      "on": "texture darkest pixel",
+      "ratio": 10.17,
+      "need": 3,
+      "pass": true
+    },
+    {
+      "fg": "action-fill",
+      "on": "texture dark (1st pct block)",
+      "ratio": 9.05,
+      "need": 3,
+      "pass": true
+    },
+    {
+      "fg": "action-fill",
+      "on": "texture median block",
+      "ratio": 8.83,
+      "need": 3,
+      "pass": true
+    },
+    {
+      "fg": "action-fill",
+      "on": "texture light (99th pct block)",
+      "ratio": 8.32,
+      "need": 3,
+      "pass": true
+    },
+    {
+      "fg": "action-fill",
+      "on": "texture lightest block",
+      "ratio": 7.37,
+      "need": 3,
+      "pass": true
+    },
+    {
+      "fg": "action-fill",
+      "on": "texture lightest pixel",
+      "ratio": 4.66,
+      "need": 3,
+      "pass": true
+    },
+    {
+      "fg": "action-fill",
+      "on": "surface",
+      "ratio": 8.23,
+      "need": 3,
+      "pass": true
+    },
+    {
+      "fg": "action-fill",
+      "on": "field",
+      "ratio": 9.18,
+      "need": 3,
+      "pass": true
+    },
+    {
+      "fg": "action-fill",
+      "on": "action-paper",
+      "ratio": 8.23,
+      "need": 3,
+      "pass": true
+    },
+    {
+      "fg": "action-fill",
+      "on": "navigation-surface",
+      "ratio": 8.15,
+      "need": 3,
+      "pass": true
+    },
+    {
+      "fg": "action-fill",
+      "on": "trail-surface",
+      "ratio": 7.6,
+      "need": 3,
+      "pass": true
+    },
+    {
+      "fg": "action-fill",
+      "on": "sidebar-surface",
+      "ratio": 7.82,
+      "need": 3,
+      "pass": true
+    },
+    {
+      "fg": "action-fill",
+      "on": "secondary-surface",
+      "ratio": 6.77,
+      "need": 3,
+      "pass": true
+    },
+    {
+      "fg": "action-fill",
+      "on": "header-ink",
+      "ratio": 8.93,
+      "need": 3,
+      "pass": true
+    },
+    {
+      "fg": "action-fill",
+      "on": "code-surface",
+      "ratio": 8.53,
+      "need": 3,
+      "pass": true
+    },
+    {
+      "fg": "on-action",
+      "on": "action-fill",
+      "ratio": 8.21,
+      "need": 4.5,
+      "pass": true
+    },
+    {
+      "fg": "action-ink",
+      "on": "action-paper",
+      "ratio": 13.07,
+      "need": 4.5,
+      "pass": true
+    },
+    {
+      "fg": "on-danger",
+      "on": "danger",
+      "ratio": 8.56,
+      "need": 4.5,
+      "pass": true
+    },
+    {
+      "fg": "header-paper",
+      "on": "header-ink",
+      "ratio": 14.19,
+      "need": 4.5,
+      "pass": true
+    },
+    {
+      "fg": "header-gold",
+      "on": "header-ink",
+      "ratio": 7.29,
+      "need": 3,
+      "pass": true
+    },
+    {
+      "fg": "ornament-ink",
+      "on": "texture darkest pixel",
+      "ratio": 6.72,
+      "need": 3,
+      "pass": true
+    },
+    {
+      "fg": "ornament-ink",
+      "on": "texture dark (1st pct block)",
+      "ratio": 5.98,
+      "need": 3,
+      "pass": true
+    },
+    {
+      "fg": "ornament-ink",
+      "on": "texture median block",
+      "ratio": 5.84,
+      "need": 3,
+      "pass": true
+    },
+    {
+      "fg": "ornament-ink",
+      "on": "texture light (99th pct block)",
+      "ratio": 5.5,
+      "need": 3,
+      "pass": true
+    },
+    {
+      "fg": "ornament-ink",
+      "on": "texture lightest block",
+      "ratio": 4.87,
+      "need": 3,
+      "pass": true
+    },
+    {
+      "fg": "ornament-ink",
+      "on": "texture lightest pixel",
+      "ratio": 3.08,
+      "need": 3,
+      "pass": true
+    },
+    {
+      "fg": "ornament-accent-ink",
+      "on": "texture darkest pixel",
+      "ratio": 12.08,
+      "need": 3,
+      "pass": true
+    },
+    {
+      "fg": "ornament-accent-ink",
+      "on": "texture dark (1st pct block)",
+      "ratio": 10.75,
+      "need": 3,
+      "pass": true
+    },
+    {
+      "fg": "ornament-accent-ink",
+      "on": "texture median block",
+      "ratio": 10.49,
+      "need": 3,
+      "pass": true
+    },
+    {
+      "fg": "ornament-accent-ink",
+      "on": "texture light (99th pct block)",
+      "ratio": 9.88,
+      "need": 3,
+      "pass": true
+    },
+    {
+      "fg": "ornament-accent-ink",
+      "on": "texture lightest block",
+      "ratio": 8.76,
+      "need": 3,
+      "pass": true
+    },
+    {
+      "fg": "ornament-accent-ink",
+      "on": "texture lightest pixel",
+      "ratio": 5.54,
+      "need": 3,
+      "pass": true
+    },
+    {
+      "fg": "code-comment",
+      "on": "code-surface",
+      "ratio": 9.52,
+      "need": 4.5,
+      "pass": true
+    },
+    {
+      "fg": "code-keyword",
+      "on": "code-surface",
+      "ratio": 9.02,
+      "need": 4.5,
+      "pass": true
+    },
+    {
+      "fg": "code-string",
+      "on": "code-surface",
+      "ratio": 9.88,
+      "need": 4.5,
+      "pass": true
+    },
+    {
+      "fg": "code-function",
+      "on": "code-surface",
+      "ratio": 9.45,
+      "need": 4.5,
+      "pass": true
+    },
+    {
+      "fg": "code-constant",
+      "on": "code-surface",
+      "ratio": 9.77,
+      "need": 4.5,
+      "pass": true
+    }
+  ],
+  "failures": []
+}

@@ -150,7 +150,7 @@
   }
 
   .quests-index-empty {
-    @apply px-3 py-6 text-muted;
+    @apply flex flex-col items-center gap-2 px-3 py-6 text-center text-muted;
   }
 
   .quests-index-list {
@@ -294,8 +294,17 @@
     grid-template-columns: minmax(0, 1fr);
   }
 
+  .prompt-editor-name,
+  .prompt-editor-replies {
+    @apply grid min-w-0 gap-4;
+  }
+
+  .prompt-editor-name > * {
+    max-inline-size: 36rem;
+  }
+
   .prompt-editor-nav {
-    @apply flex flex-wrap gap-2;
+    @apply flex flex-col items-stretch gap-1;
   }
 
   /* The chosen section is marked, not filled: Save stays the editor's
@@ -320,26 +329,13 @@
   }
 
   @media (min-width: 48rem) {
-    .prompt-editor {
+    .prompt-editor-replies {
       grid-template-columns: minmax(0, 12rem) minmax(0, 1fr);
+      align-items: start;
     }
 
-    .prompt-editor-name,
-    .prompt-editor-heading,
-    .prompt-editor-actions,
-    .prompt-editor-more {
+    .prompt-editor-heading {
       grid-column: 1 / -1;
-    }
-
-    .prompt-editor-nav {
-      @apply flex-col items-stretch self-start;
-      grid-column: 1;
-      grid-row: 3;
-    }
-
-    .prompt-editor-field {
-      grid-column: 2;
-      grid-row: 3;
     }
   }
 
@@ -379,6 +375,10 @@
      sign in again. */
   .text-link {
     @apply rounded-control underline decoration-(length:--line-width) decoration-line underline-offset-4 hover:text-primary hover:decoration-primary;
+  }
+
+  :is(.circle-progress, .profile-ring) > svg {
+    @apply absolute inset-0 size-full;
   }
 
   /* Letterpress actions: brass commits, paper offers alternatives, ink
@@ -605,7 +605,8 @@
 
   /* A raised surface that groups a page's part, such as a form. */
   .panel {
-    @apply rounded-box border border-line bg-surface p-5 shadow-raised sm:p-6;
+    position: relative;
+    @apply bg-surface p-5 sm:p-6;
   }
 
   /* One item of a list, such as an activity. Cards that sit on the page
@@ -614,6 +615,120 @@
      surface; notices, panels and dialogs stay opaque. */
   .card {
     @apply rounded-box border border-line bg-surface/70 px-4 py-3 shadow-control;
+  }
+
+  :is(.panel, .dialog-panel) {
+    border: var(--frame-width) var(--frame-style) var(--frame-ink);
+    border-radius: var(--frame-radius);
+    background-image: var(--frame-decoration);
+    box-shadow:
+      inset 0 0 0 var(--frame-inset) var(--surface),
+      inset 0 0 0 calc(var(--frame-inset) + var(--frame-keyline))
+      var(--frame-ink),
+      var(--raised-shadow);
+  }
+
+  .ornament[data-ornament="emblem"] {
+    --orn-main: var(--orn-emblem);
+    --orn-accent: var(--orn-emblem-accent);
+    inline-size: var(--orn-emblem-size);
+    block-size: var(--orn-emblem-size);
+  }
+
+  .ornament[data-ornament="divider"] {
+    --orn-main: var(--orn-divider);
+    --orn-accent: var(--orn-divider-accent);
+    inline-size: var(--orn-divider-width);
+    block-size: calc(var(--orn-divider-width) / 2);
+  }
+
+  .ornamented-divider {
+    display: flex;
+    align-items: center;
+    inline-size: 100%;
+    gap: 0.5rem;
+  }
+
+  .ornamented-divider::before,
+  .ornamented-divider::after {
+    content: "";
+    flex: 1;
+    border-block-start: var(--rule-width) var(--rule-style) var(--rule-ink);
+  }
+
+  .ornament[data-ornament="vignette"] {
+    --orn-main: var(--orn-vignette);
+    --orn-accent: var(--orn-vignette-accent);
+    inline-size: min(var(--orn-vignette-width), 100%);
+    aspect-ratio: var(--orn-vignette-ratio);
+  }
+
+  .ornament {
+    position: relative;
+    display: none;
+    flex: none;
+    pointer-events: none;
+  }
+
+  @supports (mask: none) {
+    .ornament {
+      display: inline-block;
+    }
+
+    .ornament::before,
+    .ornament::after,
+    :is(.panel, .dialog-panel)::before,
+    :is(.panel, .dialog-panel)::after {
+      position: absolute;
+      pointer-events: none;
+      content: "";
+    }
+
+    .ornament::before,
+    .ornament::after {
+      inset: 0;
+      background: var(--ornament-ink);
+      mask: var(--orn-main) center / contain no-repeat;
+    }
+
+    .ornament::after {
+      background: var(--ornament-accent-ink);
+      mask-image: var(--orn-accent);
+    }
+
+    .panel {
+      --frame-corner: var(--orn-corner-panel-size);
+    }
+
+    .panel[data-frame="feature"] {
+      --frame-corner: var(--orn-corner-feature-size);
+    }
+
+    .dialog-panel {
+      --frame-corner: var(--orn-corner-dialog-size);
+    }
+
+    :is(.panel, .dialog-panel, li) .panel {
+      --frame-corner: 0px;
+    }
+
+    :is(.panel, .dialog-panel)::before,
+    :is(.panel, .dialog-panel)::after {
+      inset: max(0px, calc(var(--frame-inset) - var(--frame-corner) / 4));
+      background: var(--ornament-ink);
+      mask:
+        var(--orn-corner-tl) top left / var(--frame-corner) no-repeat,
+        var(--orn-corner-tr) top right / var(--frame-corner) no-repeat,
+        var(--orn-corner-bl) bottom left / var(--frame-corner) no-repeat,
+        var(--orn-corner-br) bottom right / var(--frame-corner) no-repeat;
+    }
+
+    :is(.panel, .dialog-panel)::after {
+      background: var(--ornament-accent-ink);
+      mask-image:
+        var(--orn-corner-accent-tl), var(--orn-corner-accent-tr),
+        var(--orn-corner-accent-bl), var(--orn-corner-accent-br);
+    }
   }
 
   /* A list whose items are rows divided by rules rather than cards, as the
@@ -723,13 +838,14 @@
   .site-header {
     @apply relative z-20 flex flex-wrap items-center gap-2 py-2 shadow-raised;
     padding-inline: var(--header-gutter);
-    background: var(--hud-ink);
+    background-color: var(--hud-ink);
+    background-image: var(--header-decoration);
     color: var(--hud-paper);
     border-block-end: var(--header-rim) solid var(--hud-gold);
   }
 
   .site-header > :not(.site-panel, .trail-band) {
-    --focus-outline: 3px solid var(--hud-gold);
+    --focus-outline: 3px solid var(--header-focus);
   }
 
   /* The brand takes the row up to the ring, if there is one. */
@@ -762,40 +878,25 @@
      size, at the bar's right end: gold filling an ink track, with the
      circle's number inside. */
   .circle-progress {
+    --ring-disc: var(--hud-ink);
+    --ring-track: var(--hud-line);
+    --ring-arc: var(--hud-gold);
+    --ring-stroke: 0.12;
     @apply relative grid shrink-0 place-items-center rounded-full;
     inline-size: var(--target-size);
     block-size: var(--target-size);
   }
 
-  .circle-progress-ring {
-    @apply absolute inset-0 size-full;
-  }
-
-  .circle-progress-track {
-    fill: none;
-    stroke: var(--hud-line);
-  }
-
-  .circle-progress-arc {
-    fill: none;
-    stroke: var(--hud-gold);
-  }
-
   .circle-progress-number {
-    @apply relative font-heading font-semibold text-sm tabular-nums;
+    font-family: var(--numeral-font);
+    @apply relative font-semibold text-sm tabular-nums;
   }
 
   /* Profile's head: a gilded card with the user's circle in a large ring
      beside their name, title and progress. On a phone the ring stands
      above the rest, centred. */
   .profile-card {
-    @apply flex flex-col items-center gap-4 rounded-box border-2 p-5 text-center shadow-raised sm:flex-row sm:gap-6 sm:p-6 sm:text-start;
-    border-color: color-mix(in oklab, var(--hud-gold) 60%, transparent);
-    background: linear-gradient(
-      135deg,
-      var(--field),
-      color-mix(in oklab, var(--hud-gold) 22%, var(--surface))
-    );
+    @apply flex flex-col items-center gap-4 text-center sm:flex-row sm:gap-6 sm:text-start;
   }
 
   .signed-in-days-card {
@@ -806,38 +907,19 @@
     @apply flex w-full min-w-0 flex-1 flex-col items-center gap-2 sm:items-start;
   }
 
-  /* The ring: the header's ink disc and gold arc, with "Circle" over the
-     circle's number. */
   .profile-ring {
     @apply relative grid size-28 shrink-0 content-center justify-items-center sm:size-33;
-    color: var(--hud-paper);
-  }
-
-  .profile-ring-arc {
-    @apply absolute inset-0 size-full;
-  }
-
-  .profile-ring-disc {
-    fill: var(--hud-ink);
-  }
-
-  .profile-ring-track {
-    fill: none;
-    stroke: var(--hud-line);
-  }
-
-  .profile-ring-fill {
-    fill: none;
-    stroke: var(--hud-gold);
+    color: var(--ring-ink);
   }
 
   .profile-ring-label {
     @apply relative font-extrabold text-xs uppercase tracking-widest;
-    color: var(--hud-gold);
+    color: var(--label-ink);
   }
 
   .profile-ring-number {
-    @apply relative font-bold font-heading text-5xl tabular-nums leading-none;
+    font-family: var(--numeral-font);
+    @apply relative font-bold text-5xl tabular-nums leading-none;
   }
 
   .profile-name {
@@ -1030,13 +1112,36 @@
     padding-block: var(--trail-band-padding-top)
       var(--trail-band-padding-bottom);
     border-block-start: var(--header-rim) solid var(--hud-gold);
-    @apply flex min-w-0 items-center border-line border-b bg-trail-surface/70 text-foreground;
+    background-image: var(--trail-decoration);
+    @apply flex min-w-0 items-center border-line border-b bg-trail-surface text-foreground;
+  }
+
+  @supports (mask: none) {
+    .trail-band::before,
+    .trail-band::after {
+      position: absolute;
+      inset-inline: 0;
+      inset-block-end: 0;
+      block-size: var(--orn-band-height);
+      pointer-events: none;
+      content: "";
+    }
+
+    .trail-band::before {
+      background: var(--ornament-ink);
+      mask: var(--orn-band) center / auto 100% repeat-x;
+    }
+
+    .trail-band::after {
+      background: var(--ornament-accent-ink);
+      mask: var(--orn-band-accent) center / auto 100% repeat-x;
+    }
   }
 
   .trail-content {
     margin-inline-start: calc(var(--panel-tab-width) + var(--header-gutter));
     margin-inline-end: var(--header-gutter);
-    @apply flex min-w-0 flex-1 items-baseline gap-2;
+    @apply flex min-w-0 flex-1 items-center gap-2;
   }
 
   .trail-band:has(.header-panel-control > .quest-sidebar-expand)
@@ -1112,6 +1217,14 @@
     @apply line-clamp-2 font-heading font-semibold text-section-heading leading-(--trail-heading-leading) tracking-tight sm:text-page-heading-phone;
   }
 
+  .hud-name,
+  .site-title,
+  .trail-heading {
+    font-family: var(--display-font);
+    font-weight: var(--display-weight);
+    letter-spacing: var(--display-tracking);
+  }
+
   /* The site panel (src/components/site-panel.tsx), the chat panel's
      mirror on the left: under the header, for the rest of the screen's
      height. Its expand button starts the breadcrumb row; the close button
@@ -1129,7 +1242,8 @@
     block-size: calc(100dvh - var(--panel-top));
     inline-size: min(var(--site-panel-width), calc(100% - 3rem));
     max-block-size: none;
-    @apply fixed inset-s-0 inset-e-auto m-0 max-w-none flex-col gap-1 overflow-y-auto border-0 border-line border-e bg-navigation-surface/85 p-3 text-foreground shadow-raised backdrop-blur-md open:flex;
+    @apply fixed inset-s-0 inset-e-auto m-0 max-w-none flex-col gap-1 overflow-y-auto border-0 border-line bg-navigation-surface/85 p-3 text-foreground shadow-raised backdrop-blur-md open:flex;
+    border-inline-end-width: 1px;
     padding-block-start: 0;
     padding-inline: var(--header-gutter);
     background-image: var(--panel-decoration);
@@ -1147,7 +1261,8 @@
   /* The close button starts the panel's heading. */
   .site-panel-heading {
     margin-inline: calc(-1 * var(--header-gutter));
-    @apply flex items-center gap-4 border-line border-b;
+    border-block-end-width: 1px;
+    @apply flex items-center gap-4 border-line;
   }
 
   /* Inside the open panel, the close button lets the panel's own
@@ -1185,13 +1300,14 @@
     @apply bg-field text-action-ink;
   }
 
-  /* Both pickers use native radios; only their material appears inside. */
+  /* Both pickers use native radios with decorative material previews. */
   .panel-modes {
     @apply mx-2 grid max-w-md grid-cols-3 gap-3 pt-10;
   }
 
   .panel-mode {
-    @apply relative block min-h-(--target-size) min-w-0 cursor-pointer rounded-control border border-transparent p-1 hover:border-muted has-checked:border-primary;
+    border-width: 1px;
+    @apply relative block min-h-(--target-size) min-w-0 cursor-pointer rounded-control border-solid border-transparent p-1 hover:border-muted has-checked:border-primary;
   }
 
   .panel-mode:focus-within {
@@ -1211,7 +1327,26 @@
   }
 
   .theme-swatch {
-    @apply block h-16 w-full rounded-control bg-background bg-(image:--page-decoration) bg-cover;
+    @apply pointer-events-none relative block h-16 w-full rounded-control bg-background bg-(image:--page-decoration) bg-cover;
+  }
+
+  @supports (mask: none) {
+    .theme-swatch::before,
+    .theme-swatch::after {
+      position: absolute;
+      inset: 0.25rem;
+      content: "";
+    }
+
+    .theme-swatch::before {
+      background: var(--ornament-ink);
+      mask: var(--orn-swatch) center / contain no-repeat;
+    }
+
+    .theme-swatch::after {
+      background: var(--ornament-accent-ink);
+      mask: var(--orn-swatch-accent) center / contain no-repeat;
+    }
   }
 
   /* The padded bridge keeps the tooltip hoverable without covering a tile. */
@@ -1250,12 +1385,11 @@
   }
 
   .dialog-panel {
-    @apply fixed top-1/2 left-1/2 z-50 flex max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] max-w-md overflow-y-auto -translate-x-1/2 -translate-y-1/2 flex-col gap-3 rounded-box border border-line bg-surface p-5 shadow-raised data-[state=closed]:motion-safe:animate-pop-out data-[state=open]:motion-safe:animate-pop-in sm:p-6;
+    @apply fixed top-1/2 left-1/2 z-50 flex max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] max-w-md overflow-y-auto -translate-x-1/2 -translate-y-1/2 flex-col gap-3 bg-surface p-5 data-[state=closed]:motion-safe:animate-pop-out data-[state=open]:motion-safe:animate-pop-in sm:p-6;
   }
 }
 
 @layer components {
-  /* One square canonical composition; only the avatar uses a face crop. */
   /* Without artwork, or while it loads, the frame shows the construct's
      initials as a seal: the accent colour, with letters scaled to the
      frame, so a 32 px avatar and a full portrait read alike. */
@@ -2390,8 +2524,12 @@
   }
 
   @media (width >= --theme(--breakpoint-lg)) {
-    .adventure-layout[data-sidebar-open="true"] {
-      padding-inline-end: 22rem;
+    /* Reserve the default dock before the browser hydrates the dialog. */
+    .adventure-layout:is(
+        [data-sidebar-open="true"],
+        [data-sidebar-open="auto"]
+      ) {
+      padding-inline-end: var(--quest-panel-width);
     }
 
     .quest-sidebar-frame {

@@ -17,7 +17,7 @@ vi.mock("@/app/(workspace)/quests/actions.ts", () => actions);
 const DAILIES_ID = questIdFixture("1f2e3d4c-5b6a-4987-8a6b-5c4d3e2f1a0b");
 
 function choose(name: string): ReturnType<typeof page.getByRole> {
-  return page.getByRole("button", { name, exact: true });
+  return page.getByRole("button", { name, exact: false });
 }
 
 afterEach(() => {
@@ -32,7 +32,7 @@ describe("use_case_browse_premade_quests", () => {
       PREMADE_QUESTS.map((quest) =>
         expect
           .element(choose(quest.name))
-          .toHaveAccessibleDescription(quest.tagline),
+          .toHaveAccessibleName(`${quest.name} ${quest.tagline}`),
       ),
     );
     await choose("Learn a thing").click();
@@ -139,7 +139,7 @@ describe("use_case_browse_premade_quests", () => {
     await render(<QuestStartChoices dailiesId={DAILIES_ID} />);
 
     await expect
-      .element(page.getByRole("link", { name: "Dailies", exact: true }))
+      .element(page.getByRole("link", { name: "Dailies", exact: false }))
       .toHaveAttribute("href", `/quests/${DAILIES_ID}`);
     await expect.element(choose("Dailies")).not.toBeInTheDocument();
   });

@@ -1,0 +1,197 @@
+/* Espresso Leather: token values for the "dark" appearance, the
+   necromancer's grimoire. DIRECTION.md explains the choices; tools/
+   checks the contrast against the unchanged leather texture.
+   THEME-INTERFACE.md lists and explains every token. */
+
+@layer appearance {
+  [data-mode="dark"] {
+    color-scheme: dark;
+
+    /* Colour. Text inks reach 4.5:1 on the texture's brightest 0.1% and
+       on every surface; see DIRECTION.md, "Contrast against the texture". */
+    --background: rgb(36 24 17);
+    --surface: rgb(46 33 23);
+    --field: rgb(27 19 13);
+    --code-surface: rgb(30 21 14);
+    --foreground: rgb(246 228 192);
+    --muted: rgb(212 184 142);
+    --line: rgb(178 140 88);
+    --primary: rgb(234 190 112);
+    --on-primary: rgb(42 27 14);
+    --accent: rgb(218 166 88);
+    --on-accent: rgb(42 27 14);
+    --danger: rgb(255 160 130);
+    --on-danger: rgb(42 22 14);
+    --focus: rgb(250 213 139);
+    --shadow: rgb(10 6 3);
+    --code-comment: rgb(196 168 128);
+    --code-keyword: rgb(240 176 150);
+    --code-string: rgb(190 205 142);
+    --code-function: rgb(190 196 222);
+    --code-constant: rgb(244 201 122);
+    --navigation-surface: rgb(38 27 19);
+    --trail-surface: rgb(40 28 19);
+    --sidebar-surface: rgb(42 30 21);
+    --secondary-surface: rgb(62 45 30);
+    --header-ink: rgb(30 20 13);
+    --header-paper: rgb(246 228 192);
+    --header-line: rgb(178 140 88);
+    --header-gold: rgb(234 190 112);
+    --action-fill: rgb(234 190 112);
+    --on-action: rgb(42 27 14);
+    --action-paper: rgb(46 33 23);
+    --action-ink: rgb(246 228 192);
+
+    /* Page texture: the unchanged file in apps/web/public/textures/. */
+    --page-decoration: url("/textures/espresso-leather.webp");
+
+    /* Type, shape and site panel. Body text is Source Serif 4, so the
+       whole page reads as one book (choice awaiting Autumn; the current
+       value is --typeface-nunito). Frames and controls are book-square
+       (choice awaiting Autumn; the current values are 1rem and 0.625rem). */
+    --body-font: var(--typeface-source-serif-4);
+    --heading-font: var(--typeface-source-serif-4);
+    --mono-font: var(--typeface-jetbrains-mono);
+    --conversation-font: var(--typeface-source-serif-4);
+    --conversation-text-size: 1.0625rem;
+    --conversation-leading: 1.55;
+    --conversation-field-radius: 0.125rem;
+    --space-unit: 0.25rem;
+    --action-radius: 2px;
+    --action-line-width: 1px;
+    --action-font: var(--typeface-source-serif-4);
+    /* Candle glow on hover: a dark shadow can't be seen on the leather. */
+    --action-hover-shadow: 0 0 0 1px color-mix(in srgb, var(--primary) 45%, transparent), 0 0 12px color-mix(in srgb, var(--primary) 26%, transparent);
+    --action-pressed-shadow: inset 0 1px 3px color-mix(in srgb, var(--shadow) 70%, transparent);
+    --control-radius: 0.1875rem;
+    --box-radius: 0.25rem;
+    --line-width: 2px;
+    --control-shadow: 0 2px 0 color-mix(in oklab, var(--shadow) 40%, transparent);
+    --raised-shadow: 0 12px 30px -8px color-mix(in oklab, var(--shadow) 70%, transparent), 0 2px 6px color-mix(in oklab, var(--shadow) 40%, transparent);
+    --focus-glow: 0 0 transparent;
+    --site-title-size: 2.5rem;
+    --site-title-wide-size: 3.25rem;
+    --page-heading-size: 2rem;
+    --page-heading-phone-size: 1.625rem;
+    --section-heading-size: 1.25rem;
+    --header-title-size: 1.375rem;
+    --card-title-size: 1.125rem;
+    --panel-decoration: linear-gradient( 100deg, transparent 40%, color-mix(in oklab, var(--primary) 4%, transparent) );
+    --panel-label-case: uppercase;
+    --panel-label-tracking: 0.08em;
+    --panel-separator: linear-gradient( to right, transparent, var(--line) 20%, var(--line) 80%, transparent );
+    --panel-separator-size: 1px;
+
+    /* Type roles. Labels are tracked Source Serif capitals: Cormorant at
+       label sizes and weight 400 was too thin to read on the leather.
+       Cormorant stays for numerals. */
+    --display-font: var(--typeface-im-fell-english);
+    --display-weight: 400;
+    --display-tracking: 0.01em;
+    --label-font: var(--typeface-source-serif-4);
+    --label-ink: var(--muted);
+    --label-case: uppercase;
+    --label-caps: normal;
+    --label-tracking: 0.08em;
+    --numeral-font: var(--typeface-cormorant-garamond);
+    /* A raised blackletter initial in cinnabar (choice awaiting Autumn;
+       the current initial is the display face, 1em, in accent brass). It
+       is raised, not dropped, because empty states centre their copy. */
+    --initial-font: var(--typeface-unifrakturmaguntia);
+    --initial-size: 1.75em;
+    --initial-float: none;
+
+    /* Ornament inks: blind-tooled brass and candle-lit gilt. The rubric
+       is cinnabar, more orange than the danger coral, and reaches 4.5:1
+       on the texture's brightest pixel. */
+    --rubric: rgb(246 152 104);
+    --ornament-ink: var(--line);
+    --ornament-accent-ink: var(--primary);
+    --rule-ink: var(--line);
+    --frame-ink: var(--line);
+    --scrim: color-mix(in oklab, var(--shadow) 62%, transparent);
+
+    /* Rules and frames: a 1px fillet, and a frame with an inner keyline,
+       the double fillet of blind tooling. */
+    --rule-style: solid;
+    --rule-width: 1px;
+    --frame-style: solid;
+    --frame-width: 1px;
+    --frame-radius: 0.25rem;
+    --frame-inset: 0.25rem;
+    --frame-keyline: 1px;
+    --header-decoration: none;
+    --trail-decoration: linear-gradient( to bottom, color-mix(in oklab, var(--primary) 5%, transparent), transparent );
+    --frame-decoration: radial-gradient( ellipse 90% 60% at 50% 0%, color-mix(in oklab, var(--primary) 6%, transparent), transparent );
+
+    /* Progress ring */
+    --ring-track: color-mix(in oklab, var(--line) 35%, transparent);
+    --ring-arc: var(--primary);
+    --ring-disc: var(--surface);
+    --ring-ink: var(--foreground);
+    --ring-stroke: 0.1;
+
+    /* Ornament sizes */
+    --orn-corner-size: 1.25rem;
+    --orn-corner-panel-size: var(--orn-corner-size);
+    --orn-corner-dialog-size: var(--orn-corner-size);
+    --orn-corner-feature-size: 1.5rem;
+    --orn-corner-card-size: 0px;
+    --orn-divider-width: 2.5rem;
+    --orn-heading-width: 1rem;
+    --orn-band-height: 0.5rem;
+    --orn-emblem-size: 3.5rem;
+    --orn-portrait-bleed: 0.75rem;
+    --orn-bullet-size: 0.5rem;
+    /* An empty state shows the grimoire and candle above the seal emblem;
+       the sign-in card shows the emblem alone. */
+    --orn-vignette-width: 8.5rem;
+    --orn-notice-size: 1.125rem;
+    --orn-rule-end-height: 0.5rem;
+
+    /* Timer: today's Espresso Leather values from parchment.css, unchanged:
+       the necromantic seal and the blackletter phase label. */
+    --timer-body-font: var(--typeface-im-fell-english);
+    --timer-phase-font: var(--typeface-unifrakturmaguntia);
+    --timer-numeral-font: var(--typeface-cormorant-garamond);
+    --timer-blackletter-font: var(--typeface-unifrakturmaguntia);
+    --timer-phase-size: 2rem;
+    --timer-numeral-size: 6rem;
+    --timer-number-scale: 26cqi;
+    --timer-hours-scale: 16cqi;
+    --timer-number-leading: 1.1;
+    --timer-next-font: var(--heading-font);
+    --timer-hourglass-display: none;
+    --timer-ring-display: block;
+    --timer-face-columns: 1fr;
+    --timer-face-width: min(100%, 30rem);
+    --timer-face-ratio: 1;
+    --timer-face-height: auto;
+    --timer-stage-padding: 1.5rem 4rem;
+    --timer-face-padding: 0;
+    --timer-readout-align: center;
+    --timer-phase-position: absolute;
+    --timer-phase-gap: 0;
+    --timer-next-position: absolute;
+    --timer-next-offset: calc(100% + 1.25rem);
+    --timer-next-margin: 0;
+    --timer-next-padding: 0;
+    --timer-next-rule: none;
+    --timer-sand: rgb(165 119 40);
+    --timer-radius: 162px;
+    --timer-stroke: 12px;
+    --timer-arc: var(--primary);
+    --timer-marker-active: var(--foreground);
+    --timer-track: var(--line);
+    --timer-ornament-ink: var(--muted);
+    --timer-guide-outer: 186px;
+    --timer-guide-middle: 0px;
+    --timer-guide-inner: 136px;
+    --timer-inscription-display: block;
+    --timer-sigil-display: block;
+    --timer-chapter-display: none;
+    --timer-seal-display: block;
+    --timer-mark-glow: drop-shadow( 0 0 3px color-mix(in srgb, var(--timer-marker-active) 45%, transparent) );
+    --timer-hatch-opacity: 0;
+  }
+}

@@ -8,8 +8,8 @@
 // screen and colours the browser's bar in light mode; the dark one colours
 // it in dark mode. web-app.test.ts checks they match the theme.
 const APP_COLORS = {
-  lightBackground: "rgb(244, 236, 216)",
-  darkBackground: "rgb(36, 27, 19)",
+  lightBackground: "rgb(246, 229, 194)",
+  darkBackground: "rgb(36, 24, 17)",
 } as const;
 
 // The icons in public/icons/: the header's gold compass on its ink brown,

@@ -1,0 +1,226 @@
+/* Ivory Vellum: token values for the "light" appearance.
+   A scribe's illuminated manuscript: sepia ink on vellum, gold leaf,
+   rubrication and fine paired keylines, all taken from the scribe's
+   hourglass. DIRECTION.md explains each choice, and tools/contrast.py
+   checks every text pair against the texture's darkest pixel.
+   Started from themes/_template/ivory-vellum/ on 2026-11-17. The Timer
+   tokens and their two @media blocks are the template's, unchanged: the
+   Timer's look is not part of this redesign. */
+
+@layer appearance {
+  :root,
+  [data-mode="light"] {
+    color-scheme: light;
+
+    /* Colour. Vellum leaf and fresh vellum sit a little paler than the
+       texture; sepia, iron-gall and ochre inks; sealing wax is a blue
+       crimson, so it never reads as the vermilion rubric. */
+    --background: rgb(246 229 194);
+    --surface: rgb(251 237 205);
+    --field: rgb(255 248 230);
+    --code-surface: rgb(246 230 196);
+    --foreground: rgb(52 32 18);
+    --muted: rgb(98 68 40);
+    --line: rgb(134 96 50);
+    --primary: rgb(92 55 22);
+    --on-primary: rgb(255 244 220);
+    --accent: rgb(122 71 16);
+    --on-accent: rgb(255 246 226);
+    --danger: rgb(128 26 36);
+    --on-danger: rgb(255 244 225);
+    --focus: rgb(115 65 18);
+    --shadow: rgb(70 43 19);
+    --code-comment: rgb(104 72 42);
+    --code-keyword: rgb(111 47 36);
+    --code-string: rgb(62 82 36);
+    --code-function: rgb(62 62 100);
+    --code-constant: rgb(112 62 20);
+    --navigation-surface: rgb(251 237 205);
+    --trail-surface: rgb(251 237 205);
+    --sidebar-surface: rgb(251 237 205);
+    --secondary-surface: rgb(243 224 184);
+    /* The header is the hourglass's dark end bar with a gold-leaf rim. */
+    --header-ink: rgb(49 30 16);
+    --header-paper: rgb(250 232 192);
+    --header-line: rgb(171 126 47);
+    --header-gold: rgb(201 160 72);
+    /* Letterpress: burnished brass, fresh vellum and sepia. */
+    --action-fill: rgb(128 80 20);
+    --on-action: rgb(255 246 226);
+    --action-paper: rgb(255 248 230);
+    --action-ink: rgb(52 32 18);
+
+    /* Page texture: the unchanged file in apps/web/public/textures/. */
+    --page-decoration: url("/textures/ivory-vellum.webp");
+
+    /* Type. IM Fell English, the Timer's own face, sets display text
+       only; Nunito stays for controls and dense lists. */
+    --body-font: var(--typeface-nunito);
+    --heading-font: var(--typeface-source-serif-4);
+    --mono-font: var(--typeface-jetbrains-mono);
+    --conversation-font: var(--typeface-source-serif-4);
+    --conversation-text-size: 1.0625rem;
+    --conversation-leading: 1.55;
+    --site-title-size: 2.375rem;
+    --site-title-wide-size: 3.25rem;
+    --page-heading-size: 2.125rem;
+    --page-heading-phone-size: 1.625rem;
+    --section-heading-size: 1.25rem;
+    --header-title-size: 1.25rem;
+    --card-title-size: 1.125rem;
+    --display-font: var(--typeface-im-fell-english);
+    --display-weight: 400;
+    --display-tracking: 0.01em;
+    --label-font: var(--heading-font);
+    --label-ink: var(--rubric);
+    --label-case: none;
+    --label-caps: all-small-caps;
+    --label-tracking: 0.08em;
+    --numeral-font: var(--typeface-cormorant-garamond);
+    --initial-font: var(--typeface-im-fell-english);
+    --initial-size: 1.75em;
+    --initial-float: none;
+
+    /* Shape: square-cut corners and fine 1 px keylines throughout. */
+    --space-unit: 0.25rem;
+    --action-radius: 2px;
+    --action-line-width: 1px;
+    --action-font: var(--typeface-source-serif-4);
+    --action-hover-shadow: 0 2px 5px color-mix(in srgb, var(--shadow) 18%, transparent);
+    --action-pressed-shadow: inset 0 1px 2px color-mix(in srgb, var(--shadow) 20%, transparent);
+    --control-radius: 3px;
+    --box-radius: 3px;
+    --conversation-field-radius: 2px;
+    --line-width: 1px;
+    --control-shadow: 0 1px 0 color-mix(in oklab, var(--shadow) 14%, transparent);
+    --raised-shadow: 0 8px 22px -10px color-mix(in oklab, var(--shadow) 32%, transparent), 0 1px 3px color-mix(in oklab, var(--shadow) 12%, transparent);
+    --focus-glow: 0 0 transparent;
+
+    /* Site panel. Group labels are rubricated small capitals. */
+    --panel-decoration: linear-gradient(110deg, transparent, color-mix(in oklab, var(--primary) 4%, transparent));
+    --panel-label-case: none;
+    --panel-label-tracking: 0.08em;
+    --panel-separator: linear-gradient(to right, transparent, var(--line), transparent);
+    --panel-separator-size: 1px;
+
+    /* Colour roles for ornament: sepia keylines and gold leaf. */
+    --rubric: rgb(150 50 32);
+    --ornament-ink: var(--line);
+    --ornament-accent-ink: rgb(171 126 47);
+    --rule-ink: var(--line);
+    --frame-ink: var(--line);
+    --scrim: color-mix(in oklab, var(--shadow) 42%, transparent);
+
+    /* Rules and frames: a 1 px keyline with a second keyline 3 px inside,
+       like the hourglass's paired frame lines. */
+    --rule-style: solid;
+    --rule-width: 1px;
+    --frame-style: solid;
+    --frame-width: 1px;
+    --frame-radius: 2px;
+    --frame-inset: 3px;
+    --frame-keyline: 1px;
+    /* A fine gilt line inside the header's foot, above its gold rim. */
+    --header-decoration: linear-gradient(to top, transparent 0 4px, color-mix(in srgb, var(--header-gold) 60%, transparent) 4px 5px, transparent 5px);
+    --trail-decoration: none;
+    --frame-decoration: none;
+
+    /* Progress ring */
+    --ring-track: color-mix(in oklab, var(--line) 35%, transparent);
+    --ring-arc: var(--primary);
+    --ring-disc: var(--surface);
+    --ring-ink: var(--foreground);
+    --ring-stroke: 0.09;
+
+    /* Ornament sizes. Corners go on panels, dialogs and feature cards,
+       never on plain cards. */
+    --orn-corner-size: 1.125rem;
+    --orn-corner-panel-size: var(--orn-corner-size);
+    --orn-corner-dialog-size: 1.25rem;
+    --orn-corner-feature-size: 1.375rem;
+    --orn-corner-card-size: 0px;
+    --orn-divider-width: 2rem;
+    --orn-heading-width: 0.9375rem;
+    --orn-band-height: 0.5rem;
+    --orn-emblem-size: 3.5rem;
+    --orn-portrait-bleed: 0.625rem;
+    --orn-bullet-size: 0.4375rem;
+    /* Optional slots. The book-and-quill vignette awaits Autumn's choice;
+       DIRECTION.md says how to switch it. */
+    --orn-vignette-width: 8.5rem;
+    --orn-notice-size: 1rem;
+    --orn-rule-end-height: 0.5rem;
+
+    /* Timer: illustration, inks and type, then layout. */
+    --timer-body-font: var(--typeface-im-fell-english);
+    --timer-phase-font: var(--typeface-im-fell-english-italic);
+    --timer-numeral-font: var(--typeface-cormorant-garamond);
+    --timer-blackletter-font: var(--typeface-unifrakturmaguntia);
+    --timer-phase-size: 2rem;
+    --timer-numeral-size: 7.25rem;
+    --timer-number-scale: max(4.25rem, 26cqi);
+    --timer-hours-scale: 23cqi;
+    --timer-number-leading: 1;
+    --timer-next-font: var(--timer-body-font);
+    --timer-hourglass-display: block;
+    --timer-ring-display: none;
+    --timer-face-columns: 1fr 1.12fr;
+    --timer-face-width: 100%;
+    --timer-face-ratio: auto;
+    --timer-face-height: 35.625rem;
+    --timer-stage-padding: 1.5rem 4rem;
+    --timer-face-padding: 2.5rem 3.4375rem;
+    --timer-readout-align: start;
+    --timer-phase-position: static;
+    --timer-phase-gap: 0.8125rem;
+    --timer-next-position: relative;
+    --timer-next-offset: auto;
+    --timer-next-margin: 2.1875rem;
+    --timer-next-padding: 1.0625rem;
+    --timer-next-rule: block;
+    --timer-sand: rgb(165 119 40);
+    --timer-radius: 173px;
+    --timer-stroke: 10px;
+    --timer-arc: var(--primary);
+    --timer-marker-active: var(--primary);
+    --timer-track: var(--line);
+    --timer-ornament-ink: var(--muted);
+    --timer-guide-outer: 182px;
+    --timer-guide-middle: 165px;
+    --timer-guide-inner: 0px;
+    --timer-inscription-display: none;
+    --timer-sigil-display: none;
+    --timer-chapter-display: none;
+    --timer-seal-display: none;
+    --timer-mark-glow: drop-shadow( 0 0 3px color-mix(in srgb, var(--timer-marker-active) 45%, transparent) );
+    --timer-hatch-opacity: 0;
+  }
+
+  /* The compact hourglass stacks above its readout on a narrow page. */
+  @media (width <= 28.75rem) {
+    :root,
+    [data-mode="light"] {
+      --timer-face-columns: 1fr;
+      --timer-face-height: 32.5rem;
+      --timer-face-padding: 2.5rem 1.5rem;
+      --timer-readout-align: center;
+      --timer-phase-size: 1.5625rem;
+      --timer-numeral-size: 4.25rem;
+      --timer-phase-gap: 0.3125rem;
+      --timer-next-margin: 1.125rem;
+      --timer-next-padding: 0.75rem;
+    }
+  }
+
+  /* Keep the readout visible below the header on short phones. */
+  @media (width <= 28.75rem) and (height <= 42rem) {
+    :root,
+    [data-mode="light"] {
+      --timer-face-height: auto;
+      --timer-face-padding: 0 1.5rem;
+      --timer-stage-padding: 0;
+      --timer-next-margin: 0.75rem;
+      --timer-next-padding: 0.5rem;
+    }
+  }
+}

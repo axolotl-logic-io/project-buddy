@@ -1,0 +1,19 @@
+<div class="chat-composer-dock">
+  <form class="chat-composer">
+    {{?menu}}<div class="menu" role="listbox" aria-label="Commands" id="command-list">
+      <p class="menu-label" aria-hidden="true">Commands</p>
+      <button class="menu-item" type="button" role="option" aria-selected="true"><code>/tasks</code><span class="menu-hint">Start Tasks; save subsequent messages as tasks</span></button>
+      <button class="menu-item" type="button" role="option" aria-selected="false"><code>/add TEXT</code><span class="menu-hint">Add a task at the end</span></button>
+      <button class="menu-item" type="button" role="option" aria-selected="false"><code>/done [TASK]</code><span class="menu-hint">Check off a task, or the next task</span></button>
+      <button class="menu-item" type="button" role="option" aria-selected="false"><code>/reopen TASK</code><span class="menu-hint">Reopen a done task</span></button>
+      <button class="menu-item" type="button" role="option" aria-selected="false"><code>/edit TASK TEXT</code><span class="menu-hint">Change a task's text</span></button>
+      <button class="menu-item" type="button" role="option" aria-selected="false"><code>/move TASK PLACE</code><span class="menu-hint">Move an open task to a place, 1 being first</span></button>
+    </div>{{/?}}
+    <div class="field-box">
+      <textarea class="field-box-control" name="message" rows="2" aria-label="Message" aria-describedby="composer-hint{{?error}} composer-error{{/?}}"{{?menu}} aria-controls="command-list" aria-expanded="true" aria-autocomplete="list"{{/?}}{{?error}} aria-invalid="true"{{/?}}>{{value}}</textarea>
+      {{?busy}}<button class="button-secondary" type="button"><svg class="icon" aria-hidden="true"><use href="#i-stop"/></svg><span class="button-label">Stop reply</span></button>{{/?}}{{!busy}}<button class="button-primary" type="submit"><svg class="icon" aria-hidden="true"><use href="#i-send"/></svg><span class="button-label">Send</span></button>{{/!}}
+    </div>
+    {{?error}}<p class="field-error" id="composer-error" role="alert"><svg class="icon" aria-hidden="true"><use href="#i-alert"/></svg><span>{{error}}</span></p>{{/?}}
+    <p class="chat-composer-hint" id="composer-hint">Enter sends · Shift+Enter adds a line · / commands</p>
+  </form>
+</div>

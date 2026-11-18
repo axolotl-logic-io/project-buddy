@@ -24,10 +24,26 @@ function shell(content: JSX.Element): JSX.Element {
         <a href="/quests">{COPY.navigation}</a>
       </header>
       <main className="flex flex-1 flex-col">
-        <div className="workspace-frame">{content}</div>
+        <div className="workspace-frame" data-slot="">
+          {content}
+        </div>
       </main>
     </>
   );
+}
+
+// The editor's frame: what EditorFrame draws in the workspace's slot,
+// found as the part of the slot that holds `inside`, so ornament beside it
+// doesn't matter.
+function editorFrame(inside: Element): Element {
+  const slot = document.querySelector("[data-slot]");
+  const frame = [...(slot?.children ?? [])].find((child) =>
+    child.contains(inside),
+  );
+  if (frame === undefined) {
+    throw new Error("The editor's frame isn't in the workspace's slot");
+  }
+  return frame;
 }
 
 afterEach(async () => {
@@ -49,16 +65,12 @@ describe.each(["light", "dark"])("page frames in %s", (mode) => {
       ),
     );
     const status = page.getByRole("status");
-    const frame = status.element().closest("main")
-      ?.firstElementChild?.firstElementChild;
-    expect(frame).toBeInstanceOf(HTMLElement);
-    const before = frame?.getBoundingClientRect();
-    const block = status.element().querySelector('[aria-hidden="true"] > div');
-    expect(block).not.toBeNull();
-    if (block === null) {
-      throw new Error("Missing decorative loading block");
-    }
-    expect(getComputedStyle(block).animationName).toBe("none");
+    const frame = editorFrame(status.element());
+    const before = frame.getBoundingClientRect();
+    expect(
+      status.element().getAnimations({ subtree: true }),
+      "the loading placeholder holds still with reduced motion",
+    ).toEqual([]);
     await screen.rerender(
       shell(
         <EditorFrame>
@@ -70,9 +82,9 @@ describe.each(["light", "dark"])("page frames in %s", (mode) => {
         </EditorFrame>,
       ),
     );
-    expect(frame?.getBoundingClientRect().width).toEqual(before?.width);
-    expect(frame?.getBoundingClientRect().x).toEqual(before?.x);
-    expect(before?.width).toBeGreaterThan(STANDARD_WIDTH);
+    expect(frame.getBoundingClientRect().width).toEqual(before.width);
+    expect(frame.getBoundingClientRect().x).toEqual(before.x);
+    expect(before.width).toBeGreaterThan(STANDARD_WIDTH);
     await expect
       .element(page.getByRole("textbox", { name: "Prompt" }))
       .toBeVisible();
@@ -87,9 +99,8 @@ describe.each(["light", "dark"])("page frames in %s", (mode) => {
         </EditorFrame>,
       ),
     );
-    const frame = page.getByRole("main").element()
-      .firstElementChild?.firstElementChild;
-    const before = frame?.getBoundingClientRect();
+    const frame = editorFrame(page.getByRole("status").element());
+    const before = frame.getBoundingClientRect();
     await screen.rerender(
       shell(
         <EditorFrame>
@@ -100,8 +111,8 @@ describe.each(["light", "dark"])("page frames in %s", (mode) => {
         </EditorFrame>,
       ),
     );
-    expect(frame?.getBoundingClientRect().width).toEqual(before?.width);
-    expect(frame?.getBoundingClientRect().x).toEqual(before?.x);
+    expect(frame.getBoundingClientRect().width).toEqual(before.width);
+    expect(frame.getBoundingClientRect().x).toEqual(before.x);
     await expect.element(page.getByRole("alert")).toBeVisible();
     await expect
       .element(page.getByText("Private server detail"))

@@ -1,0 +1,59 @@
+<!-- include:site-header circle="4" -->
+<!-- include:trail-band panel="{{panel}}" parents="" heading="Quests" tools="" -->
+<!-- include:site-panel open="{{panel}}" current="quests" swatch-focus="" -->
+<main class="page">
+  <div class="page-column">
+    {{!empty}}<section class="card current-quest" aria-labelledby="current-quest-title">
+      <span class="construct-avatar" aria-hidden="true" style="inline-size:3.5rem;block-size:3.5rem"><img alt="" src="assets/constructs/vellum-v1-128.webp" style="inline-size:312.5%;block-size:312.5%;inset-inline-start:-103.125%;inset-block-start:-18.75%"></span>
+      <div class="card-header">
+        <div>
+          <p class="current-quest-label">Current quest</p>
+          <h2 class="card-title" id="current-quest-title">Read Latin on old maps</h2>
+          <p class="muted">Next task: Make flash cards for compass words</p>
+        </div>
+        <a class="button-primary" href="quest--conversation.html">Continue<svg class="icon" aria-hidden="true"><use href="#i-chevron-right"/></svg></a>
+      </div>
+    </section>{{/!}}
+
+    <section class="settings-section" aria-labelledby="start-heading">
+      <h2 class="section-heading" id="start-heading"><span class="ornament" data-ornament="heading" aria-hidden="true"></span>Start a quest</h2>
+      <div class="choice-tiles">
+        <button class="choice-tile" type="button"><svg class="icon" aria-hidden="true"><use href="#i-sun"/></svg><span class="choice-tile-name">Dailies</span><span class="choice-tile-hint">Start your day</span></button>
+        <button class="choice-tile" type="button"><svg class="icon" aria-hidden="true"><use href="#i-graduation-cap"/></svg><span class="choice-tile-name">Learn a thing</span><span class="choice-tile-hint">Practise a skill</span></button>
+        <button class="choice-tile" type="button"><svg class="icon" aria-hidden="true"><use href="#i-hammer"/></svg><span class="choice-tile-name">Make a thing</span><span class="choice-tile-hint">Build a first version</span></button>
+        <button class="choice-tile" type="button"><svg class="icon" aria-hidden="true"><use href="#i-target"/></svg><span class="choice-tile-name">Do a thing</span><span class="choice-tile-hint">Reach an outcome</span></button>
+      </div>
+    </section>
+
+    <section class="settings-section" aria-labelledby="yours-heading">
+      <h2 class="section-heading" id="yours-heading"><span class="ornament" data-ornament="heading" aria-hidden="true"></span>Your quests</h2>
+      <div>
+        <nav class="collection-tabs" aria-label="Quest status">
+          <a class="collection-tab" href="#" aria-current="page">Active <span class="collection-count">{{?empty}}0{{/?}}{{!empty}}2{{/!}}</span></a>
+          <a class="collection-tab" href="#">Completed <span class="collection-count">{{?empty}}0{{/?}}{{!empty}}1{{/!}}</span></a>
+          <a class="collection-tab" href="#">Abandoned <span class="collection-count">0</span></a>
+          <a class="collection-tab" href="#">Pending <span class="collection-count">0</span></a>
+        </nav>
+        <div class="collection-panel">
+          {{!empty}}<ul class="collection-list" aria-label="Active quests">
+            <li class="collection-row">
+              <span class="collection-mark" aria-hidden="true"><img alt="" src="assets/constructs/lumen-v1-64.webp"></span>
+              <div class="collection-text"><a class="collection-link" href="quest--conversation.html">Build a walnut bookshelf</a><p class="collection-meta"><span>started <time datetime="2026-11-17">2026-11-17</time></span></p></div>
+              <span class="collection-end" aria-hidden="true"><svg class="icon"><use href="#i-chevron-right"/></svg></span>
+            </li>
+            <li class="collection-row">
+              <span class="collection-mark" aria-hidden="true"><img alt="" src="assets/constructs/vellum-v1-64.webp"></span>
+              <div class="collection-text"><a class="collection-link" href="quest--conversation.html">Read Latin on old maps</a><p class="collection-meta"><span>started <time datetime="2026-11-17">2026-11-17</time></span></p></div>
+              <span class="collection-end" aria-hidden="true"><svg class="icon"><use href="#i-chevron-right"/></svg></span>
+            </li>
+          </ul>{{/!}}
+          {{?empty}}<div class="empty-state">
+            <span class="ornament" data-ornament="vignette" aria-hidden="true"></span><span class="ornament" data-ornament="emblem" aria-hidden="true"></span>
+            <p class="empty-state-heading">No quests yet</p>
+            <p class="empty-state-copy lede-initial">Choose a way to start one above.</p>
+          </div>{{/?}}
+        </div>
+      </div>
+    </section>
+  </div>
+</main>
