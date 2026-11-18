@@ -175,6 +175,24 @@ A new page gets an entry in `PHONE_PAGES` in `apps/web/test/component-integratio
 
 The site offers three fixed textured appearances: Ivory Vellum, Soot & Brass, and Espresso Leather. Texture swatches in the site panel and Settings apply the choice immediately and remember it in this browser. There is no system-following appearance. See [Appearance](docs/appearance.md). Theme contract and contrast tests check the token definitions and WCAG AA color pairs. The signed-in page checks cover long project names beside the Tasks link.
 
+### Review accounts
+
+Three accounts in your worktree's development database show the site at different levels of use, for design reviews and screenshots:
+
+- **Empty**, `review+empty@project-buddy.test`: a name and nothing else, for the empty states.
+- **Typical**, `review+typical@project-buddy.test`: three quests, one of them completed, with construct replies, command replies, tasks, ideas, Quick Notes, milestones and a cast spell; three spells with reply lists; and about 45 experience, circle 4.
+- **Crowded**, `review+crowded@project-buddy.test`: sixteen quests and fourteen spells, with every name and text at its length limit, words too long to wrap, long messages, a construct reply in rich Markdown with a table and code, and long Tasks, Ideas, Quick Notes and Progress lists.
+
+To make the accounts, start the site with `mise //apps/web:dev`, then run this command from the repository root:
+
+```sh
+mise run review-data
+```
+
+The command deletes the three accounts, makes them again and prints a 30-minute sign-in link for each. To use other addresses, pass a base address, such as `mise run review-data me@example.test`, which gives `me+empty@example.test` and so on. The base address itself is never changed. If the site runs on another port, set `PROJECT_BUDDY_URL`, such as `PROJECT_BUDDY_URL=http://localhost:3210`.
+
+The command refuses any database but your worktree's own development database, and any site address but `localhost`. It starts quests and sends messages through the running site's API, so the construct's replies are the local engine's own. It makes everything else with the site's own stores. Two kinds of message go straight into the database, because the local construct engine never writes them: replies that record a milestone, and replies in Markdown. The content is in `apps/web/scripts/development/review-content.ts`.
+
 ## Installed app
 
 Project Buddy installs on a phone's Home Screen from the browser: Chrome on Android offers **Install app**, and Safari on an iPhone offers **Add to Home Screen** in the Share menu. The web app manifest is `apps/web/src/app/manifest.ts`, with icons in `apps/web/public/icons/`.
