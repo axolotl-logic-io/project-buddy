@@ -1,0 +1,32 @@
+<dialog class="site-panel" id="site-panel" aria-labelledby="site-panel-title"{{?open}} open data-open="{{open}}"{{/?}}>
+  <div class="site-panel-heading">
+    <button class="icon-button" type="button" aria-controls="site-panel" aria-expanded="true" aria-label="Close site panel" title="Close site panel"><svg class="icon" aria-hidden="true"><use href="#i-close"/></svg></button>
+    <h2 id="site-panel-title">Site panel</h2>
+  </div>
+  {{!signed-out}}<button class="button-primary" type="button"><svg class="icon" aria-hidden="true"><use href="#i-note"/></svg>Quick Note</button>
+  <div class="divider"><span class="ornament" data-ornament="divider" aria-hidden="true"></span></div>
+  <nav class="panel-nav" aria-label="Site panel">
+  <div class="panel-group">
+    <p class="panel-label" id="site-panel-places">Places</p>
+    <ul class="panel-links" aria-labelledby="site-panel-places">
+      <li><a class="panel-link" href="quests--list.html"{{?current=quests}} aria-current="page"{{/?}}>Quests</a></li>
+      <li><a class="panel-link" href="spellbook--list.html"{{?current=spellbook}} aria-current="page"{{/?}}>Spellbook</a></li>
+      <li><a class="panel-link" href="timer--setup.html"{{?current=timer}} aria-current="page"{{/?}}>Timer</a></li>
+    </ul>
+  </div>
+  <div class="panel-group">
+    <p class="panel-label" id="site-panel-you">You</p>
+    <ul class="panel-links" aria-labelledby="site-panel-you">
+      <li><a class="panel-link" href="profile--experience.html"{{?current=profile}} aria-current="page"{{/?}}>Profile</a></li>
+      <li><a class="panel-link" href="settings--default.html"{{?current=settings}} aria-current="page"{{/?}}>Settings</a></li>
+    </ul>
+  </div>
+  </nav>
+  <div class="divider"><span class="ornament" data-ornament="divider" aria-hidden="true"></span></div>{{/!}}
+  <section class="panel-group" aria-labelledby="site-panel-appearance">
+    <h3 class="panel-label" id="site-panel-appearance">Appearance</h3>
+    <!-- include:swatches name="panel-theme{{swatch-suffix}}" size="" checked="{{checked}}" focus="{{swatch-focus}}" -->
+  </section>
+  <div class="divider"><span class="ornament" data-ornament="divider" aria-hidden="true"></span></div>
+  <ul class="panel-links"><li><a class="panel-link" href="#credits">Credits</a></li></ul>
+</dialog>

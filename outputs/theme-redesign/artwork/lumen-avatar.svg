@@ -1,0 +1,110 @@
+<svg xmlns="http://www.w3.org/2000/svg" class="construct-art" viewBox="0 0 64 64" role="img" aria-labelledby="title desc">
+<title id="title">Lumen</title>
+<desc id="desc">Lumen's smiling mote of light inside its ring, simplified for small sizes.</desc>
+<style>
+/* Construct artwork: the paint roles of the built-in SVG portraits.
+
+   The drawings in lumen.svg, vellum.svg and their avatar cuts name no
+   colour. Every shape carries a fill class (f-*) and a stroke class (s-*),
+   and this file maps those classes to the construct paint roles below.
+
+   An appearance sets the --construct-* roles. Each role falls back to an
+   existing contract token, so the art renders in any appearance that sets
+   nothing new. The fallbacks resolve on the drawing's own root element,
+   so an appearance swatch or a specimen panel with its own data-mode gets
+   its own values. */
+
+.construct-art {
+  /* The portrait's backdrop: vellum, night or leather. */
+  --ca-ground: var(--construct-ground, var(--field, transparent));
+  /* Faint backdrop detail: map coastlines, routes, motes. */
+  --ca-ground-ink: var(--construct-ground-ink, var(--line, currentColor));
+  /* Outlines and line work. Drawn over metal, paper or light only. */
+  --ca-ink: var(--construct-ink, var(--header-ink, currentColor));
+  /* The lit face of brass: Vellum's body, Lumen's rune ring. */
+  --ca-metal: var(--construct-metal, var(--header-gold, currentColor));
+  /* The shadowed face of brass: bands, joints, gears. */
+  --ca-metal-shade: var(
+    --construct-metal-shade,
+    color-mix(in oklab, var(--ca-metal) 58%, var(--ca-ink))
+  );
+  /* Polish highlights on brass. */
+  --ca-metal-light: var(
+    --construct-metal-light,
+    color-mix(in oklab, var(--ca-metal) 45%, var(--ca-paper))
+  );
+  /* Map paper, the quill's vane, the compass plate. */
+  --ca-paper: var(--construct-paper, var(--header-paper, currentColor));
+  /* Lumen's light and Vellum's lenses. */
+  --ca-glow: var(--construct-glow, var(--ca-metal));
+  /* The hottest centre of a light. */
+  --ca-glow-core: var(--construct-glow-core, var(--ca-paper));
+  /* One rubric accent: jewels, the compass's north, the map's ribbon. */
+  --ca-accent: var(--construct-accent, var(--rubric, var(--accent, currentColor)));
+
+  display: block;
+  inline-size: 100%;
+  block-size: 100%;
+}
+
+.construct-art .f-none { fill: none; }
+.construct-art .f-ground { fill: var(--ca-ground); }
+.construct-art .f-ground-ink { fill: var(--ca-ground-ink); }
+.construct-art .f-ink { fill: var(--ca-ink); }
+.construct-art .f-metal { fill: var(--ca-metal); }
+.construct-art .f-shade { fill: var(--ca-metal-shade); }
+.construct-art .f-light { fill: var(--ca-metal-light); }
+.construct-art .f-paper { fill: var(--ca-paper); }
+.construct-art .f-glow { fill: var(--ca-glow); }
+.construct-art .f-core { fill: var(--ca-glow-core); }
+.construct-art .f-accent { fill: var(--ca-accent); }
+
+.construct-art [class*="s-"] {
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.construct-art .s-ink { stroke: var(--ca-ink); }
+.construct-art .s-ground-ink { stroke: var(--ca-ground-ink); }
+.construct-art .s-metal { stroke: var(--ca-metal); }
+.construct-art .s-shade { stroke: var(--ca-metal-shade); }
+.construct-art .s-light { stroke: var(--ca-metal-light); }
+.construct-art .s-paper { stroke: var(--ca-paper); }
+.construct-art .s-glow { stroke: var(--ca-glow); }
+.construct-art .s-core { stroke: var(--ca-glow-core); }
+.construct-art .s-accent { stroke: var(--ca-accent); }
+
+.construct-art .st-ground { stop-color: var(--ca-ground); }
+.construct-art .st-ground-edge {
+  stop-color: color-mix(in oklab, var(--ca-ground) 84%, var(--ca-ink));
+}
+.construct-art .st-glow { stop-color: var(--ca-glow); }
+.construct-art .st-core { stop-color: var(--ca-glow-core); }
+
+/* Fine detail (hatching, motes, map margins, rune ticks) drops out when
+   the portrait is drawn small. The nearest size container is the
+   construct frame (.construct-visual, container-type: inline-size). */
+@container (max-width: 96px) {
+  .construct-art .fine { display: none; }
+}
+</style>
+<defs>
+<radialGradient id="lumen-avatar-halo" cx="50%" cy="50%" r="50%"><stop offset="0" class="st-glow" stop-opacity=".75"/><stop offset="1" class="st-glow" stop-opacity="0"/></radialGradient>
+<radialGradient id="lumen-avatar-orb" cx="44%" cy="40%" r="62%"><stop offset="0" class="st-core"/><stop offset=".45" class="st-core"/><stop offset=".92" class="st-glow"/></radialGradient>
+</defs>
+<rect class="f-ground" width="64" height="66"/>
+<circle cx="32" cy="32" r="27" fill="url(#lumen-avatar-halo)"/>
+<circle class="f-none s-ink" cx="32" cy="32" r="26" stroke-width="6.6"/>
+<circle class="f-none s-metal" cx="32" cy="32" r="26" stroke-width="4.4"/>
+<path class="f-none s-shade" stroke-width="4.4" opacity=".55" d="M58 32A26 26 0 0 1 6 32"/>
+<path class="f-accent s-ink" stroke-width="1.1" transform="rotate(0 32 32)" d="M32 1.5L35.4 6 32 10.5 28.6 6Z"/>
+<path class="f-accent s-ink" stroke-width="1.1" transform="rotate(90 32 32)" d="M32 1.5L35.4 6 32 10.5 28.6 6Z"/>
+<path class="f-accent s-ink" stroke-width="1.1" transform="rotate(180 32 32)" d="M32 1.5L35.4 6 32 10.5 28.6 6Z"/>
+<path class="f-accent s-ink" stroke-width="1.1" transform="rotate(270 32 32)" d="M32 1.5L35.4 6 32 10.5 28.6 6Z"/>
+<path class="f-none s-shade" stroke-width="3.2" opacity=".6" d="M39.08 14.91L40.42 11.67 M49.09 24.92L52.33 23.58 M49.09 39.08L52.33 40.42 M39.08 49.09L40.42 52.33 M24.92 49.09L23.58 52.33 M14.91 39.08L11.67 40.42 M14.91 24.92L11.67 23.58 M24.92 14.91L23.58 11.67"/>
+<path class="f-none s-glow" stroke-width="2" d="M39.08 14.91L40.42 11.67 M49.09 24.92L52.33 23.58 M49.09 39.08L52.33 40.42 M39.08 49.09L40.42 52.33 M24.92 49.09L23.58 52.33 M14.91 39.08L11.67 40.42 M14.91 24.92L11.67 23.58 M24.92 14.91L23.58 11.67"/>
+<circle cx="32" cy="32" r="17" fill="url(#lumen-avatar-orb)"/>
+<circle class="f-none s-shade" cx="32" cy="32" r="17" stroke-width="1.1"/>
+<ellipse class="f-ink" cx="26.6" cy="30" rx="2.7" ry="3.6"/>
+<ellipse class="f-ink" cx="37.4" cy="30" rx="2.7" ry="3.6"/>
+<path class="f-none s-ink" stroke-width="2.1" d="M26 37Q32 42 38 37"/>
+</svg>

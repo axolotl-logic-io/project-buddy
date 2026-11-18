@@ -11,7 +11,7 @@ const AVATAR_SOURCE_WIDTH = 160;
 const LARGE_REQUEST = 2048;
 const MAX_SIZE_RATIO = 0.2;
 
-test("every advertised built-in size is a compressed square WebP", async () => {
+test("every advertised legacy raster size is a compressed square WebP", async () => {
   await Promise.all(
     ["lumen-v1", "vellum-v1"].map(async (artwork) => {
       const original = await readFile(`public/constructs/${artwork}.png`);

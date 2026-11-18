@@ -1,0 +1,1451 @@
+[
+ {
+  "shot": "sign-in--default--light--1280.png",
+  "url": "/login",
+  "mode": "light",
+  "heading": "Project Buddy",
+  "errors": []
+ },
+ {
+  "shot": "sign-in--default--soot-brass--1280.png",
+  "url": "/login",
+  "mode": "soot-brass",
+  "heading": "Project Buddy",
+  "errors": []
+ },
+ {
+  "shot": "sign-in--default--dark--1280.png",
+  "url": "/login",
+  "mode": "dark",
+  "heading": "Project Buddy",
+  "errors": []
+ },
+ {
+  "shot": "sign-in--default--light--360.png",
+  "url": "/login",
+  "mode": "light",
+  "heading": "Project Buddy",
+  "errors": []
+ },
+ {
+  "shot": "sign-in--default--soot-brass--360.png",
+  "url": "/login",
+  "mode": "soot-brass",
+  "heading": "Project Buddy",
+  "errors": []
+ },
+ {
+  "shot": "sign-in--default--dark--360.png",
+  "url": "/login",
+  "mode": "dark",
+  "heading": "Project Buddy",
+  "errors": []
+ },
+ {
+  "shot": "sign-in--link-sent--light--1280.png",
+  "url": "/login",
+  "mode": "light",
+  "heading": "Project Buddy",
+  "errors": []
+ },
+ {
+  "shot": "sign-in--link-sent--soot-brass--1280.png",
+  "url": "/login",
+  "mode": "soot-brass",
+  "heading": "Project Buddy",
+  "errors": []
+ },
+ {
+  "shot": "sign-in--link-sent--dark--1280.png",
+  "url": "/login",
+  "mode": "dark",
+  "heading": "Project Buddy",
+  "errors": []
+ },
+ {
+  "shot": "sign-in--link-sent--light--360.png",
+  "url": "/login",
+  "mode": "light",
+  "heading": "Project Buddy",
+  "errors": []
+ },
+ {
+  "shot": "sign-in--link-sent--soot-brass--360.png",
+  "url": "/login",
+  "mode": "soot-brass",
+  "heading": "Project Buddy",
+  "errors": []
+ },
+ {
+  "shot": "sign-in--link-sent--dark--360.png",
+  "url": "/login",
+  "mode": "dark",
+  "heading": "Project Buddy",
+  "errors": []
+ },
+ {
+  "shot": "sign-up--default--light--1280.png",
+  "url": "/signup",
+  "mode": "light",
+  "heading": "Project Buddy",
+  "errors": []
+ },
+ {
+  "shot": "sign-up--default--soot-brass--1280.png",
+  "url": "/signup",
+  "mode": "soot-brass",
+  "heading": "Project Buddy",
+  "errors": []
+ },
+ {
+  "shot": "sign-up--default--dark--1280.png",
+  "url": "/signup",
+  "mode": "dark",
+  "heading": "Project Buddy",
+  "errors": []
+ },
+ {
+  "shot": "sign-up--default--light--360.png",
+  "url": "/signup",
+  "mode": "light",
+  "heading": "Project Buddy",
+  "errors": []
+ },
+ {
+  "shot": "sign-up--default--soot-brass--360.png",
+  "url": "/signup",
+  "mode": "soot-brass",
+  "heading": "Project Buddy",
+  "errors": []
+ },
+ {
+  "shot": "sign-up--default--dark--360.png",
+  "url": "/signup",
+  "mode": "dark",
+  "heading": "Project Buddy",
+  "errors": []
+ },
+ {
+  "shot": "quests--list--light--1280.png",
+  "url": "/quests",
+  "mode": "light",
+  "heading": "Quests",
+  "errors": []
+ },
+ {
+  "shot": "quests--list--soot-brass--1280.png",
+  "url": "/quests",
+  "mode": "soot-brass",
+  "heading": "Quests",
+  "errors": []
+ },
+ {
+  "shot": "quests--list--dark--1280.png",
+  "url": "/quests",
+  "mode": "dark",
+  "heading": "Quests",
+  "errors": []
+ },
+ {
+  "shot": "quests--list--light--360.png",
+  "url": "/quests",
+  "mode": "light",
+  "heading": "Quests",
+  "errors": []
+ },
+ {
+  "shot": "quests--list--soot-brass--360.png",
+  "url": "/quests",
+  "mode": "soot-brass",
+  "heading": "Quests",
+  "errors": []
+ },
+ {
+  "shot": "quests--list--dark--360.png",
+  "url": "/quests",
+  "mode": "dark",
+  "heading": "Quests",
+  "errors": []
+ },
+ {
+  "shot": "quests--completed-tab--light--1280.png",
+  "url": "/quests?status=completed",
+  "mode": "light",
+  "heading": "Quests",
+  "errors": []
+ },
+ {
+  "shot": "quests--completed-tab--soot-brass--1280.png",
+  "url": "/quests?status=completed",
+  "mode": "soot-brass",
+  "heading": "Quests",
+  "errors": []
+ },
+ {
+  "shot": "quests--completed-tab--dark--1280.png",
+  "url": "/quests?status=completed",
+  "mode": "dark",
+  "heading": "Quests",
+  "errors": []
+ },
+ {
+  "shot": "quests--completed-tab--light--360.png",
+  "url": "/quests?status=completed",
+  "mode": "light",
+  "heading": "Quests",
+  "errors": []
+ },
+ {
+  "shot": "quests--completed-tab--soot-brass--360.png",
+  "url": "/quests?status=completed",
+  "mode": "soot-brass",
+  "heading": "Quests",
+  "errors": []
+ },
+ {
+  "shot": "quests--completed-tab--dark--360.png",
+  "url": "/quests?status=completed",
+  "mode": "dark",
+  "heading": "Quests",
+  "errors": []
+ },
+ {
+  "shot": "quests--empty--light--1280.png",
+  "url": "/quests",
+  "mode": "light",
+  "heading": "Quests",
+  "errors": []
+ },
+ {
+  "shot": "quests--empty--soot-brass--1280.png",
+  "url": "/quests",
+  "mode": "soot-brass",
+  "heading": "Quests",
+  "errors": []
+ },
+ {
+  "shot": "quests--empty--dark--1280.png",
+  "url": "/quests",
+  "mode": "dark",
+  "heading": "Quests",
+  "errors": []
+ },
+ {
+  "shot": "quests--empty--light--360.png",
+  "url": "/quests",
+  "mode": "light",
+  "heading": "Quests",
+  "errors": []
+ },
+ {
+  "shot": "quests--empty--soot-brass--360.png",
+  "url": "/quests",
+  "mode": "soot-brass",
+  "heading": "Quests",
+  "errors": []
+ },
+ {
+  "shot": "quests--empty--dark--360.png",
+  "url": "/quests",
+  "mode": "dark",
+  "heading": "Quests",
+  "errors": []
+ },
+ {
+  "shot": "quests--new-quest-dialog--light--1280.png",
+  "url": "/quests",
+  "mode": "light",
+  "heading": "Quests",
+  "errors": []
+ },
+ {
+  "shot": "quests--new-quest-dialog--soot-brass--1280.png",
+  "url": "/quests",
+  "mode": "soot-brass",
+  "heading": "Quests",
+  "errors": []
+ },
+ {
+  "shot": "quests--new-quest-dialog--dark--1280.png",
+  "url": "/quests",
+  "mode": "dark",
+  "heading": "Quests",
+  "errors": []
+ },
+ {
+  "shot": "quests--new-quest-dialog--light--360.png",
+  "url": "/quests",
+  "mode": "light",
+  "heading": "Quests",
+  "errors": []
+ },
+ {
+  "shot": "quests--new-quest-dialog--soot-brass--360.png",
+  "url": "/quests",
+  "mode": "soot-brass",
+  "heading": "Quests",
+  "errors": []
+ },
+ {
+  "shot": "quests--new-quest-dialog--dark--360.png",
+  "url": "/quests",
+  "mode": "dark",
+  "heading": "Quests",
+  "errors": []
+ },
+ {
+  "shot": "site-panel--open--light--1280.png",
+  "url": "/quests",
+  "mode": "light",
+  "heading": "Quests",
+  "errors": []
+ },
+ {
+  "shot": "site-panel--open--soot-brass--1280.png",
+  "url": "/quests",
+  "mode": "soot-brass",
+  "heading": "Quests",
+  "errors": []
+ },
+ {
+  "shot": "site-panel--open--dark--1280.png",
+  "url": "/quests",
+  "mode": "dark",
+  "heading": "Quests",
+  "errors": []
+ },
+ {
+  "shot": "site-panel--open--light--360.png",
+  "url": "/quests",
+  "mode": "light",
+  "heading": "Quests",
+  "errors": []
+ },
+ {
+  "shot": "site-panel--open--soot-brass--360.png",
+  "url": "/quests",
+  "mode": "soot-brass",
+  "heading": "Quests",
+  "errors": []
+ },
+ {
+  "shot": "site-panel--open--dark--360.png",
+  "url": "/quests",
+  "mode": "dark",
+  "heading": "Quests",
+  "errors": []
+ },
+ {
+  "shot": "quick-note--dialog--light--1280.png",
+  "url": "/quests",
+  "mode": "light",
+  "heading": "Quests",
+  "errors": []
+ },
+ {
+  "shot": "quick-note--dialog--soot-brass--1280.png",
+  "url": "/quests",
+  "mode": "soot-brass",
+  "heading": "Quests",
+  "errors": []
+ },
+ {
+  "shot": "quick-note--dialog--dark--1280.png",
+  "url": "/quests",
+  "mode": "dark",
+  "heading": "Quests",
+  "errors": []
+ },
+ {
+  "shot": "quick-note--dialog--light--360.png",
+  "url": "/quests",
+  "mode": "light",
+  "heading": "Quests",
+  "errors": []
+ },
+ {
+  "shot": "quick-note--dialog--soot-brass--360.png",
+  "url": "/quests",
+  "mode": "soot-brass",
+  "heading": "Quests",
+  "errors": []
+ },
+ {
+  "shot": "quick-note--dialog--dark--360.png",
+  "url": "/quests",
+  "mode": "dark",
+  "heading": "Quests",
+  "errors": []
+ },
+ {
+  "shot": "quest--conversation--light--1280.png",
+  "url": "/quests/ed8448f4-cb54-4136-bc7f-ac00c21dae60",
+  "mode": "light",
+  "heading": "Read Latin on old maps",
+  "errors": []
+ },
+ {
+  "shot": "quest--conversation--soot-brass--1280.png",
+  "url": "/quests/ed8448f4-cb54-4136-bc7f-ac00c21dae60",
+  "mode": "soot-brass",
+  "heading": "Read Latin on old maps",
+  "errors": []
+ },
+ {
+  "shot": "quest--conversation--dark--1280.png",
+  "url": "/quests/ed8448f4-cb54-4136-bc7f-ac00c21dae60",
+  "mode": "dark",
+  "heading": "Read Latin on old maps",
+  "errors": []
+ },
+ {
+  "shot": "quest--conversation--light--360.png",
+  "url": "/quests/ed8448f4-cb54-4136-bc7f-ac00c21dae60",
+  "mode": "light",
+  "heading": "Read Latin on old maps",
+  "errors": []
+ },
+ {
+  "shot": "quest--conversation--soot-brass--360.png",
+  "url": "/quests/ed8448f4-cb54-4136-bc7f-ac00c21dae60",
+  "mode": "soot-brass",
+  "heading": "Read Latin on old maps",
+  "errors": []
+ },
+ {
+  "shot": "quest--conversation--dark--360.png",
+  "url": "/quests/ed8448f4-cb54-4136-bc7f-ac00c21dae60",
+  "mode": "dark",
+  "heading": "Read Latin on old maps",
+  "errors": []
+ },
+ {
+  "shot": "quest--spell-conversation--light--1280.png",
+  "url": "/quests/2570dd70-eec6-496a-904c-1301bd1e64b1",
+  "mode": "light",
+  "heading": "Build a walnut bookshelf",
+  "errors": []
+ },
+ {
+  "shot": "quest--spell-conversation--soot-brass--1280.png",
+  "url": "/quests/2570dd70-eec6-496a-904c-1301bd1e64b1",
+  "mode": "soot-brass",
+  "heading": "Build a walnut bookshelf",
+  "errors": []
+ },
+ {
+  "shot": "quest--spell-conversation--dark--1280.png",
+  "url": "/quests/2570dd70-eec6-496a-904c-1301bd1e64b1",
+  "mode": "dark",
+  "heading": "Build a walnut bookshelf",
+  "errors": []
+ },
+ {
+  "shot": "quest--spell-conversation--light--360.png",
+  "url": "/quests/2570dd70-eec6-496a-904c-1301bd1e64b1",
+  "mode": "light",
+  "heading": "Build a walnut bookshelf",
+  "errors": []
+ },
+ {
+  "shot": "quest--spell-conversation--soot-brass--360.png",
+  "url": "/quests/2570dd70-eec6-496a-904c-1301bd1e64b1",
+  "mode": "soot-brass",
+  "heading": "Build a walnut bookshelf",
+  "errors": []
+ },
+ {
+  "shot": "quest--spell-conversation--dark--360.png",
+  "url": "/quests/2570dd70-eec6-496a-904c-1301bd1e64b1",
+  "mode": "dark",
+  "heading": "Build a walnut bookshelf",
+  "errors": []
+ },
+ {
+  "shot": "quest--completed--light--1280.png",
+  "url": "/quests/e55ce70e-1030-458f-ae70-6fc7975d134b",
+  "mode": "light",
+  "heading": "Run the autumn book swap",
+  "errors": []
+ },
+ {
+  "shot": "quest--completed--soot-brass--1280.png",
+  "url": "/quests/e55ce70e-1030-458f-ae70-6fc7975d134b",
+  "mode": "soot-brass",
+  "heading": "Run the autumn book swap",
+  "errors": []
+ },
+ {
+  "shot": "quest--completed--dark--1280.png",
+  "url": "/quests/e55ce70e-1030-458f-ae70-6fc7975d134b",
+  "mode": "dark",
+  "heading": "Run the autumn book swap",
+  "errors": []
+ },
+ {
+  "shot": "quest--completed--light--360.png",
+  "url": "/quests/e55ce70e-1030-458f-ae70-6fc7975d134b",
+  "mode": "light",
+  "heading": "Run the autumn book swap",
+  "errors": []
+ },
+ {
+  "shot": "quest--completed--soot-brass--360.png",
+  "url": "/quests/e55ce70e-1030-458f-ae70-6fc7975d134b",
+  "mode": "soot-brass",
+  "heading": "Run the autumn book swap",
+  "errors": []
+ },
+ {
+  "shot": "quest--completed--dark--360.png",
+  "url": "/quests/e55ce70e-1030-458f-ae70-6fc7975d134b",
+  "mode": "dark",
+  "heading": "Run the autumn book swap",
+  "errors": []
+ },
+ {
+  "shot": "quest--composer-commands--light--1280.png",
+  "url": "/quests/ed8448f4-cb54-4136-bc7f-ac00c21dae60",
+  "mode": "light",
+  "heading": "Read Latin on old maps",
+  "errors": []
+ },
+ {
+  "shot": "quest--composer-commands--soot-brass--1280.png",
+  "url": "/quests/ed8448f4-cb54-4136-bc7f-ac00c21dae60",
+  "mode": "soot-brass",
+  "heading": "Read Latin on old maps",
+  "errors": []
+ },
+ {
+  "shot": "quest--composer-commands--dark--1280.png",
+  "url": "/quests/ed8448f4-cb54-4136-bc7f-ac00c21dae60",
+  "mode": "dark",
+  "heading": "Read Latin on old maps",
+  "errors": []
+ },
+ {
+  "shot": "quest--composer-commands--light--360.png",
+  "url": "/quests/ed8448f4-cb54-4136-bc7f-ac00c21dae60",
+  "mode": "light",
+  "heading": "Read Latin on old maps",
+  "errors": []
+ },
+ {
+  "shot": "quest--composer-commands--soot-brass--360.png",
+  "url": "/quests/ed8448f4-cb54-4136-bc7f-ac00c21dae60",
+  "mode": "soot-brass",
+  "heading": "Read Latin on old maps",
+  "errors": []
+ },
+ {
+  "shot": "quest--composer-commands--dark--360.png",
+  "url": "/quests/ed8448f4-cb54-4136-bc7f-ac00c21dae60",
+  "mode": "dark",
+  "heading": "Read Latin on old maps",
+  "errors": []
+ },
+ {
+  "shot": "quest--command-error--light--1280.png",
+  "url": "/quests/ed8448f4-cb54-4136-bc7f-ac00c21dae60",
+  "mode": "light",
+  "heading": "Read Latin on old maps",
+  "errors": []
+ },
+ {
+  "shot": "quest--command-error--soot-brass--1280.png",
+  "url": "/quests/ed8448f4-cb54-4136-bc7f-ac00c21dae60",
+  "mode": "soot-brass",
+  "heading": "Read Latin on old maps",
+  "errors": []
+ },
+ {
+  "shot": "quest--command-error--dark--1280.png",
+  "url": "/quests/ed8448f4-cb54-4136-bc7f-ac00c21dae60",
+  "mode": "dark",
+  "heading": "Read Latin on old maps",
+  "errors": []
+ },
+ {
+  "shot": "quest--command-error--light--360.png",
+  "url": "/quests/ed8448f4-cb54-4136-bc7f-ac00c21dae60",
+  "mode": "light",
+  "heading": "Read Latin on old maps",
+  "errors": []
+ },
+ {
+  "shot": "quest--command-error--soot-brass--360.png",
+  "url": "/quests/ed8448f4-cb54-4136-bc7f-ac00c21dae60",
+  "mode": "soot-brass",
+  "heading": "Read Latin on old maps",
+  "errors": []
+ },
+ {
+  "shot": "quest--command-error--dark--360.png",
+  "url": "/quests/ed8448f4-cb54-4136-bc7f-ac00c21dae60",
+  "mode": "dark",
+  "heading": "Read Latin on old maps",
+  "errors": []
+ },
+ {
+  "shot": "quest--loading-reply--light--1280.png",
+  "url": "/quests/ed8448f4-cb54-4136-bc7f-ac00c21dae60",
+  "mode": "light",
+  "heading": "Read Latin on old maps",
+  "errors": []
+ },
+ {
+  "shot": "quest--loading-reply--soot-brass--1280.png",
+  "url": "/quests/ed8448f4-cb54-4136-bc7f-ac00c21dae60",
+  "mode": "soot-brass",
+  "heading": "Read Latin on old maps",
+  "errors": []
+ },
+ {
+  "shot": "quest--loading-reply--dark--1280.png",
+  "url": "/quests/ed8448f4-cb54-4136-bc7f-ac00c21dae60",
+  "mode": "dark",
+  "heading": "Read Latin on old maps",
+  "errors": []
+ },
+ {
+  "shot": "quest--loading-reply--light--360.png",
+  "url": "/quests/ed8448f4-cb54-4136-bc7f-ac00c21dae60",
+  "mode": "light",
+  "heading": "Read Latin on old maps",
+  "errors": []
+ },
+ {
+  "shot": "quest--loading-reply--soot-brass--360.png",
+  "url": "/quests/ed8448f4-cb54-4136-bc7f-ac00c21dae60",
+  "mode": "soot-brass",
+  "heading": "Read Latin on old maps",
+  "errors": []
+ },
+ {
+  "shot": "quest--loading-reply--dark--360.png",
+  "url": "/quests/ed8448f4-cb54-4136-bc7f-ac00c21dae60",
+  "mode": "dark",
+  "heading": "Read Latin on old maps",
+  "errors": []
+ },
+ {
+  "shot": "quest--row-menu--light--1280.png",
+  "url": "/quests/ed8448f4-cb54-4136-bc7f-ac00c21dae60",
+  "mode": "light",
+  "heading": "Read Latin on old maps",
+  "errors": []
+ },
+ {
+  "shot": "quest--row-menu--soot-brass--1280.png",
+  "url": "/quests/ed8448f4-cb54-4136-bc7f-ac00c21dae60",
+  "mode": "soot-brass",
+  "heading": "Read Latin on old maps",
+  "errors": []
+ },
+ {
+  "shot": "quest--row-menu--dark--1280.png",
+  "url": "/quests/ed8448f4-cb54-4136-bc7f-ac00c21dae60",
+  "mode": "dark",
+  "heading": "Read Latin on old maps",
+  "errors": []
+ },
+ {
+  "shot": "quest--row-menu--light--360.png",
+  "url": "/quests/ed8448f4-cb54-4136-bc7f-ac00c21dae60",
+  "mode": "light",
+  "heading": "Read Latin on old maps",
+  "errors": []
+ },
+ {
+  "shot": "quest--row-menu--soot-brass--360.png",
+  "url": "/quests/ed8448f4-cb54-4136-bc7f-ac00c21dae60",
+  "mode": "soot-brass",
+  "heading": "Read Latin on old maps",
+  "errors": []
+ },
+ {
+  "shot": "quest--row-menu--dark--360.png",
+  "url": "/quests/ed8448f4-cb54-4136-bc7f-ac00c21dae60",
+  "mode": "dark",
+  "heading": "Read Latin on old maps",
+  "errors": []
+ },
+ {
+  "shot": "quest--confirm-dialog--light--1280.png",
+  "url": "/quests/ed8448f4-cb54-4136-bc7f-ac00c21dae60",
+  "mode": "light",
+  "heading": "Read Latin on old maps",
+  "errors": []
+ },
+ {
+  "shot": "quest--confirm-dialog--soot-brass--1280.png",
+  "url": "/quests/ed8448f4-cb54-4136-bc7f-ac00c21dae60",
+  "mode": "soot-brass",
+  "heading": "Read Latin on old maps",
+  "errors": []
+ },
+ {
+  "shot": "quest--confirm-dialog--dark--1280.png",
+  "url": "/quests/ed8448f4-cb54-4136-bc7f-ac00c21dae60",
+  "mode": "dark",
+  "heading": "Read Latin on old maps",
+  "errors": []
+ },
+ {
+  "shot": "quest--confirm-dialog--light--360.png",
+  "url": "/quests/ed8448f4-cb54-4136-bc7f-ac00c21dae60",
+  "mode": "light",
+  "heading": "Read Latin on old maps",
+  "errors": []
+ },
+ {
+  "shot": "quest--confirm-dialog--soot-brass--360.png",
+  "url": "/quests/ed8448f4-cb54-4136-bc7f-ac00c21dae60",
+  "mode": "soot-brass",
+  "heading": "Read Latin on old maps",
+  "errors": []
+ },
+ {
+  "shot": "quest--confirm-dialog--dark--360.png",
+  "url": "/quests/ed8448f4-cb54-4136-bc7f-ac00c21dae60",
+  "mode": "dark",
+  "heading": "Read Latin on old maps",
+  "errors": []
+ },
+ {
+  "shot": "quest--sidebar-drawer--light--360.png",
+  "url": "/quests/ed8448f4-cb54-4136-bc7f-ac00c21dae60",
+  "mode": "light",
+  "heading": "Read Latin on old maps",
+  "errors": []
+ },
+ {
+  "shot": "quest--sidebar-drawer--soot-brass--360.png",
+  "url": "/quests/ed8448f4-cb54-4136-bc7f-ac00c21dae60",
+  "mode": "soot-brass",
+  "heading": "Read Latin on old maps",
+  "errors": []
+ },
+ {
+  "shot": "quest--sidebar-drawer--dark--360.png",
+  "url": "/quests/ed8448f4-cb54-4136-bc7f-ac00c21dae60",
+  "mode": "dark",
+  "heading": "Read Latin on old maps",
+  "errors": []
+ },
+ {
+  "shot": "spellbook--list--light--1280.png",
+  "url": "/spellbook",
+  "mode": "light",
+  "heading": "Spellbook",
+  "errors": []
+ },
+ {
+  "shot": "spellbook--list--soot-brass--1280.png",
+  "url": "/spellbook",
+  "mode": "soot-brass",
+  "heading": "Spellbook",
+  "errors": []
+ },
+ {
+  "shot": "spellbook--list--dark--1280.png",
+  "url": "/spellbook",
+  "mode": "dark",
+  "heading": "Spellbook",
+  "errors": []
+ },
+ {
+  "shot": "spellbook--list--light--360.png",
+  "url": "/spellbook",
+  "mode": "light",
+  "heading": "Spellbook",
+  "errors": []
+ },
+ {
+  "shot": "spellbook--list--soot-brass--360.png",
+  "url": "/spellbook",
+  "mode": "soot-brass",
+  "heading": "Spellbook",
+  "errors": []
+ },
+ {
+  "shot": "spellbook--list--dark--360.png",
+  "url": "/spellbook",
+  "mode": "dark",
+  "heading": "Spellbook",
+  "errors": []
+ },
+ {
+  "shot": "spellbook--yours-empty--light--1280.png",
+  "url": "/spellbook",
+  "mode": "light",
+  "heading": "Spellbook",
+  "errors": []
+ },
+ {
+  "shot": "spellbook--yours-empty--soot-brass--1280.png",
+  "url": "/spellbook",
+  "mode": "soot-brass",
+  "heading": "Spellbook",
+  "errors": []
+ },
+ {
+  "shot": "spellbook--yours-empty--dark--1280.png",
+  "url": "/spellbook",
+  "mode": "dark",
+  "heading": "Spellbook",
+  "errors": []
+ },
+ {
+  "shot": "spellbook--yours-empty--light--360.png",
+  "url": "/spellbook",
+  "mode": "light",
+  "heading": "Spellbook",
+  "errors": []
+ },
+ {
+  "shot": "spellbook--yours-empty--soot-brass--360.png",
+  "url": "/spellbook",
+  "mode": "soot-brass",
+  "heading": "Spellbook",
+  "errors": []
+ },
+ {
+  "shot": "spellbook--yours-empty--dark--360.png",
+  "url": "/spellbook",
+  "mode": "dark",
+  "heading": "Spellbook",
+  "errors": []
+ },
+ {
+  "shot": "spell--editor--light--1280.png",
+  "url": "/spellbook/7945a0c8-44ac-49bd-b0ff-a11cb7e64630",
+  "mode": "light",
+  "heading": "Workshop log",
+  "errors": []
+ },
+ {
+  "shot": "spell--editor--soot-brass--1280.png",
+  "url": "/spellbook/7945a0c8-44ac-49bd-b0ff-a11cb7e64630",
+  "mode": "soot-brass",
+  "heading": "Workshop log",
+  "errors": []
+ },
+ {
+  "shot": "spell--editor--dark--1280.png",
+  "url": "/spellbook/7945a0c8-44ac-49bd-b0ff-a11cb7e64630",
+  "mode": "dark",
+  "heading": "Workshop log",
+  "errors": []
+ },
+ {
+  "shot": "spell--editor--light--360.png",
+  "url": "/spellbook/7945a0c8-44ac-49bd-b0ff-a11cb7e64630",
+  "mode": "light",
+  "heading": "Workshop log",
+  "errors": []
+ },
+ {
+  "shot": "spell--editor--soot-brass--360.png",
+  "url": "/spellbook/7945a0c8-44ac-49bd-b0ff-a11cb7e64630",
+  "mode": "soot-brass",
+  "heading": "Workshop log",
+  "errors": []
+ },
+ {
+  "shot": "spell--editor--dark--360.png",
+  "url": "/spellbook/7945a0c8-44ac-49bd-b0ff-a11cb7e64630",
+  "mode": "dark",
+  "heading": "Workshop log",
+  "errors": []
+ },
+ {
+  "shot": "spell--invalid-field--light--1280.png",
+  "url": "/spellbook/7945a0c8-44ac-49bd-b0ff-a11cb7e64630",
+  "mode": "light",
+  "heading": "Workshop log",
+  "errors": []
+ },
+ {
+  "shot": "spell--invalid-field--soot-brass--1280.png",
+  "url": "/spellbook/7945a0c8-44ac-49bd-b0ff-a11cb7e64630",
+  "mode": "soot-brass",
+  "heading": "Workshop log",
+  "errors": []
+ },
+ {
+  "shot": "spell--invalid-field--dark--1280.png",
+  "url": "/spellbook/7945a0c8-44ac-49bd-b0ff-a11cb7e64630",
+  "mode": "dark",
+  "heading": "Workshop log",
+  "errors": []
+ },
+ {
+  "shot": "spell--invalid-field--light--360.png",
+  "url": "/spellbook/7945a0c8-44ac-49bd-b0ff-a11cb7e64630",
+  "mode": "light",
+  "heading": "Workshop log",
+  "errors": []
+ },
+ {
+  "shot": "spell--invalid-field--soot-brass--360.png",
+  "url": "/spellbook/7945a0c8-44ac-49bd-b0ff-a11cb7e64630",
+  "mode": "soot-brass",
+  "heading": "Workshop log",
+  "errors": []
+ },
+ {
+  "shot": "spell--invalid-field--dark--360.png",
+  "url": "/spellbook/7945a0c8-44ac-49bd-b0ff-a11cb7e64630",
+  "mode": "dark",
+  "heading": "Workshop log",
+  "errors": []
+ },
+ {
+  "shot": "spell--built-in--light--1280.png",
+  "url": "/spellbook/tasks",
+  "mode": "light",
+  "heading": "Tasks",
+  "errors": []
+ },
+ {
+  "shot": "spell--built-in--soot-brass--1280.png",
+  "url": "/spellbook/tasks",
+  "mode": "soot-brass",
+  "heading": "Tasks",
+  "errors": []
+ },
+ {
+  "shot": "spell--built-in--dark--1280.png",
+  "url": "/spellbook/tasks",
+  "mode": "dark",
+  "heading": "Tasks",
+  "errors": []
+ },
+ {
+  "shot": "spell--built-in--light--360.png",
+  "url": "/spellbook/tasks",
+  "mode": "light",
+  "heading": "Tasks",
+  "errors": []
+ },
+ {
+  "shot": "spell--built-in--soot-brass--360.png",
+  "url": "/spellbook/tasks",
+  "mode": "soot-brass",
+  "heading": "Tasks",
+  "errors": []
+ },
+ {
+  "shot": "spell--built-in--dark--360.png",
+  "url": "/spellbook/tasks",
+  "mode": "dark",
+  "heading": "Tasks",
+  "errors": []
+ },
+ {
+  "shot": "timer--setup--light--1280.png",
+  "url": "/timer",
+  "mode": "light",
+  "heading": "Timer",
+  "errors": []
+ },
+ {
+  "shot": "timer--setup--soot-brass--1280.png",
+  "url": "/timer",
+  "mode": "soot-brass",
+  "heading": "Timer",
+  "errors": []
+ },
+ {
+  "shot": "timer--setup--dark--1280.png",
+  "url": "/timer",
+  "mode": "dark",
+  "heading": "Timer",
+  "errors": []
+ },
+ {
+  "shot": "timer--setup--light--360.png",
+  "url": "/timer",
+  "mode": "light",
+  "heading": "Timer",
+  "errors": []
+ },
+ {
+  "shot": "timer--setup--soot-brass--360.png",
+  "url": "/timer",
+  "mode": "soot-brass",
+  "heading": "Timer",
+  "errors": []
+ },
+ {
+  "shot": "timer--setup--dark--360.png",
+  "url": "/timer",
+  "mode": "dark",
+  "heading": "Timer",
+  "errors": []
+ },
+ {
+  "shot": "timer--running-work--light--1280.png",
+  "url": "/timer/50/10/1794959937050",
+  "mode": "light",
+  "heading": "Work 50 · Break 10",
+  "errors": []
+ },
+ {
+  "shot": "timer--running-work--soot-brass--1280.png",
+  "url": "/timer/50/10/1794959938733",
+  "mode": "soot-brass",
+  "heading": "Work 50 · Break 10",
+  "errors": []
+ },
+ {
+  "shot": "timer--running-work--dark--1280.png",
+  "url": "/timer/50/10/1794959940359",
+  "mode": "dark",
+  "heading": "Work 50 · Break 10",
+  "errors": []
+ },
+ {
+  "shot": "timer--running-work--light--360.png",
+  "url": "/timer/50/10/1794959942032",
+  "mode": "light",
+  "heading": "Work 50 · Break 10",
+  "errors": []
+ },
+ {
+  "shot": "timer--running-work--soot-brass--360.png",
+  "url": "/timer/50/10/1794959944093",
+  "mode": "soot-brass",
+  "heading": "Work 50 · Break 10",
+  "errors": []
+ },
+ {
+  "shot": "timer--running-work--dark--360.png",
+  "url": "/timer/50/10/1794959945680",
+  "mode": "dark",
+  "heading": "Work 50 · Break 10",
+  "errors": []
+ },
+ {
+  "shot": "timer--running-break--light--1280.png",
+  "url": "/timer/50/10/1794957787273",
+  "mode": "light",
+  "heading": "Work 50 · Break 10",
+  "errors": []
+ },
+ {
+  "shot": "timer--running-break--soot-brass--1280.png",
+  "url": "/timer/50/10/1794957788948",
+  "mode": "soot-brass",
+  "heading": "Work 50 · Break 10",
+  "errors": []
+ },
+ {
+  "shot": "timer--running-break--dark--1280.png",
+  "url": "/timer/50/10/1794957790583",
+  "mode": "dark",
+  "heading": "Work 50 · Break 10",
+  "errors": []
+ },
+ {
+  "shot": "timer--running-break--light--360.png",
+  "url": "/timer/50/10/1794957792235",
+  "mode": "light",
+  "heading": "Work 50 · Break 10",
+  "errors": []
+ },
+ {
+  "shot": "timer--running-break--soot-brass--360.png",
+  "url": "/timer/50/10/1794957794297",
+  "mode": "soot-brass",
+  "heading": "Work 50 · Break 10",
+  "errors": []
+ },
+ {
+  "shot": "timer--running-break--dark--360.png",
+  "url": "/timer/50/10/1794957795842",
+  "mode": "dark",
+  "heading": "Work 50 · Break 10",
+  "errors": []
+ },
+ {
+  "shot": "timer--preferences--light--1280.png",
+  "url": "/timer/50/10/1794959957400",
+  "mode": "light",
+  "heading": "Work 50 · Break 10",
+  "errors": []
+ },
+ {
+  "shot": "timer--preferences--soot-brass--1280.png",
+  "url": "/timer/50/10/1794959959768",
+  "mode": "soot-brass",
+  "heading": "Work 50 · Break 10",
+  "errors": []
+ },
+ {
+  "shot": "timer--preferences--dark--1280.png",
+  "url": "/timer/50/10/1794959962131",
+  "mode": "dark",
+  "heading": "Work 50 · Break 10",
+  "errors": []
+ },
+ {
+  "shot": "timer--preferences--light--360.png",
+  "url": "/timer/50/10/1794959964514",
+  "mode": "light",
+  "heading": "Work 50 · Break 10",
+  "errors": []
+ },
+ {
+  "shot": "timer--preferences--soot-brass--360.png",
+  "url": "/timer/50/10/1794959966795",
+  "mode": "soot-brass",
+  "heading": "Work 50 · Break 10",
+  "errors": []
+ },
+ {
+  "shot": "timer--preferences--dark--360.png",
+  "url": "/timer/50/10/1794959969072",
+  "mode": "dark",
+  "heading": "Work 50 · Break 10",
+  "errors": []
+ },
+ {
+  "shot": "settings--default--light--1280.png",
+  "url": "/settings",
+  "mode": "light",
+  "heading": "Settings",
+  "errors": []
+ },
+ {
+  "shot": "settings--default--soot-brass--1280.png",
+  "url": "/settings",
+  "mode": "soot-brass",
+  "heading": "Settings",
+  "errors": []
+ },
+ {
+  "shot": "settings--default--dark--1280.png",
+  "url": "/settings",
+  "mode": "dark",
+  "heading": "Settings",
+  "errors": []
+ },
+ {
+  "shot": "settings--default--light--360.png",
+  "url": "/settings",
+  "mode": "light",
+  "heading": "Settings",
+  "errors": []
+ },
+ {
+  "shot": "settings--default--soot-brass--360.png",
+  "url": "/settings",
+  "mode": "soot-brass",
+  "heading": "Settings",
+  "errors": []
+ },
+ {
+  "shot": "settings--default--dark--360.png",
+  "url": "/settings",
+  "mode": "dark",
+  "heading": "Settings",
+  "errors": []
+ },
+ {
+  "shot": "profile--experience--light--1280.png",
+  "url": "/profile",
+  "mode": "light",
+  "heading": "Profile",
+  "errors": []
+ },
+ {
+  "shot": "profile--experience--soot-brass--1280.png",
+  "url": "/profile",
+  "mode": "soot-brass",
+  "heading": "Profile",
+  "errors": []
+ },
+ {
+  "shot": "profile--experience--dark--1280.png",
+  "url": "/profile",
+  "mode": "dark",
+  "heading": "Profile",
+  "errors": []
+ },
+ {
+  "shot": "profile--experience--light--360.png",
+  "url": "/profile",
+  "mode": "light",
+  "heading": "Profile",
+  "errors": []
+ },
+ {
+  "shot": "profile--experience--soot-brass--360.png",
+  "url": "/profile",
+  "mode": "soot-brass",
+  "heading": "Profile",
+  "errors": []
+ },
+ {
+  "shot": "profile--experience--dark--360.png",
+  "url": "/profile",
+  "mode": "dark",
+  "heading": "Profile",
+  "errors": []
+ },
+ {
+  "shot": "profile--empty--light--1280.png",
+  "url": "/profile",
+  "mode": "light",
+  "heading": "Profile",
+  "errors": []
+ },
+ {
+  "shot": "profile--empty--soot-brass--1280.png",
+  "url": "/profile",
+  "mode": "soot-brass",
+  "heading": "Profile",
+  "errors": []
+ },
+ {
+  "shot": "profile--empty--dark--1280.png",
+  "url": "/profile",
+  "mode": "dark",
+  "heading": "Profile",
+  "errors": []
+ },
+ {
+  "shot": "profile--empty--light--360.png",
+  "url": "/profile",
+  "mode": "light",
+  "heading": "Profile",
+  "errors": []
+ },
+ {
+  "shot": "profile--empty--soot-brass--360.png",
+  "url": "/profile",
+  "mode": "soot-brass",
+  "heading": "Profile",
+  "errors": []
+ },
+ {
+  "shot": "profile--empty--dark--360.png",
+  "url": "/profile",
+  "mode": "dark",
+  "heading": "Profile",
+  "errors": []
+ },
+ {
+  "shot": "construct--vellum--light--1280.png",
+  "url": "/constructs/vellum",
+  "mode": "light",
+  "heading": "Vellum",
+  "errors": []
+ },
+ {
+  "shot": "construct--vellum--soot-brass--1280.png",
+  "url": "/constructs/vellum",
+  "mode": "soot-brass",
+  "heading": "Vellum",
+  "errors": []
+ },
+ {
+  "shot": "construct--vellum--dark--1280.png",
+  "url": "/constructs/vellum",
+  "mode": "dark",
+  "heading": "Vellum",
+  "errors": []
+ },
+ {
+  "shot": "construct--vellum--light--360.png",
+  "url": "/constructs/vellum",
+  "mode": "light",
+  "heading": "Vellum",
+  "errors": []
+ },
+ {
+  "shot": "construct--vellum--soot-brass--360.png",
+  "url": "/constructs/vellum",
+  "mode": "soot-brass",
+  "heading": "Vellum",
+  "errors": []
+ },
+ {
+  "shot": "construct--vellum--dark--360.png",
+  "url": "/constructs/vellum",
+  "mode": "dark",
+  "heading": "Vellum",
+  "errors": []
+ },
+ {
+  "shot": "construct--lumen--light--1280.png",
+  "url": "/constructs/lumen",
+  "mode": "light",
+  "heading": "Lumen",
+  "errors": []
+ },
+ {
+  "shot": "construct--lumen--soot-brass--1280.png",
+  "url": "/constructs/lumen",
+  "mode": "soot-brass",
+  "heading": "Lumen",
+  "errors": []
+ },
+ {
+  "shot": "construct--lumen--dark--1280.png",
+  "url": "/constructs/lumen",
+  "mode": "dark",
+  "heading": "Lumen",
+  "errors": []
+ },
+ {
+  "shot": "construct--lumen--light--360.png",
+  "url": "/constructs/lumen",
+  "mode": "light",
+  "heading": "Lumen",
+  "errors": []
+ },
+ {
+  "shot": "construct--lumen--soot-brass--360.png",
+  "url": "/constructs/lumen",
+  "mode": "soot-brass",
+  "heading": "Lumen",
+  "errors": []
+ },
+ {
+  "shot": "construct--lumen--dark--360.png",
+  "url": "/constructs/lumen",
+  "mode": "dark",
+  "heading": "Lumen",
+  "errors": []
+ },
+ {
+  "shot": "quest--ideas--light--1280.png",
+  "url": "/quests/ed8448f4-cb54-4136-bc7f-ac00c21dae60",
+  "mode": "light",
+  "heading": "Read Latin on old maps",
+  "errors": []
+ },
+ {
+  "shot": "quest--ideas--soot-brass--1280.png",
+  "url": "/quests/ed8448f4-cb54-4136-bc7f-ac00c21dae60",
+  "mode": "soot-brass",
+  "heading": "Read Latin on old maps",
+  "errors": []
+ },
+ {
+  "shot": "quest--ideas--dark--1280.png",
+  "url": "/quests/ed8448f4-cb54-4136-bc7f-ac00c21dae60",
+  "mode": "dark",
+  "heading": "Read Latin on old maps",
+  "errors": []
+ },
+ {
+  "shot": "quest--ideas--light--360.png",
+  "url": "/quests/ed8448f4-cb54-4136-bc7f-ac00c21dae60",
+  "mode": "light",
+  "heading": "Read Latin on old maps",
+  "errors": []
+ },
+ {
+  "shot": "quest--ideas--soot-brass--360.png",
+  "url": "/quests/ed8448f4-cb54-4136-bc7f-ac00c21dae60",
+  "mode": "soot-brass",
+  "heading": "Read Latin on old maps",
+  "errors": []
+ },
+ {
+  "shot": "quest--ideas--dark--360.png",
+  "url": "/quests/ed8448f4-cb54-4136-bc7f-ac00c21dae60",
+  "mode": "dark",
+  "heading": "Read Latin on old maps",
+  "errors": []
+ },
+ {
+  "shot": "quest--quick-notes--light--1280.png",
+  "url": "/quests/ed8448f4-cb54-4136-bc7f-ac00c21dae60",
+  "mode": "light",
+  "heading": "Read Latin on old maps",
+  "errors": []
+ },
+ {
+  "shot": "quest--quick-notes--soot-brass--1280.png",
+  "url": "/quests/ed8448f4-cb54-4136-bc7f-ac00c21dae60",
+  "mode": "soot-brass",
+  "heading": "Read Latin on old maps",
+  "errors": []
+ },
+ {
+  "shot": "quest--quick-notes--dark--1280.png",
+  "url": "/quests/ed8448f4-cb54-4136-bc7f-ac00c21dae60",
+  "mode": "dark",
+  "heading": "Read Latin on old maps",
+  "errors": []
+ },
+ {
+  "shot": "quest--quick-notes--light--360.png",
+  "url": "/quests/ed8448f4-cb54-4136-bc7f-ac00c21dae60",
+  "mode": "light",
+  "heading": "Read Latin on old maps",
+  "errors": []
+ },
+ {
+  "shot": "quest--quick-notes--soot-brass--360.png",
+  "url": "/quests/ed8448f4-cb54-4136-bc7f-ac00c21dae60",
+  "mode": "soot-brass",
+  "heading": "Read Latin on old maps",
+  "errors": []
+ },
+ {
+  "shot": "quest--quick-notes--dark--360.png",
+  "url": "/quests/ed8448f4-cb54-4136-bc7f-ac00c21dae60",
+  "mode": "dark",
+  "heading": "Read Latin on old maps",
+  "errors": []
+ },
+ {
+  "shot": "quest--progress--light--1280.png",
+  "url": "/quests/ed8448f4-cb54-4136-bc7f-ac00c21dae60",
+  "mode": "light",
+  "heading": "Read Latin on old maps",
+  "errors": []
+ },
+ {
+  "shot": "quest--progress--soot-brass--1280.png",
+  "url": "/quests/ed8448f4-cb54-4136-bc7f-ac00c21dae60",
+  "mode": "soot-brass",
+  "heading": "Read Latin on old maps",
+  "errors": []
+ },
+ {
+  "shot": "quest--progress--dark--1280.png",
+  "url": "/quests/ed8448f4-cb54-4136-bc7f-ac00c21dae60",
+  "mode": "dark",
+  "heading": "Read Latin on old maps",
+  "errors": []
+ },
+ {
+  "shot": "quest--progress--light--360.png",
+  "url": "/quests/ed8448f4-cb54-4136-bc7f-ac00c21dae60",
+  "mode": "light",
+  "heading": "Read Latin on old maps",
+  "errors": []
+ },
+ {
+  "shot": "quest--progress--soot-brass--360.png",
+  "url": "/quests/ed8448f4-cb54-4136-bc7f-ac00c21dae60",
+  "mode": "soot-brass",
+  "heading": "Read Latin on old maps",
+  "errors": []
+ },
+ {
+  "shot": "quest--progress--dark--360.png",
+  "url": "/quests/ed8448f4-cb54-4136-bc7f-ac00c21dae60",
+  "mode": "dark",
+  "heading": "Read Latin on old maps",
+  "errors": []
+ }
+]

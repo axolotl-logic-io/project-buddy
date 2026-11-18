@@ -55,9 +55,22 @@ test("custom and unavailable generated art have a visible initials fallback", as
   await expect.element(page.getByText("PB")).toBeVisible();
 });
 
-test("committed artwork loads and an image failure reveals initials", async () => {
+test("saved raster artwork loads and an image failure reveals initials", async () => {
   const screen = await render(
-    <ConstructAvatar construct={getConstruct("lumen")} />,
+    <ConstructAvatar
+      construct={{
+        name: "Lumen",
+        definition: {
+          prompt: "Saved conversation instructions",
+          visual: {
+            version: 1,
+            description: "An arcane light",
+            canonical: { kind: "built-in", artwork: "lumen-v1" },
+            frames: { avatar: { x: 0.5, y: 0.53, size: 0.27 } },
+          },
+        },
+      }}
+    />,
   );
   const image = screen.container.querySelector("img");
   if (image === null) {

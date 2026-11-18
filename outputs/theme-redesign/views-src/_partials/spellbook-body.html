@@ -1,0 +1,37 @@
+<!-- include:site-header circle="4" -->
+<!-- include:trail-band panel="" parents="" heading="Spellbook" tools="<a class='button-primary' href='spell--editor.html'><svg class='icon' aria-hidden='true'><use href='#i-plus'/></svg><span class='button-label'>Create spell</span></a>" -->
+<!-- include:site-panel open="" current="spellbook" swatch-focus="" -->
+<main class="page">
+  <div class="page-column">
+    <p class="lede">Find a spell to inspect or customize.</p>
+    <div class="field-box">
+      <svg class="icon" aria-hidden="true" style="align-self:center;margin-inline-start:.5rem"><use href="#i-search"/></svg>
+      <input class="field-box-control" type="search" aria-label="Search spells by name" placeholder="Search spells by name">
+    </div>
+    <div>
+      <nav class="collection-tabs" aria-label="Spell folders">
+        <a class="collection-tab" href="spellbook--list.html"{{!yours}} aria-current="page"{{/!}}>All <span class="collection-count">5</span></a>
+        <a class="collection-tab" href="#">Built-in <span class="collection-count">2</span></a>
+        <a class="collection-tab" href="spellbook--yours-empty.html"{{?yours}} aria-current="page"{{/?}}>Yours <span class="collection-count">{{?yours}}0{{/?}}{{!yours}}3{{/!}}</span></a>
+        <a class="collection-tab" href="#">Forgotten <span class="collection-count">0</span></a>
+      </nav>
+      <div class="collection-panel">
+        {{!yours}}<p class="sr-only" role="status">5 spells</p>
+        <ul class="collection-list" aria-label="Spells">
+          <li class="collection-row"><span class="collection-mark" aria-hidden="true"><svg class="icon"><use href="#i-list-checks"/></svg></span><div class="collection-text"><a class="collection-link" href="spell--editor.html">Tasks</a><p class="collection-meta"><span>Built-in</span><span>Saves to Tasks</span></p></div><span class="collection-end" aria-hidden="true"><svg class="icon"><use href="#i-chevron-right"/></svg></span></li>
+          <li class="collection-row"><span class="collection-mark" aria-hidden="true"><svg class="icon"><use href="#i-sparkle"/></svg></span><div class="collection-text"><a class="collection-link" href="spell--editor.html">Brainstorm</a><p class="collection-meta"><span>Built-in</span><span>Saves to Ideas</span></p></div><span class="collection-end" aria-hidden="true"><svg class="icon"><use href="#i-chevron-right"/></svg></span></li>
+          <li class="collection-row"><span class="collection-mark" aria-hidden="true"><svg class="icon"><use href="#i-wand-sparkles"/></svg></span><div class="collection-text"><a class="collection-link" href="spell--editor.html">Workshop log</a><p class="collection-meta"><span>Yours</span><span>Saves to Tasks</span></p></div><span class="collection-end" aria-hidden="true"><svg class="icon"><use href="#i-chevron-right"/></svg></span></li>
+          <li class="collection-row"><span class="collection-mark" aria-hidden="true"><svg class="icon"><use href="#i-wand-sparkles"/></svg></span><div class="collection-text"><a class="collection-link" href="spell--editor.html">Margin notes</a><p class="collection-meta"><span>Yours</span><span>Saves to Ideas</span></p></div><span class="collection-end" aria-hidden="true"><svg class="icon"><use href="#i-chevron-right"/></svg></span></li>
+          <li class="collection-row"><span class="collection-mark" aria-hidden="true"><svg class="icon"><use href="#i-wand-sparkles"/></svg></span><div class="collection-text"><a class="collection-link" href="spell--editor.html">Morning bell</a><p class="collection-meta"><span>Yours</span><span>Saves to Tasks</span></p></div><span class="collection-end" aria-hidden="true"><svg class="icon"><use href="#i-chevron-right"/></svg></span></li>
+        </ul>{{/!}}
+        {{?yours}}<div class="empty-state">
+          <span class="ornament" data-ornament="vignette" aria-hidden="true"></span><span class="ornament" data-ornament="emblem" aria-hidden="true"></span>
+          <p class="empty-state-heading">No spells of your own</p>
+          <p class="empty-state-copy lede-initial">You have no spells of your own yet. Create one or copy a built-in spell.</p>
+          <a class="button-secondary" href="spell--editor.html"><svg class="icon" aria-hidden="true"><use href="#i-plus"/></svg>Create spell</a>
+        </div>{{/?}}
+      </div>
+    </div>
+    <p class="muted">Cast and stop spells inside a quest. Copy and forget actions are on each spell’s page.</p>
+  </div>
+</main>

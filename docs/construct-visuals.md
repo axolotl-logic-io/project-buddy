@@ -8,11 +8,11 @@ A construct has a Visual description and may have artwork. `look` shows the Visu
 
 `ConstructDefinition.visual` is optional. It contains a visual `description`, an optional `canonical` asset, an optional `working` asset, and optional `frames` for `avatar`, `portrait`, `opening` and `working`. Each frame specifies normalized image coordinates `x`, `y` at the frame center and `size` as a fraction of the square image's width. Assets must be square; the renderer clips the frame to its square container. Missing frames use the whole image. Missing working art uses canonical art.
 
-A built-in reference is `{ kind: "built-in", artwork: "lumen-v1" }` or `vellum-v1`. A generated reference is `{ kind: "generated", assetId: UUID }`. References contain no owner, source construct, provider URL, storage key or expiring signature. A UUID identifies immutable bytes, never an editable slot.
+A built-in reference is `{ kind: "built-in", artwork: "lumen-v2" }` or `vellum-v2` for current artwork. Saved snapshots can still reference the immutable `lumen-v1` and `vellum-v1` raster artwork. A generated reference is `{ kind: "generated", assetId: UUID }`. References contain no owner, source construct, provider URL, storage key or expiring signature. A UUID identifies immutable bytes, never an editable slot.
 
 `resolveConstructVisual(construct, role)` accepts a name and definition and returns `asset`, `frame`, `initials` and `description`. It never infers artwork from names, prompt matching or ids. Missing metadata, old own snapshots and custom constructs use initials. Built-ins carry explicit metadata, as do historical copies of them. Snapshots are not backfilled from today's source construct.
 
-`constructVisualSource(asset, destination?)` returns the versioned repository path for built-in assets. A generated reference needs an explicit `VisualDestination`: `{ kind: "construct" | "adventure", id: UUID }`. It resolves to `/api/constructs/visuals/<kind>/<destination id>/<asset id>`. Without a valid destination it returns `undefined`. The delivery route authorizes that destination on every request; the path alone grants no access. Failed image delivery shows initials.
+`constructVisualSource(asset, destination?)` returns the versioned repository path for built-in raster assets and `undefined` for inline drawings. A generated reference needs an explicit `VisualDestination`: `{ kind: "construct" | "adventure", id: UUID }`. It resolves to `/api/constructs/visuals/<kind>/<destination id>/<asset id>`. Without a valid destination it returns `undefined`. The delivery route authorizes that destination on every request; the path alone grants no access. Failed image delivery shows initials.
 
 The built-in `description` values are the user-supplied texts, stored verbatim in `src/constructs/lumen.ts` and `vellum.ts`.
 
@@ -32,7 +32,7 @@ Both expose the construct name as the accessible image name. Set `decorative` be
 <ConstructIllustration construct={snapshot} visualRole="opening" />
 ```
 
-The supplied avatar frames focus on Lumen's smiling light and Vellum's brass face at small sizes. Other roles keep the supplied composition.
+The v2 artwork is inline SVG painted with the active appearance’s `--construct-*` tokens. The avatar role uses a simpler drawing for 32 and 40 pixels. Portrait, opening and working roles use the full drawing. Each role defaults to the whole drawing. A stored frame sets the SVG’s `viewBox` or crops the delivered raster image.
 
 ## Character profile
 
@@ -54,9 +54,11 @@ Own construct stores, copies and conversation snapshots all use these shared ser
 
 ## Image delivery sizes
 
-The shared renderer uses compressed WebP derivatives at 64, 128, 256, 512 and 1024 pixels. Its image loader advertises responsive sources, with `sizes` based on the displayed square width divided by the frame size. This accounts for face crops and device pixel density. Callers can set `displayWidth` to their layout's maximum CSS pixel width (default 264); avatars pass their own size and conversation openings pass 224.
+The shared renderer delivers raster artwork as compressed WebP derivatives at 64, 128, 256, 512 and 1024 pixels. Its image loader advertises responsive sources, with `sizes` based on the displayed square width divided by the frame size. This accounts for face crops and device pixel density. Callers can set `displayWidth` to their layout's maximum CSS pixel width (default 264); avatars pass their own size and conversation openings pass 224.
 
-Built-in derivatives are committed beside the immutable reference PNGs. To regenerate them, run this command from `apps/web/`:
+Inline SVG scales to the display width without a source URL, `sizes` or WebP derivatives.
+
+Built-in raster derivatives are committed beside the immutable reference PNGs. To regenerate them, run this command from `apps/web/`:
 
 ```bash
 node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/resize-construct-artwork.ts
@@ -67,3 +69,5 @@ Generated sources use the same bounded widths through a `width` query parameter 
 ## Artwork source
 
 `apps/web/public/constructs/lumen-v1.png` and `vellum-v1.png` are the unmodified reference PNGs supplied by the repository owner on 2026-11-05. No independent artist or license information accompanied the files; don't invent attribution. Runtime uses committed paths, never local attachment paths. Keep these versioned files immutable; new art receives a new versioned path.
+
+The hand-written v2 SVG sources are in `outputs/theme-redesign/artwork/`. They use no third-party parts. Run `python3 outputs/theme-redesign/artwork/src/to_tsx.py` from the repository root to regenerate the inline React components, then run `npx biome check --write src/components/constructs/artwork` from `apps/web/`.

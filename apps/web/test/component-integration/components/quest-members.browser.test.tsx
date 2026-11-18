@@ -10,6 +10,7 @@ import { THEME_MODES } from "@/themes/themes.ts";
 import { PANEL_COMMANDS_COPY } from "@/ui/copy/commands.ts";
 import { PENDING_COPY, QUEST_MEMBERS_COPY } from "@/ui/copy/quest-members.ts";
 import { QUEST_STATUS_COPY } from "@/ui/copy/quest-status.ts";
+import { animationsSettled } from "../../support/animations-test-kit.ts";
 import { questIdFixture, userIdFixture } from "../../support/id-fixtures.ts";
 import { tabForward } from "../../support/keyboard-test-kit.ts";
 import { applyTheme } from "../themes/theme-test-kit.ts";
@@ -109,9 +110,7 @@ function sidebarMembers(viewer = OWNER.id): JSX.Element {
 
 // Once the page's animations, such as a dialog's pop-in, have finished.
 async function animationsDone(): Promise<void> {
-  await Promise.all(
-    document.getAnimations().map((animation) => animation.finished),
-  );
+  await animationsSettled(document, "The page");
 }
 
 // The element the browser would hit at the middle of the element: what a

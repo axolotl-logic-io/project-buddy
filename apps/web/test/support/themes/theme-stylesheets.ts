@@ -1,13 +1,15 @@
 /// <reference types="vite/client" />
 // For the theme module's tests: what its stylesheets declare, read from the
-// CSS itself. The readers name what the tests compare (a theme's tokens, the
-// colours each mode shows, the stylesheets themes.css imports), so no test
-// needs to know how the CSS is laid out. Vitest loads the CSS
-// (vitest.config.mts lets it through); the app never imports this file.
-import { MODE_ATTRIBUTE, THEME_ATTRIBUTE } from "@/themes/theme-choice.ts";
-import { THEME_MODES } from "@/themes/themes.ts";
+// CSS itself. The readers name what the tests compare (the tokens the
+// contract reads, the colour tokens its utilities show, the stylesheets
+// themes.css loads), so no test needs to know how the CSS is laid out: a
+// theme may keep its values in one file or split them across files it
+// imports, under src/themes or a folder there. The values each appearance
+// shows are read in the browser, through the real cascade
+// (theme-tokens.browser.test.tsx). Vitest loads the CSS (vitest.config.mts
+// lets it through); the app never imports this file.
 
-const STYLESHEETS = import.meta.glob<string>("./*.css", {
+const STYLESHEETS = import.meta.glob<string>("./**/*.css", {
   base: "/src/themes",
   query: "?raw",
   import: "default",
@@ -22,9 +24,11 @@ const { "../components/chat/chat.css": CHAT_STYLESHEET = "" } =
     eager: true,
   });
 
-// import.meta.glob names each file "./<name>.css".
+// import.meta.glob names each file "./<path>.css".
 const PATH_PREFIX = "./";
 const PATH_SUFFIX = ".css";
+// Where import paths resolve from: any absolute URL standing for src/themes.
+const THEMES_URL = "file:///themes/";
 
 const COMMENT = /\/\*[\s\S]*?\*\//gu;
 const RULE_START = /(?<prelude>[^{};]*)\{/gu;
@@ -32,13 +36,29 @@ const BRACE = /[{}]/gu;
 const DECLARATION = /--(?<name>[\w-]+):\s*(?<value>[^;]+);/gu;
 const READ = /var\(--(?<name>[\w-]+)/gu;
 const IMPORT =
-  /@import "\.\/(?<name>[\w-]+)\.css" layer\((?<layer>[\w-]+)\);/gu;
+  /@import\s+(?:url\()?"(?<path>[^"]+\.css)"\)?(?:\s+layer\((?<layer>[\w-]+)\))?[^;]*;/gu;
+// A colour utility's theme variable, such as `--color-surface: var(--surface)`.
+const COLOR_UTILITY = /^color-[\w-]+$/u;
+const TOKEN_READ = /^var\(--(?<token>[\w-]+)\)$/u;
 const DEPTH_CHANGE: Readonly<Record<string, number>> = { "{": 1, "}": -1 };
 
 // The at-rule that declares Streamdown's names in chat.css.
 const REFERENCE_THEME = "@theme reference";
+// The stylesheet the site imports, which loads every other one.
+const ENTRY = "themes";
+// The contract: the tokens every theme sets, and the utilities that read them.
+const CONTRACT = "contract";
 
-// The name of every stylesheet in src/themes, without ".css".
+interface Import {
+  // The stylesheet's path under src/themes, without ".css", such as
+  // "parchment" or "parchment/light".
+  readonly name: string;
+  // The cascade layer it is imported into, or "" for none.
+  readonly layer: string;
+}
+
+// The path of every stylesheet under src/themes, without ".css", such as
+// "contract" or "parchment/light".
 const THEME_STYLESHEET_NAMES: readonly string[] = Object.keys(STYLESHEETS).map(
   (path) => path.slice(PATH_PREFIX.length, -PATH_SUFFIX.length),
 );
@@ -75,7 +95,8 @@ function ruleBody(css: string, selector: string): string {
   return "";
 }
 
-// Every custom property `css` sets, by name without "--", to its value.
+// Every custom property `css` sets, by name without "--", to its value (the
+// last one, if it sets it more than once).
 function customProperties(css: string): ReadonlyMap<string, string> {
   return new Map(
     [...css.matchAll(DECLARATION)].map(
@@ -91,68 +112,117 @@ function customPropertyReads(css: string): ReadonlySet<string> {
   );
 }
 
-// The colour tokens contract.css sets under a mode attribute value, such as
-// "dark", inside `within` (the whole contract by default), to their values.
-function modeColors(
-  mode: string,
-  within = themeStylesheet("contract"),
-): ReadonlyMap<string, string> {
-  return customProperties(ruleBody(within, `[${MODE_ATTRIBUTE}="${mode}"]`));
+// The stylesheets src/themes/<from>.css imports, each resolved from its own
+// folder to a path under src/themes.
+function importsOf(from: string): readonly Import[] {
+  const base = new URL(`${from}${PATH_SUFFIX}`, THEMES_URL);
+  return [...themeStylesheet(from).matchAll(IMPORT)].map(
+    ({ groups: { path = "", layer = "" } = {} }) => {
+      const resolved = new URL(path, base).href;
+      return {
+        name: resolved.slice(THEMES_URL.length, -PATH_SUFFIX.length),
+        layer,
+      };
+    },
+  );
 }
 
-// Each selectable appearance's palette and decoration mappings.
-function modeColorMappings(): readonly {
-  readonly mode: string;
-  readonly mappings: ReadonlyMap<string, string>;
-}[] {
-  return THEME_MODES.map((mode) => ({ mode, mappings: modeColors(mode) }));
+// `names` and every stylesheet they import, however deep.
+function withImports(names: readonly string[]): ReadonlySet<string> {
+  const found = new Set<string>();
+  const waiting = [...names];
+  for (let name = waiting.pop(); name !== undefined; name = waiting.pop()) {
+    if (!found.has(name)) {
+      found.add(name);
+      waiting.push(...importsOf(name).map((entry) => entry.name));
+    }
+  }
+  return found;
 }
 
-const MODE_TOKENS: readonly string[] = [...modeColors("light").keys()];
-// Decoration is an image, not a colour that can have a contrast ratio.
-const COLOR_TOKENS: readonly string[] = MODE_TOKENS.filter(
-  (token) => token !== "page-decoration",
-);
-
-// The stylesheets themes.css imports, by name without ".css", to the layer
+// The stylesheets themes.css imports, by path without ".css", to the layer
 // it imports each one into.
 function themeImports(): ReadonlyMap<string, string> {
-  return new Map(
-    [...themeStylesheet("themes").matchAll(IMPORT)].map(
-      ({ groups: { name = "", layer = "" } = {} }) => [name, layer],
-    ),
+  return new Map(importsOf(ENTRY).map(({ name, layer }) => [name, layer]));
+}
+
+// Every stylesheet the site loads through themes.css, however deep.
+function loadedStylesheets(): ReadonlySet<string> {
+  return withImports([ENTRY]);
+}
+
+// Whether a stylesheet's path names it for themeId: "<id>", "<id>-<part>" or
+// anything in the "<id>/" folder.
+function namedFor(themeId: string, name: string): boolean {
+  return (
+    name === themeId ||
+    name.startsWith(`${themeId}-`) ||
+    name.startsWith(`${themeId}/`)
   );
 }
 
-// Every custom property contract.css sets anywhere, by name without "--", to
-// its value, such as "color-surface" (a utility's) or "background" (a mode's).
+// The stylesheets a theme's values live in: those themes.css imports for it,
+// and everything they import.
+function themeStylesheetNames(themeId: string): ReadonlySet<string> {
+  return withImports(
+    importsOf(ENTRY)
+      .map(({ name }) => name)
+      .filter((name) => namedFor(themeId, name)),
+  );
+}
+
+// Every custom property the contract's stylesheets set anywhere, by name
+// without "--", to its value, such as "color-surface" (a utility's) or
+// "background" (a mode's).
 function contractTokens(): ReadonlyMap<string, string> {
-  return customProperties(themeStylesheet("contract"));
-}
-
-// Every custom property contract.css reads, by name without "--".
-function contractReads(): ReadonlySet<string> {
-  return customPropertyReads(themeStylesheet("contract"));
-}
-
-// The body of a theme's rule in its own stylesheet.
-function themeRule(themeId: string): string {
-  return ruleBody(
-    themeStylesheet(themeId),
-    `[${THEME_ATTRIBUTE}="${themeId}"]`,
+  return customProperties(
+    [...withImports([CONTRACT])].map(themeStylesheet).join("\n"),
   );
 }
 
-// The custom properties a theme's stylesheet sets for that theme, by name
-// without "--", such as "light-background" or "control-radius".
-function themeTokens(themeId: string): ReadonlyMap<string, string> {
-  return customProperties(themeRule(themeId));
+// Every custom property the contract's stylesheets read, by name without "--".
+function contractReads(): ReadonlySet<string> {
+  return customPropertyReads(
+    [...withImports([CONTRACT])].map(themeStylesheet).join("\n"),
+  );
 }
 
-// The custom properties a theme's values read, by name without "--", such as
-// the typeface variable its fonts name.
+// The tokens a theme must set: every one the contract reads but doesn't set.
+function themeSetTokens(): readonly string[] {
+  const set = contractTokens();
+  return [...contractReads()].filter((token) => !set.has(token));
+}
+
+// The contract's colour utilities, such as "color-surface", to the value
+// each one shows, such as "var(--surface)".
+function colorUtilities(): ReadonlyMap<string, string> {
+  return new Map(
+    [...contractTokens()].filter(([name]) => COLOR_UTILITY.test(name)),
+  );
+}
+
+// The colour tokens: the tokens the contract's colour utilities read, such
+// as "surface" or "code-keyword".
+function colorTokens(): readonly string[] {
+  return [
+    ...new Set(
+      [...colorUtilities().values()].flatMap((value) => {
+        const { groups: { token = "" } = {} } = TOKEN_READ.exec(value) ?? {};
+        if (token === "") {
+          return [];
+        }
+        return [token];
+      }),
+    ),
+  ];
+}
+
+// The custom properties a theme's stylesheets read, by name without "--",
+// such as the typeface variables its fonts name, in any rule and any file.
 function themeReads(themeId: string): ReadonlySet<string> {
-  return customPropertyReads(themeRule(themeId));
+  return customPropertyReads(
+    [...themeStylesheetNames(themeId)].map(themeStylesheet).join("\n"),
+  );
 }
 
 // The theme variables chat.css's reference theme declares for Streamdown's
@@ -166,14 +236,14 @@ function streamdownThemeNames(): readonly string[] {
 }
 
 export {
-  COLOR_TOKENS,
-  contractReads,
-  contractTokens,
-  MODE_TOKENS,
-  modeColorMappings,
+  colorTokens,
+  colorUtilities,
+  loadedStylesheets,
+  namedFor,
   streamdownThemeNames,
   THEME_STYLESHEET_NAMES,
   themeImports,
   themeReads,
-  themeTokens,
+  themeSetTokens,
+  themeStylesheetNames,
 };

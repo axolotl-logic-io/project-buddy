@@ -1,0 +1,11 @@
+<section class="trail-band" aria-label="Page trail">
+  <button class="icon-button" type="button" aria-controls="site-panel" aria-expanded="{{?panel}}true{{/?}}{{!panel}}false{{/!}}" title="Site panel"><svg class="icon" aria-hidden="true"><use href="#i-site-panel"/></svg><span class="sr-only">Site panel</span></button>
+  <span class="trail-divider" aria-hidden="true"></span>
+  <div class="trail-content">
+    <div class="trail-path">
+      {{?parents}}<nav class="trail-parents" aria-label="Breadcrumbs"><ol>{{parents}}</ol></nav>{{/?}}
+      <h1 class="trail-heading">{{heading}}</h1>
+    </div>
+    {{?tools}}<div class="trail-tools">{{tools}}</div>{{/?}}
+  </div>
+</section>

@@ -1,0 +1,77 @@
+<svg xmlns="http://www.w3.org/2000/svg">
+  <!-- Placeholder ornaments for the theme template. Each symbol is a mask:
+       draw in black, and only opacity counts. Elements marked
+       data-ink="accent" are painted with the ornament-accent-ink token; all others
+       with the ornament-ink token. THEME-INTERFACE.md gives each symbol's
+       viewBox and size. Replace these with the appearance's own art. -->
+
+  <!-- Frame corner, top left. The build turns it for the other three. -->
+  <symbol id="orn-corner" viewBox="0 0 24 24">
+    <path d="M3 21V3h18" fill="none" stroke="#000" stroke-width="1.5"/>
+    <path data-ink="accent" d="m3 0 3 3-3 3-3-3Z"/>
+  </symbol>
+
+  <!-- The glyph at a divider's centre. -->
+  <symbol id="orn-divider" viewBox="0 0 32 16">
+    <circle cx="4" cy="8" r="1.5"/>
+    <circle cx="28" cy="8" r="1.5"/>
+    <path data-ink="accent" d="m16 2 6 6-6 6-6-6Z"/>
+  </symbol>
+
+  <!-- The mark before a section heading. -->
+  <symbol id="orn-heading" viewBox="0 0 16 16">
+    <path data-ink="accent" d="m8 3 5 5-5 5-5-5Z"/>
+  </symbol>
+
+  <!-- One tile of the band under the header; it repeats across. -->
+  <symbol id="orn-band" viewBox="0 0 16 6">
+    <path d="M0 3h5m6 0h5" stroke="#000" stroke-width="1"/>
+    <path data-ink="accent" d="m8 1 2 2-2 2-2-2Z"/>
+  </symbol>
+
+  <!-- Empty state and sign-in emblem. -->
+  <symbol id="orn-emblem" viewBox="0 0 48 48">
+    <circle cx="24" cy="24" r="20" fill="none" stroke="#000" stroke-width="1.5"/>
+    <circle cx="24" cy="24" r="16" fill="none" stroke="#000" stroke-width=".75"/>
+    <path data-ink="accent" d="m24 9 3 12 12 3-12 3-3 12-3-12-12-3 12-3Z"/>
+  </symbol>
+
+  <!-- Appearance swatch ornament, drawn over the swatch's texture. -->
+  <symbol id="orn-swatch" viewBox="0 0 64 64">
+    <rect x="6" y="6" width="52" height="52" fill="none" stroke="#000" stroke-width="1.5"/>
+    <path d="m6 2 4 4-4 4-4-4Zm52 0 4 4-4 4-4-4ZM6 54l4 4-4 4-4-4Zm52 0 4 4-4 4-4-4Z"/>
+    <path data-ink="accent" d="m32 22 10 10-10 10-10-10Z"/>
+  </symbol>
+
+  <!-- Construct portrait frame. The centre stays open for the portrait. -->
+  <symbol id="orn-portrait" viewBox="0 0 100 100">
+    <rect x="2" y="2" width="96" height="96" fill="none" stroke="#000" stroke-width="2"/>
+    <rect x="6" y="6" width="88" height="88" fill="none" stroke="#000" stroke-width=".75"/>
+    <path data-ink="accent" d="m2 -3 5 5-5 5-5-5Zm96 0 5 5-5 5-5-5ZM2 93l5 5-5 5-5-5Zm96 0 5 5-5 5-5-5Z"/>
+  </symbol>
+
+  <!-- A list item's marker. -->
+  <symbol id="orn-bullet" viewBox="0 0 8 8">
+    <path d="m4 1 3 3-3 3-3-3Z"/>
+  </symbol>
+
+  <!-- Optional. The empty state's picture, wide: keep the viewBox 120
+       wide and 40 to 80 tall. -->
+  <symbol id="orn-vignette" viewBox="0 0 120 48">
+    <path d="M8 40h104" fill="none" stroke="#000" stroke-width="1.5"/>
+    <path data-ink="accent" d="m60 8 8 16-8 16-8-16Z"/>
+  </symbol>
+
+  <!-- Optional. The mark on a notice's top start corner. -->
+  <symbol id="orn-notice" viewBox="0 0 16 16">
+    <circle cx="8" cy="8" r="6"/>
+    <path data-ink="accent" d="m8 4 4 4-4 4-4-4Z"/>
+  </symbol>
+
+  <!-- Optional. The left end of a free-standing rule; the build mirrors it
+       for the right end. The line meets it at x = viewBox width, y = middle. -->
+  <symbol id="orn-rule-end" viewBox="0 0 24 8">
+    <path d="M8 4h16" fill="none" stroke="#000" stroke-width="1"/>
+    <path data-ink="accent" d="m4 1 3 3-3 3-3-3Z"/>
+  </symbol>
+</svg>

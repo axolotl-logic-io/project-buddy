@@ -28,8 +28,7 @@ export const vellum: Construct = {
       version: 1,
       description:
         "A pencil and ink sketch on aged parchment of Vellum, a small clockwork cartographer: a brass automaton with a rounded head, round glass lens eyes, visible gears at the joints, ink-stained fingers holding a quill and a rolled map. Compass rose etched on its chest, tiny cogs ticking at the shoulder. Warm sepia ink, fine cross-hatching, hand-drawn map margins with faint coastlines and dotted routes, a calm, patient, friendly expression.",
-      canonical: { kind: "built-in", artwork: "vellum-v1" },
-      frames: { avatar: { x: 0.49, y: 0.22, size: 0.32 } },
+      canonical: { kind: "built-in", artwork: "vellum-v2" },
     },
   },
 };

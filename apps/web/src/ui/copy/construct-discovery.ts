@@ -38,13 +38,13 @@ function constructPersonality(
   const asset = construct.definition.visual?.canonical;
   if (asset?.kind === "built-in") {
     if (
-      asset.artwork === "vellum-v1" &&
+      (asset.artwork === "vellum-v1" || asset.artwork === "vellum-v2") &&
       construct.definition.prompt === getConstruct("vellum").definition.prompt
     ) {
       return CONSTRUCT_DISCOVERY_COPY.vellum;
     }
     if (
-      asset.artwork === "lumen-v1" &&
+      (asset.artwork === "lumen-v1" || asset.artwork === "lumen-v2") &&
       construct.definition.prompt === getConstruct("lumen").definition.prompt
     ) {
       return CONSTRUCT_DISCOVERY_COPY.lumen;
