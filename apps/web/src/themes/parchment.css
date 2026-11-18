@@ -312,6 +312,67 @@
     --timer-guide-middle: 176px;
     --timer-guide-inner: 151px;
     --timer-chapter-display: block;
+
+    /* Display, frame and ornament roles. */
+    --display-font: var(--typeface-cormorant-garamond);
+    --display-weight: 600;
+    --display-tracking: 0.02em;
+    --label-font: var(--typeface-source-serif-4);
+    --label-ink: var(--muted);
+    --label-case: none;
+    --label-caps: all-small-caps;
+    --label-tracking: 0.06em;
+    --numeral-font: var(--typeface-source-serif-4);
+    --initial-font: var(--typeface-cormorant-garamond);
+    --initial-size: 1.6em;
+    --initial-float: none;
+    --rubric: rgb(226 196 132);
+    --ornament-ink: rgb(170 145 98);
+    --ornament-accent-ink: var(--rubric);
+    --rule-ink: var(--line);
+    --frame-ink: var(--line);
+    --scrim: color-mix(in oklab, var(--shadow) 62%, transparent);
+    --rule-style: solid;
+    --rule-width: 1px;
+    --frame-style: solid;
+    --frame-width: 1px;
+    --frame-radius: 3px;
+    --frame-inset: 3px;
+    --frame-keyline: 1px;
+    --header-decoration: linear-gradient(
+      to bottom,
+      color-mix(in oklab, var(--header-gold) 6%, transparent),
+      transparent
+    );
+    --trail-decoration: linear-gradient(
+      to bottom,
+      color-mix(in oklab, var(--primary) 6%, transparent),
+      transparent 70%
+    );
+    --frame-decoration: linear-gradient(
+      to bottom,
+      color-mix(in oklab, var(--primary) 4%, transparent),
+      transparent 9rem
+    );
+    --ring-track: color-mix(in oklab, var(--line) 35%, transparent);
+    --ring-arc: var(--primary);
+    --ring-disc: var(--surface);
+    --ring-ink: var(--foreground);
+    --ring-stroke: 0.09;
+    --orn-corner-size: 1.5rem;
+    --orn-corner-panel-size: 1.5rem;
+    --orn-corner-dialog-size: 1.5rem;
+    --orn-corner-feature-size: 1.75rem;
+    --orn-corner-card-size: 0px;
+    --orn-divider-width: 2.75rem;
+    --orn-heading-width: 1rem;
+    --orn-band-height: 0.5rem;
+    --orn-emblem-size: 3.5rem;
+    --orn-portrait-bleed: 0.75rem;
+    --orn-bullet-size: 0.4375rem;
+    --orn-vignette-width: 8rem;
+    --orn-notice-size: 1rem;
+    --orn-rule-end-height: 0.5rem;
   }
 
   [data-mode="dark"] {
@@ -326,5 +387,119 @@
     --timer-inscription-display: block;
     --timer-sigil-display: block;
     --timer-seal-display: block;
+
+    /* Display, frame and ornament roles. */
+    --display-font: var(--typeface-im-fell-english);
+    --display-weight: 400;
+    --display-tracking: 0.01em;
+    --label-font: var(--typeface-source-serif-4);
+    --label-ink: var(--muted);
+    --label-case: uppercase;
+    --label-caps: normal;
+    --label-tracking: 0.08em;
+    --numeral-font: var(--typeface-cormorant-garamond);
+    --initial-font: var(--typeface-unifrakturmaguntia);
+    --initial-size: 1.75em;
+    --initial-float: none;
+    --rubric: rgb(246 152 104);
+    --ornament-ink: var(--line);
+    --ornament-accent-ink: var(--primary);
+    --rule-ink: var(--line);
+    --frame-ink: var(--line);
+    --scrim: color-mix(in oklab, var(--shadow) 62%, transparent);
+    --rule-style: solid;
+    --rule-width: 1px;
+    --frame-style: solid;
+    --frame-width: 1px;
+    --frame-radius: 0.25rem;
+    --frame-inset: 0.25rem;
+    --frame-keyline: 1px;
+    --header-decoration: none;
+    --trail-decoration: linear-gradient(
+      to bottom,
+      color-mix(in oklab, var(--primary) 5%, transparent),
+      transparent
+    );
+    --frame-decoration: radial-gradient(
+      ellipse 90% 60% at 50% 0%,
+      color-mix(in oklab, var(--primary) 6%, transparent),
+      transparent
+    );
+    --ring-track: color-mix(in oklab, var(--line) 35%, transparent);
+    --ring-arc: var(--primary);
+    --ring-disc: var(--surface);
+    --ring-ink: var(--foreground);
+    --ring-stroke: 0.1;
+    --orn-corner-size: 1.25rem;
+    --orn-corner-panel-size: var(--orn-corner-size);
+    --orn-corner-dialog-size: var(--orn-corner-size);
+    --orn-corner-feature-size: 1.5rem;
+    --orn-corner-card-size: 0px;
+    --orn-divider-width: 2.5rem;
+    --orn-heading-width: 1rem;
+    --orn-band-height: 0.5rem;
+    --orn-emblem-size: 3.5rem;
+    --orn-portrait-bleed: 0.75rem;
+    --orn-bullet-size: 0.5rem;
+    --orn-vignette-width: 8.5rem;
+    --orn-notice-size: 1.125rem;
+    --orn-rule-end-height: 0.5rem;
+  }
+
+  /* Display, frame and ornament roles for the shared components. */
+  :root,
+  [data-mode="light"] {
+    --display-font: var(--typeface-im-fell-english);
+    --display-weight: 400;
+    --display-tracking: 0.01em;
+    --label-font: var(--heading-font);
+    --label-ink: var(--rubric);
+    --label-case: none;
+    --label-caps: all-small-caps;
+    --label-tracking: 0.08em;
+    --numeral-font: var(--typeface-cormorant-garamond);
+    --initial-font: var(--typeface-im-fell-english);
+    --initial-size: 1.75em;
+    --initial-float: none;
+    --rubric: rgb(150 50 32);
+    --ornament-ink: var(--line);
+    --ornament-accent-ink: rgb(171 126 47);
+    --rule-ink: var(--line);
+    --frame-ink: var(--line);
+    --scrim: color-mix(in oklab, var(--shadow) 42%, transparent);
+    --rule-style: solid;
+    --rule-width: 1px;
+    --frame-style: solid;
+    --frame-width: 1px;
+    --frame-radius: 2px;
+    --frame-inset: 3px;
+    --frame-keyline: 1px;
+    --header-decoration: linear-gradient(
+      to top,
+      transparent 0 4px,
+      color-mix(in srgb, var(--header-gold) 60%, transparent) 4px 5px,
+      transparent 5px
+    );
+    --trail-decoration: none;
+    --frame-decoration: none;
+    --ring-track: color-mix(in oklab, var(--line) 35%, transparent);
+    --ring-arc: var(--primary);
+    --ring-disc: var(--surface);
+    --ring-ink: var(--foreground);
+    --ring-stroke: 0.09;
+    --orn-corner-size: 1.125rem;
+    --orn-corner-panel-size: var(--orn-corner-size);
+    --orn-corner-dialog-size: 1.25rem;
+    --orn-corner-feature-size: 1.375rem;
+    --orn-corner-card-size: 0px;
+    --orn-divider-width: 2rem;
+    --orn-heading-width: 0.9375rem;
+    --orn-band-height: 0.5rem;
+    --orn-emblem-size: 3.5rem;
+    --orn-portrait-bleed: 0.625rem;
+    --orn-bullet-size: 0.4375rem;
+    --orn-vignette-width: 8.5rem;
+    --orn-notice-size: 1rem;
+    --orn-rule-end-height: 0.5rem;
   }
 }

@@ -277,6 +277,199 @@
   }
 }
 
+@layer ornament-roles {
+  :root,
+  [data-mode] {
+    /* ---- New: site header focus ------------------------------------------
+       The colour of the keyboard focus outline inside the site header. The
+       header has its own dark or light band (header-ink), where the page's
+       focus colour may not show; this one must reach 3:1 against
+       header-ink. */
+    --header-focus: var(--focus);
+
+    /* ---- New: type roles ------------------------------------------------ */
+
+    /* The face for the site's title, a page's heading and the sign-in
+       title. Body copy and controls never use it. */
+    --display-font: var(--heading-font);
+    --display-weight: 600;
+    /* Extra letter spacing for display text, as an em length. */
+    --display-tracking: 0em;
+    /* Small labels: a chat speaker, the current quest label, a menu's
+       label, a date in a dated list, the progress ring's caption. The site
+       panel's group labels also use label-font, label-ink and label-caps,
+       and keep the existing panel-label-case and panel-label-tracking. */
+    --label-font: var(--heading-font);
+    /* The colour of labels other than chat speakers. A theme may set the
+       rubric here for red-letter labels; it must reach 4.5:1. */
+    --label-ink: var(--muted);
+    /* text-transform: none, uppercase or lowercase. */
+    --label-case: none;
+    /* font-variant-caps: normal, small-caps or all-small-caps. */
+    --label-caps: normal;
+    /* Letter spacing as an em length. */
+    --label-tracking: 0em;
+    /* The weight of the current quest label, a menu's label and a date in
+       a dated list. A light face may need 500 or 600 to stay readable. */
+    --label-weight: 400;
+
+    /* Numerals set as figures: the circle in the progress ring, an
+       ability's points, a collection tab's count. The Timer keeps its own
+       timer-numeral-font. */
+    --numeral-font: var(--heading-font);
+
+    /* A rubricated initial: the first letter of an empty state's or the
+       sign-in page's lede. The default is an ordinary letter. */
+    --initial-font: var(--display-font);
+    --initial-size: 1em;
+    --initial-float: none;
+    /* The space after the initial. A face whose capitals overhang their
+       box, such as a blackletter, needs more. */
+    --initial-gap: 0.08em;
+
+    /* ---- New: colour roles for ornament --------------------------------
+       Each is a role, never a palette name. Ornament is decorative, so
+       ornament inks need no contrast pair; rule-ink meets the 3:1
+       boundary pair against the surfaces it divides. */
+
+    /* Rubric: a red-letter accent for initials and the heading mark. */
+    --rubric: var(--accent);
+    /* The main ink of every ornament slot. */
+    --ornament-ink: var(--line);
+    /* The second ink of a two-ink ornament slot. */
+    --ornament-accent-ink: var(--primary);
+    /* Rules and dividers between content. */
+    --rule-ink: var(--line);
+    /* The line around a framed component: card, panel, dialog. */
+    --frame-ink: var(--line);
+    /* The dimmed page behind a modal dialog. */
+    --scrim: color-mix(in oklab, var(--shadow) 45%, transparent);
+
+    /* ---- New: rules and frames ----------------------------------------- */
+
+    /* A rule's border style: solid, double, dashed or dotted. */
+    --rule-style: solid;
+    --rule-width: 1px;
+    /* A framed component's border and an optional inner keyline, drawn
+       inside the border with a gap of frame-inset. 0px turns it off. */
+    --frame-style: solid;
+    --frame-width: var(--line-width);
+    --frame-radius: var(--box-radius);
+    --frame-inset: 0px;
+    --frame-keyline: 0px;
+
+    /* Layers painted over an opaque band's surface (the trail band, the
+       site header, the dialog panel). Decoration only; text sits above. */
+    --header-decoration: none;
+    --trail-decoration: none;
+    --frame-decoration: none;
+
+    /* ---- New: ornament assets ------------------------------------------
+       Each --orn-* token holds url() of an SVG used as a mask: the
+       component paints it with ornament-ink, and the matching -accent
+       token with ornament-accent-ink. The build (and the production
+       generator) writes these from themes/<appearance>/ornaments.svg.
+       A blank image means "no ornament". Each slot's size token defaults
+       to 0, so an empty slot takes no room. */
+    --orn-blank: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'/%3E");
+
+    /* Frame corners: the build rotates one top-left corner into four. */
+    --orn-corner-tl: var(--orn-blank);
+    --orn-corner-tr: var(--orn-blank);
+    --orn-corner-bl: var(--orn-blank);
+    --orn-corner-br: var(--orn-blank);
+    --orn-corner-accent-tl: var(--orn-blank);
+    --orn-corner-accent-tr: var(--orn-blank);
+    --orn-corner-accent-bl: var(--orn-blank);
+    --orn-corner-accent-br: var(--orn-blank);
+    --orn-corner-size: 0px;
+    /* Corner size per frame kind; 0px turns a kind's corners off. Corners
+       belong on outer frames only, so a plain card has none by default,
+       and a frame inside another frame or a list never has any. */
+    --orn-corner-panel-size: var(--orn-corner-size);
+    --orn-corner-dialog-size: var(--orn-corner-size);
+    --orn-corner-feature-size: var(--orn-corner-size);
+    --orn-corner-card-size: 0px;
+
+    /* The glyph at a divider's centre (a fleuron, a star, a knot). */
+    --orn-divider: var(--orn-blank);
+    --orn-divider-accent: var(--orn-blank);
+    --orn-divider-width: 0px;
+
+    /* The mark before a section heading. */
+    --orn-heading: var(--orn-blank);
+    --orn-heading-accent: var(--orn-blank);
+    --orn-heading-width: 0px;
+
+    /* A repeating border band along the trail band's foot, just under the
+       site header. A band of fine lines needs a height of 0.5rem or more
+       to show. */
+    --orn-band: var(--orn-blank);
+    --orn-band-accent: var(--orn-blank);
+    --orn-band-height: 0px;
+
+    /* The emblem of an empty state and the sign-in card. */
+    --orn-emblem: var(--orn-blank);
+    --orn-emblem-accent: var(--orn-blank);
+    --orn-emblem-size: 0px;
+    /* The emblem's size in an empty state only. A theme that shows a
+       vignette there sets it to 0px, so the empty state has one picture,
+       and the sign-in card keeps its emblem. */
+    --orn-empty-emblem-size: var(--orn-emblem-size);
+
+    /* The ornament on an appearance swatch, over its texture. */
+    --orn-swatch: var(--orn-blank);
+    --orn-swatch-accent: var(--orn-blank);
+
+    /* The frame around a construct's portrait. It bleeds past the image by
+       portrait-bleed on every side. */
+    --orn-portrait: var(--orn-blank);
+    --orn-portrait-accent: var(--orn-blank);
+    --orn-portrait-bleed: 0px;
+    /* The corner radius of a construct's portrait. 50% makes a round
+       medallion: the built-in art keeps its figure inside a central circle
+       of 88% of the width. */
+    --portrait-radius: var(--action-radius);
+
+    /* Optional: the picture of an empty state. It may be wide; the build
+       writes its width-to-height ratio from the symbol's viewBox. The
+       slot's height follows from vignette-width and the ratio. */
+    --orn-vignette: var(--orn-blank);
+    --orn-vignette-accent: var(--orn-blank);
+    --orn-vignette-width: 0px;
+    --orn-vignette-ratio: 2.5;
+
+    /* Optional: the mark set on a notice's top start corner. */
+    --orn-notice: var(--orn-blank);
+    --orn-notice-accent: var(--orn-blank);
+    --orn-notice-size: 0px;
+
+    /* Optional: the terminal at each end of a free-standing rule. The
+       symbol draws the left end; the build mirrors it for the right end
+       and writes its ratio. */
+    --orn-rule-end-l: var(--orn-blank);
+    --orn-rule-end-r: var(--orn-blank);
+    --orn-rule-end-accent-l: var(--orn-blank);
+    --orn-rule-end-accent-r: var(--orn-blank);
+    --orn-rule-end-height: 0px;
+    --orn-rule-end-ratio: 3;
+
+    /* The marker of a list item in a construct's reply and the site panel. */
+    --orn-bullet: var(--orn-blank);
+    --orn-bullet-size: 0px;
+
+    /* ---- New: progress ring -------------------------------------------- */
+    /* One ring for the header's medallion and the Profile's experience
+       card. The track and arc are inks; the disc is the ring's centre. */
+    --ring-track: color-mix(in oklab, var(--line) 35%, transparent);
+    --ring-arc: var(--primary);
+    --ring-disc: var(--surface);
+    --ring-ink: var(--foreground);
+    /* The ring's stroke as a share of its diameter. */
+    --ring-stroke: 0.1;
+  }
+}
+
 @layer elements {
   body {
     background-color: var(--background);

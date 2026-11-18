@@ -8,7 +8,7 @@ The site panel and Settings offer three texture swatches:
 
 The swatch row stays compact on desktop and reserves space above the tiles so tooltips do not cover the Theme label.
 
-Each material remains fully opaque and keeps its own colors under every active appearance. Tooltip borders have no shadow that can tint the texture. Each swatch shows only its background texture, with no content overlays or captions underneath.
+Each material remains fully opaque and keeps its own colors under every active appearance. Tooltip borders have no shadow that can tint the texture. Each swatch shows its background texture and a decorative mark from its appearance. The mark is hidden from assistive technology.
 
 A solid outline around the chosen tile marks selection; a separate dashed outline marks keyboard focus. Each native radio has its appearance name as its accessible name. A tooltip shows that name on hover, keyboard focus, or a tap that selects the swatch. Escape dismisses the tooltip without moving focus or changing the selection.
 

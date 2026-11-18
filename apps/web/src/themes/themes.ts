@@ -17,6 +17,10 @@
 // A theme's CSS file sets the tokens on the left; components use the
 // Tailwind utilities on the right (contract.css exposes them).
 //
+// Ornament roles in contract.css provide neutral defaults for display type,
+// labels, rules, frames, masked decoration and progress rings. The artwork
+// masks are generated from the SVG symbols in the redesign sources.
+//
 // Colours. A theme sets each one for light, soot-brass and dark, and
 // contract.css picks the fixed appearance. Each "on-" colour
 // is the text and icons on the filled colour it names.

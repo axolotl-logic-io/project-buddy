@@ -1,3 +1,4 @@
 /* The semantic token contract and the single site theme. */
 @import "./contract.css" layer(contract);
 @import "./parchment.css" layer(themes);
+@import "./ornaments.generated.css" layer(ornaments);

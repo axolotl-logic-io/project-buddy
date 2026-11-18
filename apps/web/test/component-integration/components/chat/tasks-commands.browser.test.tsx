@@ -210,7 +210,7 @@ describe("use_case_tasks_commands", () => {
       text: "/done",
       localDate: TODAY,
     });
-    const change = page.getByRole("complementary", {
+    const change = page.getByRole("article", {
       name: TASKS_CHANGE_COPY.label,
     });
     await expect
@@ -387,9 +387,7 @@ describe("use_case_tasks_panel", () => {
     await page.getByRole("button", { name: "Collapse quest sidebar" }).click();
     // The conversation records the panel's change, as for a typed command.
     await expect
-      .element(
-        page.getByRole("complementary", { name: TASKS_CHANGE_COPY.label }),
-      )
+      .element(page.getByRole("article", { name: TASKS_CHANGE_COPY.label }))
       .toMatchTextContent(`Checked off “${BLOCK_OUT}”`);
   });
 
@@ -564,7 +562,7 @@ describe("use_case_tasks_panel", () => {
         ],
       },
     ]);
-    const change = page.getByRole("complementary", {
+    const change = page.getByRole("article", {
       name: TASKS_CHANGE_COPY.label,
     });
     await expect
