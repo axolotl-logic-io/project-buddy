@@ -40,7 +40,7 @@ const HEADING_COMPONENTS = HEADING_TAGS.map((_, index) =>
 // closed, and a caret marks where the text will continue. Links open in a
 // new tab. Inside a page that already has headings, topHeadingLevel puts
 // the text's headings below them, so the page keeps a single h1. A table
-// shows all its rows, with no scroll box of its own (tableMaxHeight 0).
+// and a code block grow with their contents so the page supplies scrolling.
 function MarkdownContent({
   text,
   running,
@@ -56,6 +56,7 @@ function MarkdownContent({
     <Streamdown
       caret="block"
       className={`markdown ${className}`}
+      codeBlockMaxHeight={0}
       components={
         HEADING_COMPONENTS[topHeadingLevel - 1] ??
         headingComponents(topHeadingLevel)

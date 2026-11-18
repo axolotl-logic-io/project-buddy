@@ -74,6 +74,10 @@ const PAIRS: readonly Pair[] = [
   ),
   ...pairs("line", TEXT_SURFACES, BOUNDARY_CONTRAST),
   ...pairs("focus", TEXT_SURFACES, BOUNDARY_CONTRAST),
+  ...pairs("label-ink", ["background", "field", "surface"], TEXT_CONTRAST),
+  ...pairs("header-focus", ["header-ink"], BOUNDARY_CONTRAST),
+  ...pairs("ring-ink", ["ring-disc"], TEXT_CONTRAST),
+  ...pairs("ring-arc", ["ring-disc"], BOUNDARY_CONTRAST),
   ...pairs("header-paper", ["header-ink"], TEXT_CONTRAST),
   ...pairs("header-gold", ["header-ink"], TEXT_CONTRAST),
   ...pairs("header-ink", ["header-gold"], TEXT_CONTRAST),
@@ -101,7 +105,15 @@ const PAGE_OVER_SECTION_HEADING = 1.2;
 const THIS_FILE = "theme-tokens.browser.test.tsx";
 // The colour tokens: those the contract's colour utilities read, and the
 // colour of shadows, which only the shadow tokens read (themes.ts).
-const COLOR_TOKENS: readonly string[] = [...colorTokens(), "shadow"];
+const COLOR_TOKENS: readonly string[] = [
+  ...colorTokens(),
+  "shadow",
+  "label-ink",
+  "header-focus",
+  "ring-ink",
+  "ring-arc",
+  "ring-disc",
+];
 const THEME_SET_TOKENS = themeSetTokens();
 
 let probe: HTMLElement;

@@ -315,88 +315,100 @@ function PromptEditor({
             );
           })}
       </div>
-      <h2 className="section-heading prompt-editor-heading">{heading}</h2>
-      <nav className="prompt-editor-nav" aria-label={PROMPT_COPY.sections}>
-        {sections.map(({ name: field, label }) => {
-          const { [field]: error } = textErrors;
-          return (
-            <Button
-              key={field}
-              variant="quiet"
-              aria-pressed={selectedField === field}
-              aria-controls={`${sectionsId}-${field}`}
-              value={field}
-              onClick={selectField}
-            >
-              {label}
-              {error !== undefined && (
-                <span className="text-danger">{PROMPT_COPY.sectionError}</span>
-              )}
-            </Button>
-          );
-        })}
-      </nav>
-      {sections.map(
-        ({ name: field, label, help, maxLength, choices, list }) => {
-          const { [field]: text = "" } = draft.texts;
-          const { [field]: error } = textErrors;
-          let control = (
-            <TextAreaField
-              className="min-h-40 font-mono text-sm"
-              error={error}
-              hint={help}
-              key={field}
-              label={label}
-              maxLength={maxLength}
-              name={field}
-              onChange={changeText}
-              value={text}
-            />
-          );
-          if (choices !== undefined) {
-            control = (
-              <SelectField
+      <section
+        className="panel prompt-editor-replies"
+        aria-labelledby={`${sectionsId}-heading`}
+      >
+        <h2
+          id={`${sectionsId}-heading`}
+          className="section-heading prompt-editor-heading"
+        >
+          {heading}
+        </h2>
+        <nav className="prompt-editor-nav" aria-label={PROMPT_COPY.sections}>
+          {sections.map(({ name: field, label }) => {
+            const { [field]: error } = textErrors;
+            return (
+              <Button
+                key={field}
+                variant="quiet"
+                aria-pressed={selectedField === field}
+                aria-controls={`${sectionsId}-${field}`}
+                value={field}
+                onClick={selectField}
+              >
+                {label}
+                {error !== undefined && (
+                  <span className="text-danger">
+                    {PROMPT_COPY.sectionError}
+                  </span>
+                )}
+              </Button>
+            );
+          })}
+        </nav>
+        {sections.map(
+          ({ name: field, label, help, maxLength, choices, list }) => {
+            const { [field]: text = "" } = draft.texts;
+            const { [field]: error } = textErrors;
+            let control = (
+              <TextAreaField
+                className="min-h-40 font-mono text-sm"
                 error={error}
                 hint={help}
+                key={field}
                 label={label}
+                maxLength={maxLength}
                 name={field}
                 onChange={changeText}
                 value={text}
-              >
-                {choices.map((choice) => (
-                  <option key={choice.value} value={choice.value}>
-                    {choice.label}
-                  </option>
-                ))}
-              </SelectField>
-            );
-          }
-          if (list !== undefined) {
-            control = (
-              <TextListField
-                name={field}
-                label={label}
-                hint={help}
-                value={text}
-                maxLength={list.maxLength}
-                maxItems={list.maxItems}
-                error={error}
-                onChange={changeList}
               />
             );
-          }
-          return (
-            <div
-              className="prompt-editor-field"
-              key={field}
-              id={`${sectionsId}-${field}`}
-              hidden={selectedField !== field}
-            >
-              {control}
-            </div>
-          );
-        },
-      )}
+            if (choices !== undefined) {
+              control = (
+                <SelectField
+                  error={error}
+                  hint={help}
+                  label={label}
+                  name={field}
+                  onChange={changeText}
+                  value={text}
+                >
+                  {choices.map((choice) => (
+                    <option key={choice.value} value={choice.value}>
+                      {choice.label}
+                    </option>
+                  ))}
+                </SelectField>
+              );
+            }
+            if (list !== undefined) {
+              control = (
+                <TextListField
+                  name={field}
+                  label={label}
+                  hint={help}
+                  value={text}
+                  maxLength={list.maxLength}
+                  maxItems={list.maxItems}
+                  error={error}
+                  onChange={changeList}
+                />
+              );
+            }
+            return (
+              <div
+                className="prompt-editor-field"
+                key={field}
+                id={`${sectionsId}-${field}`}
+                hidden={selectedField !== field}
+              >
+                {control}
+              </div>
+            );
+          },
+        )}
+      </section>
       <div className="prompt-editor-actions">
         {saveHint !== undefined && (
           <p className="prompt-editor-save-hint" id={saveHintId}>

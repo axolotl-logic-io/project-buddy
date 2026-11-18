@@ -1,17 +1,22 @@
 import sharp from "sharp";
 import type { BrowserCommandContext } from "vitest/node";
 
-const HEX_RADIX = 16;
 const ANTIALIAS_INSET = 2;
 const PIXEL_CENTER = 0.5;
 
-// Hash every rendered material pixel, except the rounded transparent corners
+// Read every rendered material channel, except the rounded transparent corners
 // and their antialiased boundary. Screenshot pixels include composited shadows
 // and tint, unlike the image URL, computed opacity, or a sampled center color.
+interface MaterialPixels {
+  readonly width: number;
+  readonly height: number;
+  readonly channels: number[];
+}
+
 async function materialPixels(
   context: BrowserCommandContext,
   selector: string,
-): Promise<string> {
+): Promise<MaterialPixels> {
   const material = context.iframe.locator(selector);
   const radius = await material.evaluate((element) =>
     Number.parseFloat(getComputedStyle(element).borderTopLeftRadius),
@@ -57,11 +62,7 @@ async function materialPixels(
       }
     }
   }
-  const digest = await crypto.subtle.digest("SHA-256", Uint8Array.from(pixels));
-  const hash = Array.from(new Uint8Array(digest), (byte) =>
-    byte.toString(HEX_RADIX).padStart(2, "0"),
-  ).join("");
-  return `${width}x${height}:${hash}`;
+  return { width, height, channels: pixels };
 }
 
-export { materialPixels };
+export { type MaterialPixels, materialPixels };
