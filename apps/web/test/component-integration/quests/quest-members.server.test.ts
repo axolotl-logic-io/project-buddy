@@ -541,13 +541,13 @@ describe("use_case_join_quest_by_link", () => {
     const signedIn = await linkPageHtml(token);
     expect(signedIn).toContain(LINK_PAGE_COPY.expired);
     expect(signedIn).toContain(
-      "If your invitation is still pending, it&#x27;s under Pending in Quests.",
+      renderToStaticMarkup(LINK_PAGE_COPY.expiredNext),
     );
     expect(signedIn).toContain(
       `href="/quests">${LINK_PAGE_COPY.openQuests}</a>`,
     );
     expect(signedIn).not.toContain(first.name);
-    expect(signedIn).not.toContain("Ask for a new link");
+    expect(signedIn).not.toContain('href="/login"');
 
     signOut();
     const signedOut = await linkPageHtml(token);

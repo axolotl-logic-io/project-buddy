@@ -3,6 +3,9 @@ import { page, userEvent } from "vitest/browser";
 import { render } from "vitest-browser-react";
 import { SiteHeader, TrailBand } from "@/components/site-header.tsx";
 import { TextField } from "@/components/ui/field.tsx";
+import { CHAT_COPY } from "@/ui/copy/chat.ts";
+import { QUEST_MEMBERS_COPY } from "@/ui/copy/quest-members.ts";
+import { QUEST_SIDEBAR_COPY } from "@/ui/copy/quest-sidebar.ts";
 import { SITE_COPY } from "@/ui/copy/site.ts";
 import { applyTheme } from "../themes/theme-test-kit.ts";
 import {
@@ -99,21 +102,27 @@ describe.each(["light", "dark"])("sidebar in %s", (mode) => {
       await expect.element(draft).not.toBeVisible();
       await openBucket("Ideas");
       await expect.element(draft).toHaveValue("Try clay");
-      const panel = page.getByRole("dialog", { name: "Quest side menu" });
+      const panel = page.getByRole("dialog", {
+        name: QUEST_SIDEBAR_COPY.label,
+      });
       const bounds = panel.element().getBoundingClientRect();
       expect(bounds.right).toBe(viewport.width);
       expect(bounds.bottom).toBe(viewport.height);
       expect(pageScrollWidth()).toBeLessThanOrEqual(viewport.width);
       expect(smallTargets(await measureTargets())).toEqual([]);
       await page
-        .getByRole("button", { name: "Collapse quest sidebar" })
+        .getByRole("button", { name: QUEST_SIDEBAR_COPY.collapse })
         .click();
-      const toggle = page.getByRole("button", { name: "Open quest sidebar" });
+      const toggle = page.getByRole("button", {
+        name: QUEST_SIDEBAR_COPY.expand,
+      });
       await expect.element(draft).not.toBeVisible();
       await expect.element(toggle).toHaveFocus();
       const header = page.getByRole("banner");
       await expect
-        .element(header.getByRole("button", { name: "Open quest sidebar" }))
+        .element(
+          header.getByRole("button", { name: QUEST_SIDEBAR_COPY.expand }),
+        )
         .toBeVisible();
       const buttonBounds = toggle.element().getBoundingClientRect();
       const headerBounds = header.element().getBoundingClientRect();
@@ -143,10 +152,12 @@ describe.each(["light", "dark"])("sidebar in %s", (mode) => {
           link.element().getBoundingClientRect().right,
         ).toBeLessThanOrEqual(buttonBounds.left);
       }
-      await expect.element(page.getByLabelText("Message")).toBeVisible();
+      await expect
+        .element(page.getByLabelText(CHAT_COPY.messageLabel))
+        .toBeVisible();
       await toggle.click();
       const closeBounds = page
-        .getByRole("button", { name: "Collapse quest sidebar" })
+        .getByRole("button", { name: QUEST_SIDEBAR_COPY.collapse })
         .element()
         .getBoundingClientRect();
       expect([
@@ -178,11 +189,11 @@ test.each(["light", "soot-brass", "dark"])(
     await openPanel();
     const leftPanel = sitePanel().element().getBoundingClientRect();
     const rightPanel = page
-      .getByRole("dialog", { name: "Quest side menu" })
+      .getByRole("dialog", { name: QUEST_SIDEBAR_COPY.label })
       .element()
       .getBoundingClientRect();
     const parent = page
-      .getByRole("navigation", { name: "Breadcrumbs" })
+      .getByRole("navigation", { name: SITE_COPY.breadcrumbs })
       .getByRole("link", { name: "Quests" })
       .element()
       .getBoundingClientRect();
@@ -199,7 +210,7 @@ test.each(["light", "soot-brass", "dark"])(
 test("a phone starts with the conversation and Escape closes its drawer", async () => {
   await setViewport(PHONE_VIEWPORT);
   await sidebar();
-  const toggle = page.getByRole("button", { name: "Open quest sidebar" });
+  const toggle = page.getByRole("button", { name: QUEST_SIDEBAR_COPY.expand });
   await expect.element(toggle).toHaveAttribute("aria-expanded", "false");
   await toggle.click();
   await openBucket("Ideas");
@@ -222,7 +233,7 @@ test("the bucket dropdown works by keyboard and preserves the hidden editor", as
   buckets.element().focus();
   await userEvent.keyboard("{ArrowDown}");
   await expect
-    .element(page.getByRole("menu", { name: "Buckets" }))
+    .element(page.getByRole("menu", { name: QUEST_SIDEBAR_COPY.buckets }))
     .toBeVisible();
   await userEvent.keyboard("{Enter}");
   await expect.element(page.getByText(TASKS_CONTENT)).toBeVisible();
@@ -307,7 +318,7 @@ describe("the sidebar's menu tabs", () => {
       }
       expect(tops.size).toBe(1);
       await expect
-        .element(page.getByRole("region", { name: "Members" }))
+        .element(page.getByRole("region", { name: QUEST_MEMBERS_COPY.heading }))
         .toBeVisible();
     },
   );
@@ -320,7 +331,7 @@ test.each(["light", "soot-brass", "dark"])(
     await setViewport(LAPTOP_VIEWPORT);
     await sidebar("tasks");
     const rail = page
-      .getByRole("heading", { name: "Quest", exact: true })
+      .getByRole("heading", { name: QUEST_SIDEBAR_COPY.quest, exact: true })
       .element().parentElement;
     const trail = page
       .getByRole("region", { name: SITE_COPY.breadcrumbs })
@@ -342,7 +353,7 @@ test("crossing the docking breakpoint preserves the mounted editor", async () =>
   await expect
     .poll(() =>
       page
-        .getByRole("dialog", { name: "Quest side menu" })
+        .getByRole("dialog", { name: QUEST_SIDEBAR_COPY.label })
         .element()
         .matches(":modal"),
     )
@@ -350,6 +361,6 @@ test("crossing the docking breakpoint preserves the mounted editor", async () =>
   await expect.element(draft).toHaveValue("Keep across docking");
   await userEvent.keyboard("{Escape}");
   await expect
-    .element(page.getByRole("button", { name: "Open quest sidebar" }))
+    .element(page.getByRole("button", { name: QUEST_SIDEBAR_COPY.expand }))
     .toHaveFocus();
 });

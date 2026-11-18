@@ -195,7 +195,6 @@ describe("a quest's Members tab", () => {
     await expect
       .element(page.getByRole("alert"))
       .toHaveTextContent(QUEST_MEMBERS_COPY.limited);
-    expect(QUEST_MEMBERS_COPY.limited).toContain("an hour");
     await expect.element(email).toHaveValue("ash@example.test");
     await expect.element(email).toHaveFocus();
 

@@ -8,6 +8,8 @@ import { render } from "vitest-browser-react";
 import type { ChatSend, ChatSendResult } from "@/components/chat/chat-send.ts";
 import { QuestIdeas } from "@/components/quest-ideas.tsx";
 import { IDEA, type Idea } from "@/ideas/idea.ts";
+import { PANEL_COMMANDS_COPY } from "@/ui/copy/commands.ts";
+import { IDEAS_COPY } from "@/ui/copy/ideas.ts";
 import {
   chatSendMock,
   inConversation,
@@ -53,84 +55,90 @@ describe("use_case_quest_ideas", () => {
   test("the visible Move to Tasks action keeps a refused idea and moves it with feedback and focus on success", async () => {
     const send = chatSendMock().mockResolvedValueOnce({
       sent: false,
-      problem: "Tasks is full. Make room first.",
+      problem: IDEAS_COPY.tasksFull,
     });
     await render(ideasPanel({ send, ideas: [IDEA_FIXTURE] }));
-    const move = page.getByRole("button", { name: "Move to Tasks" });
+    const move = page.getByRole("button", { name: IDEAS_COPY.move });
     await expect.element(move).toBeVisible();
     await move.click();
     await expect
       .element(page.getByRole("alert"))
-      .toHaveTextContent("Tasks is full. Make room first.");
+      .toHaveTextContent(IDEAS_COPY.tasksFull);
     await expect.element(page.getByText(IDEA_FIXTURE.text)).toBeVisible();
-    send.mockResolvedValueOnce(noted("Moved the idea to Tasks."));
+    send.mockResolvedValueOnce(
+      noted(PANEL_COMMANDS_COPY.notes.ideaToTasks(IDEA_FIXTURE.text)),
+    );
     await move.click();
     expect(sentTexts(send)).toEqual(["/idea-to-tasks 1", "/idea-to-tasks 1"]);
-    await expect
-      .element(page.getByText("Nothing to commit to yet"))
-      .toBeVisible();
+    await expect.element(page.getByText(IDEAS_COPY.emptyHeading)).toBeVisible();
     await expect
       .element(page.getByRole("status"))
-      .toHaveTextContent("Moved the idea to Tasks.");
+      .toHaveTextContent(
+        PANEL_COMMANDS_COPY.notes.ideaToTasks(IDEA_FIXTURE.text),
+      );
     await expect
-      .element(page.getByRole("heading", { name: "Ideas" }))
+      .element(page.getByRole("heading", { name: IDEAS_COPY.heading }))
       .toHaveFocus();
   });
 
   test("Add idea sends /idea with the text", async () => {
     const send = chatSendMock().mockResolvedValue(
-      noted("Added the idea “Try charcoal” to Ideas."),
+      noted(PANEL_COMMANDS_COPY.notes.idea("Try charcoal")),
     );
     await render(ideasPanel({ send, ideas: [] }));
-    await page.getByRole("button", { name: "Add idea", exact: true }).click();
     await page
-      .getByRole("textbox", { name: "Idea", exact: true })
+      .getByRole("button", { name: IDEAS_COPY.add, exact: true })
+      .click();
+    await page
+      .getByRole("textbox", { name: IDEAS_COPY.label, exact: true })
       .fill("Try charcoal");
-    await page.getByRole("button", { name: "Add idea" }).click();
+    await page.getByRole("button", { name: IDEAS_COPY.add }).click();
 
     expect(sentTexts(send)).toEqual(["/idea Try charcoal"]);
     await expect
       .element(page.getByRole("status"))
-      .toHaveTextContent("Added the idea “Try charcoal” to Ideas.");
+      .toHaveTextContent(PANEL_COMMANDS_COPY.notes.idea("Try charcoal"));
   });
 
   test("an idea can be edited and moved, with feedback and retained focus", async () => {
     const send = chatSendMock()
-      .mockResolvedValueOnce(noted("Changed idea 1 to “Try ink”."))
-      .mockResolvedValueOnce(noted("Moved the idea “Try ink” to the Tasks."));
+      .mockResolvedValueOnce(
+        noted(PANEL_COMMANDS_COPY.notes.editIdea(1, "Try ink")),
+      )
+      .mockResolvedValueOnce(
+        noted(PANEL_COMMANDS_COPY.notes.ideaToTasks("Try ink")),
+      );
     await render(ideasPanel({ send, ideas: [IDEA_FIXTURE] }));
-    await page.getByRole("button", { name: "Edit idea" }).click();
+    await page.getByRole("button", { name: IDEAS_COPY.edit }).click();
     await page
-      .getByRole("textbox", { name: "Idea", exact: true })
+      .getByRole("textbox", { name: IDEAS_COPY.label, exact: true })
       .first()
       .fill("Try ink");
-    await page.getByRole("button", { name: "Save idea" }).click();
+    await page.getByRole("button", { name: IDEAS_COPY.save }).click();
     expect(sentTexts(send)).toEqual(["/edit-idea 1 Try ink"]);
     await expect
       .element(page.getByRole("status"))
-      .toHaveTextContent("Changed idea 1 to “Try ink”.");
+      .toHaveTextContent(PANEL_COMMANDS_COPY.notes.editIdea(1, "Try ink"));
     await page.getByRole("button", { name: ACTIONS_NAME }).click();
-    await page.getByRole("menuitem", { name: "Move to Tasks" }).click();
+    await page.getByRole("menuitem", { name: IDEAS_COPY.move }).click();
     expect(sentTexts(send)).toEqual([
       "/edit-idea 1 Try ink",
       "/idea-to-tasks 1",
     ]);
     await expect
       .element(page.getByRole("status"))
-      .toHaveTextContent("Moved the idea “Try ink” to the Tasks.");
+      .toHaveTextContent(PANEL_COMMANDS_COPY.notes.ideaToTasks("Try ink"));
     await expect
-      .element(page.getByRole("heading", { name: "Ideas" }))
+      .element(page.getByRole("heading", { name: IDEAS_COPY.heading }))
       .toHaveFocus();
-    await expect
-      .element(page.getByText("No ideas yet.", { exact: false }))
-      .toBeVisible();
+    await expect.element(page.getByText(IDEAS_COPY.empty)).toBeVisible();
   });
 
   test("Remove idea sends /drop-idea with its place", async () => {
     const send = chatSendMock();
     await render(ideasPanel({ send, ideas: [IDEA_FIXTURE, SECOND_IDEA] }));
     await page.getByRole("button", { name: ACTIONS_NAME }).nth(1).click();
-    await page.getByRole("menuitem", { name: "Remove idea" }).click();
+    await page.getByRole("menuitem", { name: IDEAS_COPY.remove }).click();
 
     expect(sentTexts(send)).toEqual(["/drop-idea 2"]);
     await expect
@@ -142,23 +150,25 @@ describe("use_case_quest_ideas", () => {
   test("a refused add keeps the draft and a refused move keeps the idea, each saying why", async () => {
     const send = chatSendMock().mockResolvedValue({
       sent: false,
-      problem: "Please try again.",
+      problem: PANEL_COMMANDS_COPY.problems.failed,
     });
     await render(ideasPanel({ send, ideas: [IDEA_FIXTURE] }));
-    await page.getByRole("button", { name: "Add idea", exact: true }).click();
+    await page
+      .getByRole("button", { name: IDEAS_COPY.add, exact: true })
+      .click();
     const input = page
-      .getByRole("textbox", { name: "Idea", exact: true })
+      .getByRole("textbox", { name: IDEAS_COPY.label, exact: true })
       .last();
     await input.fill("Try charcoal");
-    await page.getByRole("button", { name: "Add idea" }).click();
+    await page.getByRole("button", { name: IDEAS_COPY.add }).click();
     await expect
       .element(page.getByRole("alert"))
-      .toHaveTextContent("Please try again.");
+      .toHaveTextContent(PANEL_COMMANDS_COPY.problems.failed);
     await expect.element(input).toHaveValue("Try charcoal");
     // Clicking elsewhere would save the draft again, so it is discarded first.
     await userEvent.keyboard("{Escape}");
     await page.getByRole("button", { name: ACTIONS_NAME }).click();
-    await page.getByRole("menuitem", { name: "Move to Tasks" }).click();
+    await page.getByRole("menuitem", { name: IDEAS_COPY.move }).click();
     await expect.element(page.getByText(IDEA_FIXTURE.text)).toBeVisible();
     expect(sentTexts(send)).toEqual(["/idea Try charcoal", "/idea-to-tasks 1"]);
   });
@@ -166,12 +176,16 @@ describe("use_case_quest_ideas", () => {
   test("an all-space idea shows validation feedback without sending", async () => {
     const send = chatSendMock();
     await render(ideasPanel({ send, ideas: [] }));
-    await page.getByRole("button", { name: "Add idea", exact: true }).click();
-    await page.getByRole("textbox", { name: "Idea", exact: true }).fill("   ");
-    await page.getByRole("button", { name: "Add idea" }).click();
+    await page
+      .getByRole("button", { name: IDEAS_COPY.add, exact: true })
+      .click();
+    await page
+      .getByRole("textbox", { name: IDEAS_COPY.label, exact: true })
+      .fill("   ");
+    await page.getByRole("button", { name: IDEAS_COPY.add }).click();
     await expect
       .element(page.getByRole("alert"))
-      .toHaveTextContent("Enter an idea of 1 to 200 characters.");
+      .toHaveTextContent(IDEAS_COPY.invalid);
     expect(send).not.toHaveBeenCalled();
   });
 
@@ -180,16 +194,16 @@ describe("use_case_quest_ideas", () => {
     await render(ideasPanel({ embedded: true, send, ideas: [IDEA_FIXTURE] }));
     await expect.element(page.getByText(IDEA_FIXTURE.text)).toBeVisible();
     expect(page.getByRole("textbox").all()).toHaveLength(0);
-    await page.getByRole("button", { name: "Edit idea" }).click();
+    await page.getByRole("button", { name: IDEAS_COPY.edit }).click();
     const edit = page
-      .getByRole("textbox", { name: "Idea", exact: true })
+      .getByRole("textbox", { name: IDEAS_COPY.label, exact: true })
       .first();
     await expect.element(edit).toHaveFocus();
     await edit.fill("Discard this edit");
-    await page.getByRole("button", { name: "Cancel idea edit" }).click();
+    await page.getByRole("button", { name: IDEAS_COPY.cancel }).click();
     await expect.element(page.getByText(IDEA_FIXTURE.text)).toBeVisible();
     await expect
-      .element(page.getByRole("button", { name: "Edit idea" }))
+      .element(page.getByRole("button", { name: IDEAS_COPY.edit }))
       .toHaveFocus();
     expect(send).not.toHaveBeenCalled();
   });
@@ -207,7 +221,9 @@ describe("use_case_quest_ideas", () => {
       if (method === "pointer") {
         await userEvent.dragAndDrop(
           handle,
-          page.getByRole("button", { name: "Edit idea", exact: true }).first(),
+          page
+            .getByRole("button", { name: IDEAS_COPY.edit, exact: true })
+            .first(),
           { targetPosition: { x: 1, y: 1 } },
         );
       } else {
@@ -222,7 +238,7 @@ describe("use_case_quest_ideas", () => {
       await expect
         .element(
           page
-            .getByRole("list", { name: "Ideas" })
+            .getByRole("list", { name: IDEAS_COPY.heading })
             .getByRole("listitem")
             .first(),
         )
@@ -238,16 +254,21 @@ describe("use_case_quest_ideas", () => {
       ideasPanel({ outside: true, send, ideas: [IDEA_FIXTURE, SECOND_IDEA] }),
     );
     await page
-      .getByRole("button", { name: "Edit idea", exact: true })
+      .getByRole("button", { name: IDEAS_COPY.edit, exact: true })
       .first()
       .click();
     await page
-      .getByRole("textbox", { name: "Idea", exact: true })
+      .getByRole("textbox", { name: IDEAS_COPY.label, exact: true })
       .fill("Try ink");
-    await page.getByRole("button", { name: "Edit idea", exact: true }).click();
+    await page
+      .getByRole("button", { name: IDEAS_COPY.edit, exact: true })
+      .click();
     expect(sentTexts(send)).toEqual(["/edit-idea 1 Try ink"]);
     saved.resolve({ sent: true });
-    const editor = page.getByRole("textbox", { name: "Idea", exact: true });
+    const editor = page.getByRole("textbox", {
+      name: IDEAS_COPY.label,
+      exact: true,
+    });
     await expect.element(editor).toHaveValue(SECOND_IDEA.text);
     await expect.element(editor).toHaveFocus();
     await editor.fill("Try pastels");
@@ -264,10 +285,14 @@ describe("use_case_quest_ideas", () => {
   test("clicking outside an unchanged idea closes it without a redundant send", async () => {
     const send = chatSendMock();
     await render(ideasPanel({ outside: true, send, ideas: [IDEA_FIXTURE] }));
-    await page.getByRole("button", { name: "Edit idea", exact: true }).click();
+    await page
+      .getByRole("button", { name: IDEAS_COPY.edit, exact: true })
+      .click();
     await page.getByRole("textbox", { name: OUTSIDE_LIST }).click();
     await expect
-      .element(page.getByRole("textbox", { name: "Idea", exact: true }))
+      .element(
+        page.getByRole("textbox", { name: IDEAS_COPY.label, exact: true }),
+      )
       .not.toBeInTheDocument();
     expect(send).not.toHaveBeenCalled();
   });
@@ -276,16 +301,20 @@ describe("use_case_quest_ideas", () => {
     const saved = Promise.withResolvers<ChatSendResult>();
     const send = chatSendMock().mockReturnValue(saved.promise);
     await render(ideasPanel({ outside: true, send, ideas: [IDEA_FIXTURE] }));
-    await page.getByRole("button", { name: "Edit idea", exact: true }).click();
     await page
-      .getByRole("textbox", { name: "Idea", exact: true })
+      .getByRole("button", { name: IDEAS_COPY.edit, exact: true })
+      .click();
+    await page
+      .getByRole("textbox", { name: IDEAS_COPY.label, exact: true })
       .fill("Try ink");
     await userEvent.keyboard("{Enter}");
     const outside = page.getByRole("textbox", { name: OUTSIDE_LIST });
     await outside.click();
     saved.resolve({ sent: true });
     await expect
-      .element(page.getByRole("textbox", { name: "Idea", exact: true }))
+      .element(
+        page.getByRole("textbox", { name: IDEAS_COPY.label, exact: true }),
+      )
       .not.toBeInTheDocument();
     await expect.element(outside).toHaveFocus();
     expect(send).toHaveBeenCalledTimes(1);

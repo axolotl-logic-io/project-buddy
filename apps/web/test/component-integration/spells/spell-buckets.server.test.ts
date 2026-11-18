@@ -2,7 +2,9 @@ import { afterEach, describe, expect, test, vi } from "vitest";
 import { getChat, listMessages } from "@/chats/store.ts";
 import { listIdeas } from "@/ideas/idea-store.ts";
 import { MESSAGE_ID } from "@/ids.ts";
+import { getSpell } from "@/spells/spell.ts";
 import { spellReply } from "@/spells/spell-reply.ts";
+import { spellResponse } from "@/spells/spell-response.ts";
 import { currentSpell } from "@/spells/spell-store.ts";
 import { readTasks } from "@/tasks/tasks-store.ts";
 import {
@@ -52,7 +54,13 @@ describe("use_case_spell_buckets", () => {
         chat,
         question("Try origami", MESSAGE_ID.parse(message.id)),
       ),
-    ).toBe("Saved to Ideas.");
+    ).toBe(
+      spellResponse(
+        getSpell("brainstorm").definition.savedReply,
+        getSpell("brainstorm"),
+        "Try origami",
+      ),
+    );
     expect(await listIdeas(user.id, chat.quest.id)).toHaveLength(1);
     const other = await signedInChat();
     expect(await getChat(other.user.id, chat.id)).toBeUndefined();

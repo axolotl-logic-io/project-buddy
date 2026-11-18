@@ -101,7 +101,12 @@ describe("use_case_see_icon_credit", () => {
       }
       await render(await inSiteFrame(<CreditsPage />));
       await expect
-        .element(page.getByRole("heading", { name: "Credits", exact: true }))
+        .element(
+          page.getByRole("heading", {
+            name: CREDITS_COPY.heading,
+            exact: true,
+          }),
+        )
         .toBeVisible();
       await expect
         .element(page.getByRole("link", { name: CREDITS_COPY.iconLibrary }))
