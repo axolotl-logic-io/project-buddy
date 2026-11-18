@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, onTestFinished, test } from "vitest";
 import { page, userEvent } from "vitest/browser";
 import { render } from "vitest-browser-react";
 import { SiteHeader, TrailBand } from "@/components/site-header.tsx";
+import { TextField } from "@/components/ui/field.tsx";
 import { SITE_COPY } from "@/ui/copy/site.ts";
 import { applyTheme } from "../themes/theme-test-kit.ts";
 import {
@@ -60,12 +61,7 @@ async function sidebar(initialSection?: string): Promise<void> {
             id: "ideas",
             label: "Ideas",
             bucket: true,
-            content: (
-              <label>
-                {DRAFT_LABEL}
-                <input className="input-field" />
-              </label>
-            ),
+            content: <TextField label={DRAFT_LABEL} />,
           },
           {
             id: "progress",
@@ -80,10 +76,7 @@ async function sidebar(initialSection?: string): Promise<void> {
           },
         ]}
       >
-        <label>
-          {MESSAGE_LABEL}
-          <input className="input-field" />
-        </label>
+        <TextField label={MESSAGE_LABEL} />
       </QuestSidebar>
     </>,
   );
