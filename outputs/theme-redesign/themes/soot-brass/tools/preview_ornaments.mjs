@@ -1,4 +1,4 @@
-// Renders ornaments-draft.svg (or the file given) on the real texture, inline
+// Renders an ornament sprite, such as ornaments.svg, on the real texture, inline
 // and as CSS masks, at the slot sizes, and saves a screenshot.
 // Run from the repository root:
 //   node outputs/theme-redesign/themes/soot-brass/tools/preview_ornaments.mjs SPRITE OUT.png

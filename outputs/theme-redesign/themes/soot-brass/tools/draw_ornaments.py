@@ -5,10 +5,10 @@ the trigonometry for marks set around a ring (the chapter marks and ticks),
 so the dial's twelve divisions stay exact. No icon set or generated image is
 used.
 
-Each element carries its own fill and stroke in currentColor, so the sprite
-works both as inline SVG coloured by a theme token and as a mask image (where
-currentColor is black and only opacity counts). Elements marked
-data-ink="accent" take the second ornament ink.
+Each symbol is a mask, as system/THEME-INTERFACE.md requires: every element
+is drawn in black with its own fill and stroke, and only opacity counts. The
+component paints the mask with --ornament-ink, and elements marked
+data-ink="accent" with --ornament-accent-ink.
 
 Usage: python3 draw_ornaments.py OUT.svg
 """
@@ -16,8 +16,8 @@ Usage: python3 draw_ornaments.py OUT.svg
 import math
 import sys
 
-S = 'fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"'
-F = 'fill="currentColor"'
+S = 'fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round"'
+F = 'fill="#000"'
 
 
 def n(v):
@@ -119,7 +119,7 @@ symbols["orn-corner"] = ("0 0 24 24", "Frame corner, top left: an arch spandrel 
 arch, _ = lancet(1, 11, 8, 6)
 symbols["orn-band"] = ("0 0 12 8", "One bay of the blind arcade under the trail band.", [
     path(arch, S, width=1),
-    path(lozenge(6, 5.2, 1.2, 1.6), F),
+    path(lozenge(6, 5.2, 1.2, 1.6), F, accent=True),
 ])
 
 # Emblem: a rose window. Two rings, eight cusped openings and a brass
@@ -149,15 +149,14 @@ for k in (1, 2, 3):
     parts.append(path(lozenge_on_ring(32, 32, 26.5, 1.9, 2.4, k * 90), F, accent=True))
 symbols["orn-swatch"] = ("0 0 64 64", "Appearance swatch: the hour dial's ring and chapter marks over the texture.", parts)
 
-# Portrait frame: a case of two keylines, pointed-arch spandrels in the two
-# upper corners, and a brass lozenge at the middle of each side. The middle
-# stays open for the portrait.
-symbols["orn-portrait"] = ("0 0 100 100", "Construct portrait frame: a bezel with arch spandrels and chapter lozenges.", [
-    path("M1.5 1.5H98.5V98.5H1.5Z", S, width=1.6),
-    path("M4 4H96V96H4Z", S, width=0.7),
-    path("M4 20A16 16 0 0 1 20 4M96 20A16 16 0 0 0 80 4", S, width=0.9),
-    path(lozenge(9.2, 9.2, 2.2, 2.2) + lozenge(90.8, 9.2, 2.2, 2.2), F),
-    path(lozenge(50, 1.5, 3, 3.6) + lozenge(50, 98.5, 3, 3.6) + lozenge(1.5, 50, 3.6, 3) + lozenge(98.5, 50, 3.6, 3), F, accent=True),
+# Portrait frame: a bezel of two keylines in the outer 4% of the viewBox,
+# with a lozenge at each corner and a gilt chapter lozenge at the middle of
+# each side. The centre stays open for the portrait.
+symbols["orn-portrait"] = ("0 0 100 100", "Construct portrait frame: a bezel with chapter lozenges.", [
+    path("M1 1H99V99H1Z", S, width=1.3),
+    path("M3.3 3.3H96.7V96.7H3.3Z", S, width=0.6),
+    path(lozenge(2.1, 2.1, 1.9, 1.9) + lozenge(97.9, 2.1, 1.9, 1.9) + lozenge(2.1, 97.9, 1.9, 1.9) + lozenge(97.9, 97.9, 1.9, 1.9), F),
+    path(lozenge(50, 2.1, 3.4, 1.9) + lozenge(50, 97.9, 3.4, 1.9) + lozenge(2.1, 50, 1.9, 3.4) + lozenge(97.9, 50, 1.9, 3.4), F, accent=True),
 ])
 
 # Bullet: the dial's marker fill, a tall lozenge.
@@ -165,43 +164,55 @@ symbols["orn-bullet"] = ("0 0 8 8", "A list item's marker: the chapter lozenge."
     path(lozenge(4, 4, 2.6, 3.6), F),
 ])
 
-# Rule end: a terminal for a hairline rule, a pointed finial with a lozenge.
-symbols["orn-rule-end"] = ("0 0 24 12", "A rule's right-hand end: a lozenge and pointed finial. Mirror it for the left.", [
-    path("M0 6H13M18 6H23", S, width=1),
-    path("M13 6L15.5 3.5L18 6L15.5 8.5Z", S, width=1),
-    path(lozenge(15.5, 6, 1, 1), F, accent=True),
+# Rule end: the left terminal of a free-standing rule, a pointed finial and
+# a chapter lozenge. The rule's line meets it at the right edge, at
+# mid-height; the build mirrors it for the right end.
+symbols["orn-rule-end"] = ("0 0 24 8", "A rule's left end: a finial and chapter lozenge. The build mirrors it.", [
+    path("M1 4H3M11 4H24", S, width=1),
+    path("M3 4L7 1L11 4L7 7Z", S, width=1),
+    path(lozenge(7, 4, 1.3, 1.3), F, accent=True),
 ])
 
-# Empty-state vignette: a lancet window, two lights under a rose, flanked by
-# rules that end in chapter lozenges.
-outer, _ = lancet(42, 78, 34, 30)
-left, _ = lancet(47, 59, 44, 10)
-right, _ = lancet(61, 73, 44, 10)
-symbols["orn-vignette"] = ("0 0 120 72", "Empty-state vignette: a two-light lancet window with a rose, between rules.", [
-    path(f"{outer}V70H42Z", S, width=1.6),
-    path(f"{left}V66H47Z{right}V66H61Z", S, width=1),
-    circle(60, 27, 7, S + ' stroke-width="1"'),
-    quatrefoil(60, 27, 2.4, 2.1),
-    path("M4 58H36M84 58H116", S, width=1),
-    path(lozenge(4, 58, 2.4, 3) + lozenge(116, 58, 2.4, 3), F, accent=True),
-    path("M36 70H84", S, width=1.2),
+# Empty-state vignette: a Gothic hood mould with crockets and a finial,
+# flanked by rules that end in chapter lozenges. It is open at the foot:
+# the empty state sets the rose-window emblem just below it, so the two
+# read as one gable with a rose window.
+SPRING, R = 52, 40
+hood, apex = lancet(33, 87, SPRING, R)
+inner, _ = lancet(38, 82, SPRING, 35)
+crockets = []
+for t in (0.32, 0.62):
+    for side in (-1, 1):
+        # A point on the outer arch, by its height between spring and apex.
+        y = SPRING - t * (SPRING - apex)
+        centre = 33 + R if side < 0 else 87 - R
+        x = centre + side * math.sqrt(R * R - (y - SPRING) ** 2)
+        crockets.append(lozenge(x + side * 1.6, y - 1.2, 1.6, 2.2))
+symbols["orn-vignette"] = ("0 0 120 52", "Empty-state vignette: a hood mould with crockets and a finial over the emblem.", [
+    path(hood, S, width=1.6),
+    path(inner, S, width=0.8),
+    path("".join(crockets), F),
+    path(f"M60 {n(apex)}V{n(apex - 3.5)}", S, width=1.4),
+    path(lozenge(60, apex - 7, 2.2, 3.2), F, accent=True),
+    path("M8 48H29M91 48H112", S, width=1),
+    path(lozenge(5, 48, 2.4, 3) + lozenge(115, 48, 2.4, 3), F, accent=True),
 ])
 
-# Notice marker: a small lancet with a lozenge, for list items or notices
-# where the heading mark would be too large.
+# Notice marker: a solid lancet plaque with a gilt lozenge. It sits over
+# the notice's brass start bar, so it is filled: an outline would let the
+# bar show through and hide the lozenge.
 arch, _ = lancet(1.5, 10.5, 7, 6)
-symbols["orn-notice"] = ("0 0 12 12", "A notice marker: a small lancet arch with a lozenge.", [
-    path(f"{arch}V11H1.5Z", S, width=1.2),
-    path(lozenge(6, 7, 1.4, 1.9), F, accent=True),
+symbols["orn-notice"] = ("0 0 12 12", "A notice marker: a solid lancet plaque with a gilt lozenge.", [
+    path(f"{arch}V11H1.5Z", F),
+    path(lozenge(6, 7, 1.6, 2.2), F, accent=True),
 ])
 
 out = [
     '<svg xmlns="http://www.w3.org/2000/svg">',
-    "  <!-- Soot & Brass ornament set (draft). Hand-written geometry by the",
-    "       Soot & Brass thread, 2026-11-17; written by tools/draw_ornaments.py.",
-    "       No third-party artwork. Each element is painted in currentColor:",
-    "       as a mask, only opacity counts. data-ink=\"accent\" marks the",
-    "       second ornament ink. -->",
+    "  <!-- Soot & Brass ornament set. Hand-written geometry by the Soot and",
+    "       Brass thread, 2026-11-17, written by tools/draw_ornaments.py. No",
+    "       third-party artwork. Each symbol is a mask drawn in black; only",
+    "       opacity counts. data-ink=\"accent\" marks the second ornament ink. -->",
 ]
 for sid, (vb, note, body) in symbols.items():
     out.append(f"\n  <!-- {note} -->")

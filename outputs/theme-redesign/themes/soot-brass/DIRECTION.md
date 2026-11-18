@@ -6,9 +6,9 @@ Soot & Brass is Gothic horology: a clock case of muted brass on a burgundy book 
 
 Every ornament comes from four shapes, all present in the hour dial (`apps/web/src/components/timer/timer-dial.tsx`):
 
-- **The pointed arch.** The dial's chapter mark is a small gable with two legs. The chrome draws it as a lancet arch: the heading mark, the notice marker, the header's blind arcade and the window of the empty state.
+- **The pointed arch.** The dial's chapter mark is a small gable with two legs. The chrome draws it as a lancet arch: the heading mark, the notice marker, the header's blind arcade and the hood mould over the empty state.
 - **The chapter lozenge.** The dial fills a small diamond at each mark it has passed. The chrome uses the same lozenge as its bullet, its accent point and its rule ends.
-- **Tracery.** A quatrefoil, cusped openings and a rose window. They appear in the divider, the emblem and the empty-state window. They come from Gothic stonework rather than from the dial, so they never read as a second clock.
+- **Tracery.** A quatrefoil, cusped openings and a rose window. They appear in the divider and the rose-window emblem. They come from Gothic stonework rather than from the dial, so they never read as a second clock.
 - **The ring.** Only two ornaments are round: the dial itself and the swatch, which previews the dial. No other chrome draws a circle, because a second ring would compete with the timer.
 
 ## Ornament density
@@ -19,7 +19,9 @@ Ornament goes where the page has a start, an end or a frame:
 - before a section heading, as one chapter-mark arch;
 - at the four corners of a panel, a dialog and the sign-in card, as arch spandrels;
 - in the middle of a section divider, as a quatrefoil in a lozenge;
-- at the centre of an empty state and above the sign-in title, as the rose window;
+- at the centre of an empty state, as a Gothic hood mould over the rose window;
+- above the sign-in title, as the rose window alone;
+- on a notice's start bar, as a small solid lancet with a gilt lozenge;
 - around a construct's portrait, as a brass bezel;
 - on the appearance swatch, as a small hour dial.
 
@@ -30,7 +32,7 @@ Ornament must not go inside dense or working areas:
 - **Controls.** The composer, every field, every button and every tooltip carry no ornament beyond their keyline.
 - **The Timer page.** The dial is the page's ornament. The trail band keeps its arcade, but the page adds no emblem, divider or corners near the dial.
 
-A page has at most one emblem. Corners appear on the outermost frame only: a card inside a panel has a plain keyline.
+A page has at most one emblem. Corners appear on the outermost frame only: a card inside a panel has a plain keyline. Panels and dialogs take 1.5 rem corners, the sign-in card takes 1.75 rem corners, and plain cards take none.
 
 ## Type roles
 
@@ -58,6 +60,7 @@ The texture is a very dark burgundy leather. Sampled in Chromium, its median is 
 | rubric | rgb(226 196 132) | Gilt: initials, accent ornament | 5.5 |
 | danger | rgb(236 168 148) | Sealing wax text | 4.7 |
 | line, rule-ink, frame-ink | rgb(172 150 108) | Muted brass keylines | 3.3 (needs 3) |
+| header-line | rgb(150 128 90) | The rule under the site header | 4.7 on the header |
 | ornament-ink | rgb(170 145 98) | Main ornament ink | 3.1 (decorative) |
 | ornament-accent-ink | the rubric | Lozenges and quatrefoils | 5.5 |
 
@@ -103,3 +106,35 @@ The chrome stays apart from the dial because:
 - **It has no circles.** Only the dial and its swatch preview are round.
 - **It is dim.** Ornament uses the muted line ink, while the dial's passed marks use bright ivory and its arc uses full brass.
 - **It is still.** Ornament never animates. Only the dial's marks change, and they follow reduced motion.
+
+## Ornament symbols and sources
+
+Every symbol in `ornaments.svg` is hand-written geometry, drawn on 2026-11-17 by the Soot & Brass thread with `tools/draw_ornaments.py`. No symbol comes from an icon library, a font or image generation, so no third-party licence applies. The shapes follow the chapter mark and lozenge in `apps/web/src/components/timer/timer-dial.tsx`, which is the project's own code.
+
+| Symbol | viewBox | Drawing | Accent ink |
+| --- | --- | --- | --- |
+| `orn-corner` | 24 × 24 | Two arms along the frame and an arch spandrel | A lozenge in the spandrel's pocket |
+| `orn-divider` | 48 × 24 | A lozenge outline with ticks at each side | A quatrefoil in the lozenge |
+| `orn-heading` | 16 × 16 | A lancet arch with legs, like the dial's chapter mark | A lozenge under the apex |
+| `orn-band` | 12 × 8 | One bay of a blind arcade; the bays join into a row | A lozenge in each bay |
+| `orn-emblem` | 48 × 48 | A rose window: two rings, eight cusped openings and eight ticks | A quatrefoil at the centre |
+| `orn-swatch` | 64 × 64 | A small hour dial: two rings, eight ticks and four chapter marks, open at the centre | A large lozenge at twelve and small ones at the other quarters |
+| `orn-portrait` | 100 × 100 | A two-line bezel with corner lozenges, within the outer 4% | A lozenge at the middle of each side |
+| `orn-bullet` | 8 × 8 | The dial's tall marker lozenge | None (the bullet has one ink) |
+| `orn-rule-end` | 24 × 8 | A lozenge finial on the rule's end; the build mirrors it | A dot in the finial |
+| `orn-vignette` | 120 × 52 | A hood mould with crockets and a finial, flanked by rules. It is open at the foot, so the emblem below it reads as a rose window under a gable | The finial and the rule ends |
+| `orn-notice` | 12 × 12 | A solid lancet plaque. It is filled because it sits over the notice's brass start bar | A lozenge in the plaque |
+
+`tools/preview_ornaments.mjs` renders the set on the texture at its slot sizes; `evidence/ornaments.png` is its output.
+
+## Choices awaiting Autumn
+
+This direction proposes three changes from the approved Soot & Brass values. The built mockups use the proposals. To switch one back, change the lines listed below in `tokens.css`; each is also marked "Awaiting Autumn" there.
+
+| Choice | Proposed value | Approved value today |
+| --- | --- | --- |
+| Body face | `--body-font: var(--typeface-source-serif-4)` | `--body-font: var(--typeface-nunito)` |
+| Darker soot surfaces | surface and action-paper rgb(37 29 32), field rgb(24 19 21), code-surface rgb(33 26 29), navigation-surface rgb(40 29 33), trail-surface rgb(50 33 38), sidebar-surface rgb(42 33 36), secondary-surface rgb(58 42 46) | surface and action-paper rgb(41 36 38), field rgb(25 23 25), code-surface rgb(36 29 32), navigation-surface rgb(41 30 34), trail-surface rgb(52 36 40), sidebar-surface rgb(45 37 40), secondary-surface rgb(59 45 48) |
+| Gilt rubric | `--rubric: rgb(226 196 132)`, also used as `--ornament-accent-ink` | No rubric: the default `--rubric: var(--accent)`, rgb(194 181 155) |
+
+Each choice is independent. Every contrast pair passes AA with either value: the approved surfaces are close in lightness to the proposed ones, and the approved rubric is the accent colour, which reaches 7.5:1 or more on either surface.
