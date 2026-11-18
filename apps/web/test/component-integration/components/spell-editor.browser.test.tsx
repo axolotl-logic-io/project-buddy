@@ -6,6 +6,7 @@ import { keepLocalDraft } from "@/components/local-draft.ts";
 import { PromptEditor } from "@/components/prompt-editor.tsx";
 import { SiteHeader, TrailBand } from "@/components/site-header.tsx";
 import { PROMPT_COPY } from "@/ui/copy/prompts.ts";
+import { SPELLBOOK_COPY } from "@/ui/copy/spells.ts";
 import { inWorkspace } from "../app/workspace-test-kit.tsx";
 import { applyTheme } from "../themes/theme-test-kit.ts";
 import {
@@ -26,6 +27,7 @@ vi.mock(
   () => import("../auth/current-user-test-kit.ts"),
 );
 
+const REQUIRED_REPLY = "Write a reply.";
 const PROMPT = "Offer one small experiment.";
 const PROMPT_ONLY: ComponentProps<typeof PromptEditor>["texts"] = [
   {
@@ -47,7 +49,7 @@ const EDITOR_SECTIONS: ComponentProps<typeof PromptEditor>["texts"] = [
     text: "An owl with amber eyes.",
     label: "Reply when stopped",
     help: "Stopping replies.",
-    requiredMessage: "Write a reply.",
+    requiredMessage: REQUIRED_REPLY,
   },
 ];
 const TEST_CONTROL = /try|test/iu;
@@ -120,25 +122,43 @@ test("spell editor submits every section", async () => {
     .getByRole("textbox", { name: "Name", exact: true })
     .fill("Renamed spell");
   await page
-    .getByRole("textbox", { name: "Reply when cast", exact: true })
+    .getByRole("textbox", {
+      name: SPELLBOOK_COPY.responses.castReply,
+      exact: true,
+    })
     .fill("Ask one useful question.");
   await page
-    .getByRole("button", { name: "Reply when stopped", exact: true })
+    .getByRole("button", {
+      name: SPELLBOOK_COPY.responses.stopReply,
+      exact: true,
+    })
     .click();
   await expect
     .element(
-      page.getByRole("textbox", { name: "Reply when cast", exact: true }),
+      page.getByRole("textbox", {
+        name: SPELLBOOK_COPY.responses.castReply,
+        exact: true,
+      }),
     )
     .not.toBeInTheDocument();
   await page
-    .getByRole("textbox", { name: "Reply when stopped", exact: true })
+    .getByRole("textbox", {
+      name: SPELLBOOK_COPY.responses.stopReply,
+      exact: true,
+    })
     .fill("An owl holding a notebook.");
   await page
-    .getByRole("button", { name: "Reply when cast", exact: true })
+    .getByRole("button", {
+      name: SPELLBOOK_COPY.responses.castReply,
+      exact: true,
+    })
     .click();
   await expect
     .element(
-      page.getByRole("textbox", { name: "Reply when cast", exact: true }),
+      page.getByRole("textbox", {
+        name: SPELLBOOK_COPY.responses.castReply,
+        exact: true,
+      }),
     )
     .toHaveValue("Ask one useful question.");
   await page
@@ -167,7 +187,9 @@ test("a recovered editor draft is shown and saved", async () => {
   });
   await show();
   await expect
-    .element(page.getByRole("textbox", { name: "Spell Messages", exact: true }))
+    .element(
+      page.getByRole("textbox", { name: SPELLBOOK_COPY.settings, exact: true }),
+    )
     .toHaveValue("Recovered replies.");
   const submitted = submission();
   await page
@@ -181,25 +203,37 @@ test("a recovered editor draft is shown and saved", async () => {
 test("saving reveals and focuses an invalid field in another section", async () => {
   await show(EDITOR_SECTIONS);
   await page
-    .getByRole("button", { name: "Reply when stopped", exact: true })
+    .getByRole("button", {
+      name: SPELLBOOK_COPY.responses.stopReply,
+      exact: true,
+    })
     .click();
   await page
-    .getByRole("textbox", { name: "Reply when stopped", exact: true })
+    .getByRole("textbox", {
+      name: SPELLBOOK_COPY.responses.stopReply,
+      exact: true,
+    })
     .fill("");
   await page
-    .getByRole("button", { name: "Reply when cast", exact: true })
+    .getByRole("button", {
+      name: SPELLBOOK_COPY.responses.castReply,
+      exact: true,
+    })
     .click();
   await page
     .getByRole("button", { name: PROMPT_COPY.save, exact: true })
     .click();
   await expect
     .element(
-      page.getByRole("textbox", { name: "Reply when stopped", exact: true }),
+      page.getByRole("textbox", {
+        name: SPELLBOOK_COPY.responses.stopReply,
+        exact: true,
+      }),
     )
     .toHaveFocus();
   await expect
     .element(page.getByRole("alert"))
-    .toHaveTextContent("Write a reply.");
+    .toHaveTextContent(REQUIRED_REPLY);
   expect(saveAction).not.toHaveBeenCalled();
 });
 
@@ -212,7 +246,7 @@ test.each([
     await setViewport(viewport);
     await show();
     const prompt = page.getByRole("textbox", {
-      name: "Spell Messages",
+      name: SPELLBOOK_COPY.settings,
       exact: true,
     });
     prompt.element().scrollIntoView({ block: "center" });
@@ -255,7 +289,7 @@ test.each([{ width: 360, height: 700 }, NARROWEST_VIEWPORT])(
     await setViewport(viewport);
     await show();
     const prompt = page.getByRole("textbox", {
-      name: "Spell Messages",
+      name: SPELLBOOK_COPY.settings,
       exact: true,
     });
     await prompt.fill("An edited prompt");
@@ -282,13 +316,22 @@ test("name-first validation marks hidden errors without losing edits in other se
   await show(EDITOR_SECTIONS);
   await page.getByRole("textbox", { name: "Name", exact: true }).fill("");
   await page
-    .getByRole("button", { name: "Reply when stopped", exact: true })
+    .getByRole("button", {
+      name: SPELLBOOK_COPY.responses.stopReply,
+      exact: true,
+    })
     .click();
   await page
-    .getByRole("textbox", { name: "Reply when stopped", exact: true })
+    .getByRole("textbox", {
+      name: SPELLBOOK_COPY.responses.stopReply,
+      exact: true,
+    })
     .fill("");
   await page
-    .getByRole("button", { name: "Reply when cast", exact: true })
+    .getByRole("button", {
+      name: SPELLBOOK_COPY.responses.castReply,
+      exact: true,
+    })
     .click();
   await page
     .getByRole("button", { name: PROMPT_COPY.save, exact: true })
@@ -303,30 +346,48 @@ test("name-first validation marks hidden errors without losing edits in other se
   await expect.element(errorSection).toBeVisible();
   await errorSection.click();
   await expect
-    .element(page.getByRole("alert").filter({ hasText: "Write a reply." }))
+    .element(page.getByRole("alert").filter({ hasText: REQUIRED_REPLY }))
     .toBeVisible();
   await page
-    .getByRole("textbox", { name: "Reply when stopped", exact: true })
+    .getByRole("textbox", {
+      name: SPELLBOOK_COPY.responses.stopReply,
+      exact: true,
+    })
     .fill("Keep this appearance.");
   await expect
     .element(
-      page.getByRole("button", { name: "Reply when stopped", exact: true }),
+      page.getByRole("button", {
+        name: SPELLBOOK_COPY.responses.stopReply,
+        exact: true,
+      }),
     )
     .toBeVisible();
   await page
-    .getByRole("button", { name: "Reply when cast", exact: true })
+    .getByRole("button", {
+      name: SPELLBOOK_COPY.responses.castReply,
+      exact: true,
+    })
     .click();
   await expect
     .element(
-      page.getByRole("textbox", { name: "Reply when cast", exact: true }),
+      page.getByRole("textbox", {
+        name: SPELLBOOK_COPY.responses.castReply,
+        exact: true,
+      }),
     )
     .toHaveValue(PROMPT);
   await page
-    .getByRole("button", { name: "Reply when stopped", exact: true })
+    .getByRole("button", {
+      name: SPELLBOOK_COPY.responses.stopReply,
+      exact: true,
+    })
     .click();
   await expect
     .element(
-      page.getByRole("textbox", { name: "Reply when stopped", exact: true }),
+      page.getByRole("textbox", {
+        name: SPELLBOOK_COPY.responses.stopReply,
+        exact: true,
+      }),
     )
     .toHaveValue("Keep this appearance.");
   expect(saveAction).not.toHaveBeenCalled();

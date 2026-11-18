@@ -1,3 +1,4 @@
+import { CHAT_COMMANDS_COPY } from "@/ui/copy/tasks.ts";
 // A quest's tasks in the test database with the local construct engine: the
 // construct's change_tasks through POST /api/chat, the user's changes from the
 // quest's page and from an adventure, the composer's commands, undo, the tasks
@@ -278,7 +279,7 @@ describe("a quest's tasks, changed without the construct", () => {
 
     expect(await command(chat.id, "/frobnicate")).toEqual({
       kind: "problem",
-      text: "There's no /frobnicate command. Type / to see the commands.",
+      text: CHAT_COMMANDS_COPY.problem({ kind: "unknown", name: "frobnicate" }),
     });
     expect(await command(chat.id, "/done 9")).toMatchObject({
       kind: "problem",

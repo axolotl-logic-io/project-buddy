@@ -26,16 +26,16 @@ describe("copy spreadsheet", (): void => {
         if (minutes === 60) return \`\${minutes} minutes (1 hour)\`;
         return \`\${minutes} minutes\`;
       }
-      const TIMER_COPY = { minutes: duration };
+      const TIMER_COPY = { duration };
     `);
     expect(fields).toEqual([
       {
-        identifier: "TIMER_COPY.minutes.variant1",
+        identifier: "TIMER_COPY.duration.variant1",
         words: 4,
         placeholders: ["{{minutes}}"],
       },
       {
-        identifier: "TIMER_COPY.minutes.variant2",
+        identifier: "TIMER_COPY.duration.variant2",
         words: 2,
         placeholders: ["{{minutes}}"],
       },

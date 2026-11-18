@@ -2,10 +2,7 @@
 
 import type { JSX } from "react";
 import { DayGrid } from "@/components/dailies/day-grid.tsx";
-import {
-  PanelCollections,
-  PanelUtilities,
-} from "@/components/panel-collections.tsx";
+import { PanelCollections } from "@/components/panel-collections.tsx";
 import { StartDay } from "@/components/start-day.tsx";
 import { useTaskSection } from "@/components/task-section.tsx";
 import type { WorkspaceSection } from "@/components/workspace-section.ts";
@@ -46,16 +43,14 @@ function DailiesPanel({
           ...tasks,
           {
             id: "days",
+            bucket: true,
             label: QUEST_SIDEBAR_COPY.dayGrid,
             content: <DayGrid />,
           },
-          ...sections.filter((section) => section.id === "notes"),
-          ...sections.filter((section) => section.id === "ideas"),
-          ...sections.filter((section) => section.id === "progress"),
+          ...sections,
         ]}
         initialSection={initialSection}
       />
-      <PanelUtilities sections={sections} initialSection={initialSection} />
     </>
   );
 }

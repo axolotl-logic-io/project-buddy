@@ -22,6 +22,7 @@ import {
 } from "@/spells/spell-store.ts";
 import { TASK_TEXT_MAX_LENGTH } from "@/tasks/tasks.ts";
 import { changeTasks, readTasks } from "@/tasks/tasks-store.ts";
+import { SPELL_MODE_COPY } from "@/ui/copy/spells.ts";
 import { testData } from "../../support/test-database/data-test-kit.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
 import {
@@ -225,7 +226,7 @@ test("casting uses case-insensitive owner-scoped names and refuses ids and ambig
     definition: { destination: "tasks" },
   });
   const refused = messageText(await constructReply(chat.id, "cast alstorm"));
-  expect(refused).toContain("Several spells share that name");
+  expect(refused).toBe(SPELL_MODE_COPY.ambiguous);
   expect(await currentSpell(user.id, chat)).toBe("tasks");
   const multiword = await createSpell(user.id, {
     name: "Small experiments",

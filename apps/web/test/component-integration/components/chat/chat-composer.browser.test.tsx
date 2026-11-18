@@ -151,11 +151,7 @@ test("restores legacy draft text without offering image uploads", async () => {
     JSON.stringify({ text: "Unsent text", images: true }),
   );
   await openChat(chatId, viewer);
-  await expect
-    .element(
-      page.getByText("Attach them again before sending.", { exact: false }),
-    )
-    .not.toBeInTheDocument();
+  await expect.element(page.getByRole("alert")).not.toBeInTheDocument();
   await expect
     .element(page.getByRole("textbox", { name: CHAT_COPY.messageLabel }))
     .toHaveValue("Unsent text");

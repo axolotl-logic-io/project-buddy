@@ -391,19 +391,22 @@ describe("use_case_invite_to_quest", () => {
       QUEST_INVITATION_EMAIL_COPY.subject(first.name),
     );
     expect(fromMember.text).toContain(
-      `Mika Member invited you to join Rowan Owner's quest "${first.name}"`,
-    );
-    expect(fromMember.text).toContain(
-      "conversation, Tasks, Ideas, Progress and Quick Notes",
+      QUEST_INVITATION_EMAIL_COPY.intro({
+        invitedBy: "Mika Member",
+        owner: "Rowan Owner",
+        questName: first.name,
+      }),
     );
     expect(fromMember.text).toContain(QUEST_INVITATION_EMAIL_COPY.notExpected);
-    expect(fromMember.text).not.toContain("their quest");
-    expect(fromMember.text).not.toContain("Nothing changes");
 
     await invite(owner, first.id, existing.email);
     const fromOwner = lastEmailTo(existing.email);
     expect(fromOwner.text).toContain(
-      `Rowan Owner invited you to join the quest "${first.name}"`,
+      QUEST_INVITATION_EMAIL_COPY.intro({
+        invitedBy: "Rowan Owner",
+        owner: undefined,
+        questName: first.name,
+      }),
     );
     expect(fromOwner.text).toContain(
       QUEST_INVITATION_EMAIL_COPY.notExpectedMember,
@@ -538,13 +541,13 @@ describe("use_case_join_quest_by_link", () => {
     const signedIn = await linkPageHtml(token);
     expect(signedIn).toContain(LINK_PAGE_COPY.expired);
     expect(signedIn).toContain(
-      "If your invitation is still pending, it&#x27;s under Pending in Quests.",
+      renderToStaticMarkup(LINK_PAGE_COPY.expiredNext),
     );
     expect(signedIn).toContain(
       `href="/quests">${LINK_PAGE_COPY.openQuests}</a>`,
     );
     expect(signedIn).not.toContain(first.name);
-    expect(signedIn).not.toContain("Ask for a new link");
+    expect(signedIn).not.toContain('href="/login"');
 
     signOut();
     const signedOut = await linkPageHtml(token);

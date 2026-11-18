@@ -247,10 +247,10 @@ describe("use_case_choose_theme", () => {
       await expect.element(tooltip).toBeVisible();
       await userEvent.keyboard("{Escape}");
       await expect.element(tooltip).not.toBeInTheDocument();
-      await page.getByRole("heading", { name: THEME_COPY.picker }).hover();
+      await page.getByText(THEME_COPY.modeLabel, { exact: true }).hover();
       await radio.hover();
       await expect.element(tooltip).toBeVisible();
-      await page.getByRole("heading", { name: THEME_COPY.picker }).hover();
+      await page.getByText(THEME_COPY.modeLabel, { exact: true }).hover();
       await expect.element(tooltip).not.toBeInTheDocument();
       expect(label.textContent?.trim()).toBe(THEME_COPY.modes[mode]);
     },

@@ -774,24 +774,19 @@
   html {
     --header-gutter: --spacing(4);
     --header-rim: 4px;
-    --trail-band-padding-top: --spacing(2.5);
-    --trail-band-padding-bottom: --spacing(2.5);
-    --panel-tab-width: calc(var(--target-size) + --spacing(3));
+    --trail-rim: 2px;
+    --trail-band-padding: --spacing(1);
+    --panel-tab-width: var(--target-size);
     --panel-tab-height: calc(
       var(--target-size) +
-      var(--trail-band-padding-top) +
-      var(--trail-band-padding-bottom)
+      2 *
+      var(--trail-band-padding)
     );
-    --trail-band-min-height: calc(
-      var(--target-size) +
-      var(--trail-band-padding-top) +
-      var(--trail-band-padding-bottom) +
-      var(--line-width)
-    );
+    --trail-band-min-height: calc(var(--panel-tab-height) + var(--line-width));
     --trail-heading-leading: 1.15;
     --site-header-height: 0px;
     /* The breadcrumb row's top, until HeaderSize measures it. */
-    --panel-top: calc(var(--target-size) + --spacing(4) + var(--header-rim));
+    --panel-top: calc(var(--target-size) + --spacing(4) + var(--trail-rim));
     --site-panel-width: 18rem;
     --quest-panel-width: 22rem;
     scroll-padding-top: var(--site-header-height);
@@ -804,18 +799,7 @@
   @media (width >= 40rem) {
     html {
       --header-gutter: --spacing(6);
-      --panel-tab-width: calc(var(--target-size) + --spacing(5));
       --trail-heading-leading: 1.2;
-    }
-
-    html:has(.trail-band) {
-      --site-header-height: calc(
-        var(--trail-band-padding-top) +
-        var(--trail-band-padding-bottom) +
-        --theme(--text-page-heading-phone) *
-        var(--trail-heading-leading) +
-        var(--line-width)
-      );
     }
   }
 
@@ -1088,7 +1072,7 @@
     --header-controls-height: calc(
       var(--target-size) +
       --spacing(4) +
-      var(--header-rim)
+      var(--trail-rim)
     );
     position: sticky;
     inset-block-start: calc(-1 * var(--header-controls-height));
@@ -1108,34 +1092,11 @@
     flex: none;
     inline-size: calc(100% + 2 * var(--header-gutter));
     margin-inline: calc(-1 * var(--header-gutter));
-    min-block-size: calc(var(--header-rim) + var(--trail-band-min-height));
-    padding-block: var(--trail-band-padding-top)
-      var(--trail-band-padding-bottom);
-    border-block-start: var(--header-rim) solid var(--hud-gold);
+    min-block-size: calc(var(--trail-rim) + var(--trail-band-min-height));
+    padding-block: var(--trail-band-padding);
+    border-block-start: var(--trail-rim) solid var(--hud-gold);
     background-image: var(--trail-decoration);
     @apply flex min-w-0 items-center border-line border-b bg-trail-surface text-foreground;
-  }
-
-  @supports (mask: none) {
-    .trail-band::before,
-    .trail-band::after {
-      position: absolute;
-      inset-inline: 0;
-      inset-block-end: 0;
-      block-size: var(--orn-band-height);
-      pointer-events: none;
-      content: "";
-    }
-
-    .trail-band::before {
-      background: var(--ornament-ink);
-      mask: var(--orn-band) center / auto 100% repeat-x;
-    }
-
-    .trail-band::after {
-      background: var(--ornament-accent-ink);
-      mask: var(--orn-band-accent) center / auto 100% repeat-x;
-    }
   }
 
   .trail-content {
@@ -2356,21 +2317,44 @@
     @apply my-4 flex flex-col gap-2 border-primary border-s-2 ps-3;
   }
 
-  .panel-utilities {
-    @apply border-line/40 border-t;
+  .quest-member-invite {
+    @apply flex flex-col gap-2;
   }
 
-  .panel-utilities > details {
-    @apply border-line/40 border-b;
+  .quest-member-invite > button {
+    @apply self-start;
   }
 
-  .panel-utilities summary {
-    min-block-size: var(--target-size);
-    @apply cursor-pointer py-3 font-semibold;
-  }
+  @supports (display: contents) {
+    .quest-member-invite {
+      grid-template-columns: minmax(0, 1fr) auto;
+      @apply grid items-stretch;
+    }
 
-  .panel-utility-content {
-    @apply flex min-w-0 flex-col gap-3 pb-4;
+    .quest-member-invite > .field {
+      display: contents;
+    }
+
+    .quest-member-invite .field-label {
+      grid-row: 1;
+    }
+
+    .quest-member-invite .input-field {
+      grid-area: 2 / 1;
+      min-inline-size: 0;
+    }
+
+    .quest-member-invite > button {
+      grid-area: 2 / 2;
+      @apply self-stretch;
+    }
+
+    .quest-member-invite .field-label,
+    .quest-member-invite .field-hint,
+    .quest-member-invite [role="alert"],
+    .quest-member-invite [role="status"] {
+      grid-column: 1 / -1;
+    }
   }
 
   .workspace-menu-tab {
@@ -2458,7 +2442,7 @@
     outline-offset: calc(-1 * var(--focus-offset));
     background-image: linear-gradient(var(--line), var(--line));
     background-position: right center;
-    background-size: var(--line-width) calc(100% - --spacing(6));
+    background-size: 1px calc(100% - --spacing(4));
     background-repeat: no-repeat;
     @apply rounded-none border-0 text-foreground;
   }

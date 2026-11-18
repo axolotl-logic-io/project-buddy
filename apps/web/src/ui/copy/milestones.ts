@@ -9,7 +9,7 @@ export const MILESTONE_COPY = {
 } as const;
 
 export const PROGRESS_TIMELINE_COPY = {
-  heading: "Progress",
+  heading: "Milestones",
   none: "Nothing here yet. When you finish something in this quest, your construct adds it here.",
   edit: "Edit",
   editLabel: (text: string): string => `Edit the milestone "${text}"`,
