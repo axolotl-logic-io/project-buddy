@@ -233,12 +233,13 @@
     gap: calc(var(--space-unit) * 2);
     max-inline-size: 100%;
     margin-block-end: calc(var(--space-unit) * 1.5);
-    color: var(--primary);
-    font-family: var(--heading-font);
+    color: var(--label-ink);
+    font-family: var(--label-font);
     font-size: 0.9375rem;
-    font-weight: 600;
-    font-variant: small-caps;
-    letter-spacing: 0.04em;
+    font-weight: var(--label-weight);
+    font-variant-caps: var(--label-caps);
+    letter-spacing: var(--label-tracking);
+    text-transform: var(--label-case);
     line-height: 1.6;
   }
 

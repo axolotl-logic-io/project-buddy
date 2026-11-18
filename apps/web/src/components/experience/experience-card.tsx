@@ -1,18 +1,11 @@
 import type { JSX, ReactNode } from "react";
+import { ProgressRing } from "@/components/experience/progress-ring.tsx";
 import { Icon } from "@/components/ui/icon.tsx";
-import {
-  circleFraction,
-  type Experience,
-  nextTitleOf,
-} from "@/experience/experience.ts";
+import { type Experience, nextTitleOf } from "@/experience/experience.ts";
 import { EXPERIENCE_COPY } from "@/ui/copy/experience.ts";
 
 // A link to Profile, such as the header's ring, can open this card by its id.
 const EXPERIENCE_ID = "experience";
-
-// The ring's radius and circumference, in the SVG's 132-unit box.
-const RING_RADIUS = 56;
-const RING_LENGTH: number = 2 * Math.PI * RING_RADIUS;
 
 // The user's circle: its number in a ring that fills as they near the next
 // circle. The ring is decoration; the words say the circle.
@@ -23,31 +16,7 @@ function CircleRing({
 }): JSX.Element {
   return (
     <p className="profile-ring">
-      <svg
-        aria-hidden="true"
-        className="profile-ring-arc"
-        viewBox="0 0 132 132"
-      >
-        <circle className="profile-ring-disc" cx="66" cy="66" r={RING_RADIUS} />
-        <circle
-          className="profile-ring-track"
-          cx="66"
-          cy="66"
-          r={RING_RADIUS}
-          strokeWidth="10"
-        />
-        <circle
-          className="profile-ring-fill"
-          cx="66"
-          cy="66"
-          r={RING_RADIUS}
-          strokeDasharray={RING_LENGTH}
-          strokeDashoffset={RING_LENGTH * (1 - circleFraction(experience))}
-          strokeLinecap="round"
-          strokeWidth="10"
-          transform="rotate(-90 66 66)"
-        />
-      </svg>
+      <ProgressRing experience={experience} />
       <span className="profile-ring-label">{EXPERIENCE_COPY.circleLabel}</span>{" "}
       <span className="profile-ring-number">{experience.circle}</span>
     </p>
@@ -69,7 +38,7 @@ export function ExperienceCard({
   return (
     <section
       aria-label={EXPERIENCE_COPY.heading}
-      className="profile-card"
+      className="panel profile-card"
       id={EXPERIENCE_ID}
     >
       <CircleRing experience={experience} />

@@ -381,6 +381,10 @@
     @apply rounded-control underline decoration-(length:--line-width) decoration-line underline-offset-4 hover:text-primary hover:decoration-primary;
   }
 
+  :is(.circle-progress, .profile-ring) > svg {
+    @apply absolute inset-0 size-full;
+  }
+
   /* Letterpress actions: brass commits, paper offers alternatives, ink
      edits, and sealing wax confirms removal. Their targets stay generous
      while the fine keyline and flat resting surface keep them light. */
@@ -635,6 +639,27 @@
     block-size: var(--orn-emblem-size);
   }
 
+  .ornament[data-ornament="divider"] {
+    --orn-main: var(--orn-divider);
+    --orn-accent: var(--orn-divider-accent);
+    inline-size: var(--orn-divider-width);
+    block-size: calc(var(--orn-divider-width) / 2);
+  }
+
+  .ornamented-divider {
+    display: flex;
+    align-items: center;
+    inline-size: 100%;
+    gap: 0.5rem;
+  }
+
+  .ornamented-divider::before,
+  .ornamented-divider::after {
+    content: "";
+    flex: 1;
+    border-block-start: var(--rule-width) var(--rule-style) var(--rule-ink);
+  }
+
   .ornament[data-ornament="vignette"] {
     --orn-main: var(--orn-vignette);
     --orn-accent: var(--orn-vignette-accent);
@@ -857,40 +882,25 @@
      size, at the bar's right end: gold filling an ink track, with the
      circle's number inside. */
   .circle-progress {
+    --ring-disc: var(--hud-ink);
+    --ring-track: var(--hud-line);
+    --ring-arc: var(--hud-gold);
+    --ring-stroke: 0.12;
     @apply relative grid shrink-0 place-items-center rounded-full;
     inline-size: var(--target-size);
     block-size: var(--target-size);
   }
 
-  .circle-progress-ring {
-    @apply absolute inset-0 size-full;
-  }
-
-  .circle-progress-track {
-    fill: none;
-    stroke: var(--hud-line);
-  }
-
-  .circle-progress-arc {
-    fill: none;
-    stroke: var(--hud-gold);
-  }
-
   .circle-progress-number {
-    @apply relative font-heading font-semibold text-sm tabular-nums;
+    font-family: var(--numeral-font);
+    @apply relative font-semibold text-sm tabular-nums;
   }
 
   /* Profile's head: a gilded card with the user's circle in a large ring
      beside their name, title and progress. On a phone the ring stands
      above the rest, centred. */
   .profile-card {
-    @apply flex flex-col items-center gap-4 rounded-box border-2 p-5 text-center shadow-raised sm:flex-row sm:gap-6 sm:p-6 sm:text-start;
-    border-color: color-mix(in oklab, var(--hud-gold) 60%, transparent);
-    background: linear-gradient(
-      135deg,
-      var(--field),
-      color-mix(in oklab, var(--hud-gold) 22%, var(--surface))
-    );
+    @apply flex flex-col items-center gap-4 text-center sm:flex-row sm:gap-6 sm:text-start;
   }
 
   .signed-in-days-card {
@@ -901,38 +911,19 @@
     @apply flex w-full min-w-0 flex-1 flex-col items-center gap-2 sm:items-start;
   }
 
-  /* The ring: the header's ink disc and gold arc, with "Circle" over the
-     circle's number. */
   .profile-ring {
     @apply relative grid size-28 shrink-0 content-center justify-items-center sm:size-33;
-    color: var(--hud-paper);
-  }
-
-  .profile-ring-arc {
-    @apply absolute inset-0 size-full;
-  }
-
-  .profile-ring-disc {
-    fill: var(--hud-ink);
-  }
-
-  .profile-ring-track {
-    fill: none;
-    stroke: var(--hud-line);
-  }
-
-  .profile-ring-fill {
-    fill: none;
-    stroke: var(--hud-gold);
+    color: var(--ring-ink);
   }
 
   .profile-ring-label {
     @apply relative font-extrabold text-xs uppercase tracking-widest;
-    color: var(--hud-gold);
+    color: var(--label-ink);
   }
 
   .profile-ring-number {
-    @apply relative font-bold font-heading text-5xl tabular-nums leading-none;
+    font-family: var(--numeral-font);
+    @apply relative font-bold text-5xl tabular-nums leading-none;
   }
 
   .profile-name {
@@ -1125,7 +1116,30 @@
     padding-block: var(--trail-band-padding-top)
       var(--trail-band-padding-bottom);
     border-block-start: var(--header-rim) solid var(--hud-gold);
+    background-image: var(--trail-decoration);
     @apply flex min-w-0 items-center border-line border-b bg-trail-surface text-foreground;
+  }
+
+  @supports (mask: none) {
+    .trail-band::before,
+    .trail-band::after {
+      position: absolute;
+      inset-inline: 0;
+      inset-block-end: 0;
+      block-size: var(--orn-band-height);
+      pointer-events: none;
+      content: "";
+    }
+
+    .trail-band::before {
+      background: var(--ornament-ink);
+      mask: var(--orn-band) center / auto 100% repeat-x;
+    }
+
+    .trail-band::after {
+      background: var(--ornament-accent-ink);
+      mask: var(--orn-band-accent) center / auto 100% repeat-x;
+    }
   }
 
   .trail-content {
