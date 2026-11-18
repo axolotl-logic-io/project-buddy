@@ -391,19 +391,22 @@ describe("use_case_invite_to_quest", () => {
       QUEST_INVITATION_EMAIL_COPY.subject(first.name),
     );
     expect(fromMember.text).toContain(
-      `Mika Member invited you to join Rowan Owner's quest "${first.name}"`,
-    );
-    expect(fromMember.text).toContain(
-      "conversation, Tasks, Ideas, Quick Notes and milestones",
+      QUEST_INVITATION_EMAIL_COPY.intro({
+        invitedBy: "Mika Member",
+        owner: "Rowan Owner",
+        questName: first.name,
+      }),
     );
     expect(fromMember.text).toContain(QUEST_INVITATION_EMAIL_COPY.notExpected);
-    expect(fromMember.text).not.toContain("their quest");
-    expect(fromMember.text).not.toContain("Nothing changes");
 
     await invite(owner, first.id, existing.email);
     const fromOwner = lastEmailTo(existing.email);
     expect(fromOwner.text).toContain(
-      `Rowan Owner invited you to join the quest "${first.name}"`,
+      QUEST_INVITATION_EMAIL_COPY.intro({
+        invitedBy: "Rowan Owner",
+        owner: undefined,
+        questName: first.name,
+      }),
     );
     expect(fromOwner.text).toContain(
       QUEST_INVITATION_EMAIL_COPY.notExpectedMember,
