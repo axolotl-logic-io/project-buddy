@@ -27,7 +27,7 @@ import {
   test,
   vi,
 } from "vitest";
-import { type Locator, page, userEvent } from "vitest/browser";
+import { commands, type Locator, page, userEvent } from "vitest/browser";
 import { render } from "vitest-browser-react";
 import type { Breadcrumb } from "@/components/breadcrumb.ts";
 import { SignedInHeader } from "@/components/signed-in-header.tsx";
@@ -169,7 +169,9 @@ function signedInFrame(): JSX.Element {
   );
 }
 
-beforeAll(() => {
+beforeAll(async () => {
+  // The layout assertions measure the drawer at rest.
+  await commands.reduceMotion();
   installThemeFonts();
 });
 
