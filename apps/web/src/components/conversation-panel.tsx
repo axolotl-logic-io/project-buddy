@@ -55,7 +55,6 @@ function ConversationPanel({
   const panelId = useId();
   const dialogRef = useRef<HTMLDialogElement>(null);
   const toggleRef = useRef<HTMLButtonElement>(null);
-  const headingRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const dialog = dialogRef.current;
     if (dialog === null) {
@@ -71,17 +70,8 @@ function ConversationPanel({
       } else {
         dialog.showModal();
       }
-      const entry = [
-        ...dialog.querySelectorAll<HTMLElement>("[data-panel-section]"),
-      ].find(
-        (element) =>
-          element.getAttribute("data-panel-section") === initialSection,
-      );
-      if (entry !== undefined) {
-        dialog.scrollTop +=
-          entry.getBoundingClientRect().top -
-          dialog.getBoundingClientRect().top -
-          (headingRef.current?.getBoundingClientRect().height ?? 0);
+      if (initialSection !== undefined) {
+        dialog.scrollTop = 0;
       }
     }
   }, [open, wide, initialSection]);
@@ -128,7 +118,7 @@ function ConversationPanel({
         aria-label={QUEST_SIDEBAR_COPY.label}
       >
         <aside className="quest-sidebar" aria-label={QUEST_SIDEBAR_COPY.label}>
-          <div className="quest-panel-heading" ref={headingRef}>
+          <div className="quest-panel-heading">
             <h2 className="font-heading text-lg">{title}</h2>
             <Button
               variant="quiet"

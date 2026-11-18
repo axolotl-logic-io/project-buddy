@@ -342,6 +342,9 @@ describe("the site panel", () => {
 
     expect(linkNames(SITE_PANEL_COPY.placesLabel)).toEqual(PLACES);
     expect(linkNames(SITE_PANEL_COPY.youLabel)).toEqual(YOU);
+    expect(
+      page.getByText("Appearance", { exact: true }).elements(),
+    ).toHaveLength(0);
     await expect
       .element(page.getByRole("group", { name: THEME_COPY.modeLabel }))
       .toBeVisible();

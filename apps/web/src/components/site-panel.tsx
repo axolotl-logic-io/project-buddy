@@ -19,7 +19,6 @@ import { Icon } from "@/components/ui/icon.tsx";
 import { useWideScreen } from "@/components/use-wide-screen.ts";
 import { CREDITS_COPY } from "@/ui/copy/credits.ts";
 import { SITE_PANEL_COPY } from "@/ui/copy/site.ts";
-import { THEME_COPY } from "@/ui/copy/theme.ts";
 
 // Whether the panel is docked on a wide screen is the user's choice, kept
 // in this browser, so it stays docked from page to page and after a reload.
@@ -269,7 +268,6 @@ function SidePanel({
 }
 
 function SitePanel({ links }: { readonly links: ReactNode }): JSX.Element {
-  const appearanceId = useId();
   return (
     <SidePanel
       title={SITE_PANEL_COPY.title}
@@ -278,12 +276,7 @@ function SitePanel({ links }: { readonly links: ReactNode }): JSX.Element {
     >
       {links}
       <hr className="panel-rule" />
-      <section aria-labelledby={appearanceId} className="flex flex-col">
-        <h3 className="panel-label" id={appearanceId}>
-          {THEME_COPY.picker}
-        </h3>
-        <AppearanceChoices />
-      </section>
+      <AppearanceChoices />
       <hr className="panel-rule" />
       <PanelLink href="/credits">{CREDITS_COPY.panelLink}</PanelLink>
     </SidePanel>

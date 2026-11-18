@@ -1,10 +1,7 @@
 "use client";
 
 import type { JSX } from "react";
-import {
-  PanelCollections,
-  PanelUtilities,
-} from "@/components/panel-collections.tsx";
+import { PanelCollections } from "@/components/panel-collections.tsx";
 import { useTaskSection } from "@/components/task-section.tsx";
 import { useTasks } from "@/components/tasks/use-tasks.ts";
 import type { WorkspaceSection } from "@/components/workspace-section.ts";
@@ -38,13 +35,9 @@ function QuestPanel({
         <p className="wrap-anywhere font-heading text-lg">{next}</p>
       </section>
       <PanelCollections
-        sections={[
-          ...taskSections,
-          ...sections.filter((section) => section.bucket === true),
-        ]}
+        sections={[...taskSections, ...sections]}
         initialSection={initialSection}
       />
-      <PanelUtilities sections={sections} initialSection={initialSection} />
     </>
   );
 }

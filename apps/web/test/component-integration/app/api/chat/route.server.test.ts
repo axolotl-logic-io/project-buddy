@@ -1,3 +1,5 @@
+import { getSpell } from "@/spells/spell.ts";
+import { spellResponse } from "@/spells/spell-response.ts";
 // Chatting through POST /api/chat, in the test database with the mock
 // construct: what is saved, and in what order. What she sees of it is the chat
 // view's tests' (src/components/chat-view*.test.tsx).
@@ -129,7 +131,11 @@ test("use_case_send_while_construct_replies", async () => {
   expect(
     saved.filter(({ role }) => role === "assistant").map(({ text }) => text),
   ).toContain(
-    "Cast Brainstorm. Subsequent messages go into Ideas. Use stop when you’re finished.",
+    spellResponse(
+      getSpell("brainstorm").definition.castReply,
+      getSpell("brainstorm"),
+      "cast brainstorm",
+    ),
   );
   expect(
     saved.filter(({ role }) => role === "user").map(({ text }) => text),

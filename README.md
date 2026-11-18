@@ -22,9 +22,10 @@ Install mise and Docker with its Compose plugin, and start the Docker engine. Fr
 mise trust
 mise install
 mise setup
-mise run doctor
 mise //apps/web:dev
 ```
+
+If this checkout already has a Next.js development server running, setup stops it before reinstalling dependencies. To check the environment on its own, run `mise run doctor`.
 
 `mise setup` installs every workspace's dependencies with `npm ci`, creates `apps/web/.env.local` with a generated session secret and the local email outbox, starts the persistent development database server, gives this worktree its own database on it and brings that database to this checkout's migrations, writes a CLI session for a local developer account to `apps/cli/.env.local`, initializes manual test configuration with `test-env:init`, starts the test database server, creates and migrates this worktree's test database, and installs Playwright's Chromium and WebKit. It fills missing or empty local settings, preserves existing nonempty values, and makes no further configuration changes on repeat runs. It keeps development data unless the database's migrations differ from the checkout's, as below. If `apps/web/.env.local` names a hosted PostgreSQL database, setup preserves that file and adds the local database and missing defaults to `apps/web/.env.development.local`. Next.js development and the development commands use this override; the hosted database is never contacted. Existing effective development configuration must use this worktree's development database and the email outbox; a `.env.local` that still names the database every worktree once shared, `project_buddy_dev`, is switched to the worktree's own, and the shared database is left as it is; conflicting explicit settings are reported for you to fix. Setup and doctor refuse other effective database URLs, including hosted databases and the test database. An explicit `DATABASE_URL` in the shell or `.env.development.local` takes precedence and must name this worktree's local database.
 

@@ -70,9 +70,7 @@ for (const mode of ["light", "dark"]) {
       const element = page.getByRole("status").element();
       expect(Number.parseFloat(getComputedStyle(element).paddingTop)).toBe(0);
       await view.rerender(<FormStatus>{SAVED}</FormStatus>);
-      await expect
-        .element(page.getByRole("status"))
-        .toHaveTextContent("Saved.");
+      await expect.element(page.getByRole("status")).toHaveTextContent(SAVED);
       expect(page.getByRole("status").element()).toBe(element);
       expect(
         Number.parseFloat(getComputedStyle(element).paddingTop),

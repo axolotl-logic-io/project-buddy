@@ -5,6 +5,7 @@ import { existsSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
+import { stopDevelopmentServer } from "./dev-server.ts";
 import {
   adoptWorktreeDatabase,
   configurationProblems,
@@ -69,7 +70,7 @@ function prerequisites(): [boolean, string][] {
   ];
 }
 
-function setup(): void {
+async function setup(): Promise<void> {
   for (const [ok, message] of prerequisites()) {
     requireStep(ok, message);
   }
@@ -82,6 +83,7 @@ function setup(): void {
   if (problems.length > 0) {
     throw new Error(problems.join("\n"));
   }
+  await stopDevelopmentServer(WEB_ROOT);
   console.log("Installing workspace dependencies (npm ci)...");
   requireStep(command("npm", ["ci"], ROOT), "Dependency install: npm ci.");
   requireStep(
@@ -230,7 +232,7 @@ async function signInLink(address?: string): Promise<URL> {
 const [action, ...actionArgs] = process.argv.slice(2);
 try {
   if (action === "setup" && actionArgs.length === 0) {
-    setup();
+    await setup();
   } else if (action === "doctor") {
     await doctor();
   } else if (action === "sign-in-link" && actionArgs.length <= 1) {
