@@ -12,10 +12,6 @@ import { getConstruct } from "@/constructs/index.ts";
 import { VISUAL_WIDTH } from "@/constructs/visual-delivery.ts";
 import { CHAT_COPY } from "@/ui/copy/chat.ts";
 import {
-  builtInArtwork,
-  builtInArtworkPaths,
-} from "../../../support/constructs/built-in-artwork.ts";
-import {
   chatIdFixture,
   questIdFixture,
   userIdFixture,
@@ -131,13 +127,26 @@ describe("use_case_construct_presence", () => {
       );
       expect(art.getBoundingClientRect().width).toBeGreaterThan(AVATAR_SIZE);
       const portrait = portraitFor("Take one small step.");
-      const image = portrait.querySelector("img");
-      const source = new URL(image?.getAttribute("src") ?? "", location.href);
-      expect(source.origin).toBe(location.origin);
-      expect(builtInArtworkPaths(builtInArtwork(id))).toContain(
-        source.pathname,
+      const avatarDrawing = portrait.querySelector("svg");
+      const openingDrawing = art.querySelector("svg");
+      expect(avatarDrawing).toBeInstanceOf(SVGSVGElement);
+      expect(openingDrawing).toBeInstanceOf(SVGSVGElement);
+      expect(avatarDrawing?.getAttribute("viewBox")).not.toBe(
+        openingDrawing?.getAttribute("viewBox"),
       );
-      expect(image?.getAttribute("srcset")).toBeTruthy();
+      const gradientIds = [avatarDrawing, openingDrawing].flatMap((drawing) =>
+        Array.from(
+          drawing?.querySelectorAll("radialGradient[id], linearGradient[id]") ??
+            [],
+          (gradient) => gradient.id,
+        ),
+      );
+      expect(gradientIds.length).toBeGreaterThan(1);
+      for (const gradientId of gradientIds) {
+        expect(document.querySelectorAll(`[id="${gradientId}"]`)).toHaveLength(
+          1,
+        );
+      }
       expect(portrait.getBoundingClientRect().width).toBe(AVATAR_SIZE);
       const avatar = portrait.querySelector("[data-visual-role]");
       if (avatar === null) {
@@ -237,7 +246,7 @@ describe("use_case_construct_presence", () => {
           .join(""),
       );
       expect(
-        portraitFor("Take one small step.").querySelector("img"),
+        portraitFor("Take one small step.").querySelector("img, svg"),
       ).toBeNull();
     });
   }
@@ -284,7 +293,7 @@ describe("use_case_construct_presence", () => {
     await render(view(getConstruct("lumen"), [QUESTION, ANSWER]));
     expect(page.getByRole("img").elements()).toHaveLength(0);
     expect(
-      portraitFor("Take one small step.").querySelector("img"),
+      portraitFor("Take one small step.").querySelector("svg"),
     ).not.toBeNull();
   });
 });

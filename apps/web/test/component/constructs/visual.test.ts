@@ -34,21 +34,35 @@ test("own constructs with compatibility ids and built-in names keep their own id
   ).toBeUndefined();
 });
 
-const MAX_FACE_FRACTION = 0.4;
-
-test("built-in face framing differs from the complete portrait", () => {
+test("new snapshots use the complete inline drawing in every role", () => {
   for (const id of ["lumen", "vellum"] as const) {
-    const construct = getConstruct(id);
-    const avatar = resolveConstructVisual(construct, "avatar");
-    expect(avatar.frame.size).toBeLessThan(MAX_FACE_FRACTION);
-    expect(resolveConstructVisual(construct, "portrait").frame.size).toBe(1);
-    expect(resolveConstructVisual(construct, "working").asset).toEqual(
-      avatar.asset,
-    );
-    expect(constructVisualSource(avatar.asset)).toBe(
-      `/constructs/${id}-v1.png`,
-    );
+    const construct = snapshotOf(getConstruct(id));
+    for (const role of ["avatar", "portrait", "opening", "working"] as const) {
+      const visual = resolveConstructVisual(construct, role);
+      expect(visual.asset).toEqual({ kind: "built-in", artwork: `${id}-v2` });
+      expect(visual.frame).toEqual({ x: 0.5, y: 0.5, size: 1 });
+      expect(constructVisualSource(visual.asset)).toBeUndefined();
+    }
   }
+});
+
+test("saved raster artwork keeps its source and face frame", () => {
+  const frame = { x: 0.5, y: 0.45, size: 0.35 };
+  const snapshot = {
+    name: "Lumen",
+    definition: parseConstructDefinition({
+      prompt: "An earlier conversation",
+      visual: {
+        version: 1,
+        description: "An arcane light",
+        canonical: { kind: "built-in", artwork: "lumen-v1" },
+        frames: { avatar: frame },
+      },
+    }) ?? { prompt: "" },
+  };
+  const visual = resolveConstructVisual(snapshot, "avatar");
+  expect(visual.frame).toEqual(frame);
+  expect(constructVisualSource(visual.asset)).toBe("/constructs/lumen-v1.png");
 });
 
 test("visual edits survive storage and construct snapshots", () => {

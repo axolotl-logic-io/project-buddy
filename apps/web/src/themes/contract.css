@@ -170,6 +170,16 @@
     --header-line: var(--light-header-line);
     --header-gold: var(--light-header-gold);
     --page-decoration: var(--light-page-decoration);
+    --construct-ground: var(--light-construct-ground);
+    --construct-ground-ink: var(--light-construct-ground-ink);
+    --construct-ink: var(--light-construct-ink);
+    --construct-metal: var(--light-construct-metal);
+    --construct-metal-shade: var(--light-construct-metal-shade);
+    --construct-metal-light: var(--light-construct-metal-light);
+    --construct-paper: var(--light-construct-paper);
+    --construct-glow: var(--light-construct-glow);
+    --construct-glow-core: var(--light-construct-glow-core);
+    --construct-accent: var(--light-construct-accent);
   }
 
   [data-mode="soot-brass"] {
@@ -207,6 +217,16 @@
     --header-line: var(--soot-brass-header-line);
     --header-gold: var(--soot-brass-header-gold);
     --page-decoration: var(--soot-brass-page-decoration);
+    --construct-ground: var(--soot-brass-construct-ground);
+    --construct-ground-ink: var(--soot-brass-construct-ground-ink);
+    --construct-ink: var(--soot-brass-construct-ink);
+    --construct-metal: var(--soot-brass-construct-metal);
+    --construct-metal-shade: var(--soot-brass-construct-metal-shade);
+    --construct-metal-light: var(--soot-brass-construct-metal-light);
+    --construct-paper: var(--soot-brass-construct-paper);
+    --construct-glow: var(--soot-brass-construct-glow);
+    --construct-glow-core: var(--soot-brass-construct-glow-core);
+    --construct-accent: var(--soot-brass-construct-accent);
   }
 
   [data-mode="dark"] {
@@ -244,6 +264,16 @@
     --header-line: var(--dark-header-line);
     --header-gold: var(--dark-header-gold);
     --page-decoration: var(--dark-page-decoration);
+    --construct-ground: var(--dark-construct-ground);
+    --construct-ground-ink: var(--dark-construct-ground-ink);
+    --construct-ink: var(--dark-construct-ink);
+    --construct-metal: var(--dark-construct-metal);
+    --construct-metal-shade: var(--dark-construct-metal-shade);
+    --construct-metal-light: var(--dark-construct-metal-light);
+    --construct-paper: var(--dark-construct-paper);
+    --construct-glow: var(--dark-construct-glow);
+    --construct-glow-core: var(--dark-construct-glow-core);
+    --construct-accent: var(--dark-construct-accent);
   }
 }
 

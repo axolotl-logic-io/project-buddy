@@ -106,7 +106,8 @@
         "src/components/ui/form-message.tsx",
         "src/app/page-roles.css",
         "src/components/chat/chat.css",
-        "src/components/constructs/construct-discovery.css"
+        "src/components/constructs/construct-discovery.css",
+        "src/components/constructs/construct-art.css"
       ],
       "linter": {
         "rules": {
