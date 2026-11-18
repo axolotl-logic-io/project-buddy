@@ -6,6 +6,7 @@ import { signedInChat } from "../test-database/chat-test-kit.ts";
 test("an owned conversation has one spell, and another user cannot read or change it", async () => {
   const { user, chat } = await signedInChat();
   const other = await testUser();
+  await setSpell(user.id, { chatId: chat.id, spell: undefined });
   expect(await currentSpell(user.id, chat)).toBeUndefined();
   expect(await setSpell(user.id, { chatId: chat.id, spell: "tasks" })).toBe(
     true,

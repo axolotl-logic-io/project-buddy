@@ -7,15 +7,15 @@ The signed-in pages below group related content under the site header's trail ba
 | Spellbook | All, Built-in, Yours filters | Search active built-in and own spells by name. Create spell opens a new private spell; each row opens View or Edit. Detail pages keep copying and retirement. Graveyard restores or deletes retired spells. |
 | Profile | Name and Experience on one page | The name form's draft and feedback stay visible. Experience shows the user's circle, title and points in each ability. |
 | Settings | Appearance and Security on one page | Appearance changes this browser's mode. Security has both sign-out actions; loading and error states also offer sign-out. Old Account URLs reach the corresponding content. |
-| Quest | Conversation with a tailored sidebar | Ordinary quests put the live Next task above direct Tasks, Ideas, Quick Notes and Progress tabs. Dailies puts Start Day and its available Undo above Tasks, Day grid, Quick Notes, Ideas and Progress. Spells & status and Members are disclosures below the collections. The shared shell docks on wide screens and opens as a modal phone drawer. Its heading and close control align with the trail band. Editors stay mounted across collection changes, disclosures and collapse. |
+| Quest | Overview and linked sections | Overview links to Tasks, Ideas, Quick Notes, Progress, Spells & status, and Members. Ordinary quests show Next task. Dailies shows Start Day, its available Undo, and Day grid. An active spell adds a conversation below the workspace. The Timer panel docks on wide screens and opens as a modal drawer on phones. |
 
 ## Navigation and drafts
 
-Local section tabs support keyboard navigation and keep forms mounted while hidden. Profile and Settings have no local tabs: their forms and feedback remain on the page. Switching sections elsewhere does not discard a typed draft or form feedback. The composer saves its draft for its conversation, so leaving a quest's conversation for another section and coming back keeps the unsent message.
+Local section tabs support keyboard navigation and keep forms mounted while hidden. Profile and Settings have no local tabs: their forms and feedback remain on the page. The spell composer keeps its draft for the active cast across quest sections.
 
-The `?section=tasks`, `?section=ideas`, `?section=progress`, `?section=notes`, `?section=members` and `?section=actions` links still open that collection or disclosure. Dailies also accepts `?section=days` for its Day grid. Unknown values fall back to the conversation. The sidebar defaults to Tasks when opened. These routes keep the acting user's access checks.
+The `?section=tasks`, `?section=ideas`, `?section=progress`, `?section=notes`, `?section=members` and `?section=spells` links open their corresponding sections. Dailies also accepts `?section=days` for its Day grid. Unknown section values fall back to Overview. Each section links back to Overview. These routes keep the acting user's access checks.
 
-`questConversation` selects DailiesPanel using the quest's persisted Dailies mark, never its editable name. DailiesPanel owns the day controls and recurring history; QuestPanel owns live next-task context and ongoing collections. ConversationPanel owns docking, the dialog, header controls and focus restoration. PanelCollections shares tab mounting and bucket metadata; the Control desk editors keep their own behavior. The chat runtime and its scroll controller stay outside these domain compositions.
+The workspace uses the quest's persisted Dailies mark to choose the overview controls. Each section calls authenticated Server Actions backed by the quest stores. The Timer shares setup and display components with the standalone Timer.
 
 ## Validation
 

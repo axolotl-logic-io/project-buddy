@@ -20,38 +20,16 @@ The user changes the quest's tasks herself, without the construct.
 
 ## use_case_tasks_panel
 
-The user keeps the tasks beside a conversation.
-
-- **Prerequisites:** [`use_case_send_message`](chats.md#use_case_send_message), in a conversation in one of their quests.
-- **Steps:**
-  - Tasks, Ideas, Progress and Quick Notes have direct collection tabs. Dailies also has Day grid. Spells & status and Members are disclosures below them. A panel icon opens or collapses the sidebar without discarding drafts. The sidebar sits flush with the right page edge on wide screens; phones start collapsed and open a modal drawer, which Escape closes.
-  - The user changes the tasks there, as on the Tasks section.
-- **Outcome:** each sidebar change sends its tasks command to the conversation, as if the user had typed it: adding a task sends `/add TEXT`, which puts it at the end of the Tasks. The conversation shows the command and the change, without a model request, and the sidebar shows feedback with Undo, which sends `/undo`. The construct reads the current Tasks on its next reply. The panel follows the construct's changes as they arrive. While the construct replies, the panel's controls wait for the reply to end. While their last message has no reply because its reply failed or stopped, they wait too and say why, so that Retry or "send again" still answers that message; the user can change the tasks on the quest's page meanwhile.
-- **Next:**
-  - `use_case_tasks_commands`: change it from the message box.
-
-## use_case_tasks_commands
-
-The user keeps the tasks with commands in the message box, without the construct.
-
-- **Prerequisites:** [`use_case_send_message`](chats.md#use_case_send_message), in a conversation in one of their quests.
-- **Steps:**
-  - The user types "/" in the message box. A list of the commands shows above it, each with how to write it and what it does; the user moves through it with the arrow keys and picks one with Tab, Enter or a click.
-  - The user sends a command, such as `/done`, `/add Paint the eyes`, `/move 4 1` or `/tasks`.
-- **Outcome:** the command runs at once, makes no model request. The conversation shows what the user typed and the Tasks change it made, while `/tasks` starts the Tasks spell for subsequent messages. `/undo` undoes their last tasks change in this conversation that has something left to undo, passing over one whose tasks were all changed or removed since. The message box empties. The construct reads each change on its next reply, as a note rather than a request. A task is named by its number, as the tasks shows it.
-- **Variations:**
-  - An unknown command, a missing task, text that's too long or a place out of range: nothing changes, the site says why under the message box, and their text stays there.
-  - While their last message awaits a reply, because one is running or it failed or stopped: a tasks command changes nothing and says why, so Retry and "send again" still answer that message.
-  - In a conversation with no quest, tasks commands say they need a quest. Any other message that starts with "/", such as "/shrug ok", goes to the construct as written, and typing "/" lists no tasks commands.
-- **Next:**
-  - `use_case_change_tasks`: see the whole tasks on the quest's page.
+- **Intent:** Change Tasks from the quest page.
+- **Steps:** Open Tasks from Overview, then add, edit, reorder or complete a task.
+- **Outcome:** The page saves the change directly and offers Undo. The same controls work while a spell is active or a reply is in progress.
 
 ## use_case_recurring_tasks
 
 The user marks a task in Dailies to do every day.
 
 - **Prerequisites:** [`use_case_dailies`](quests.md#use_case_dailies), with a task in its Tasks.
-- **Steps:** the user opens the step's menu and chooses Make recurring, which sends `/recur TASK`. Later, they can choose Make one-off, which sends `/once TASK`, to change it back.
+- **Steps:** the user opens the step's menu and chooses Make recurring. Later, they can choose Make one-off, to change it back.
 - **Outcome:** the task shows a repeat icon. The page says what changed, with Undo, as for any tasks change. Each Start Day reopens the task if it is done ([`use_case_start_day`](quests.md#use_case_start_day)), while a done one-off task stays done.
 - **Variations:**
   - Tasks in a quest not started as Dailies have no Make recurring.
@@ -65,7 +43,7 @@ The user sees how many days in a row they have done each recurring task.
 - **Prerequisites:** `use_case_recurring_tasks`, and days begun with [`use_case_start_day`](quests.md#use_case_start_day).
 - **Steps:**
   - The user looks at a recurring task in Tasks.
-  - The user opens Day grid from the Dailies sidebar's collection tabs.
+  - The user opens Day grid from Dailies Overview.
 - **Outcome:** each recurring task shows its streak chain under its text: one filled link for each day in a row, up to the current day, on which it was done, then the current day's link, dashed until the task is done. The chain ends at the next milestone: 3, 7, 14 or 30 days, then every 30 days. A line under the chain gives the streak and what checking the task off does next, such as “4-day streak. Check it off to make it 5.” The current day counts once the task is done, and an open task doesn't end the streak until the next Start Day. A day the task wasn't done ends the streak. So does a gap: a calendar date with no day started. Two days started on one date count as one date. The separate Day grid tab shows each recurring task's last seven dates: filled when done, empty when not, and dashed for a gap. Screen readers announce each date's weekday, date and mark.
 - **Variations:**
   - Before the first Start Day, the grid says that Start Day begins counting. With no recurring tasks, it says how to make one.

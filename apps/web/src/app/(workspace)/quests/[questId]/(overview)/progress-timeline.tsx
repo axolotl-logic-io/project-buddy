@@ -16,12 +16,12 @@ export function ProgressTimeline({
   }
   return (
     <ol aria-label={PROGRESS_TIMELINE_COPY.heading} className="divided-rows">
-      {milestones.map((milestone, index) => (
+      {milestones.map((milestone) => (
         <li key={milestone.id}>
           <p className="text-muted text-sm">
             <LocalTime dateTime={milestone.recordedAt} detail="day" />
           </p>
-          <MilestoneControls place={index + 1} text={milestone.text} />
+          <MilestoneControls id={milestone.id} text={milestone.text} />
         </li>
       ))}
     </ol>

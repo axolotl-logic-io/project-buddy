@@ -49,6 +49,7 @@ interface Chat {
   readonly id: ChatId;
   readonly spell?: SpellId | undefined;
   readonly activeSpell?: SpellSnapshot | undefined;
+  readonly spellStartedAt?: string | undefined;
   // The quest the chat is the conversation of.
   readonly quest: ChatQuest;
   // The construct as it was when the chat started.
@@ -124,6 +125,7 @@ function toChats(rows: readonly ChatRowWithQuest[]): Chat[] {
         id,
         spell: SPELL_ID.optional().parse(row.spell ?? undefined),
         activeSpell: SPELL_SNAPSHOT.safeParse(row.spellSnapshot).data,
+        spellStartedAt: row.spellStartedAt ?? undefined,
         quest,
         construct: toConstruct(row),
         createdAt: row.createdAt,

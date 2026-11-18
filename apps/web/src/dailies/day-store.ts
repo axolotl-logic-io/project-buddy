@@ -162,6 +162,7 @@ function startDay(
         id: nextId,
         spell: null,
         spellSnapshot: null,
+        spellStartedAt: null,
         continuing: false,
         createdAt: new Date(),
       });

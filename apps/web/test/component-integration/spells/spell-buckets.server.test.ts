@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, test, vi } from "vitest";
 import { getChat, listMessages } from "@/chats/store.ts";
+import { HTTP_STATUS } from "@/http-status.ts";
 import { listIdeas } from "@/ideas/idea-store.ts";
 import { MESSAGE_ID } from "@/ids.ts";
 import { getSpell } from "@/spells/spell.ts";
@@ -10,6 +11,7 @@ import { readTasks } from "@/tasks/tasks-store.ts";
 import {
   constructReply,
   question,
+  sendChatMessage,
   signedInChat,
 } from "../test-database/chat-test-kit.ts";
 
@@ -18,7 +20,7 @@ afterEach(() => vi.unstubAllEnvs());
 describe("use_case_spell_buckets", () => {
   test("commands cast the persistent spell and route subsequent messages until stopped", async () => {
     const { user, chat } = await signedInChat();
-    await constructReply(chat.id, "cast Brainstorm");
+    await constructReply(chat.id, "/cast Brainstorm");
     expect(await currentSpell(user.id, chat)).toBe("brainstorm");
     await constructReply(chat.id, "Make a clay fox");
     expect(
@@ -33,7 +35,10 @@ describe("use_case_spell_buckets", () => {
     ]);
     await constructReply(chat.id, "/stop");
     expect(await currentSpell(user.id, chat)).toBeUndefined();
-    await constructReply(chat.id, "This stays in the conversation");
+    expect(await sendChatMessage(chat.id, "Stopped spell")).toMatchObject({
+      status: HTTP_STATUS.forbidden,
+      body: "spell-required",
+    });
     expect(await listIdeas(user.id, chat.quest.id)).toHaveLength(1);
     expect((await readTasks(user.id, chat.quest.id))?.items).toHaveLength(1);
   });
@@ -78,9 +83,9 @@ describe("use_case_spell_buckets", () => {
 test("removed spells and cast stop never change the active spell", async () => {
   const { user, chat } = await signedInChat();
   await constructReply(chat.id, "/brainstorm");
-  await constructReply(chat.id, "cast ask-one-question");
+  await constructReply(chat.id, "/cast ask-one-question");
   expect(await currentSpell(user.id, chat)).toBe("brainstorm");
-  await constructReply(chat.id, "cast stop");
+  await constructReply(chat.id, "/cast stop");
   expect(await currentSpell(user.id, chat)).toBe("brainstorm");
   expect(await listIdeas(user.id, chat.quest.id)).toEqual([]);
 });

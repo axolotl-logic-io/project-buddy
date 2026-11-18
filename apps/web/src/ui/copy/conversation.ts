@@ -1,7 +1,4 @@
-// A quest's conversation on its page: the quest's next task above it, the
-// Start action for a quest whose conversation hasn't started yet, and the
-// Dailies quest's Start Day.
-
+// Dailies day controls and the elapsed time since the newest day began.
 const HOUR_MS = 3_600_000;
 
 const HOURS_PER_DAY = 24;
@@ -30,14 +27,10 @@ function lastDayStarted(milliseconds: number): string {
 }
 
 export const QUEST_CONVERSATION_COPY = {
-  notStarted:
-    "This quest’s conversation hasn’t started yet. Start it to hear from its construct.",
-  start: "Start the conversation",
-  starting: "Starting…",
   startDay: "Start Day",
   cancel: "Cancel",
   confirmStartDay:
-    "Start a new day? The conversation starts empty, its active spell ends, and done recurring tasks reopen. You can undo this until someone sends a message.",
+    "Start a new day? This ends any active spell and reopens done recurring tasks. You can undo this until you send a message in the new day.",
   clearTasks: "Remove all tasks",
   keepTasks:
     "By default, tasks are kept: done recurring tasks reopen, and one-off tasks stay as they are.",
@@ -45,5 +38,5 @@ export const QUEST_CONVERSATION_COPY = {
   lastDayStarted,
   noDayYet: "No day started yet",
   undoStartDay: "Undo Start Day",
-  undoNote: "Undo brings back the conversation, tasks and Ideas from before.",
+  undoNote: "Undo restores the previous day’s Tasks, Ideas and spell.",
 } as const;
