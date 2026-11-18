@@ -11,6 +11,7 @@ import { TimerSetup } from "@/components/timer/timer-setup.tsx";
 import { TimerTrailTools } from "@/components/timer/timer-trail-tools.tsx";
 import type { TimerSchedule } from "@/timer/schedule.ts";
 import { TIMER_COPY } from "@/ui/copy/timer.ts";
+import { animationsSettled } from "../animations-test-kit.ts";
 
 const MS_PER_MINUTE = 60_000;
 
@@ -69,9 +70,7 @@ async function openTimerPreferences(): Promise<void> {
   const dialog = page
     .getByRole("dialog", { name: TIMER_COPY.preferences })
     .element();
-  await Promise.all(
-    dialog.getAnimations().map((animation) => animation.finished),
-  );
+  await animationsSettled(dialog, "The timer's preferences");
 }
 
 // Sets the clock to nowMs and brings the tab back into view, as when a
