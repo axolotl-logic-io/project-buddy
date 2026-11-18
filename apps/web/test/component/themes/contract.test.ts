@@ -1,162 +1,76 @@
-// The token contract holds for every theme: each registered theme is
-// imported and sets every token contract.css reads, and each mode shows
-// every colour token's value for that mode. The contract and the themes are
-// read from the CSS itself.
+// The token contract's shape, read from the CSS itself: themes.css loads
+// every stylesheet in src/themes and each registered theme into the themes
+// layer, and the contract's utilities read tokens rather than spelling out
+// colours. The values each theme gives each appearance are checked in the
+// browser, through the real cascade, by theme-tokens.browser.test.tsx, so
+// neither file depends on how a theme lays out its CSS.
 
 import { describe, expect, test } from "vitest";
 import { THEME_IDS } from "@/themes/themes.ts";
 import {
-  COLOR_TOKENS,
-  contractReads,
-  contractTokens,
-  MODE_TOKENS,
-  modeColorMappings,
+  colorUtilities,
+  loadedStylesheets,
+  namedFor,
   THEME_STYLESHEET_NAMES,
   themeImports,
-  themeTokens,
+  themeSetTokens,
 } from "../../support/themes/theme-stylesheets.ts";
 
 // The layer themes.css imports each theme into.
 const THEMES_LAYER = "themes";
 
-// The tokens a theme must set: every one contract.css reads but doesn't set.
-const THEME_SET_TOKENS: readonly string[] = [...contractReads()].filter(
-  (token) => !contractTokens().has(token),
-);
+// A utility's value that reads one token, such as "var(--surface)".
+const TOKEN_READ = /^var\(--[\w-]+\)$/u;
 
-// The heading sizes a theme sets, from the largest role to the smallest:
-// the site's title, a page's heading and a section's heading. The site's
-// title has a second size for wide screens.
-const HEADING_SIZE_TOKENS = [
-  "site-title-size",
-  "page-heading-size",
-  "section-heading-size",
-] as const;
-const WIDE_SITE_TITLE_TOKEN = "site-title-wide-size";
-// A page's heading has a smaller size for phones, below sm.
-const PHONE_PAGE_HEADING_TOKEN = "page-heading-phone-size";
-
-// A page's heading stands clearly above a section's heading: at least this
-// many times its size.
-const PAGE_OVER_SECTION_HEADING = 1.2;
-
-// The titles that aren't a page's headings: the site's name in the header,
-// smaller than a page's heading, and a card's title, such as a quest's
-// name in the list, smaller than a section's heading.
-const HEADER_TITLE_TOKEN = "header-title-size";
-const CARD_TITLE_TOKEN = "card-title-size";
-
-// Body text's size, in rem: every heading is larger.
-const BODY_TEXT_REM = 1;
-
-// A size such as "1.25rem", in rem; NaN if it isn't one.
-const REM_SIZE = /^(?<rem>\d+(?:\.\d+)?)rem$/u;
-
-function remSize(value: string | undefined): number {
-  const { rem = "" } = REM_SIZE.exec(value ?? "")?.groups ?? {};
-  return Number.parseFloat(rem);
-}
-
-const MODE_RULES = modeColorMappings();
+const THEME_SET_TOKENS = themeSetTokens();
 
 describe("themes.css", () => {
-  test("imports every other stylesheet in src/themes", () => {
-    expect(new Set(themeImports().keys())).toEqual(
-      new Set(THEME_STYLESHEET_NAMES.filter((name) => name !== "themes")),
-    );
+  test("loads every stylesheet in src/themes", () => {
+    const loaded = loadedStylesheets();
+    expect(
+      THEME_STYLESHEET_NAMES.filter((name) => !loaded.has(name)),
+      "stylesheets in src/themes that themes.css never imports, directly or through another stylesheet",
+    ).toEqual([]);
   });
 
-  test("imports exactly the registered themes into the themes layer", () => {
+  test("imports each registered theme, and only those, into the themes layer", () => {
     const themeLayerImports = [...themeImports()]
       .filter(([, layer]) => layer === THEMES_LAYER)
       .map(([name]) => name);
-    expect(new Set(themeLayerImports)).toEqual(new Set(THEME_IDS));
+    for (const themeId of THEME_IDS) {
+      expect(
+        themeLayerImports.filter((name) => namedFor(themeId, name)),
+        `themes.css imports a stylesheet named for ${themeId} into layer(${THEMES_LAYER})`,
+      ).not.toEqual([]);
+    }
+    expect(
+      themeLayerImports.filter(
+        (name) => !THEME_IDS.some((themeId) => namedFor(themeId, name)),
+      ),
+      "stylesheets in the themes layer that no registered theme is named for (register the theme in src/themes/themes.ts)",
+    ).toEqual([]);
   });
 });
 
 describe("contract.css", () => {
   test("reads tokens that the themes set, including the spacing unit and heading sizes", () => {
-    expect(THEME_SET_TOKENS).toContain("space-unit");
     expect(THEME_SET_TOKENS).toEqual(
       expect.arrayContaining([
-        ...HEADING_SIZE_TOKENS,
-        WIDE_SITE_TITLE_TOKEN,
-        PHONE_PAGE_HEADING_TOKEN,
-        HEADER_TITLE_TOKEN,
-        CARD_TITLE_TOKEN,
+        "space-unit",
+        "control-radius",
+        "site-title-size",
+        "page-heading-size",
+        "section-heading-size",
       ]),
     );
-    expect(THEME_SET_TOKENS).toContain("control-radius");
-    expect(THEME_SET_TOKENS).toContain("light-background");
   });
 
-  test.each(MODE_RULES)(
-    "under $mode, maps every palette and decoration token",
-    ({ mappings, mode }) => {
-      expect(Object.fromEntries(mappings)).toEqual(
-        Object.fromEntries(
-          MODE_TOKENS.map((token) => [token, `var(--${mode}-${token})`]),
-        ),
-      );
-    },
-  );
-
-  test("gives every colour utility a colour token", () => {
-    const utilityColors = [...contractTokens()]
-      .filter(([name]) => name.startsWith("color-"))
-      .map(([, value]) => value);
-    expect(utilityColors.length).toBeGreaterThan(0);
-    for (const value of utilityColors) {
-      expect(COLOR_TOKENS.map((token) => `var(--${token})`)).toContain(value);
-    }
-  });
-});
-
-describe.each(THEME_IDS)("the %s theme", (themeId) => {
-  test("sets every token contract.css reads", () => {
-    const tokens = themeTokens(themeId);
-    expect(THEME_SET_TOKENS.filter((token) => !tokens.has(token))).toEqual([]);
-  });
-
-  test("sizes its headings from the site's title down, all above body text", () => {
-    const tokens = themeTokens(themeId);
-    const sizes = [
-      ...HEADING_SIZE_TOKENS.map((token) => remSize(tokens.get(token))),
-      BODY_TEXT_REM,
-    ];
-    const larger = sizes.slice(0, -1);
-    for (const [index, size] of sizes.slice(1).entries()) {
-      expect(larger[index], sizes.join(" > ")).toBeGreaterThan(size);
-    }
-    expect(remSize(tokens.get(WIDE_SITE_TITLE_TOKEN))).toBeGreaterThanOrEqual(
-      remSize(tokens.get("site-title-size")),
-    );
-  });
-
-  test("sets a page's heading clearly larger than a section's", () => {
-    const tokens = themeTokens(themeId);
+  test("gives every colour utility a token rather than a colour of its own", () => {
+    const utilities = [...colorUtilities()];
+    expect(utilities.length).toBeGreaterThan(0);
     expect(
-      remSize(tokens.get("page-heading-size")) /
-        remSize(tokens.get("section-heading-size")),
-    ).toBeGreaterThanOrEqual(PAGE_OVER_SECTION_HEADING);
-  });
-
-  test("sets a page's heading on a phone no larger, and still clearly above a section's", () => {
-    const tokens = themeTokens(themeId);
-    const phone = remSize(tokens.get(PHONE_PAGE_HEADING_TOKEN));
-    expect(phone).toBeLessThanOrEqual(remSize(tokens.get("page-heading-size")));
-    expect(
-      phone / remSize(tokens.get("section-heading-size")),
-    ).toBeGreaterThanOrEqual(PAGE_OVER_SECTION_HEADING);
-  });
-
-  test("sets the header's title below a page's heading, and a card's below a section's", () => {
-    const tokens = themeTokens(themeId);
-    const headerTitle = remSize(tokens.get(HEADER_TITLE_TOKEN));
-    const cardTitle = remSize(tokens.get(CARD_TITLE_TOKEN));
-    expect(headerTitle).toBeLessThan(remSize(tokens.get("page-heading-size")));
-    expect(headerTitle).toBeGreaterThan(BODY_TEXT_REM);
-    expect(cardTitle).toBeLessThan(remSize(tokens.get("section-heading-size")));
-    expect(cardTitle).toBeGreaterThanOrEqual(BODY_TEXT_REM);
+      utilities.filter(([, value]) => !TOKEN_READ.test(value)),
+      "colour utilities that don't read a single token with var(--token)",
+    ).toEqual([]);
   });
 });
