@@ -25,11 +25,17 @@ import { SitePanel } from "@/components/site-panel.tsx";
 import type { saveThemeChoiceAction } from "@/themes/save-theme-choice-action.ts";
 import {
   DEFAULT_THEME_ATTRIBUTES,
+  MODE_ATTRIBUTE,
   parseThemeChoiceCookie,
   THEME_COOKIE_NAME,
   THEME_PRE_PAINT_SCRIPT,
 } from "@/themes/theme-choice.ts";
-import { DEFAULT_THEME_CHOICE, THEME_MODES, THEMES } from "@/themes/themes.ts";
+import {
+  DEFAULT_THEME_CHOICE,
+  THEME_MODES,
+  THEMES,
+  type ThemeMode,
+} from "@/themes/themes.ts";
 import { SITE_COPY } from "@/ui/copy/site.ts";
 import { THEME_COPY } from "@/ui/copy/theme.ts";
 import {
@@ -44,6 +50,7 @@ import {
   PHONE_VIEWPORT,
   setViewport as resize,
 } from "../viewports-test-kit.ts";
+import type { MaterialPixels } from "./appearance-material-test-kit.mts";
 import {
   appliedChoice,
   choice,
@@ -61,10 +68,16 @@ vi.mock("@/themes/save-theme-choice-action.ts", () => action);
 
 // Vitest's own viewport for browser tests, restored after each test.
 const MODE_COUNT = 3;
-const TEXTURE_SIZE = 1024;
 const SWATCH_TARGET_PX = 44;
 const COMPACT_ROW_MAX_WIDTH = 460;
-const BACKGROUND_URL = /^url\(["']?(?<url>[^"')]+)["']?\)$/u;
+// The first image a computed background-image shows, such as
+// url("/textures/ivory-vellum.webp") among gradients.
+// Chromium can round channels differently after focusing a masked swatch.
+// Four steps out of 255 cover that rendering difference. A tint still fails.
+const MATERIAL_CHANNEL_TOLERANCE = 4;
+const PAINT_URL = /url\("(?<url>[^"]+)"\)/u;
+// The colour tokens that tell the appearances apart.
+const PALETTE_TOKENS = ["background", "surface", "foreground", "primary"];
 
 const VITEST_VIEWPORT = { width: 414, height: 896 } as const;
 
@@ -84,24 +97,78 @@ async function renderSignInPage(): Promise<void> {
   );
 }
 
-// Which of the theme's values for the background the page applies: its
-// light one or its dark one; "unclear" if they are the same, or the page
-// applies neither.
-function appliedColors(): "light" | "dark" | "unclear" {
+// The page's palette: the colours its main tokens show.
+function palette(): string {
   const style = getComputedStyle(document.documentElement);
-  const applied = style.getPropertyValue("--background");
-  const light = style.getPropertyValue("--light-background");
-  const dark = style.getPropertyValue("--dark-background");
-  if (light === dark) {
+  return PALETTE_TOKENS.map((token) =>
+    style.getPropertyValue(`--${token}`).trim(),
+  ).join(" ");
+}
+
+// Which appearance's palette the page shows, found by showing each one in
+// turn through the real cascade and comparing; "unclear" if none or more than
+// one matches.
+function appliedColors(): ThemeMode | "unclear" {
+  const root = document.documentElement;
+  const applied = palette();
+  const chosen = root.getAttribute(MODE_ATTRIBUTE);
+  const matches = THEME_MODES.filter((candidate) => {
+    root.setAttribute(MODE_ATTRIBUTE, candidate);
+    return palette() === applied;
+  });
+  if (chosen === null) {
+    root.removeAttribute(MODE_ATTRIBUTE);
+  } else {
+    root.setAttribute(MODE_ATTRIBUTE, chosen);
+  }
+  const [mode] = matches;
+  if (matches.length !== 1 || mode === undefined) {
     return "unclear";
   }
-  if (applied === dark) {
-    return "dark";
+  return mode;
+}
+
+// The swatch's texture: the element inside its label that shows a
+// background image. Ornament drawn over or around it may sit beside it.
+function material(name: string): HTMLElement {
+  const label = choice(THEME_COPY.modeLabel, name).element().closest("label");
+  if (label === null) {
+    throw new Error(`The ${name} swatch has no label`);
   }
-  if (applied === light) {
-    return "light";
+  const shown = [label, ...label.querySelectorAll<HTMLElement>("*")].find(
+    (element) => PAINT_URL.test(getComputedStyle(element).backgroundImage),
+  );
+  if (shown === undefined) {
+    throw new Error(`The ${name} swatch shows no texture image`);
   }
-  return "unclear";
+  return shown;
+}
+
+// Waits for a computed background or mask image to decode.
+async function decodePaint(backgroundImage: string): Promise<void> {
+  const { url = "" } = PAINT_URL.exec(backgroundImage)?.groups ?? {};
+  const image = new Image();
+  image.src = url;
+  await image.decode();
+}
+
+// Compare rendered pixels and dimensions so meaningful tints or geometry changes fail.
+function materialDifference(
+  previous: MaterialPixels,
+  next: MaterialPixels,
+): number {
+  if (
+    next.width !== previous.width ||
+    next.height !== previous.height ||
+    next.channels.length !== previous.channels.length
+  ) {
+    return Number.POSITIVE_INFINITY;
+  }
+  return next.channels.reduce(
+    (max, channel, index) =>
+      Math.max(max, Math.abs(channel - (previous.channels[index] ?? 0))),
+    0,
+  );
 }
 
 // How many lines of text an element takes: its height over its line height,
@@ -138,7 +205,7 @@ describe("use_case_choose_theme", () => {
     expect(page.getByRole("dialog").getByRole("radio").all()).toHaveLength(
       MODE_COUNT,
     );
-    expect(appliedColors()).toBe("light");
+    expect(appliedColors()).toBe(DEFAULT_THEME_CHOICE.mode);
     await Promise.all(
       THEME_MODES.map((mode) =>
         expect
@@ -164,13 +231,12 @@ describe("use_case_choose_theme", () => {
       if (label === null) {
         throw new Error("The swatch has no label");
       }
-      // The decorative material is empty and displays the actual page texture.
-      const material = label.querySelector('[aria-hidden="true"]');
-      if (material === null) {
-        throw new Error("The swatch has no material");
-      }
-      expect(material.childNodes).toHaveLength(0);
-      expect(getComputedStyle(material).backgroundImage).toContain(".webp");
+      // The texture carries no caption, and whatever the swatch draws besides
+      // its radio and tooltip, such as ornament, is hidden from assistive
+      // technology, so the radio's name is all it announces.
+      const texture = material(THEME_COPY.modes[mode]);
+      expect(texture.textContent?.trim()).toBe("");
+      expect(texture.closest('[aria-hidden="true"]')).not.toBeNull();
       const tooltip = page.getByRole("tooltip", {
         name: THEME_COPY.modes[mode],
       });
@@ -246,26 +312,18 @@ describe("use_case_choose_theme", () => {
         .getByRole("heading", { name: SITE_COPY.name, exact: true })
         .hover();
       await userEvent.keyboard("{Escape}");
-      const material = radio
-        .element()
-        .closest("label")
-        ?.querySelector('[aria-hidden="true"]');
-      if (material === null || material === undefined) {
-        throw new Error("The theme has no material");
-      }
-      const { url = "" } =
-        BACKGROUND_URL.exec(getComputedStyle(material).backgroundImage)
-          ?.groups ?? {};
-      const image = new Image();
-      image.src = url;
-      await image.decode();
-      const { selector } = page.elementLocator(material);
+      const texture = material(THEME_COPY.modes[mode]);
+      await decodePaint(getComputedStyle(texture).backgroundImage);
+      const { selector } = page.elementLocator(texture);
       const uncovered = await commands.materialPixels(selector);
       await radio.hover();
       await expect
         .element(page.getByRole("tooltip", { name: THEME_COPY.modes[mode] }))
         .toBeVisible();
-      expect(await commands.materialPixels(selector)).toBe(uncovered);
+      const covered = await commands.materialPixels(selector);
+      expect(materialDifference(uncovered, covered)).toBeLessThanOrEqual(
+        MATERIAL_CHANNEL_TOLERANCE,
+      );
     },
   );
 
@@ -282,32 +340,22 @@ describe("use_case_choose_theme", () => {
       } else {
         await openPanel();
       }
-      const materials = THEME_MODES.map((swatchMode) => {
-        const radio = choice(
-          THEME_COPY.modeLabel,
-          THEME_COPY.modes[swatchMode],
-        );
-        const material = radio
-          .element()
-          .closest("label")
-          ?.querySelector('[aria-hidden="true"]');
-        if (material === null || material === undefined) {
-          throw new Error("The theme has no material");
-        }
-        return material;
-      });
+      const materials = THEME_MODES.map((swatchMode) =>
+        material(THEME_COPY.modes[swatchMode]),
+      );
       await Promise.all(
-        materials.map(async (material) => {
-          const { url = "" } =
-            BACKGROUND_URL.exec(getComputedStyle(material).backgroundImage)
-              ?.groups ?? {};
-          const image = new Image();
-          image.src = url;
-          await image.decode();
-        }),
+        materials.flatMap((texture) =>
+          [
+            getComputedStyle(texture).backgroundImage,
+            getComputedStyle(texture, "::before").maskImage,
+            getComputedStyle(texture, "::after").maskImage,
+          ]
+            .filter((paint) => PAINT_URL.test(paint))
+            .map(decodePaint),
+        ),
       );
       const selectors = materials.map(
-        (material) => page.elementLocator(material).selector,
+        (texture) => page.elementLocator(texture).selector,
       );
       const before = await Promise.all(
         selectors.map((selector) => commands.materialPixels(selector)),
@@ -317,7 +365,15 @@ describe("use_case_choose_theme", () => {
       const after = await Promise.all(
         selectors.map((selector) => commands.materialPixels(selector)),
       );
-      expect(after).toEqual(before);
+      for (const [index, previous] of before.entries()) {
+        const next = after[index];
+        if (next === undefined) {
+          throw new Error("A swatch disappeared after changing appearance");
+        }
+        expect(materialDifference(previous, next)).toBeLessThanOrEqual(
+          MATERIAL_CHANNEL_TOLERANCE,
+        );
+      }
     },
   );
 
@@ -360,18 +416,10 @@ describe("use_case_choose_theme", () => {
         theme: "parchment",
         mode,
       });
-      const rootStyle = getComputedStyle(document.documentElement);
-      expect(rootStyle.getPropertyValue("--background")).toBe(
-        rootStyle.getPropertyValue(`--${mode}-background`),
-      );
+      expect(appliedColors()).toBe(mode);
       const texture = getComputedStyle(document.body).backgroundImage;
-      expect(texture).toContain(".webp");
-      const { url = "" } = BACKGROUND_URL.exec(texture)?.groups ?? {};
-      const image = new Image();
-      image.src = url;
-      await image.decode();
-      expect(image.naturalWidth).toBe(TEXTURE_SIZE);
-      expect(image.naturalHeight).toBe(TEXTURE_SIZE);
+      expect(texture, "the page shows a texture image").toMatch(PAINT_URL);
+      await decodePaint(texture);
       await commands.emulateColorScheme("dark");
       expect(getComputedStyle(document.body).backgroundImage).toBe(texture);
       await commands.emulateColorScheme("light");

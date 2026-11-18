@@ -34,8 +34,14 @@ const FONT_SRC = /src: "(?<path>\.\/fonts\/[\w-]+\/[\w.-]+\.woff2)"/gu;
 const FONT_FILES = new Set(
   Object.keys(import.meta.glob("./fonts/*/*.woff2", { base: "/src/themes" })),
 );
-const LICENCES = new Set(
-  Object.keys(import.meta.glob("./fonts/*/OFL.txt", { base: "/src/themes" })),
+// The folders that hold a licence: the SIL Open Font License (OFL.txt), or
+// another licence's text, such as Apache's LICENSE.txt.
+const LICENCE_FOLDERS = new Set(
+  Object.keys(
+    import.meta.glob(["./fonts/*/OFL.txt", "./fonts/*/LICEN[CS]E*"], {
+      base: "/src/themes",
+    }),
+  ).map((path) => path.slice(0, path.lastIndexOf("/"))),
 );
 
 // The typeface variable a font's options set, or "" if none.
@@ -93,6 +99,6 @@ test("every font is self-hosted with its licence beside it", () => {
 
   const directories = paths.map((path) => path.slice(0, path.lastIndexOf("/")));
   expect(
-    directories.filter((directory) => !LICENCES.has(`${directory}/OFL.txt`)),
+    directories.filter((directory) => !LICENCE_FOLDERS.has(directory)),
   ).toEqual([]);
 });

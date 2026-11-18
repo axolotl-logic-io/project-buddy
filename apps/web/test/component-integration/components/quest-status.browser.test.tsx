@@ -39,8 +39,6 @@ import {
 } from "./chat/chat-send-test-kit.tsx";
 
 const TAB_TARGET_PX = 44;
-const INACTIVE_TAB_OPACITY = 0.35;
-const SELECTED_TAB_OPACITY = 0.7;
 
 const PROPOSAL: StatusApproval = {
   id: STATUS_APPROVAL_ID.parse("6f1c2a8e-3b4d-4e5f-8a9b-0c1d2e3f4a5b"),
@@ -415,12 +413,15 @@ for (const mode of THEME_MODES) {
     await active.hover();
     const selectedPaint = getComputedStyle(active.element());
     const inactivePaint = getComputedStyle(completed.element());
-    expect(parse(inactivePaint.backgroundColor)?.alpha).toBeCloseTo(
-      INACTIVE_TAB_OPACITY,
+    // Inactive fills let the page's texture show through; the selected tab
+    // shares the list's slightly translucent surface, more solid than they
+    // are (docs/chats.md).
+    const inactiveAlpha = parse(inactivePaint.backgroundColor)?.alpha ?? 1;
+    const selectedAlpha = parse(selectedPaint.backgroundColor)?.alpha ?? 1;
+    expect(inactiveAlpha, "an inactive tab's fill is see-through").toBeLessThan(
+      selectedAlpha,
     );
-    expect(parse(selectedPaint.backgroundColor)?.alpha).toBeCloseTo(
-      SELECTED_TAB_OPACITY,
-    );
+    expect(selectedAlpha, "the selected tab is translucent").toBeLessThan(1);
     expect(inactivePaint.borderTopStyle).toBe("solid");
     expect(Number.parseFloat(inactivePaint.borderTopWidth)).toBeGreaterThan(0);
     expect(

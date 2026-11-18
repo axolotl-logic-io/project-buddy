@@ -93,6 +93,9 @@ function TimerSetup({
           {MINUTE_OPTIONS}
         </SelectField>
       </div>
+      <div className="ornamented-divider" aria-hidden="true">
+        <span className="ornament" data-ornament="divider" />
+      </div>
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="flex flex-col gap-2">
           <Button aria-describedby={startHintId} onClick={start}>

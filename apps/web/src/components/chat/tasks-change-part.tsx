@@ -71,7 +71,7 @@ function TasksChangeCard({
     title = TASKS_CHANGE_COPY.undid;
   }
   return (
-    <aside aria-label={TASKS_CHANGE_COPY.label} className="tasks-change">
+    <article aria-label={TASKS_CHANGE_COPY.label} className="tasks-change">
       <p className="tasks-change-heading">
         <span className="icon-line font-medium">
           <Icon name="checklist" />
@@ -102,7 +102,7 @@ function TasksChangeCard({
       {byPerson === true && (
         <p className="text-muted text-xs">{TASKS_CHANGE_COPY.noModel}</p>
       )}
-    </aside>
+    </article>
   );
 }
 

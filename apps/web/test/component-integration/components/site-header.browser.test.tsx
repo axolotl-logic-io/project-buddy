@@ -48,6 +48,8 @@ import { SITE_COPY, SITE_PANEL_COPY } from "@/ui/copy/site.ts";
 import { SPELLBOOK_COPY } from "@/ui/copy/spells.ts";
 import { THEME_COPY } from "@/ui/copy/theme.ts";
 import { TIMER_COPY } from "@/ui/copy/timer.ts";
+import { animationsSettled } from "../../support/animations-test-kit.ts";
+import { filledFraction } from "../../support/progress-arc-test-kit.ts";
 import { SIGNED_IN_USER, signInAs } from "../auth/current-user-test-kit.ts";
 import { MABEL_EXPERIENCE } from "../experience/experience-store-test-kit.ts";
 import {
@@ -278,15 +280,6 @@ test.each(SCREENS)(
   },
 );
 
-// How much of the ring is left unfilled: the arc's dash offset over its
-// length.
-function unfilledFraction(arc: Element): number {
-  return (
-    Number(arc.getAttribute("stroke-dashoffset")) /
-    Number(arc.getAttribute("stroke-dasharray"))
-  );
-}
-
 describe("use_case_experience_ring", () => {
   test.each(SCREENS)(
     "the ring of the user's circle fills toward the next one, at the bar's right end, on $name",
@@ -307,11 +300,9 @@ describe("use_case_experience_ring", () => {
       });
       await expect.element(ring).toHaveAttribute("href", "/profile#experience");
       await expect.element(ring).toHaveTextContent(String(circle));
-      const arc = ring.element().querySelector(".circle-progress-arc");
-      if (arc === null) {
-        throw new Error("The ring has no arc");
-      }
-      expect(unfilledFraction(arc)).toBeCloseTo(
+      expect(
+        1 - filledFraction(ring.element(), "The header's ring"),
+      ).toBeCloseTo(
         (nextCircleStart - experience) / (nextCircleStart - circleStart),
       );
       const ringBox = ring.element().getBoundingClientRect();
@@ -676,12 +667,7 @@ describe("the trail band", () => {
     panelButton().element().focus({ preventScroll: true });
     await userEvent.keyboard("{Enter}");
     await expect.element(sitePanel()).toBeVisible();
-    await Promise.all(
-      sitePanel()
-        .element()
-        .getAnimations()
-        .map((animation) => animation.finished),
-    );
+    await animationsSettled(sitePanel().element(), "The site panel");
     const closeBounds = closeButton().element().getBoundingClientRect();
     expect([closeBounds.left, closeBounds.top]).toEqual([
       expandBounds.left,

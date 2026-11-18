@@ -108,26 +108,17 @@ const START_ICONS: Readonly<
   do: "flag",
 };
 
-// What a tile shows: its icon, the starting point's name, which names the
-// tile, and its one-line tagline, which describes it.
+// The visible name and tagline also name the choice for assistive technology.
 function QuestStartTileFace({
   quest,
-  nameId,
-  taglineId,
 }: {
   readonly quest: PremadeQuest;
-  readonly nameId: string;
-  readonly taglineId: string;
 }): JSX.Element {
   return (
     <>
       <Icon className="text-primary" name={START_ICONS[quest.id]} />
-      <span className="card-title" id={nameId}>
-        {quest.name}
-      </span>
-      <span className="text-muted text-sm" id={taglineId}>
-        {quest.tagline}
-      </span>
+      <span className="card-title">{quest.name}</span>
+      <span className="text-muted text-sm">{quest.tagline}</span>
     </>
   );
 }
@@ -148,23 +139,14 @@ function QuestStartTile({
   readonly presentation: "dialog" | "inline";
 }): JSX.Element {
   const { id } = quest;
-  const nameId = useId();
-  const taglineId = useId();
   const choose = useCallback((): void => {
     onChoose(id);
   }, [onChoose, id]);
-  const face = (
-    <QuestStartTileFace quest={quest} nameId={nameId} taglineId={taglineId} />
-  );
+  const face = <QuestStartTileFace quest={quest} />;
   if (id === "dailies" && dailiesId !== undefined) {
     return (
       <li>
-        <Link
-          aria-describedby={taglineId}
-          aria-labelledby={nameId}
-          className="quest-start-tile"
-          href={`/quests/${dailiesId}`}
-        >
+        <Link className="quest-start-tile" href={`/quests/${dailiesId}`}>
           {face}
         </Link>
       </li>
@@ -177,12 +159,7 @@ function QuestStartTile({
           title={quest.name}
           closeLabel={QUEST_START_COPY.close}
           trigger={
-            <button
-              aria-describedby={taglineId}
-              aria-labelledby={nameId}
-              className="quest-start-tile"
-              type="button"
-            >
+            <button className="quest-start-tile" type="button">
               {face}
             </button>
           }
@@ -194,13 +171,7 @@ function QuestStartTile({
   }
   return (
     <li>
-      <button
-        aria-describedby={taglineId}
-        aria-labelledby={nameId}
-        className="quest-start-tile"
-        onClick={choose}
-        type="button"
-      >
+      <button className="quest-start-tile" onClick={choose} type="button">
         {face}
       </button>
     </li>

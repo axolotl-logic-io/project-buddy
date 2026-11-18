@@ -18,11 +18,11 @@ export const metadata: Metadata = { title: SETTINGS_COPY.title };
 export default async function SettingsPage(): Promise<JSX.Element> {
   await requireUser();
   return (
-    <div className="workspace-content flex flex-col gap-4">
+    <div className="page-column gap-4">
       <section
         id={APPEARANCE_ID}
         aria-labelledby={APPEARANCE_HEADING_ID}
-        className="panel"
+        className="panel flex flex-col gap-3"
       >
         <h2 id={APPEARANCE_HEADING_ID} className="section-heading">
           {WORKSPACES_COPY.appearance}

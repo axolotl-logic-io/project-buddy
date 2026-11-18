@@ -55,6 +55,7 @@ function ConversationPanel({
   const panelId = useId();
   const dialogRef = useRef<HTMLDialogElement>(null);
   const toggleRef = useRef<HTMLButtonElement>(null);
+  const headingRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const dialog = dialogRef.current;
     if (dialog === null) {
@@ -80,8 +81,7 @@ function ConversationPanel({
         dialog.scrollTop +=
           entry.getBoundingClientRect().top -
           dialog.getBoundingClientRect().top -
-          (dialog.querySelector(".quest-panel-heading")?.getBoundingClientRect()
-            .height ?? 0);
+          (headingRef.current?.getBoundingClientRect().height ?? 0);
       }
     }
   }, [open, wide, initialSection]);
@@ -117,7 +117,7 @@ function ConversationPanel({
     expandControl = createPortal(expandButton, headerControl);
   }
   return (
-    <div className="adventure-layout" data-sidebar-open={open}>
+    <div className="adventure-layout" data-sidebar-open={expanded ?? "auto"}>
       <div className="adventure-main">{children}</div>
       {expandControl}
       <dialog
@@ -128,7 +128,7 @@ function ConversationPanel({
         aria-label={QUEST_SIDEBAR_COPY.label}
       >
         <aside className="quest-sidebar" aria-label={QUEST_SIDEBAR_COPY.label}>
-          <div className="quest-panel-heading">
+          <div className="quest-panel-heading" ref={headingRef}>
             <h2 className="font-heading text-lg">{title}</h2>
             <Button
               variant="quiet"
