@@ -15,6 +15,8 @@ import {
   type NoteResult,
 } from "@/notes/note.ts";
 import { listNoteQuestsAction, saveNoteAction } from "@/notes/note-actions.ts";
+import { PANEL_COMMANDS_COPY } from "@/ui/copy/commands.ts";
+import { QUEST_NOTES_COPY, QUICK_NOTE_COPY } from "@/ui/copy/notes.ts";
 import { QUEST_SHARING_COPY } from "@/ui/copy/quest-members.ts";
 import { FOX_QUEST } from "../app/(workspace)/page-fixtures.ts";
 import {
@@ -54,7 +56,9 @@ vi.mock("next/navigation", () => ({
 async function openQuickNote(): Promise<void> {
   await render(<SiteHeader panel={<SitePanel links={<AccountLinks />} />} />);
   await panelButton().click();
-  await page.getByRole("button", { name: "Quick Note", exact: true }).click();
+  await page
+    .getByRole("button", { name: QUICK_NOTE_COPY.panelItem, exact: true })
+    .click();
 }
 
 beforeEach(() => {
@@ -72,14 +76,18 @@ describe("use_case_quick_note", () => {
     vi.mocked(saveNoteAction).mockResolvedValue({ kind: "saved", notes: [] });
     await openQuickNote();
 
-    const dialog = page.getByRole("dialog", { name: "Quick Note" });
+    const dialog = page.getByRole("dialog", { name: QUICK_NOTE_COPY.heading });
     await expect.element(dialog).toBeVisible();
     await expect.element(sitePanel()).not.toBeInTheDocument();
-    const quest = dialog.getByRole("combobox", { name: "Quick Note for" });
+    const quest = dialog.getByRole("combobox", {
+      name: QUICK_NOTE_COPY.questLabel,
+    });
     await expect.element(quest).toHaveValue(FOX_QUEST.id);
 
-    const text = dialog.getByRole("textbox", { name: "Quick Note" });
-    await dialog.getByRole("button", { name: "Save Quick Note" }).click();
+    const text = dialog.getByRole("textbox", {
+      name: QUICK_NOTE_COPY.textLabel,
+    });
+    await dialog.getByRole("button", { name: QUICK_NOTE_COPY.save }).click();
     await expect
       .element(text)
       .toHaveAccessibleDescription(
@@ -88,14 +96,14 @@ describe("use_case_quick_note", () => {
     expect(saveNoteAction).not.toHaveBeenCalled();
 
     await text.fill("Glaze the blue bowl");
-    await dialog.getByRole("button", { name: "Save Quick Note" }).click();
+    await dialog.getByRole("button", { name: QUICK_NOTE_COPY.save }).click();
     expect(saveNoteAction).toHaveBeenCalledWith({
       questId: FOX_QUEST.id,
       text: "Glaze the blue bowl",
     });
     await expect
       .element(dialog.getByRole("status"))
-      .toHaveTextContent(`Saved to ${FOX_QUEST.name}'s Quick Notes.`);
+      .toHaveTextContent(QUICK_NOTE_COPY.saved(FOX_QUEST.name));
     await expect.element(text).toHaveValue("");
     await expect.element(quest).toHaveValue(FOX_QUEST.id);
 
@@ -112,12 +120,14 @@ describe("use_case_quick_note", () => {
       );
       await openPanel();
       const item = sitePanel().getByRole("button", {
-        name: "Quick Note",
+        name: QUICK_NOTE_COPY.textLabel,
         exact: true,
       });
       await item.click();
 
-      const dialog = page.getByRole("dialog", { name: "Quick Note" });
+      const dialog = page.getByRole("dialog", {
+        name: QUICK_NOTE_COPY.heading,
+      });
       await expect.element(dialog).toBeVisible();
       await userEvent.keyboard("{Escape}");
       await expect.element(dialog).not.toBeInTheDocument();
@@ -131,21 +141,25 @@ describe("use_case_quick_note", () => {
   test("away from a quest the newest Active quest is chosen, and a refusal keeps the text", async () => {
     vi.mocked(saveNoteAction).mockResolvedValue({
       kind: "problem",
-      text: "That quest is no longer Active.",
+      text: QUICK_NOTE_COPY.notFound,
     } satisfies NoteResult);
     await setViewport(PHONE_VIEWPORT);
     await openQuickNote();
 
-    const dialog = page.getByRole("dialog", { name: "Quick Note" });
+    const dialog = page.getByRole("dialog", { name: QUICK_NOTE_COPY.heading });
     await expect
-      .element(dialog.getByRole("combobox", { name: "Quick Note for" }))
+      .element(
+        dialog.getByRole("combobox", { name: QUICK_NOTE_COPY.questLabel }),
+      )
       .toHaveValue(OTHER_QUEST.id);
-    const text = dialog.getByRole("textbox", { name: "Quick Note" });
+    const text = dialog.getByRole("textbox", {
+      name: QUICK_NOTE_COPY.textLabel,
+    });
     await text.fill("Fire on Friday");
-    await dialog.getByRole("button", { name: "Save Quick Note" }).click();
+    await dialog.getByRole("button", { name: QUICK_NOTE_COPY.save }).click();
     await expect
       .element(dialog.getByRole("alert"))
-      .toHaveTextContent("That quest is no longer Active.");
+      .toHaveTextContent(QUICK_NOTE_COPY.notFound);
     await expect.element(text).toHaveValue("Fire on Friday");
     expect(document.documentElement.scrollWidth).toBeLessThanOrEqual(
       PHONE_VIEWPORT.width,
@@ -160,8 +174,8 @@ describe("use_case_quick_note", () => {
     await openQuickNote();
 
     const quest = page
-      .getByRole("dialog", { name: "Quick Note" })
-      .getByRole("combobox", { name: "Quick Note for" });
+      .getByRole("dialog", { name: QUICK_NOTE_COPY.heading })
+      .getByRole("combobox", { name: QUICK_NOTE_COPY.questLabel });
     await expect.element(quest).toBeVisible();
     const options = [...quest.element().querySelectorAll("option")].map(
       (option) => option.textContent,
@@ -177,12 +191,12 @@ describe("use_case_quick_note", () => {
     vi.mocked(listNoteQuestsAction).mockResolvedValue([]);
     await openQuickNote();
 
-    const dialog = page.getByRole("dialog", { name: "Quick Note" });
+    const dialog = page.getByRole("dialog", { name: QUICK_NOTE_COPY.heading });
     await expect
-      .element(dialog.getByRole("link", { name: "Go to Quests" }))
+      .element(dialog.getByRole("link", { name: QUICK_NOTE_COPY.noQuestsLink }))
       .toHaveAttribute("href", "/quests");
     await expect
-      .element(dialog.getByRole("textbox", { name: "Quick Note" }))
+      .element(dialog.getByRole("textbox", { name: QUICK_NOTE_COPY.textLabel }))
       .not.toBeInTheDocument();
   });
 
@@ -208,7 +222,7 @@ describe("use_case_quick_note", () => {
       inConversation(send, <QuestNotes notes={notes} quest={FOX_QUEST} />),
     );
 
-    const list = page.getByRole("list", { name: "Quick Notes" });
+    const list = page.getByRole("list", { name: QUEST_NOTES_COPY.heading });
     await expect
       .element(list.getByRole("listitem").first().getByText("Buy more clay"))
       .toBeVisible();
@@ -223,7 +237,7 @@ describe("use_case_quick_note", () => {
     expect(sentTexts(send)).toEqual(["/drop-note 1"]);
     await expect
       .element(page.getByRole("status").filter({ hasText: "Deleted" }))
-      .toHaveTextContent("Deleted the Quick Note “Buy more clay”.");
+      .toHaveTextContent(PANEL_COMMANDS_COPY.notes.dropNote("Buy more clay"));
     await expect
       .element(page.getByText("Buy more clay"))
       .not.toBeInTheDocument();
@@ -247,12 +261,12 @@ describe("use_case_quick_note", () => {
         />,
       ),
     );
-    const edit = page.getByRole("button", { name: "Edit Quick Note" });
+    const edit = page.getByRole("button", { name: QUEST_NOTES_COPY.edit });
     await edit.click();
     const field = page
-      .getByRole("group", { name: "Quick Note", exact: true })
+      .getByRole("group", { name: QUICK_NOTE_COPY.textLabel, exact: true })
       .getByRole("textbox", {
-        name: "Quick Note",
+        name: QUICK_NOTE_COPY.textLabel,
         exact: true,
       });
     expect(field.element().tagName).toBe("TEXTAREA");
@@ -263,8 +277,8 @@ describe("use_case_quick_note", () => {
     await expect.element(field).toHaveValue("Clay\nGlaze");
     expect(send).not.toHaveBeenCalled();
     await page
-      .getByRole("group", { name: "Quick Note" })
-      .getByRole("button", { name: "Save Quick Note", exact: true })
+      .getByRole("group", { name: QUICK_NOTE_COPY.textLabel })
+      .getByRole("button", { name: QUICK_NOTE_COPY.save, exact: true })
       .click();
     expect(sentTexts(send)).toEqual(["/edit-note 1 Clay\nGlaze"]);
     await expect
@@ -272,9 +286,7 @@ describe("use_case_quick_note", () => {
       .toBeVisible();
     await edit.click();
     await field.fill("Discard this");
-    await page
-      .getByRole("button", { name: "Cancel editing Quick Note" })
-      .click();
+    await page.getByRole("button", { name: QUEST_NOTES_COPY.cancel }).click();
     await expect.element(edit).toHaveTextContent("Clay Glaze");
     await expect.element(edit).toHaveFocus();
     expect(send).toHaveBeenCalledTimes(1);
@@ -283,7 +295,7 @@ describe("use_case_quick_note", () => {
   test("invalid and refused edits keep the draft", async () => {
     const send = chatSendMock().mockResolvedValue({
       sent: false,
-      problem: "Wait for the reply.",
+      problem: PANEL_COMMANDS_COPY.problems.awaitingReply,
     });
     await render(
       inConversation(
@@ -300,17 +312,17 @@ describe("use_case_quick_note", () => {
         />,
       ),
     );
-    await page.getByRole("button", { name: "Edit Quick Note" }).click();
+    await page.getByRole("button", { name: QUEST_NOTES_COPY.edit }).click();
     const field = page
-      .getByRole("group", { name: "Quick Note", exact: true })
+      .getByRole("group", { name: QUICK_NOTE_COPY.textLabel, exact: true })
       .getByRole("textbox", {
-        name: "Quick Note",
+        name: QUICK_NOTE_COPY.textLabel,
         exact: true,
       });
     const save = page
-      .getByRole("group", { name: "Quick Note" })
+      .getByRole("group", { name: QUICK_NOTE_COPY.textLabel })
       .getByRole("button", {
-        name: "Save Quick Note",
+        name: QUICK_NOTE_COPY.save,
         exact: true,
       });
     await field.fill("   ");
@@ -324,7 +336,7 @@ describe("use_case_quick_note", () => {
     await save.click();
     await expect
       .element(page.getByRole("alert"))
-      .toHaveTextContent("Wait for the reply.");
+      .toHaveTextContent(PANEL_COMMANDS_COPY.problems.awaitingReply);
     await expect.element(field).toHaveValue("Clay\nGlaze");
   });
 

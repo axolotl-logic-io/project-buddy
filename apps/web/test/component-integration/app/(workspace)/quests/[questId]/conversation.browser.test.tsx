@@ -1,3 +1,7 @@
+import { IDEAS_COPY } from "@/ui/copy/ideas.ts";
+import { PROGRESS_TIMELINE_COPY } from "@/ui/copy/milestones.ts";
+import { QUEST_SIDEBAR_COPY } from "@/ui/copy/quest-sidebar.ts";
+import { QUEST_STATUS_COPY } from "@/ui/copy/quest-status.ts";
 // A quest's page opens on its one conversation, in Chromium and WebKit.
 // "use_case_open_quest": the conversation and its composer come first,
 // with the quest's sections a tap away, and no adventure list or New
@@ -38,7 +42,7 @@ import type { readQuestConversation } from "@/conversations/start-quest.ts";
 import { todayHere } from "@/dailies/dailies.ts";
 import type { getQuest } from "@/quests/store.ts";
 import { DEFAULT_THEME_ATTRIBUTES } from "@/themes/theme-choice.ts";
-import { CHAT_COPY } from "@/ui/copy/chat.ts";
+import { CAST_SPELL_COPY, CHAT_COPY } from "@/ui/copy/chat.ts";
 import { CONSTRUCT_DISCOVERY_COPY } from "@/ui/copy/construct-discovery.ts";
 import { QUEST_CONVERSATION_COPY } from "@/ui/copy/conversation.ts";
 import { DAY_GRID_COPY } from "@/ui/copy/dailies.ts";
@@ -312,7 +316,7 @@ describe("use_case_breadcrumbs_in_long_chat", () => {
         await page.viewport(viewport.width, viewport.height);
         await render(await chatPage());
         const backLink = page
-          .getByRole("navigation", { name: "Breadcrumbs" })
+          .getByRole("navigation", { name: SITE_COPY.breadcrumbs })
           .getByRole("link", { name: QUESTS_COPY.heading, exact: true });
         const conversation = page.getByRole("list", {
           name: CHAT_COPY.conversationLabel,
@@ -328,7 +332,9 @@ describe("use_case_breadcrumbs_in_long_chat", () => {
           .not.toBeInTheDocument();
 
         await scrollToBottom();
-        const trail = page.getByRole("navigation", { name: "Breadcrumbs" });
+        const trail = page.getByRole("navigation", {
+          name: SITE_COPY.breadcrumbs,
+        });
         await expect.element(trail).toBeInViewport({ ratio: 1 });
         const shared = trail.element().closest("header");
         expect(shared).not.toBeNull();
@@ -399,7 +405,9 @@ describe("sidebar breadcrumb alignment", () => {
       store.getQuest.mockResolvedValue({ ...FOX_QUEST, name });
       await render(await chatPage());
       const row = page.getByRole("region", { name: SITE_COPY.breadcrumbs });
-      const panel = page.getByRole("dialog", { name: "Quest side menu" });
+      const panel = page.getByRole("dialog", {
+        name: QUEST_SIDEBAR_COPY.label,
+      });
       await expect.element(panel).toBeVisible();
       globalThis.scrollTo(0, 0);
       await expect.poll(() => globalThis.scrollY).toBe(0);
@@ -430,9 +438,11 @@ describe("sidebar breadcrumb alignment", () => {
         LAPTOP_VIEWPORT.height,
       );
       await page
-        .getByRole("button", { name: "Collapse quest sidebar" })
+        .getByRole("button", { name: QUEST_SIDEBAR_COPY.collapse })
         .click();
-      const toggle = page.getByRole("button", { name: "Open quest sidebar" });
+      const toggle = page.getByRole("button", {
+        name: QUEST_SIDEBAR_COPY.expand,
+      });
       await expect.element(toggle).toBeInViewport({ ratio: 1 });
       globalThis.scrollTo(0, 0);
       await expect
@@ -445,7 +455,7 @@ describe("sidebar breadcrumb alignment", () => {
       const toggleBounds = toggle.element().getBoundingClientRect();
       await toggle.click();
       const closeBounds = page
-        .getByRole("button", { name: "Collapse quest sidebar" })
+        .getByRole("button", { name: QUEST_SIDEBAR_COPY.collapse })
         .element()
         .getBoundingClientRect();
       expect([closeBounds.left, closeBounds.top]).toEqual([
@@ -513,7 +523,9 @@ describe("use_case_send_message", () => {
     await box.fill("Help me brainstorm");
     await send.click();
     await expect
-      .element(page.getByText("Cast Brainstorm", { exact: true }))
+      .element(
+        page.getByText(CAST_SPELL_COPY.cast("Brainstorm"), { exact: true }),
+      )
       .toBeVisible();
     await expect
       .element(page.getByText("Let's explore your ideas.", { exact: true }))
@@ -527,16 +539,23 @@ describe("use_case_send_message", () => {
       .element(page.getByText("Activity", { exact: true }))
       .not.toBeInTheDocument();
     await box.fill("Which idea should I try first?");
-    await page.getByRole("button", { name: "Open quest sidebar" }).click();
-    await openBucket("Ideas");
+    await page.getByRole("button", { name: QUEST_SIDEBAR_COPY.expand }).click();
+    await openBucket(IDEAS_COPY.heading);
     await expect
-      .element(collectionTab("Buckets"))
+      .element(collectionTab(QUEST_SIDEBAR_COPY.buckets))
       .toHaveAttribute("aria-selected", "true");
-    await openBucket("Tasks");
+    await openBucket(TASKS_COPY.heading);
     await expect
-      .element(page.getByRole("button", { name: "Add a task", exact: true }))
+      .element(
+        page.getByRole("button", {
+          name: TASKS_COPY.addPlaceholder,
+          exact: true,
+        }),
+      )
       .toBeDisabled();
-    await page.getByRole("button", { name: "Collapse quest sidebar" }).click();
+    await page
+      .getByRole("button", { name: QUEST_SIDEBAR_COPY.collapse })
+      .click();
     await expect.element(box).toHaveValue("Which idea should I try first?");
     held.release();
     await expect.element(send).toBeEnabled();
@@ -569,7 +588,9 @@ describe("use_case_send_message", () => {
     store.listMessages.mockResolvedValue(saved);
     await screen.rerender(await chatPage());
     await expect
-      .element(page.getByText("Cast Brainstorm", { exact: true }))
+      .element(
+        page.getByText(CAST_SPELL_COPY.cast("Brainstorm"), { exact: true }),
+      )
       .toBeVisible();
     await expect
       .element(page.getByText("Let's explore your ideas.", { exact: true }))
@@ -611,12 +632,18 @@ describe("use_case_open_quest", () => {
     await expect
       .element(page.getByRole("textbox", { name: CHAT_COPY.messageLabel }))
       .toBeVisible();
-    await page.getByRole("button", { name: "Open quest sidebar" }).click();
+    await page.getByRole("button", { name: QUEST_SIDEBAR_COPY.expand }).click();
     await expect
-      .element(page.getByRole("complementary", { name: "Quest side menu" }))
+      .element(
+        page.getByRole("complementary", { name: QUEST_SIDEBAR_COPY.label }),
+      )
       .toBeVisible();
     await Promise.all(
-      ["Spells", "Buckets", "Actions"].map((name) =>
+      [
+        QUEST_SIDEBAR_COPY.spells,
+        QUEST_SIDEBAR_COPY.buckets,
+        QUEST_SIDEBAR_COPY.actions,
+      ].map((name) =>
         expect
           .element(page.getByRole("tab", { name, exact: true }))
           .toBeVisible(),
@@ -729,13 +756,13 @@ describe("use_case_dailies", () => {
     store.getQuest.mockResolvedValue({ ...FOX_QUEST, dailies: true });
     store.listMessages.mockResolvedValue([]);
     await render(await chatPage());
-    await page.getByRole("button", { name: "Open quest sidebar" }).click();
+    await page.getByRole("button", { name: QUEST_SIDEBAR_COPY.expand }).click();
     const start = page.getByRole("button", {
       name: QUEST_CONVERSATION_COPY.startDay,
     });
     await expect.element(start).toBeVisible();
     const actions = page.getByRole("region", {
-      name: "Start Day",
+      name: QUEST_CONVERSATION_COPY.startDay,
       exact: true,
     });
     await expect
@@ -745,10 +772,12 @@ describe("use_case_dailies", () => {
         }),
       )
       .toBeVisible();
-    await collectionTab("Spells").click();
+    await collectionTab(QUEST_SIDEBAR_COPY.spells).click();
     await expect
       .element(
-        bucket("Spells").getByRole("button", { name: "Cast Brainstorm" }),
+        bucket(QUEST_SIDEBAR_COPY.spells).getByRole("button", {
+          name: "Cast Brainstorm",
+        }),
       )
       .toBeVisible();
     await start.click();
@@ -780,7 +809,7 @@ describe("use_case_dailies", () => {
       note: "Started a new day.",
     });
     await render(await chatPage());
-    await page.getByRole("button", { name: "Open quest sidebar" }).click();
+    await page.getByRole("button", { name: QUEST_SIDEBAR_COPY.expand }).click();
     await page
       .getByRole("button", { name: QUEST_CONVERSATION_COPY.startDay })
       .click();
@@ -819,9 +848,9 @@ describe("use_case_dailies", () => {
       text: "There is no day to undo.",
     });
     await render(await chatPage());
-    await page.getByRole("button", { name: "Open quest sidebar" }).click();
+    await page.getByRole("button", { name: QUEST_SIDEBAR_COPY.expand }).click();
     const actions = page.getByRole("region", {
-      name: "Start Day",
+      name: QUEST_CONVERSATION_COPY.startDay,
       exact: true,
     });
     await actions
@@ -852,9 +881,9 @@ describe("use_case_dailies", () => {
       undoable: true,
     });
     await render(await chatPage());
-    await page.getByRole("button", { name: "Open quest sidebar" }).click();
+    await page.getByRole("button", { name: QUEST_SIDEBAR_COPY.expand }).click();
     const actions = page.getByRole("region", {
-      name: "Start Day",
+      name: QUEST_CONVERSATION_COPY.startDay,
       exact: true,
     });
     await expect
@@ -877,9 +906,9 @@ describe("use_case_dailies", () => {
     store.getQuest.mockResolvedValue({ ...FOX_QUEST, dailies: true });
     store.listMessages.mockResolvedValue([]);
     await render(await chatPage());
-    await page.getByRole("button", { name: "Open quest sidebar" }).click();
+    await page.getByRole("button", { name: QUEST_SIDEBAR_COPY.expand }).click();
     const actions = page.getByRole("region", {
-      name: "Start Day",
+      name: QUEST_CONVERSATION_COPY.startDay,
       exact: true,
     });
     await expect
@@ -946,7 +975,7 @@ describe("use_case_daily_streaks", () => {
       undoable: false,
     });
     await render(await chatPage());
-    await page.getByRole("button", { name: "Open quest sidebar" }).click();
+    await page.getByRole("button", { name: QUEST_SIDEBAR_COPY.expand }).click();
     await expect
       .element(
         page.getByText(
@@ -963,8 +992,8 @@ describe("use_case_daily_streaks", () => {
       .toBeVisible();
     await userEvent.keyboard("{Escape}");
 
-    await openBucket("Day grid");
-    const progress = bucket("Day grid");
+    await openBucket(QUEST_SIDEBAR_COPY.dayGrid);
+    const progress = bucket(QUEST_SIDEBAR_COPY.dayGrid);
     await expect
       .element(progress.getByRole("heading", { name: DAY_GRID_COPY.heading }))
       .toBeVisible();
@@ -983,8 +1012,8 @@ describe("use_case_daily_streaks", () => {
   test("an ordinary quest has no streaks or day grid", async () => {
     store.listMessages.mockResolvedValue([]);
     await render(await chatPage());
-    await page.getByRole("button", { name: "Open quest sidebar" }).click();
-    await openAction("Milestones");
+    await page.getByRole("button", { name: QUEST_SIDEBAR_COPY.expand }).click();
+    await openAction(PROGRESS_TIMELINE_COPY.heading);
     await expect
       .element(page.getByRole("heading", { name: DAY_GRID_COPY.heading }))
       .not.toBeInTheDocument();
@@ -1027,7 +1056,7 @@ test.each([PHONE_VIEWPORT, LAPTOP_VIEWPORT])(
       <div className="flex min-h-dvh flex-col">{await chatPage()}</div>,
     );
     const collapse = page.getByRole("button", {
-      name: "Collapse quest sidebar",
+      name: QUEST_SIDEBAR_COPY.collapse,
     });
     if (collapse.query() !== null) {
       await collapse.click();
@@ -1070,13 +1099,23 @@ describe("use_case_tailored_quest_panels", () => {
     });
     store.listMessages.mockResolvedValue([]);
     await render(await chatPage());
-    await page.getByRole("button", { name: "Open quest sidebar" }).click();
+    await page.getByRole("button", { name: QUEST_SIDEBAR_COPY.expand }).click();
     await expect
-      .element(page.getByRole("region", { name: "Start Day", exact: true }))
+      .element(
+        page.getByRole("region", {
+          name: QUEST_CONVERSATION_COPY.startDay,
+          exact: true,
+        }),
+      )
       .toBeVisible();
-    await openBucket("Day grid");
+    await openBucket(QUEST_SIDEBAR_COPY.dayGrid);
     await expect
-      .element(page.getByRole("region", { name: "Next task", exact: true }))
+      .element(
+        page.getByRole("region", {
+          name: QUEST_SIDEBAR_COPY.nextTask,
+          exact: true,
+        }),
+      )
       .not.toBeInTheDocument();
   });
 
@@ -1088,17 +1127,29 @@ describe("use_case_tailored_quest_panels", () => {
     });
     store.listMessages.mockResolvedValue([]);
     await render(await chatPage());
-    await page.getByRole("button", { name: "Open quest sidebar" }).click();
+    await page.getByRole("button", { name: QUEST_SIDEBAR_COPY.expand }).click();
     await expect
-      .element(page.getByRole("region", { name: "Next task", exact: true }))
+      .element(
+        page.getByRole("region", {
+          name: QUEST_SIDEBAR_COPY.nextTask,
+          exact: true,
+        }),
+      )
       .toBeVisible();
-    await collectionTab("Buckets").click();
+    await collectionTab(QUEST_SIDEBAR_COPY.buckets).click();
     await expect
-      .element(page.getByRole("menuitemradio", { name: "Day grid" }))
+      .element(
+        page.getByRole("menuitemradio", { name: QUEST_SIDEBAR_COPY.dayGrid }),
+      )
       .not.toBeInTheDocument();
     await userEvent.keyboard("{Escape}");
     await expect
-      .element(page.getByRole("button", { name: "Start Day", exact: true }))
+      .element(
+        page.getByRole("button", {
+          name: QUEST_CONVERSATION_COPY.startDay,
+          exact: true,
+        }),
+      )
       .not.toBeInTheDocument();
   });
 
@@ -1108,14 +1159,21 @@ describe("use_case_tailored_quest_panels", () => {
       store.getQuest.mockResolvedValue({ ...FOX_QUEST, dailies: true, status });
       store.listMessages.mockResolvedValue([]);
       await render(await chatPage());
-      await page.getByRole("button", { name: "Open quest sidebar" }).click();
-      await openBucket("Day grid");
+      await page
+        .getByRole("button", { name: QUEST_SIDEBAR_COPY.expand })
+        .click();
+      await openBucket(QUEST_SIDEBAR_COPY.dayGrid);
       await expect
-        .element(page.getByRole("button", { name: "Start Day", exact: true }))
+        .element(
+          page.getByRole("button", {
+            name: QUEST_CONVERSATION_COPY.startDay,
+            exact: true,
+          }),
+        )
         .not.toBeInTheDocument();
-      await openAction("Quest status");
+      await openAction(QUEST_SIDEBAR_COPY.status);
       await expect
-        .element(page.getByRole("button", { name: "Restore quest" }))
+        .element(page.getByRole("button", { name: QUEST_STATUS_COPY.restore }))
         .toBeVisible();
     },
   );

@@ -69,10 +69,20 @@ describe("quest status actions", () => {
       await render(<QuestStatusControls quest={FOX_QUEST} />);
       await page.getByRole("button", { name: label, exact: true }).click();
       await expect
-        .element(page.getByRole("button", { name: "Complete", exact: true }))
+        .element(
+          page.getByRole("button", {
+            name: QUEST_STATUS_COPY.complete,
+            exact: true,
+          }),
+        )
         .toBeDisabled();
       await expect
-        .element(page.getByRole("button", { name: "Abandon", exact: true }))
+        .element(
+          page.getByRole("button", {
+            name: QUEST_STATUS_COPY.abandon,
+            exact: true,
+          }),
+        )
         .toBeDisabled();
       const [, sent] = vi.mocked(changeQuestStatusAction).mock.lastCall ?? [];
       expect(sent?.get("questId")).toBe(FOX_QUEST.id);
@@ -93,7 +103,7 @@ describe("quest status actions", () => {
         .element(page.getByRole("status"))
         .toHaveTextContent(QUEST_STATUS_COPY.saved[status]);
       await expect
-        .element(page.getByRole("button", { name: "Undo" }))
+        .element(page.getByRole("button", { name: QUEST_STATUS_COPY.undo }))
         .toBeVisible();
     },
   );
@@ -113,14 +123,16 @@ describe("quest status actions", () => {
     await render(
       <QuestStatusControls quest={{ ...FOX_QUEST, status: "completed" }} />,
     );
-    const restore = page.getByRole("button", { name: "Restore quest" });
+    const restore = page.getByRole("button", {
+      name: QUEST_STATUS_COPY.restore,
+    });
     restore.element().focus();
     await userEvent.keyboard("{Enter}");
     await expect.element(restore).toBeDisabled();
     expect(changeQuestStatusAction).toHaveBeenCalledTimes(1);
     saved.resolve(result);
     await expect
-      .element(page.getByRole("button", { name: "Undo" }))
+      .element(page.getByRole("button", { name: QUEST_STATUS_COPY.undo }))
       .toBeVisible();
     await expect.element(page.getByRole("status")).toHaveFocus();
     expect(changeQuestStatusAction).toHaveBeenCalledTimes(1);
@@ -131,14 +143,17 @@ describe("quest status actions", () => {
       kind: "saved",
       message: "Quest completed.",
     });
-    page.getByRole("button", { name: "Undo" }).element().focus();
+    page
+      .getByRole("button", { name: QUEST_STATUS_COPY.undo })
+      .element()
+      .focus();
     await userEvent.keyboard("{Enter}");
     await expect
       .element(page.getByRole("status"))
-      .toHaveTextContent("Quest completed.");
+      .toHaveTextContent(QUEST_STATUS_COPY.saved.completed);
     await expect.element(page.getByRole("status")).toHaveFocus();
     await expect
-      .element(page.getByText("Quest restored.", { exact: true }))
+      .element(page.getByText(QUEST_STATUS_COPY.saved.active, { exact: true }))
       .not.toBeInTheDocument();
     expect(changeQuestStatusAction).toHaveBeenCalledTimes(2);
     const [, undone] = vi.mocked(changeQuestStatusAction).mock.lastCall ?? [];
@@ -180,17 +195,31 @@ describe("quest approval card", () => {
       approval: { ...PROPOSAL, decision: "approved" },
     });
     await render(<QuestStatusPart part={PART} />);
-    await expect.element(page.getByText("Active → Abandoned")).toBeVisible();
     await expect
-      .element(page.getByRole("button", { name: "Confirm abandoned" }))
+      .element(
+        page.getByText(
+          `${QUEST_STATUS_COPY.labels.active} → ${QUEST_STATUS_COPY.labels.abandoned}`,
+        ),
+      )
+      .toBeVisible();
+    await expect
+      .element(
+        page.getByRole("button", { name: QUEST_STATUS_COPY.confirm.abandoned }),
+      )
       .toBeVisible();
     expect(answerQuestStatusAction).not.toHaveBeenCalled();
-    await page.getByRole("button", { name: "Confirm abandoned" }).click();
+    await page
+      .getByRole("button", { name: QUEST_STATUS_COPY.confirm.abandoned })
+      .click();
     await expect
-      .element(page.getByText("Approved", { exact: true }))
+      .element(
+        page.getByText(QUEST_STATUS_COPY.decisions.approved, { exact: true }),
+      )
       .toBeVisible();
     await expect
-      .element(page.getByRole("button", { name: "Confirm abandoned" }))
+      .element(
+        page.getByRole("button", { name: QUEST_STATUS_COPY.confirm.abandoned }),
+      )
       .not.toBeInTheDocument();
     const [, sent] = vi.mocked(answerQuestStatusAction).mock.lastCall ?? [];
     expect(sent?.get("decision")).toBe("approve");
@@ -208,7 +237,11 @@ describe("quest approval card", () => {
         .element(page.getByText(QUEST_STATUS_COPY.decisions[decision]))
         .toBeVisible();
       await expect
-        .element(page.getByRole("button", { name: "Confirm abandoned" }))
+        .element(
+          page.getByRole("button", {
+            name: QUEST_STATUS_COPY.confirm.abandoned,
+          }),
+        )
         .not.toBeInTheDocument();
       expect(answerQuestStatusAction).not.toHaveBeenCalled();
     },
@@ -220,9 +253,9 @@ describe("quest approval card", () => {
       approval: { ...PROPOSAL, decision: "declined" },
     });
     await render(<QuestStatusPart part={PART} />);
-    await page.getByRole("button", { name: "Keep current status" }).click();
+    await page.getByRole("button", { name: QUEST_STATUS_COPY.decline }).click();
     await expect
-      .element(page.getByText("Declined. Quest status kept."))
+      .element(page.getByText(QUEST_STATUS_COPY.decisions.declined))
       .toBeVisible();
     const [, sent] = vi.mocked(answerQuestStatusAction).mock.lastCall ?? [];
     expect(sent?.get("decision")).toBe("decline");
@@ -234,19 +267,24 @@ describe("quest status tabs", () => {
     await render(
       <QuestStatusTabs quests={[{ ...FOX_QUEST, status: "completed" }]} />,
     );
-    await expect
-      .element(page.getByText("No quests with this status."))
-      .toBeVisible();
-    await page.getByRole("tab", { name: "Active", exact: true }).click();
+    await expect.element(page.getByText(QUEST_STATUS_COPY.empty)).toBeVisible();
+    await page
+      .getByRole("tab", { name: QUEST_STATUS_COPY.labels.active, exact: true })
+      .click();
     await userEvent.keyboard("{ArrowRight}");
     await expect
-      .element(page.getByRole("tab", { name: "Completed", exact: true }))
+      .element(
+        page.getByRole("tab", {
+          name: QUEST_STATUS_COPY.labels.completed,
+          exact: true,
+        }),
+      )
       .toHaveAttribute("aria-selected", "true");
     await expect
       .element(page.getByRole("link", { name: FOX_QUEST.name }))
       .toBeVisible();
     await expect
-      .element(page.getByRole("button", { name: "Restore quest" }))
+      .element(page.getByRole("button", { name: QUEST_STATUS_COPY.restore }))
       .toBeVisible();
     expect(new URL(globalThis.location.href).searchParams.get("status")).toBe(
       "completed",
@@ -269,10 +307,13 @@ describe("quest status tabs", () => {
         quests={[{ ...FOX_QUEST, status: "completed", statusRevision: 1 }]}
       />,
     );
-    page.getByRole("button", { name: "Restore quest" }).element().focus();
+    page
+      .getByRole("button", { name: QUEST_STATUS_COPY.restore })
+      .element()
+      .focus();
     await userEvent.keyboard("{Enter}");
     await expect
-      .element(page.getByRole("button", { name: "Undo" }))
+      .element(page.getByRole("button", { name: QUEST_STATUS_COPY.undo }))
       .toBeVisible();
     await view.rerender(
       <QuestStatusTabs
@@ -287,7 +328,7 @@ describe("quest status tabs", () => {
 
     expect(changeQuestStatusAction).toHaveBeenCalledTimes(1);
     await expect
-      .element(page.getByRole("button", { name: "Undo" }))
+      .element(page.getByRole("button", { name: QUEST_STATUS_COPY.undo }))
       .toBeVisible();
   });
 });
@@ -306,12 +347,17 @@ describe("quest status on phones", () => {
             pending={{ quests: [], answer }}
           />,
         );
-        const active = page.getByRole("tab", { name: "Active", exact: true });
-        const completed = page.getByRole("tab", {
-          name: "Completed",
+        const active = page.getByRole("tab", {
+          name: QUEST_STATUS_COPY.labels.active,
           exact: true,
         });
-        const panel = page.getByRole("tabpanel", { name: "Active" });
+        const completed = page.getByRole("tab", {
+          name: QUEST_STATUS_COPY.labels.completed,
+          exact: true,
+        });
+        const panel = page.getByRole("tabpanel", {
+          name: QUEST_STATUS_COPY.labels.active,
+        });
         await expect.element(panel.getByRole("listitem")).toBeVisible();
         await expect
           .element(panel.getByText("Shared", { exact: true }))
@@ -332,7 +378,7 @@ describe("quest status on phones", () => {
         expect(pageScrollWidth()).toBeLessThanOrEqual(viewport.width);
         expect(smallTargets(await measureTargets())).toEqual([]);
 
-        await active.click();
+        active.element().focus();
         await userEvent.keyboard("{ArrowRight}");
         await expect.element(completed).toHaveFocus();
         await expect
@@ -342,7 +388,11 @@ describe("quest status on phones", () => {
           "solid",
         );
         await expect
-          .element(page.getByRole("tabpanel", { name: "Completed" }))
+          .element(
+            page.getByRole("tabpanel", {
+              name: QUEST_STATUS_COPY.labels.completed,
+            }),
+          )
           .toHaveTextContent(QUEST_STATUS_COPY.empty);
         await userEvent.keyboard("{End}");
         await expect
@@ -363,7 +413,11 @@ describe("quest status on phones", () => {
         vi.mocked(readQuestStatusApprovalAction).mockResolvedValue(PROPOSAL);
         const view = await render(<QuestStatusPart part={PART} />);
         await expect
-          .element(page.getByRole("button", { name: "Confirm abandoned" }))
+          .element(
+            page.getByRole("button", {
+              name: QUEST_STATUS_COPY.confirm.abandoned,
+            }),
+          )
           .toBeVisible();
         expect(pageScrollWidth()).toBeLessThanOrEqual(viewport.width);
         expect(smallTargets(await measureTargets())).toEqual([]);
@@ -379,7 +433,9 @@ describe("quest status on phones", () => {
           <QuestStatusControls quest={{ ...FOX_QUEST, status: "completed" }} />,
         );
         await expect
-          .element(page.getByRole("button", { name: "Restore quest" }))
+          .element(
+            page.getByRole("button", { name: QUEST_STATUS_COPY.restore }),
+          )
           .toBeVisible();
         expect(pageScrollWidth()).toBeLessThanOrEqual(viewport.width);
         expect(smallTargets(await measureTargets())).toEqual([]);
@@ -406,8 +462,14 @@ for (const mode of THEME_MODES) {
     applyTheme("parchment", mode);
     await setViewport({ width: 1280, height: 800 });
     await render(<QuestStatusTabs quests={[FOX_QUEST]} />);
-    const active = page.getByRole("tab", { name: "Active", exact: true });
-    const completed = page.getByRole("tab", { name: "Completed", exact: true });
+    const active = page.getByRole("tab", {
+      name: QUEST_STATUS_COPY.labels.active,
+      exact: true,
+    });
+    const completed = page.getByRole("tab", {
+      name: QUEST_STATUS_COPY.labels.completed,
+      exact: true,
+    });
     await completed.hover();
     // Leave the inactive tab before measuring its resting surface.
     await active.hover();

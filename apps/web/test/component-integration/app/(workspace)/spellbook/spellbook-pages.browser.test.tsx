@@ -128,7 +128,7 @@ test("name, replies and destination survive navigation and submit together", asy
     .getByRole("combobox", { name: SPELLBOOK_COPY.destination, exact: true })
     .element();
   const heading = page
-    .getByRole("heading", { name: "Spell Messages", exact: true })
+    .getByRole("heading", { name: SPELLBOOK_COPY.settings, exact: true })
     .element();
   expect(nameInput.getBoundingClientRect().bottom).toBeLessThanOrEqual(
     destinationInput.getBoundingClientRect().top,
