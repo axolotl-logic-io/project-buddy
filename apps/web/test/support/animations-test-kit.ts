@@ -48,11 +48,20 @@ async function animationsSettled(
   target: Element | Document,
   what: string,
 ): Promise<void> {
+  // The first frame can expose the dialog before WebKit has applied its
+  // entrance animation. Read animation state after a rendering update.
+  await new Promise<void>((resolve) => {
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => resolve());
+    });
+  });
   await vi.waitFor(
     () => {
       const running = animationsIn(target)
         .filter((animation) => ends(animation))
-        .filter((animation) => animation.playState === "running");
+        .filter(
+          (animation) => animation.pending || animation.playState === "running",
+        );
       if (running.length > 0) {
         throw new Error(
           `${what} is still animating: ${running.map(animationName).join(", ")}`,

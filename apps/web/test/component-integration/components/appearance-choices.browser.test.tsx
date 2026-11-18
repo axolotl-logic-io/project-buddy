@@ -50,6 +50,7 @@ import {
   PHONE_VIEWPORT,
   setViewport as resize,
 } from "../viewports-test-kit.ts";
+import type { MaterialPixels } from "./appearance-material-test-kit.mts";
 import {
   appliedChoice,
   choice,
@@ -71,7 +72,10 @@ const SWATCH_TARGET_PX = 44;
 const COMPACT_ROW_MAX_WIDTH = 460;
 // The first image a computed background-image shows, such as
 // url("/textures/ivory-vellum.webp") among gradients.
-const BACKGROUND_URL = /url\(["']?(?<url>[^"')]+)["']?\)/u;
+// Chromium can round channels differently after focusing a masked swatch.
+// Four steps out of 255 cover that rendering difference. A tint still fails.
+const MATERIAL_CHANNEL_TOLERANCE = 4;
+const PAINT_URL = /url\("(?<url>[^"]+)"\)/u;
 // The colour tokens that tell the appearances apart.
 const PALETTE_TOKENS = ["background", "surface", "foreground", "primary"];
 
@@ -132,7 +136,7 @@ function material(name: string): HTMLElement {
     throw new Error(`The ${name} swatch has no label`);
   }
   const shown = [label, ...label.querySelectorAll<HTMLElement>("*")].find(
-    (element) => BACKGROUND_URL.test(getComputedStyle(element).backgroundImage),
+    (element) => PAINT_URL.test(getComputedStyle(element).backgroundImage),
   );
   if (shown === undefined) {
     throw new Error(`The ${name} swatch shows no texture image`);
@@ -140,12 +144,31 @@ function material(name: string): HTMLElement {
   return shown;
 }
 
-// Waits for the image a computed background-image shows to load.
-async function decodeBackground(backgroundImage: string): Promise<void> {
-  const { url = "" } = BACKGROUND_URL.exec(backgroundImage)?.groups ?? {};
+// Waits for a computed background or mask image to decode.
+async function decodePaint(backgroundImage: string): Promise<void> {
+  const { url = "" } = PAINT_URL.exec(backgroundImage)?.groups ?? {};
   const image = new Image();
   image.src = url;
   await image.decode();
+}
+
+// Compare rendered pixels and dimensions so meaningful tints or geometry changes fail.
+function materialDifference(
+  previous: MaterialPixels,
+  next: MaterialPixels,
+): number {
+  if (
+    next.width !== previous.width ||
+    next.height !== previous.height ||
+    next.channels.length !== previous.channels.length
+  ) {
+    return Number.POSITIVE_INFINITY;
+  }
+  return next.channels.reduce(
+    (max, channel, index) =>
+      Math.max(max, Math.abs(channel - (previous.channels[index] ?? 0))),
+    0,
+  );
 }
 
 // How many lines of text an element takes: its height over its line height,
@@ -290,14 +313,17 @@ describe("use_case_choose_theme", () => {
         .hover();
       await userEvent.keyboard("{Escape}");
       const texture = material(THEME_COPY.modes[mode]);
-      await decodeBackground(getComputedStyle(texture).backgroundImage);
+      await decodePaint(getComputedStyle(texture).backgroundImage);
       const { selector } = page.elementLocator(texture);
       const uncovered = await commands.materialPixels(selector);
       await radio.hover();
       await expect
         .element(page.getByRole("tooltip", { name: THEME_COPY.modes[mode] }))
         .toBeVisible();
-      expect(await commands.materialPixels(selector)).toBe(uncovered);
+      const covered = await commands.materialPixels(selector);
+      expect(materialDifference(uncovered, covered)).toBeLessThanOrEqual(
+        MATERIAL_CHANNEL_TOLERANCE,
+      );
     },
   );
 
@@ -318,8 +344,14 @@ describe("use_case_choose_theme", () => {
         material(THEME_COPY.modes[swatchMode]),
       );
       await Promise.all(
-        materials.map((texture) =>
-          decodeBackground(getComputedStyle(texture).backgroundImage),
+        materials.flatMap((texture) =>
+          [
+            getComputedStyle(texture).backgroundImage,
+            getComputedStyle(texture, "::before").maskImage,
+            getComputedStyle(texture, "::after").maskImage,
+          ]
+            .filter((paint) => PAINT_URL.test(paint))
+            .map(decodePaint),
         ),
       );
       const selectors = materials.map(
@@ -333,7 +365,15 @@ describe("use_case_choose_theme", () => {
       const after = await Promise.all(
         selectors.map((selector) => commands.materialPixels(selector)),
       );
-      expect(after).toEqual(before);
+      for (const [index, previous] of before.entries()) {
+        const next = after[index];
+        if (next === undefined) {
+          throw new Error("A swatch disappeared after changing appearance");
+        }
+        expect(materialDifference(previous, next)).toBeLessThanOrEqual(
+          MATERIAL_CHANNEL_TOLERANCE,
+        );
+      }
     },
   );
 
@@ -378,8 +418,8 @@ describe("use_case_choose_theme", () => {
       });
       expect(appliedColors()).toBe(mode);
       const texture = getComputedStyle(document.body).backgroundImage;
-      expect(texture, "the page shows a texture image").toMatch(BACKGROUND_URL);
-      await decodeBackground(texture);
+      expect(texture, "the page shows a texture image").toMatch(PAINT_URL);
+      await decodePaint(texture);
       await commands.emulateColorScheme("dark");
       expect(getComputedStyle(document.body).backgroundImage).toBe(texture);
       await commands.emulateColorScheme("light");

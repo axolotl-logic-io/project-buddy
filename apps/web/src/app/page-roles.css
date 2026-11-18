@@ -294,8 +294,17 @@
     grid-template-columns: minmax(0, 1fr);
   }
 
+  .prompt-editor-name,
+  .prompt-editor-replies {
+    @apply grid min-w-0 gap-4;
+  }
+
+  .prompt-editor-name > * {
+    max-inline-size: 36rem;
+  }
+
   .prompt-editor-nav {
-    @apply flex flex-wrap gap-2;
+    @apply flex flex-col items-stretch gap-1;
   }
 
   /* The chosen section is marked, not filled: Save stays the editor's
@@ -320,26 +329,13 @@
   }
 
   @media (min-width: 48rem) {
-    .prompt-editor {
+    .prompt-editor-replies {
       grid-template-columns: minmax(0, 12rem) minmax(0, 1fr);
+      align-items: start;
     }
 
-    .prompt-editor-name,
-    .prompt-editor-heading,
-    .prompt-editor-actions,
-    .prompt-editor-more {
+    .prompt-editor-heading {
       grid-column: 1 / -1;
-    }
-
-    .prompt-editor-nav {
-      @apply flex-col items-stretch self-start;
-      grid-column: 1;
-      grid-row: 3;
-    }
-
-    .prompt-editor-field {
-      grid-column: 2;
-      grid-row: 3;
     }
   }
 
@@ -1246,7 +1242,8 @@
     block-size: calc(100dvh - var(--panel-top));
     inline-size: min(var(--site-panel-width), calc(100% - 3rem));
     max-block-size: none;
-    @apply fixed inset-s-0 inset-e-auto m-0 max-w-none flex-col gap-1 overflow-y-auto border-0 border-line border-e bg-navigation-surface/85 p-3 text-foreground shadow-raised backdrop-blur-md open:flex;
+    @apply fixed inset-s-0 inset-e-auto m-0 max-w-none flex-col gap-1 overflow-y-auto border-0 border-line bg-navigation-surface/85 p-3 text-foreground shadow-raised backdrop-blur-md open:flex;
+    border-inline-end-width: 1px;
     padding-block-start: 0;
     padding-inline: var(--header-gutter);
     background-image: var(--panel-decoration);
@@ -1264,7 +1261,8 @@
   /* The close button starts the panel's heading. */
   .site-panel-heading {
     margin-inline: calc(-1 * var(--header-gutter));
-    @apply flex items-center gap-4 border-line border-b;
+    border-block-end-width: 1px;
+    @apply flex items-center gap-4 border-line;
   }
 
   /* Inside the open panel, the close button lets the panel's own
@@ -1308,7 +1306,8 @@
   }
 
   .panel-mode {
-    @apply relative block min-h-(--target-size) min-w-0 cursor-pointer rounded-control border border-transparent p-1 hover:border-muted has-checked:border-primary;
+    border-width: 1px;
+    @apply relative block min-h-(--target-size) min-w-0 cursor-pointer rounded-control border-solid border-transparent p-1 hover:border-muted has-checked:border-primary;
   }
 
   .panel-mode:focus-within {
@@ -2525,8 +2524,12 @@
   }
 
   @media (width >= --theme(--breakpoint-lg)) {
-    .adventure-layout[data-sidebar-open="true"] {
-      padding-inline-end: 22rem;
+    /* Reserve the default dock before the browser hydrates the dialog. */
+    .adventure-layout:is(
+        [data-sidebar-open="true"],
+        [data-sidebar-open="auto"]
+      ) {
+      padding-inline-end: var(--quest-panel-width);
     }
 
     .quest-sidebar-frame {

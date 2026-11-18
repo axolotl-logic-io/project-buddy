@@ -303,6 +303,11 @@
   }
 
   [data-mode="soot-brass"] {
+    --body-font: var(--typeface-source-serif-4);
+    --control-radius: 2px;
+    --box-radius: 3px;
+    --line-width: 1px;
+
     --timer-marker-active: var(--foreground);
     --timer-phase-font: var(--heading-font);
     --timer-radius: 164px;
@@ -376,6 +381,11 @@
   }
 
   [data-mode="dark"] {
+    --body-font: var(--typeface-source-serif-4);
+    --control-radius: 3px;
+    --box-radius: 4px;
+    --line-width: 2px;
+
     --timer-marker-active: var(--foreground);
     --timer-phase-font: var(--timer-blackletter-font);
     --timer-phase-size: 2rem;
@@ -447,8 +457,12 @@
   }
 
   /* Display, frame and ornament roles for the shared components. */
-  :root,
+  :root:not([data-mode]),
   [data-mode="light"] {
+    --control-radius: 3px;
+    --box-radius: 3px;
+    --line-width: 1px;
+
     --display-font: var(--typeface-im-fell-english);
     --display-weight: 400;
     --display-tracking: 0.01em;

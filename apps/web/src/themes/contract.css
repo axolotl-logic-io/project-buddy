@@ -285,7 +285,7 @@
        header has its own dark or light band (header-ink), where the page's
        focus colour may not show; this one must reach 3:1 against
        header-ink. */
-    --header-focus: var(--focus);
+    --header-focus: var(--header-gold);
 
     /* ---- New: type roles ------------------------------------------------ */
 

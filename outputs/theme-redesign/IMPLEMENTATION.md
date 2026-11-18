@@ -2,7 +2,7 @@
 
 This file is the plan for the one pull request (PR) that moves the theme redesign into the app. It lists the commits in order and the checks the PR must pass. It also covers the risks, the existing problems the PR should fix, and where each appearance's own plan lives.
 
-The gallery and component specimen are ready for design review. Use this plan to move the reviewed designs into the app in one pull request.
+The reviewed gallery and component specimen guide [PR #1064](https://github.com/axolotl-logic-io/project-buddy/pull/1064). The app applies the new visual roles to its existing React controls and keeps its interaction contracts.
 
 ## Sources
 
@@ -19,20 +19,13 @@ The gallery and component specimen are ready for design review. Use this plan to
 
 Each appearance has a mode id in the app. In this file, `light` is Ivory Vellum, `soot-brass` is Soot & Brass, and `dark` is Espresso Leather.
 
-## Decisions before the PR starts
+## Implementation choices
 
-Autumn should settle these first, because each one changes a token value or a commit:
-
-- **Each appearance's open choices.** Each appearance's `DIRECTION.md` lists them under "Choices awaiting Autumn". Each is a token change.
-- **The body face.** Soot & Brass and Espresso Leather propose Source Serif 4 for body text in place of Nunito. Keeping Nunito is one token in each, and it changes the font numbers in [Fonts](#fonts).
-- **The construct artwork.** Ship v2 in this PR, or leave v1 and ship v2 later. [Construct artwork](#construct-artwork) assumes v2 ships.
-- **The "Theme" legend in Settings.** It sits under the "Appearance" heading and repeats it. The mockups keep it; dropping it is a copy change.
-
-- **Profile progress.** Decide whether the ring carries both circle and progress. Preserve the exact experience and next-circle values and calculate the arc from the actual circle interval.
-- **Sign-in confirmation.** The current confirmation retains the address and retry action. Treat the prototype’s alternate confirmation as a separate copy and behavior decision.
-- **Ornament density.** Review the competing illustrations in empty states and the Espresso Leather trail rule in long conversations before finalizing their emphasis.
-
-- **Phone wordmark.** Confirm whether the phone header should display Project Buddy beside the medallion. The captures show the medallion alone.
+- Ivory Vellum keeps Nunito body text. Soot & Brass and Espresso Leather use Source Serif 4. All faces come from the existing font set.
+- New conversations use the v2 construct drawings. Saved v1 snapshots keep their original artwork.
+- Settings keeps its Theme legend and compact swatch row. Sign-in keeps the submitted address and retry action. The phone header keeps its medallion with an accessible name.
+- Profile and the header share the ring artwork and compute progress from the actual circle interval. Profile keeps the progress bar, experience total and points to the next circle.
+- Empty collection states use one vignette. Dialogs, tabs, submissions and editing continue to use the app's existing controls. The conversation keeps each prompt and reply together in a reading card, as documented in [Conversation](../../docs/chats.md).
 
 ## Commit checklist
 
@@ -89,20 +82,13 @@ Components choose semantic roles and never palette colours. Each appearance sets
 
 Each appearance draws its ornament as SVG symbols in `themes/<appearance>/ornaments.svg`. The components paint each symbol as a mask: the symbol's main shapes take `--ornament-ink`, and shapes marked `data-ink="accent"` take `--ornament-accent-ink`. A mask carries no colour, so a theme can't put a palette colour into a component this way.
 
-To ship them, the PR adds a generator:
+The app and mockups share the reviewed SVG sources and the mask generator. Run this command after editing a sprite:
 
-1. Copy the three sprites to `apps/web/src/themes/ornaments/` as `ivory-vellum.svg`, `soot-brass.svg` and `espresso-leather.svg`, the same names as the textures.
-2. Add `apps/web/scripts/build-ornament-tokens.ts`. It reads each sprite and writes `apps/web/src/themes/ornaments.generated.css`, with one `[data-mode="MODE"]` block for each appearance. `MODE` is the appearance's mode id.
-3. Port the rules from `ornament_tokens()` in [`build.py`](build.py), so the app's masks match the mockups:
-   - each symbol becomes `--orn-SLOT` and `--orn-SLOT-accent`, where `SLOT` is the symbol's id without `orn-`;
-   - `orn-corner` draws the top-left corner, and the generator mirrors it into four corners;
-   - `orn-rule-end` draws the left end, and the generator mirrors it for the right end and writes `--orn-rule-end-ratio`;
-   - `orn-vignette` also writes `--orn-vignette-ratio` from its `viewBox`;
-   - `orn-bullet` has one ink, so the generator merges its accent shapes into the main image;
-   - a missing slot stays `var(--orn-blank)`.
-4. Make the generator fail on a sprite it can't read, and warn on a symbol no component reads. The app has no XML parser among its dependencies. The sprites are hand-written and simple, so a small strict parser that rejects anything outside `<symbol>`, `<path>`, `<circle>`, `<rect>`, `<ellipse>`, `<line>`, `<polyline>`, `<polygon>` and `<g>` is enough. It avoids a new dependency.
-5. Commit the generated CSS, and add a test that runs the generator and fails if the output differs from the committed file. This is the same pattern as `check:build-fonts`.
-6. Add an npm script, `build:ornaments`, and say in the generated file's header that it is generated.
+```sh
+python3 outputs/theme-redesign/build.py --app-ornaments
+```
+
+The generator writes `apps/web/src/themes/ornaments.generated.css`. The theme imports it after the neutral token defaults. Each symbol provides a main mask and an optional accent mask. The generator mirrors the corner and rule ends and calculates the rule and vignette proportions from their SVG view boxes.
 
 The masks are data URIs (URLs that carry the file's contents) inside CSS, so they cost no extra requests. The three sprites' tokens add about 36 KiB of CSS, about 4 KiB compressed. Every visitor downloads all three, because one stylesheet serves every appearance. [Risks](#risks) covers that.
 

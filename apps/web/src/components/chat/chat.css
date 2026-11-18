@@ -87,6 +87,11 @@
     --color-border: transparent;
   }
 
+  [data-streamdown="code-block-body"] pre {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+  }
+
   .markdown {
     line-height: 1.7;
   }
@@ -213,8 +218,8 @@
     display: flow-root;
     min-inline-size: 0;
     margin-block-start: calc(var(--space-unit) * 5);
-    border: calc(var(--line-width) / 2) solid var(--line);
-    border-radius: var(--box-radius);
+    border: var(--frame-width) solid var(--frame-ink);
+    border-radius: var(--frame-radius);
     padding: calc(var(--space-unit) * 3);
     background-color: color-mix(in oklab, var(--field) 70%, transparent);
     font-family: var(--conversation-font);

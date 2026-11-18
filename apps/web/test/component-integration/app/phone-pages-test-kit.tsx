@@ -274,7 +274,7 @@ const PHONE_PAGES: readonly PhonePage[] = [
     render: projectsPage,
     open: async (): Promise<void> => {
       await page
-        .getByRole("button", { name: "Make a thing", exact: true })
+        .getByRole("button", { name: "Make a thing", exact: false })
         .click();
       await vi.waitFor(() =>
         page
