@@ -18,7 +18,7 @@ The product: a site where constructs help each user with their quests and ideas,
 
 ### Site panel
 
-The panel on the left of every page, mirroring the quest sidebar on the right. The button at the start of the header, a panel icon, opens and closes it. It holds Quick Note, the **Places** and **You** groups of links for a signed-in user, the Ivory Vellum, Soot & Brass and Espresso Leather appearance choices, and Credits. It opens over the page, which keeps its size. On a wide screen it docks there and stays open from page to page until the user closes it; on a narrower one it is a drawer over the page.
+The panel on the left of every page, with the Timer panel on the right of quest pages. The button at the start of the header, a panel icon, opens and closes it. It holds Quick Note, the **Places** and **You** groups of links for a signed-in user, the Ivory Vellum, Soot & Brass and Espresso Leather appearance choices, and Credits. It opens over the page, which keeps its size. On a wide screen it docks there and stays open from page to page until the user closes it; on a narrower one it is a drawer over the page.
 
 - **UI:** "Site panel", "Close site panel", "Places", "You".
 
@@ -126,7 +126,7 @@ Habits describe the construct’s personal style across conversations.
 
 ### Spell
 
-A persistent mode in a quest's conversation. **Tasks** saves subsequent ordinary messages as open tasks; **Brainstorm** saves them in Ideas. These are the built-in spells. Own spells have customizable names, reply lists and Tasks or Ideas destinations. A new conversation has none active. A spell grants no permissions and makes no request to an AI model company.
+A way to capture messages in a quest. Open Spells & status from Overview and cast a spell to open its conversation. **Tasks** saves subsequent ordinary messages as open tasks; **Brainstorm** saves them in Ideas. These are the built-in spells. Own spells have customizable names, reply lists and Tasks or Ideas destinations. A new conversation has none active. A spell grants no permissions and makes no request to an AI model company.
 
 Spellbook offers creation and copying. Own spells can be edited, forgotten, restored and deleted forever. Cast by name. Casting keeps a snapshot, so editing or forgetting a definition changes future casts.
 
@@ -144,9 +144,15 @@ Clear the active spell and return to ordinary conversation commands. Choose **St
 
 ### Conversation
 
-The continuing exchange between the user and one [construct](#construct). Each [quest](#quest) has exactly one, open to its owner and [members](#member). Starting a conversation again reaches the same one; reading a quest never starts one. Casting or stopping a spell keeps the conversation.
+The messages and replies of an active [spell](#spell), shared by the quest's owner and [members](#member). Casting opens a transcript and composer below the workspace. Stopping closes both.
 
 - **UI:** the quest's own page; no list of conversations and no conversation names.
+
+### Overview
+
+The page a quest opens on. It summarizes the work and links to the quest's sections. Ordinary quests show Next task. Dailies shows its day controls and Day grid.
+
+- **UI:** "Overview", "Back to overview".
 
 ### Quest status
 
@@ -160,7 +166,7 @@ The construct’s first message in a new quest conversation, generated from the 
 
 ### Current quest
 
-The quest Quests offers to pick up again, in its Continue card above Start a quest: the Active quest open to the user, their own or one they are a member of, whose conversation was most recently active, by its newest message, or by when it started if it has none, with its [next task](#next-task). Continue opens its conversation. With no Active quest there is none. Showing it makes no model call.
+The quest Quests offers to pick up again, in its Continue card above Start a quest: the Active quest open to the user, their own or one they are a member of, whose conversation was most recently active, by its newest message, or by when it started if it has none, with its [next task](#next-task). Continue opens its overview. With no Active quest there is none. Showing it makes no model call.
 
 - **UI:** "Current quest", "Continue".
 
@@ -184,7 +190,7 @@ The construct's answer to one user message: text, plus any tool calls. The model
 
 ### Quest
 
-Something the user wants to do, make or learn, which they work on in the quest's one continuing [conversation](#conversation), with its tasks, progress timeline and [Quick Notes](#quick-note). A quest can be about any subject and starts from a [premade quest](#premade-quest), with a construct and no active spell.
+Something the user wants to do, make or learn, with an overview and sections for Tasks, Ideas, Quick Notes, Progress, Spells & status, and Members. A quest can be about any subject and starts from a [premade quest](#premade-quest), with a construct and no active spell.
 
 - **UI:** "Quest", "Quests".
 
@@ -208,7 +214,7 @@ The user's one ongoing quest for starting the day, continued every day in its on
 
 ### Start Day
 
-The Dailies quest's way to begin a new day, at the top of the Dailies sidebar. After the user confirms, it records a day dated with the browser's calendar date. It sets the conversation and its active spell aside and opens an empty conversation with the same construct, without a model request. Done [recurring tasks](#recurring-task) reopen, and one-off tasks, Ideas and Progress stay as they are. The user can also choose to remove all tasks or all Ideas. The button sends `/start-day`, and Undo Start Day sends `/undo-start-day`.
+The Dailies quest's way to begin a new day, on the Dailies overview. After the user confirms, it records a day dated with the browser's calendar date. It sets the conversation and its active spell aside and opens an empty conversation with the same construct, without a model request. Done [recurring tasks](#recurring-task) reopen, and one-off tasks, Ideas and Progress stay as they are. The user can also choose to remove all tasks or all Ideas. Start Day and Undo Start Day save directly.
 
 Under the button, a line says how long ago the last day started: in hours for the first two days, then in days. Until someone sends a message in the new day's conversation, **Undo Start Day** brings back the conversation, spell, Tasks and Ideas from before it.
 
@@ -278,37 +284,35 @@ The one small thing the user means to do next in a quest: the first open [task](
 
 ### Active spell
 
-The conversation’s saved mode: Tasks, Brainstorm or no spell. `cast tasks` and `cast brainstorm` set it; `tasks` and `brainstorm` are shorter forms. Commands accept an optional `/`. **Stop [Spell]**, or `stop`, returns to Chat. Switching spells never moves earlier messages between buckets.
+The spell currently cast in a quest. It opens the transcript and composer, and routes messages to Tasks or Ideas. Cast another spell to switch. Choose **Stop** to close the conversation.
 
 ### Ideas
 
-A quest's saved possibilities that the user has not committed to. Ideas is separate from Tasks. The owner or a member can add, edit, reorder or remove an idea, or move it into Tasks as an open task, from the Ideas [bucket](#buckets) or with the `/idea` [commands](#command). Ideas have no done state.
+A quest's saved possibilities that the user has not committed to. Ideas is separate from Tasks. The owner or a member can add, edit, reorder or remove an idea, or move it into Tasks as an open task, from the Ideas section. Ideas have no done state.
 
 - **UI:** "Ideas", "Add idea", "Move to Tasks".
 
 ### Quick Note
 
-A short, dated line the user saves to an Active quest open to them from the site panel without opening the quest, or directly from its Quick Notes bucket, without a model request. A quest's Quick Notes are listed, newest first, in its sidebar's Quick Notes [bucket](#buckets), where an always-visible composer adds to the current quest, each note can be edited, and deleting one sends `/drop-note`. Constructs don't read them, only the [note](#command-note) of a deletion. **Quick Notes** names the feature and a quest's collection of them.
+A short, dated line the user saves to an Active quest open to them from the site panel without opening the quest, or from its Quick Notes section, without a model request. A quest's Quick Notes are listed, newest first, in its Quick Notes section, where the user can add, edit and delete notes directly. **Quick Notes** names the feature and a quest's collection of them.
 
 - **UI:** "Quick Note" for the site panel's item, the dialog and a single item; "Quick Notes" for the bucket and the collection.
 
 ### Buckets
 
-The quest sidebar's collections: Tasks, Ideas, Quick Notes and Progress, each reached by a direct tab. Dailies also has Day grid for recurring history. Each collection stays loaded so switching preserves drafts. The Control desk treatment distinguishes agreed tasks, possibilities and dated notes.
+The Tasks and Ideas collections receive messages captured by spells. Both have direct sections linked from the quest overview.
 
-- **UI:** "Tasks", "Ideas", "Quick Notes", "Progress", "Day grid".
+### Spells & status
 
-### Quest sidebar actions
-
-The quest sidebar's **Spells & status** disclosure holds the spell picker and quest status controls. The existing `?section=actions` link opens it. Dailies keeps Start Day and its available Undo above the collection tabs. Like every sidebar command control, each sends its command to the conversation.
+The quest section for casting a spell, changing quest status and choosing Undo. It opens from Overview and saves changes directly.
 
 - **UI:** "Spells & status".
 
 ### Tasks
 
-A quest's ordered list of [tasks](#task): the remaining work the user agreed to. The construct changes it with a tool, and the user changes it on the quest's Tasks section, in the Tasks panel beside the conversation, or with [commands](#command). Every change is saved as a version and can be undone. The tasks have no deadlines.
+A quest's ordered list of [tasks](#task): the remaining work the user agreed to. Users edit it in the Tasks section. The Tasks spell adds open tasks from its messages. Every change is saved as a version and can be undone. The tasks have no deadlines.
 
-- **UI:** "Tasks", "Tasks panel".
+- **UI:** "Tasks".
 
 ### Task
 
@@ -318,21 +322,17 @@ One piece of remaining work in a quest's [Tasks](#tasks): one short line, open o
 
 ### Tasks change
 
-A note in a quest's conversation that the construct or a person changed the quest's [tasks](#tasks): what each operation did, with Undo. A person's tasks change, made with the Tasks panel or a command, the construct reads it on its next reply.
+An edit to a quest's Tasks, such as adding, reordering or completing a task. Direct edits show feedback and offer Undo.
 
 - **UI:** "Tasks change", "Undid a task change".
 
 ### Command
 
-A message that starts with "/" and a name, such as `/done 3`, which the site runs at once instead of sending to the construct. Typing "/" in the composer lists them. The tasks commands keep the tasks without a model call. The other commands change Ideas, Quick Notes, Progress, the quest's members and status, and start a day or the conversation. A command names an idea, a Quick Note, a milestone or a task by its place in its list as the sidebar shows it, 1 being first, and a member by their name.
-
-Every control in the quest sidebar works by sending its command to the conversation, as if the user had typed it, so the conversation records what was done to the quest. The Cast spell button sends `cast` with the spell's name, and Stop [Spell] sends `stop`. A refused command changes nothing and says why under the message box, whether it was typed or sent by a control.
-
-- **UI:** "Commands", "/tasks", "/add", "/done", "/reopen", "/edit", "/move", "/drop", "/recur", "/once", "/undo", "/idea", "/edit-idea", "/move-idea", "/drop-idea", "/idea-to-tasks", "/drop-note", "/edit-milestone", "/drop-milestone", "/start-day", "/undo-start-day", "/invite", "/withdraw", "/remove", "/leave", "/start", "/complete", "/abandon", "/restore".
+A reserved message such as `/exp` that the local construct answers with its command behavior. Quest controls save directly.
 
 ### Command note
 
-What the conversation shows under a [command](#command) that changed the quest, such as "Added the idea “Paint the eyes” to Ideas.". The construct reads it on its next reply as a note, not a request, and makes no reply to it.
+A record of a command and the change it made. Earlier conversations stored these beneath the command.
 
 ## Experience
 
@@ -452,7 +452,7 @@ Wherever quests are listed or chosen, a multi-user quest carries a short marker,
 
 ### Member
 
-A user who has accepted a [quest invitation](#quest-invitation). Members can change quest contents, invite users, remove other members, leave, rename the quest and change its status. Membership opens that quest only, not another user's own spells, historical construct records or other quests. A removed member loses access; what they wrote stays. Members' controls send `/invite`, `/withdraw`, `/remove` and `/leave` to the conversation.
+A user who has accepted a [quest invitation](#quest-invitation). Members can change quest contents, invite users, remove other members, leave, rename the quest and change its status. Membership opens that quest only, not another user's own spells, historical construct records or other quests. A removed member loses access; what they wrote stays. The Members section saves these changes directly.
 
 - **UI:** "Member", "Members", "Remove", "Leave quest".
 
@@ -484,7 +484,7 @@ An account whose user has completed sign-up: every account made through Sign up,
 
 ## Timer
 
-The Timer is a destination of its own in the site panel's Places. It belongs to no quest, and quest membership and timer participation stay separate. See [Timer](docs/timer.md).
+The site panel links to the Timer page. A quest also has a Timer panel that starts a schedule and shows the countdown in place. Quest membership and timer participation stay separate. See [Timer](docs/timer.md).
 
 ### Timer
 
@@ -547,7 +547,7 @@ Some code and storage names outlast the features or words they were made for. Us
 
 ### Chat, adventure
 
-`chat` and `chats` in code and storage, and `adventure` in a few code names such as `AdventureCharacterHeader` and the `adventure` visual destination kind, mean a quest's [conversation](#conversation). In product copy, "Chat" names only ordinary conversation when no spell is active.
+`chat` and `chats` in code and storage, and `adventure` in a few code names such as `AdventureCharacterHeader` and the `adventure` visual destination kind, mean a quest's [conversation](#conversation). In product copy, use "spell conversation".
 
 ### Generated image
 

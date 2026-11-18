@@ -66,6 +66,7 @@ function chatColumns(
     constructId: sql`${chat.construct.id}::text`.as("construct_id"),
     spell: sql`null::text`.as("spell"),
     spellSnapshot: sql`null::jsonb`.as("spell_snapshot"),
+    spellStartedAt: sql`null::timestamptz`.as("spell_started_at"),
     constructName: sql`${chat.construct.name}::text`.as("construct_name"),
     constructParts:
       sql`${JSON.stringify(storedConstructPrompt(chat.construct.definition))}::jsonb`.as(

@@ -22,6 +22,7 @@ import {
   readMessageAuthor,
   saveMessage,
 } from "@/chats/store.ts";
+import type { Transaction } from "@/db/client.ts";
 import { appErrorResponse } from "@/errors/app-error.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
 import type { UserId } from "@/ids.ts";
@@ -76,29 +77,32 @@ async function conversationToAnswer(
   actingUser: UserId,
   chat: Chat,
   message: ChatRequest["message"],
+  tx: Transaction,
 ): Promise<ConversationToAnswer> {
-  const [saved, author] = await Promise.all([
-    listMessagesForModel(actingUser, chat.id, CONVERSATION_WINDOW),
-    readMessageAuthor(actingUser),
-  ]);
+  const saved = await listMessagesForModel(actingUser, chat.id, {
+    newest: CONVERSATION_WINDOW,
+    db: tx,
+    since: chat.spellStartedAt,
+  });
   const held = saved.findIndex(({ id }) => id === message.id);
   if (held !== -1 && held < saved.length - 1) {
     return alreadyAnswered();
   }
   if (held !== -1) {
-    if (!(await claimReply(actingUser, chat.id, message.id))) {
+    if (!(await claimReply(actingUser, chat.id, message.id, tx))) {
       return alreadyAnswered();
     }
     return { kind: "reply", conversation: saved };
   }
-  const saving = await saveMessage(actingUser, chat.id, message);
+  const saving = await saveMessage(actingUser, chat.id, message, tx);
   switch (saving) {
     case "inserted":
       return {
         kind: "reply",
-        conversation: [...saved, authored(message, author)].slice(
-          -CONVERSATION_WINDOW,
-        ),
+        conversation: [
+          ...saved,
+          authored(message, await readMessageAuthor(actingUser, tx)),
+        ].slice(-CONVERSATION_WINDOW),
       };
     case "already-saved":
       return alreadyAnswered();

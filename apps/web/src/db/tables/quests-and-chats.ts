@@ -83,6 +83,10 @@ export const chats = pgTable(
     constructId: text("construct_id").notNull(),
     spell: text("spell"),
     spellSnapshot: jsonb("spell_snapshot"),
+    spellStartedAt: timestamp("spell_started_at", {
+      withTimezone: true,
+      mode: "string",
+    }),
     constructName: text("construct_name"),
     constructParts: jsonb("construct_parts"),
     name: text("name"),

@@ -1,3 +1,4 @@
+import { inTransaction } from "@/db/client.ts";
 // Quests' continuing conversations, in the test database with the local
 // construct engine: one per quest, found or made atomically, never made by
 // reading, open to the quest's owner alone, and the user's one Dailies
@@ -181,7 +182,9 @@ describe("a long conversation", () => {
     await data.exchanges(chat, exchanges);
     await signIn(user);
 
-    const answer = await conversationToAnswer(user.id, chat, question("help"));
+    const answer = await inTransaction((tx) =>
+      conversationToAnswer(user.id, chat, question("help"), tx),
+    );
     expect(answer.kind).toBe("reply");
     if (answer.kind !== "reply") {
       throw new Error("Reply refused");

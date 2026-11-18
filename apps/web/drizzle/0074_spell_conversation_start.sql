@@ -1,0 +1,1 @@
+ALTER TABLE "chats" ADD COLUMN "spell_started_at" timestamp with time zone;

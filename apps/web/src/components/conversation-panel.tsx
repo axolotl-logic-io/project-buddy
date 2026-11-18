@@ -38,11 +38,17 @@ function ConversationPanel({
   panel,
   title,
   initialSection,
+  labels = QUEST_SIDEBAR_COPY,
 }: {
   readonly children?: ReactNode;
   readonly panel: ReactNode;
   readonly title: string;
   readonly initialSection?: string | undefined;
+  readonly labels?: {
+    readonly label: string;
+    readonly expand: string;
+    readonly collapse: string;
+  };
 }): JSX.Element {
   const headerControl = useSyncExternalStore(
     subscribeHeaderControl,
@@ -92,8 +98,8 @@ function ConversationPanel({
       ref={toggleRef}
       variant="quiet"
       className="panel-toggle panel-edge-tab quest-sidebar-expand"
-      aria-label={QUEST_SIDEBAR_COPY.expand}
-      title={QUEST_SIDEBAR_COPY.expand}
+      aria-label={labels.expand}
+      title={labels.expand}
       aria-expanded={open}
       aria-controls={panelId}
       hidden={open}
@@ -115,16 +121,16 @@ function ConversationPanel({
         ref={dialogRef}
         onCancel={cancel}
         className="quest-sidebar-frame"
-        aria-label={QUEST_SIDEBAR_COPY.label}
+        aria-label={labels.label}
       >
-        <aside className="quest-sidebar" aria-label={QUEST_SIDEBAR_COPY.label}>
+        <aside className="quest-sidebar" aria-label={labels.label}>
           <div className="quest-panel-heading">
             <h2 className="font-heading text-lg">{title}</h2>
             <Button
               variant="quiet"
               className="panel-toggle panel-edge-tab quest-sidebar-collapse"
-              aria-label={QUEST_SIDEBAR_COPY.collapse}
-              title={QUEST_SIDEBAR_COPY.collapse}
+              aria-label={labels.collapse}
+              title={labels.collapse}
               aria-expanded={open}
               aria-controls={panelId}
               onClick={collapse}

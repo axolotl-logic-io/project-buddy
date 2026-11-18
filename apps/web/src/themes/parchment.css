@@ -31,6 +31,7 @@
     --timer-face-ratio: auto;
     --timer-face-height: 35.625rem;
     --timer-stage-padding: 1.5rem 4rem;
+    --timer-panel-tail: 0;
     --timer-face-padding: 2.5rem 3.4375rem;
     --timer-readout-align: start;
     --timer-phase-position: static;
@@ -298,6 +299,7 @@
     --timer-number-leading: 1.1;
     --timer-next-font: var(--heading-font);
     --timer-phase-gap: 0;
+    --timer-panel-tail: 3rem;
     --timer-next-position: absolute;
     --timer-next-offset: calc(100% + 1.25rem);
     --timer-next-margin: 0;

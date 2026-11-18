@@ -166,7 +166,7 @@ afterEach(() => {
   vi.clearAllMocks();
 });
 
-describe("use_case_tasks_commands", () => {
+describe("tasks command behavior", () => {
   test('"/" lists the built-in commands', async () => {
     await openChat();
     await userEvent.type(messageBox(), "/");
@@ -286,7 +286,7 @@ describe("use_case_tasks_commands", () => {
   });
 });
 
-describe("use_case_tasks_panel", () => {
+describe("tasks controls alongside the conversation", () => {
   test("waits, saying why, while the last message's reply stopped, so it can still be sent again", async () => {
     await openAwaitingChat("m1");
     await page.getByRole("button", { name: QUEST_SIDEBAR_COPY.expand }).click();

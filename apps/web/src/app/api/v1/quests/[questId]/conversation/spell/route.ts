@@ -8,19 +8,17 @@ import {
   readApiBody,
 } from "@/api/api-route.ts";
 import { type SpellView, spellView } from "@/api/api-views.ts";
-import { readQuestConversation } from "@/conversations/start-quest.ts";
+import { findConversation } from "@/conversations/conversation-store.ts";
 import type { UserId } from "@/ids.ts";
 import type { Quest } from "@/quests/store.ts";
+import { changeQuestSpell } from "@/spells/quest-spell.ts";
 import {
   SPELL_REFERENCE,
   type SpellReference,
 } from "@/spells/spell-definition.ts";
-import { readActiveSpell, setSpell } from "@/spells/spell-store.ts";
+import { readActiveSpell } from "@/spells/spell-store.ts";
 
 const CAST_BODY = z.object({ spell: SPELL_REFERENCE });
-
-const NO_CONVERSATION =
-  "This quest has no conversation yet, so no spell can be cast in it.";
 
 const NO_SPELL = "No such spell is open to you.";
 
@@ -31,12 +29,12 @@ async function changeSpell(
   quest: Quest,
   spell: SpellReference | undefined,
 ): Promise<Response> {
-  const conversation = await readQuestConversation(user, quest.id);
-  if (conversation === undefined) {
-    return apiProblem("not_found", NO_CONVERSATION);
-  }
-  if (!(await setSpell(user, { chatId: conversation.id, spell }))) {
+  if (!(await changeQuestSpell(user, quest, spell))) {
     return apiProblem("not_found", NO_SPELL, "spell");
+  }
+  const conversation = await findConversation(user, quest.id);
+  if (conversation === undefined) {
+    return apiData({ conversationId: null, activeSpell: null });
   }
   const active = await readActiveSpell(user, conversation);
   let activeSpell: SpellView | null = null;

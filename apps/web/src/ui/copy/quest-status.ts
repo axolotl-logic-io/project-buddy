@@ -30,7 +30,7 @@ const QUEST_STATUS_COPY = {
   undo: "Undo",
   empty: "No quests with this status.",
   effects:
-    "The conversation, Tasks and progress stay available. You can restore the quest whenever you want.",
+    "The quest’s work stays available. You can restore the quest whenever you want.",
   approvalHeading: "Confirm quest status change",
   confirm: {
     active: "Confirm restore",

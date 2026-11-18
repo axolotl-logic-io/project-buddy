@@ -28,7 +28,7 @@ type IdeaRequest = z.infer<typeof IDEA_REQUEST>;
 // isn't open to the user, or Tasks couldn't take the idea.
 type IdeaProblem = "invalid" | "not-found" | "tasks-full";
 type IdeaResult =
-  | { readonly kind: "saved" }
+  | { readonly kind: "saved"; readonly message?: string }
   | {
       readonly kind: "problem";
       readonly reason: IdeaProblem;

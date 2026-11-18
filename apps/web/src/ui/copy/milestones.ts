@@ -9,6 +9,7 @@ export const MILESTONE_COPY = {
 } as const;
 
 export const PROGRESS_TIMELINE_COPY = {
+  unavailable: "This milestone is no longer available.",
   heading: "Milestones",
   none: "Nothing here yet. When you finish something in this quest, your construct adds it here.",
   edit: "Edit",

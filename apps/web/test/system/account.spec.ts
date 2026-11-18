@@ -12,6 +12,7 @@ import {
 import type { User } from "@/accounts/users-store.ts";
 import { userMessage } from "@/errors/app-error.ts";
 import { HOME_PATH } from "@/routes.ts";
+import { setSpell } from "@/spells/spell-store.ts";
 import { ACCOUNT_COPY } from "@/ui/copy/account.ts";
 import { LINK_PAGE_COPY } from "@/ui/copy/login.ts";
 import { sendMessage } from "./chat-page.ts";
@@ -112,6 +113,9 @@ test("use_case_sign_out_everywhere", async ({
   testData,
 }) => {
   const chat = await testData.chat(await testData.quest());
+  expect(await setSpell(account.id, { chatId: chat.id, spell: "tasks" })).toBe(
+    true,
+  );
   const link = await newSignInLink(page, account.email);
   await logIn(page, account);
   await openSecurity(page);

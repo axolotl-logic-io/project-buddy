@@ -10,6 +10,7 @@ import { localConstructModel } from "@/replies/local-model.ts";
 import { replyModel } from "@/replies/model.ts";
 import { replyToChat } from "@/replies/reply.ts";
 import { stopReply } from "@/replies/reply-runs.ts";
+import { setSpell } from "@/spells/spell-store.ts";
 import { CHAT_COPY } from "@/ui/copy/chat.ts";
 import { testData } from "../../support/test-database/data-test-kit.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
@@ -89,6 +90,7 @@ describe("use_case_stop_reply", () => {
     const [user, formerMember] = await Promise.all([testUser(), testUser()]);
     const quest = await testData(user).quest();
     const chat = await testData(user).chat(quest);
+    await setSpell(user.id, { chatId: chat.id, spell: "tasks" });
     const provider = heldProvider();
     const messageId = MESSAGE_ID.parse("cancel-owner-reply");
     try {
@@ -97,7 +99,7 @@ describe("use_case_stop_reply", () => {
         message: {
           id: messageId,
           role: "user",
-          parts: [{ type: "text", text: "Please help." }],
+          parts: [{ type: "text", text: "help" }],
         },
       });
       const body = response.text();
@@ -128,6 +130,7 @@ test("ordinary browser disconnect preserves provider completion and its saved re
   const user = await testUser();
   const quest = await testData(user).quest();
   const chat = await testData(user).chat(quest);
+  await setSpell(user.id, { chatId: chat.id, spell: "tasks" });
   const provider = heldProvider();
   const messageId = MESSAGE_ID.parse("disconnect-keeps-reply");
   try {
@@ -136,7 +139,7 @@ test("ordinary browser disconnect preserves provider completion and its saved re
       message: {
         id: messageId,
         role: "user",
-        parts: [{ type: "text", text: "Please continue." }],
+        parts: [{ type: "text", text: "help" }],
       },
     });
     await provider.started;
@@ -158,6 +161,7 @@ test("failed partial persistence never reports a completed cancellation", async 
   const user = await testUser();
   const quest = await testData(user).quest();
   const chat = await testData(user).chat(quest);
+  await setSpell(user.id, { chatId: chat.id, spell: "tasks" });
   const provider = heldProvider();
   const messageId = MESSAGE_ID.parse("failed-cancel-persistence");
   vi.mocked(saveReply).mockRejectedValueOnce(new Error("Local save failure"));
@@ -167,7 +171,7 @@ test("failed partial persistence never reports a completed cancellation", async 
       message: {
         id: messageId,
         role: "user",
-        parts: [{ type: "text", text: "Please help." }],
+        parts: [{ type: "text", text: "help" }],
       },
     });
     const body = response.text().catch(() => "");

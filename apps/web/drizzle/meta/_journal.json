@@ -519,6 +519,13 @@
       "when": 1794883504867,
       "tag": "0073_same_vindicator",
       "breakpoints": true
+    },
+    {
+      "idx": 74,
+      "version": "7",
+      "when": 1795026173259,
+      "tag": "0074_spell_conversation_start",
+      "breakpoints": true
     }
   ]
 }

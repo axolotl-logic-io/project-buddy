@@ -82,3 +82,8 @@ The conventions for these cases are in [the index](README.md#conventions). The T
 - **Steps:**
   - They open Timer preferences and choose Copy link.
 - **Outcome:** the current address is copied. The button briefly reads Copied or Copy failed, with the same result announced to a screen reader. A failed copy leaves the countdown running.
+
+## use_case_timer_quest_panel
+
+- **Steps:** Open the Timer panel on a quest. Set Work for and Break for, then choose Start.
+- **Outcome:** The phase and countdown run in the same panel, using the site's selected appearance and the Timer page's schedule rules. On a phone the panel opens as a drawer. The Timer works with or without an active spell.

@@ -6,11 +6,15 @@ import {
   type JSX,
   type RefObject,
   useCallback,
+  useContext,
   useEffect,
   useId,
   useRef,
 } from "react";
-import { optionId } from "@/components/chat/chat-commands.ts";
+import {
+  ChatCommandsContext,
+  optionId,
+} from "@/components/chat/chat-commands.ts";
 import { CommandMenu } from "@/components/chat/command-menu.tsx";
 import type { ReplyStop } from "@/components/chat/reply-stop.ts";
 import { useComposerCommands } from "@/components/chat/use-composer-commands.ts";
@@ -89,6 +93,11 @@ export function ChatComposer({
   const menuId = useId();
   const problemId = useId();
   const commands = useComposerCommands();
+  const availableCommands = useContext(ChatCommandsContext);
+  let keyHint: string = CHAT_COPY.keyHint;
+  if (availableCommands !== undefined) {
+    keyHint = CHAT_COPY.commandKeyHint;
+  }
   let describedBy = hintId;
   if (commands.problem !== undefined) {
     describedBy = `${problemId} ${hintId}`;
@@ -163,7 +172,7 @@ export function ChatComposer({
         <Alert id={problemId}>{commands.problem}</Alert>
       )}
       <p className="text-muted text-xs" id={hintId}>
-        {CHAT_COPY.keyHint}
+        {keyHint}
       </p>
     </ComposerPrimitive.Root>
   );

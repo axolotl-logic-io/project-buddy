@@ -10,41 +10,41 @@ import {
   useRef,
   useState,
 } from "react";
-import { PANEL_COMMAND } from "@/commands/panel-commands.ts";
-import { usePanelSend } from "@/components/chat/chat-send.ts";
 import { Button } from "@/components/ui/button.tsx";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog.tsx";
 import { Alert } from "@/components/ui/form-message.tsx";
 import { Icon } from "@/components/ui/icon.tsx";
+import { useQuestAction } from "@/components/use-quest-action.ts";
+import type { MilestoneId } from "@/ids.ts";
 import { MILESTONE_TEXT_MAX_LENGTH } from "@/milestones/milestone.ts";
+import { changeMilestoneAction } from "@/milestones/milestone-actions.ts";
 import { PROGRESS_TIMELINE_COPY } from "@/ui/copy/milestones.ts";
 
-// The editor keeps refused text on screen. Cancel discards the draft. Save
-// sends /edit-milestone to the quest's conversation.
+// The editor keeps refused text on screen.
 function MilestoneEditor({
-  place,
+  id,
   text,
   onClose,
 }: {
-  readonly place: number;
+  readonly id: MilestoneId;
   readonly text: string;
   readonly onClose: () => void;
 }): JSX.Element {
   const errorId = useId();
   const [draft, setDraft] = useState(text);
-  const { send, busy, problem } = usePanelSend();
+  const { run, busy, problem } = useQuestAction(changeMilestoneAction);
   const save = useCallback(
     (event: SubmitEvent<HTMLFormElement>): void => {
       event.preventDefault();
-      send(PANEL_COMMAND.editMilestone(place, draft))
-        .then((result) => {
-          if (result.sent) {
+      run({ id, text: draft })
+        .then((saved) => {
+          if (saved) {
             onClose();
           }
         })
         .catch(() => undefined);
     },
-    [send, place, draft, onClose],
+    [run, id, draft, onClose],
   );
   const updateDraft = useCallback(
     (event: ChangeEvent<HTMLInputElement>): void => {
@@ -82,18 +82,17 @@ function MilestoneEditor({
   );
 }
 
-// Sends /drop-milestone once she confirms.
 function DeleteMilestone({
-  place,
+  id,
   text,
 }: {
-  readonly place: number;
+  readonly id: MilestoneId;
   readonly text: string;
 }): JSX.Element {
-  const { send, problem } = usePanelSend();
+  const { run, busy, problem } = useQuestAction(changeMilestoneAction);
   const confirm = useCallback((): void => {
-    send(PANEL_COMMAND.dropMilestone(place)).catch(() => undefined);
-  }, [send, place]);
+    run({ id }).catch(() => undefined);
+  }, [run, id]);
   return (
     <>
       <ConfirmDialog
@@ -106,6 +105,7 @@ function DeleteMilestone({
         trigger={
           <Button
             aria-label={PROGRESS_TIMELINE_COPY.deleteLabel(text)}
+            disabled={busy}
             variant="quiet"
           >
             <Icon name="trash" />
@@ -121,13 +121,11 @@ function DeleteMilestone({
 // A milestone's text, with the buttons that edit or
 // delete it, or, while she edits it, the form that changes its text. When
 // the form closes, keyboard focus goes back to the Edit button.
-// place is the milestone's place in Progress, newest first, as the
-// commands name it.
 export function MilestoneControls({
-  place,
+  id,
   text,
 }: {
-  readonly place: number;
+  readonly id: MilestoneId;
   readonly text: string;
 }): JSX.Element {
   const [editing, setEditing] = useState(false);
@@ -147,7 +145,7 @@ export function MilestoneControls({
     setEditing(false);
   }, []);
   if (editing === true) {
-    return <MilestoneEditor onClose={close} place={place} text={text} />;
+    return <MilestoneEditor onClose={close} id={id} text={text} />;
   }
   return (
     <>
@@ -162,7 +160,7 @@ export function MilestoneControls({
           <Icon name="pencil" />
           {PROGRESS_TIMELINE_COPY.edit}
         </Button>
-        <DeleteMilestone place={place} text={text} />
+        <DeleteMilestone id={id} text={text} />
       </div>
     </>
   );

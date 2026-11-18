@@ -95,7 +95,7 @@ The emailed token proves control of the invited address, in the same way a sign-
 
 ## Members
 
-A quest's sidebar has a **Members** disclosure. It lists the owner, members and pending invitations, then an **Invite by email** form. The disclosure works the same for the owner and for members.
+The quest overview links to **Members**. It lists the owner, members and pending invitations, then an **Invite by email** form. The section works the same for the owner and for members.
 
 A pending invitation is listed by the address it was sent to, never by the account's name, so inviting reveals nothing of an existing account. A member's name shows once they accept.
 
@@ -103,7 +103,7 @@ A pending invitation is listed by the address it was sent to, never by the accou
 - **Leave quest** asks for confirmation, then removes the acting member and opens Quests, whose status line names the quest they left and takes focus.
 - **Withdraw** deletes a pending invitation at once.
 - The owner has no Remove control, and the server refuses a request to remove them.
-- In the sidebar's drawer, below 1024 px, the Remove and Leave questions open above the drawer and hold focus until answered.
+- Remove and Leave open confirmation dialogs that hold focus until closed.
 
 Invitations are limited to 20 per inviter per hour, because each one emails an address the inviter chose. Only invitations that go out count: a request for a quest that isn't open to the inviter, or for someone already in the quest, doesn't. When no invitation goes out, the form keeps the address, and focus returns to it after every answer. If an email fails, the invitation stays pending and the form says to invite again to resend it.
 
@@ -148,4 +148,4 @@ The previous build neither reads nor writes these, and every account it creates 
 
 ## Tests
 
-Real-database server tests cover owner, member, pending invitee, removed member and unrelated user access through every quest store. They also cover invitations, how pending invitees are shown, the invitation limit, the email's text, both acceptance paths, a reopened link, member powers, removal, the shared marker's data and the migration. Browser tests cover the Members disclosure and Pending, including keyboard use, the Remove and Leave questions inside the sidebar's drawer at 320 to 768 px, and phone widths of 320 and 390 px in both appearance modes.
+Real-database server tests cover owner, member, pending invitee, removed member and unrelated user access through every quest store. They also cover invitations, how pending invitees are shown, the invitation limit, the email's text, both acceptance paths, a reopened link, member powers, removal, the shared marker's data and the migration. Browser tests cover the Members section and Pending, including keyboard use, the Remove and Leave questions at phone and tablet widths, and phone widths of 320 and 390 px in both appearance modes.

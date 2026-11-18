@@ -37,8 +37,10 @@ function ChatScreen({
   panelTitle,
   initialSection,
   dailiesDays,
+  workspace,
 }: {
   readonly conversation: Chat;
+  readonly workspace?: boolean;
   readonly messages: ChatMessage[];
   readonly stoppedReplyId: string | undefined;
   readonly viewer: UserId;
@@ -51,19 +53,25 @@ function ChatScreen({
 }): JSX.Element {
   const { construct } = conversation;
   let spellName: string | undefined;
-  if (conversation.spell !== undefined) {
+  if (workspace !== true && conversation.spell !== undefined) {
     spellName =
       conversation.activeSpell?.name ?? getSpell(conversation.spell).name;
+  }
+  let tasksActions: TasksActions | undefined;
+  if (workspace !== true) {
+    tasksActions = TASKS_ACTIONS;
   }
   return (
     <ChatView
       spellName={spellName}
+      followOnMount={workspace !== true}
       panel={panel}
       panelTitle={panelTitle}
       initialSection={initialSection}
       viewer={viewer}
       chatId={conversation.id}
-      key={conversation.id}
+      key={conversation.spellStartedAt ?? conversation.id}
+      cast={conversation.spellStartedAt}
       initialMessages={messages}
       stoppedReplyId={stoppedReplyId}
       constructName={construct.name}
@@ -71,7 +79,7 @@ function ChatScreen({
       authorNames={otherAuthorNames(messages, viewer)}
       questId={conversation.quest.id}
       initialTasks={tasks}
-      tasksActions={TASKS_ACTIONS}
+      tasksActions={tasksActions}
       dailiesDays={dailiesDays}
     />
   );

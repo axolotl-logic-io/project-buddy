@@ -1,7 +1,7 @@
 import type { JSX, ReactNode } from "react";
 import { QuestStatusFeedback } from "@/components/quest-status-controls.tsx";
 
-// The conversation and its sidebar share quest status feedback.
+// Quest sections share status feedback and its Undo.
 function QuestWorkspace({
   children,
   conversation,

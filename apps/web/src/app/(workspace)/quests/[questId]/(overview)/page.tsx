@@ -2,59 +2,24 @@ import type { Viewport } from "next";
 import { notFound } from "next/navigation";
 import type { JSX } from "react";
 import { requireUser } from "@/auth/current-user.ts";
-import { QuestWorkspace } from "@/components/quest-workspace.tsx";
-import { Notice } from "@/components/ui/form-message.tsx";
 import { getQuest } from "@/quests/store.ts";
-import { QUEST_STATUS_COPY } from "@/ui/copy/quest-status.ts";
-import { questConversation } from "./quest-conversation.tsx";
+import { QuestOverview } from "./quest-overview.tsx";
 
-// An on-screen keyboard shrinks the page rather than covering its bottom, so
-// the composer stays above it.
+// Resize for the on-screen keyboard so it leaves the composer visible.
 export const viewport: Viewport = { interactiveWidget: "resizes-content" };
 
-// A quest's page. Its first section is the quest's one conversation, with
-// its composer; the others are its Tasks, Ideas, progress timeline, Quick
-// Notes, members and actions. It is open to the quest's owner and members;
-// to anyone else, a pending invitee included, it is not found.
 export default async function QuestPage({
   params,
   searchParams,
 }: PageProps<"/quests/[questId]">): Promise<JSX.Element> {
-  const { questId } = await params;
-  const { section } = await searchParams;
-  let current:
-    | "days"
-    | "conversation"
-    | "tasks"
-    | "ideas"
-    | "progress"
-    | "notes"
-    | "members"
-    | "spells"
-    | "actions" = "conversation";
-  if (
-    section === "days" ||
-    section === "tasks" ||
-    section === "ideas" ||
-    section === "progress" ||
-    section === "notes" ||
-    section === "members" ||
-    section === "spells" ||
-    section === "actions"
-  ) {
-    current = section;
-  }
-  const user = await requireUser();
+  const [{ questId }, { section }, user] = await Promise.all([
+    params,
+    searchParams,
+    requireUser(),
+  ]);
   const quest = await getQuest(user.id, questId);
   if (quest === undefined) {
     notFound();
   }
-  let statusNotice: JSX.Element | undefined;
-  if (quest.status !== "active") {
-    statusNotice = <Notice>{QUEST_STATUS_COPY.effects}</Notice>;
-  }
-  const conversation = await questConversation(quest, user.id, current);
-  return (
-    <QuestWorkspace conversation={conversation}>{statusNotice}</QuestWorkspace>
-  );
+  return await QuestOverview({ quest, viewer: user.id, section });
 }

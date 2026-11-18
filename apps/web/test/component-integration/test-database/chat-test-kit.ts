@@ -18,7 +18,9 @@ import { type ChatId, type MessageId, parseMessageId } from "@/ids.ts";
 import { withAuthorNames } from "@/replies/author-names.ts";
 import { CHAT_API_PATH, type ChatRequest } from "@/replies/chat-protocol.ts";
 import { buildReplyInstructions } from "@/replies/system-prompt.ts";
-import { LOCAL_CONSTRUCT_COPY } from "@/ui/copy/local-construct.ts";
+import { getSpell } from "@/spells/spell.ts";
+import { spellResponse } from "@/spells/spell-response.ts";
+import { setSpell } from "@/spells/spell-store.ts";
 import { testData } from "../../support/test-database/data-test-kit.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
 import { streamChunks } from "../replies/stream-body-test-kit.ts";
@@ -51,6 +53,7 @@ async function userWithChat(
   const user = await testUser();
   const data = testData(user);
   const chat = await data.chat(await data.quest(), constructId);
+  await setSpell(user.id, { chatId: chat.id, spell: "tasks" });
   return { user, chat };
 }
 
@@ -210,7 +213,14 @@ async function savedConversation(
 function exchange(userText: string): SavedLine[] {
   return [
     { role: "user", text: userText },
-    { role: "assistant", text: LOCAL_CONSTRUCT_COPY.unknownCommand },
+    {
+      role: "assistant",
+      text: spellResponse(
+        getSpell("tasks").definition.savedReply,
+        getSpell("tasks"),
+        userText,
+      ),
+    },
   ];
 }
 
