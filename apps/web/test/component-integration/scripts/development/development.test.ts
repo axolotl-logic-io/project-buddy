@@ -1,4 +1,10 @@
-import { spawnSync } from "node:child_process";
+import {
+  execFile,
+  type SpawnSyncOptionsWithStringEncoding,
+  spawn,
+  spawnSync,
+} from "node:child_process";
+import { once } from "node:events";
 import {
   cpSync,
   existsSync,
@@ -12,8 +18,11 @@ import {
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import process from "node:process";
+import { promisify } from "node:util";
 import { afterEach, beforeEach, describe, expect, it as test } from "vitest";
 
+const SERVER_EXIT_TIMEOUT_MS = 12_000;
+const SERVER_READY_TIMEOUT_MS = 2000;
 const SECRET_MODE = 0o600;
 const FILE_MODE_RANGE = 0o1000;
 const SESSION_SETTING = /SESSION_SECRET=\S+/u;
@@ -26,20 +35,26 @@ let root: string;
 let web: string;
 let bin: string;
 
+const execFileAsync = promisify(execFile);
+
+function commandOptions(): SpawnSyncOptionsWithStringEncoding {
+  return {
+    cwd: root,
+    encoding: "utf8",
+    timeout: 10_000,
+    env: {
+      PATH: `${bin}:/usr/bin:/bin:/usr/sbin`,
+      NODE_NO_WARNINGS: "1",
+      NODE_ENV: "development",
+    },
+  };
+}
+
 function run(action: string, ...args: string[]): ReturnType<typeof spawnSync> {
   return spawnSync(
     process.execPath,
     [join(web, "scripts/development/run.ts"), action, ...args],
-    {
-      cwd: root,
-      encoding: "utf8",
-      timeout: 10_000,
-      env: {
-        PATH: `${bin}:/usr/bin:/bin`,
-        NODE_NO_WARNINGS: "1",
-        NODE_ENV: "development",
-      },
-    },
+    commandOptions(),
   );
 }
 
@@ -100,6 +115,48 @@ describe("development setup and diagnosis", () => {
     );
     expect(commands).toContain("npm run browsers:install");
     expect(commands).not.toContain("compose.test-db.yml down");
+  });
+
+  test("stops the checkout's development server before reinstalling dependencies", async () => {
+    const devOutput = join(web, ".next/dev");
+    mkdirSync(devOutput, { recursive: true });
+    const server = spawn(
+      process.execPath,
+      [
+        "-e",
+        `process.title = "next-server (v0.0.0)";
+        require("node:fs").writeFileSync(".next/dev/lock", JSON.stringify({ pid: process.pid }));
+        process.on("SIGTERM", () => {
+          require("node:fs").writeFileSync(".next/dev/stopped", "");
+          process.exit(0);
+        });
+        console.log("ready");
+        setInterval(() => {}, 1000);`,
+      ],
+      { cwd: web },
+    );
+    const exited = once(server, "exit", {
+      signal: AbortSignal.timeout(SERVER_EXIT_TIMEOUT_MS),
+    }).catch(() => undefined);
+    try {
+      await once(server.stdout, "data", {
+        signal: AbortSignal.timeout(SERVER_READY_TIMEOUT_MS),
+      });
+      writeFileSync(
+        join(bin, "npm"),
+        '#!/bin/sh\nif [ "$1" = ci ]; then test -f apps/web/.next/dev/stopped; fi\n',
+        { mode: 0o755 },
+      );
+      await execFileAsync(
+        process.execPath,
+        [join(web, "scripts/development/run.ts"), "setup"],
+        commandOptions(),
+      );
+      await expect(exited).resolves.toEqual([0, null]);
+    } finally {
+      server.kill();
+      await exited;
+    }
   });
 
   test("keeps the development database's settings from the test database commands", () => {

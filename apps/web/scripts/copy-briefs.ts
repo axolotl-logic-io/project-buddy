@@ -27,6 +27,10 @@ const COPY_BRIEFS = new Map<string, string>([
     "Beside the message box in a quest conversation, where typed commands change Tasks. In the list shown when someone types / in the message box, describe the command for starting Tasks and saving messages sent afterward as tasks.",
   ],
   [
+    "CHAT_COMMANDS_COPY.description.variant10",
+    "In the quest composer's slash-command list. Describe undoing the person's latest Tasks change in this conversation.",
+  ],
+  [
     "CHAT_COMMANDS_COPY.description.variant2",
     "Beside the message box in a quest conversation, where typed commands change Tasks. In the list shown when someone types / in the message box, describe the command for adding a task at the end.",
   ],
@@ -48,7 +52,11 @@ const COPY_BRIEFS = new Map<string, string>([
   ],
   [
     "CHAT_COMMANDS_COPY.description.variant8",
-    "Beside the message box in a quest conversation, where typed commands change Tasks. In the list shown when someone types / in the message box, describe the command for undoing the user's last change to Tasks in this conversation.",
+    "In the quest composer's slash-command list. Describe making a task recurring so it appears in Dailies.",
+  ],
+  [
+    "CHAT_COMMANDS_COPY.description.variant9",
+    "In the quest composer's slash-command list. Describe making a recurring task a one-off task.",
   ],
   [
     "CHAT_COMMANDS_COPY.failed",
@@ -149,6 +157,18 @@ const COPY_BRIEFS = new Map<string, string>([
   [
     "CREDITS_COPY.iconCredit",
     "On the Credits page, which names the people and resources used to make the site. Write one sentence crediting the source of the site’s small pictures used on buttons and links, and the rules allowing their use. The sentence must include the supplied links to the source and those rules.",
+  ],
+  [
+    "DAY_GRID_COPY.legend",
+    "In the recurring task grid in Dailies Progress. Explain the grid marks. Filled means done, empty means not done, and dashed means a day was skipped and the streak ended.",
+  ],
+  [
+    "DAY_GRID_COPY.noDays",
+    "In the recurring task grid in Dailies Progress. Explain that Start Day begins tracking and the grid shows which recurring tasks were done each day.",
+  ],
+  [
+    "DAY_GRID_COPY.noRecurring",
+    "In the recurring task grid in Dailies Progress. When there are no recurring tasks, direct the person to Make recurring in a task's menu.",
   ],
   [
     "EDITABLE_LIST_COPY.dragHint",
@@ -255,8 +275,16 @@ const COPY_BRIEFS = new Map<string, string>([
     "On Profile's Experience card and Abilities, and in the construct's reply to the exp command in a quest conversation, which show the person's experience, circle and points in each ability. Name the ability that gains a point for each quest the person completes.",
   ],
   [
+    "IDEAS_COPY.bucketIntro",
+    "In the quest sidebar's Ideas section. Introduce this space as a place for possibilities the person has yet to commit to.",
+  ],
+  [
     "IDEAS_COPY.empty",
     "In the Ideas section of a quest, for possibilities the person may want to pursue later. When the Ideas list has nothing in it, write a message inviting the user to add a possibility to explore.",
+  ],
+  [
+    "IDEAS_COPY.emptyHeading",
+    "In the quest sidebar's Ideas section. Use a short heading for the empty Ideas list.",
   ],
   [
     "IDEAS_COPY.failed",
@@ -277,6 +305,10 @@ const COPY_BRIEFS = new Map<string, string>([
   [
     "IDEAS_COPY.notFound",
     "In the Ideas section of a quest, for possibilities the person may want to pursue later. Explain that the quest or idea is no longer available to this person.",
+  ],
+  [
+    "IDEAS_COPY.summary",
+    "In the quest sidebar's Ideas section. Show how many ideas are saved and convey that they are still uncommitted.",
   ],
   [
     "IDEAS_COPY.tasksFull",
@@ -407,6 +439,226 @@ const COPY_BRIEFS = new Map<string, string>([
     "When the site cannot prepare the first reply for a quest conversation. Explain that the reply is unavailable and suggest trying again later.",
   ],
   [
+    "PANEL_COMMANDS_COPY.description.variant1",
+    "In the quest composer's slash-command list. Describe the command that adds a new idea to Ideas.",
+  ],
+  [
+    "PANEL_COMMANDS_COPY.description.variant10",
+    "In the quest composer's slash-command list. Describe the command that starts a new day in Dailies and can optionally clear Tasks or Ideas.",
+  ],
+  [
+    "PANEL_COMMANDS_COPY.description.variant11",
+    "In the quest composer's slash-command list. Describe the command that undoes the most recent Start Day.",
+  ],
+  [
+    "PANEL_COMMANDS_COPY.description.variant12",
+    "In the quest composer's slash-command list. Describe the command that invites someone to the quest by email address.",
+  ],
+  [
+    "PANEL_COMMANDS_COPY.description.variant13",
+    "In the quest composer's slash-command list. Describe the command that withdraws a pending invitation by email address.",
+  ],
+  [
+    "PANEL_COMMANDS_COPY.description.variant14",
+    "In the quest composer's slash-command list. Describe the command that removes a member by name.",
+  ],
+  [
+    "PANEL_COMMANDS_COPY.description.variant16",
+    "In the quest composer's slash-command list. Describe the command that starts the quest conversation.",
+  ],
+  [
+    "PANEL_COMMANDS_COPY.description.variant2",
+    "In the quest composer's slash-command list. Describe the command that edits idea text using the idea’s position.",
+  ],
+  [
+    "PANEL_COMMANDS_COPY.description.variant3",
+    "In the quest composer's slash-command list. Describe the command that changes the position of an idea.",
+  ],
+  [
+    "PANEL_COMMANDS_COPY.description.variant4",
+    "In the quest composer's slash-command list. Describe the command that removes an idea from Ideas.",
+  ],
+  [
+    "PANEL_COMMANDS_COPY.description.variant5",
+    "In the quest composer's slash-command list. Describe the command that moves an idea into Tasks.",
+  ],
+  [
+    "PANEL_COMMANDS_COPY.description.variant6",
+    "In the quest composer's slash-command list. Describe the command that edits a Quick Note by position, with the newest first.",
+  ],
+  [
+    "PANEL_COMMANDS_COPY.description.variant7",
+    "In the quest composer's slash-command list. Describe the command that deletes a Quick Note by position, with the newest first.",
+  ],
+  [
+    "PANEL_COMMANDS_COPY.description.variant8",
+    "In the quest composer's slash-command list. Describe the command that edits a milestone by position in Progress, with the newest first.",
+  ],
+  [
+    "PANEL_COMMANDS_COPY.description.variant9",
+    "In the quest composer's slash-command list. Describe the command that deletes a milestone from Progress.",
+  ],
+  [
+    "PANEL_COMMANDS_COPY.notes.dropIdea",
+    "In the quest conversation after a slash command runs. Confirm that the named idea was removed from Ideas.",
+  ],
+  [
+    "PANEL_COMMANDS_COPY.notes.dropMilestone",
+    "In the quest conversation after a slash command runs. Confirm that the named milestone was deleted from Progress.",
+  ],
+  [
+    "PANEL_COMMANDS_COPY.notes.dropNote",
+    "In the quest conversation after a slash command runs. Confirm that the named Quick Note was deleted.",
+  ],
+  [
+    "PANEL_COMMANDS_COPY.notes.editIdea",
+    "In the quest conversation after a slash command runs. Confirm the idea edit using its position and replacement text.",
+  ],
+  [
+    "PANEL_COMMANDS_COPY.notes.editMilestone",
+    "In the quest conversation after a slash command runs. Confirm the milestone edit in Progress using its position and replacement text.",
+  ],
+  [
+    "PANEL_COMMANDS_COPY.notes.editNote",
+    "In the quest conversation after a slash command runs. Confirm the Quick Note edit using its position and replacement text.",
+  ],
+  [
+    "PANEL_COMMANDS_COPY.notes.idea",
+    "In the quest conversation after a slash command runs. Confirm that the submitted idea was saved in Ideas.",
+  ],
+  [
+    "PANEL_COMMANDS_COPY.notes.ideaToTasks",
+    "In the quest conversation after a slash command runs. Confirm that the named idea was moved into Tasks.",
+  ],
+  [
+    "PANEL_COMMANDS_COPY.notes.invited",
+    "In the quest conversation after a slash command runs. Confirm that an invitation to the quest was sent to the given address.",
+  ],
+  [
+    "PANEL_COMMANDS_COPY.notes.moveIdea",
+    "In the quest conversation after a slash command runs. Confirm the idea's new position in Ideas.",
+  ],
+  [
+    "PANEL_COMMANDS_COPY.notes.removed",
+    "In the quest conversation after a slash command runs. Confirm that the named member was removed from the quest.",
+  ],
+  [
+    "PANEL_COMMANDS_COPY.notes.startDay.variant1",
+    "In the quest conversation after a slash command runs. Confirm that a new day began in Dailies.",
+  ],
+  [
+    "PANEL_COMMANDS_COPY.notes.startDay.variant2",
+    "In the quest conversation after a slash command runs. Confirm that a new day began and identify the lists that were cleared.",
+  ],
+  [
+    "PANEL_COMMANDS_COPY.notes.undoStartDay",
+    "In the quest conversation after a slash command runs. Confirm that the most recent Start Day was undone.",
+  ],
+  [
+    "PANEL_COMMANDS_COPY.notes.unsent",
+    "In the quest conversation after a slash command runs. Explain that the invitation was saved but email delivery failed. Tell the person to withdraw it and invite the recipient again.",
+  ],
+  [
+    "PANEL_COMMANDS_COPY.notes.withdrawn",
+    "In the quest conversation after a slash command runs. Confirm that the invitation for the given address was withdrawn.",
+  ],
+  [
+    "PANEL_COMMANDS_COPY.problems.awaitingReply",
+    "In the quest composer when a slash command cannot run. A reply is pending. Ask the person to wait or stop it before trying again.",
+  ],
+  [
+    "PANEL_COMMANDS_COPY.problems.cantUndoStartDay",
+    "In the quest composer when a slash command cannot run. Explain that undo is unavailable if there is no Start Day to undo or someone has written in the new conversation.",
+  ],
+  [
+    "PANEL_COMMANDS_COPY.problems.dailies",
+    "In the quest composer when a slash command cannot run. Explain that Dailies is personal and cannot have invitees.",
+  ],
+  [
+    "PANEL_COMMANDS_COPY.problems.failed",
+    "In the quest composer when a slash command cannot run. Report that the command could not be sent to the conversation and invite a retry.",
+  ],
+  [
+    "PANEL_COMMANDS_COPY.problems.ideaTooLong",
+    "In the quest composer when a slash command cannot run. State the maximum length for an idea.",
+  ],
+  [
+    "PANEL_COMMANDS_COPY.problems.noConversation",
+    "In the quest composer when a slash command cannot run. Ask the person to open the quest conversation before running the command.",
+  ],
+  [
+    "PANEL_COMMANDS_COPY.problems.noEmail",
+    "In the quest composer when a slash command cannot run. Show how to put an email address after /invite, using an example address.",
+  ],
+  [
+    "PANEL_COMMANDS_COPY.problems.noIdea.variant1",
+    "In the quest composer when a slash command cannot run. Explain that Ideas is empty and point to /idea to add one.",
+  ],
+  [
+    "PANEL_COMMANDS_COPY.problems.noIdea.variant2",
+    "In the quest composer when a slash command cannot run. Ask for an idea's position and give the valid range from one to the last position.",
+  ],
+  [
+    "PANEL_COMMANDS_COPY.problems.noIdeaPlace",
+    "In the quest composer when a slash command cannot run. Show how to use /move-idea with the current position followed by a destination in the valid range.",
+  ],
+  [
+    "PANEL_COMMANDS_COPY.problems.noInvitation",
+    "In the quest composer when a slash command cannot run. No invitation matches the address. Direct the person to Members to see invitations.",
+  ],
+  [
+    "PANEL_COMMANDS_COPY.problems.noMember",
+    "In the quest composer when a slash command cannot run. No member matches the name. Direct the person to Members.",
+  ],
+  [
+    "PANEL_COMMANDS_COPY.problems.noMilestone.variant1",
+    "In the quest composer when a slash command cannot run. Explain that the quest has no milestones to act on.",
+  ],
+  [
+    "PANEL_COMMANDS_COPY.problems.noMilestone.variant2",
+    "In the quest composer when a slash command cannot run. Ask for the milestone's position in Progress, starting with the newest at one, and give the valid range.",
+  ],
+  [
+    "PANEL_COMMANDS_COPY.problems.noNote.variant1",
+    "In the quest composer when a slash command cannot run. Explain that the quest has no Quick Notes to act on.",
+  ],
+  [
+    "PANEL_COMMANDS_COPY.problems.noNote.variant2",
+    "In the quest composer when a slash command cannot run. Ask for the Quick Note's position, starting with the newest at one, and give the valid range.",
+  ],
+  [
+    "PANEL_COMMANDS_COPY.problems.noText",
+    "In the quest composer when a slash command cannot run. Ask for text after the command name.",
+  ],
+  [
+    "PANEL_COMMANDS_COPY.problems.notDailies",
+    "In the quest composer when a slash command cannot run. Explain that Start Day requires the Dailies quest to be Active.",
+  ],
+  [
+    "PANEL_COMMANDS_COPY.problems.owner",
+    "In the quest composer when a slash command cannot run. Explain that the owner cannot leave or be removed from the quest.",
+  ],
+  [
+    "PANEL_COMMANDS_COPY.problems.removeSelf",
+    "In the quest composer when a slash command cannot run. Direct someone trying to remove themselves to /leave.",
+  ],
+  [
+    "PANEL_COMMANDS_COPY.problems.sameName",
+    "In the quest composer when a slash command cannot run. Explain that multiple members share the given name and direct the person to Members to pick the right one.",
+  ],
+  [
+    "PANEL_COMMANDS_COPY.problems.startDayWords",
+    "In the quest composer when a slash command cannot run. Show that /start-day accepts no arguments, clear-tasks, clear-ideas, or both options.",
+  ],
+  [
+    "PANEL_COMMANDS_COPY.problems.started",
+    "In the quest composer when a slash command cannot run. Explain that the quest conversation is already underway.",
+  ],
+  [
+    "PANEL_COMMANDS_COPY.problems.takesNothing",
+    "In the quest composer when a slash command cannot run. Tell the person to remove the arguments and use the command on its own.",
+  ],
+  [
     "PENDING_COPY.accepted",
     "On the Quests page, in the Pending tab showing invitations the person has not accepted. Confirm joining the named quest and identify the status tab where it now appears.",
   ],
@@ -437,6 +689,18 @@ const COPY_BRIEFS = new Map<string, string>([
   [
     "PROBLEMS_COPY.unknownError",
     "On a page explaining that something went wrong or could not be found. Under the page heading saying something went wrong, suggest trying again later.",
+  ],
+  [
+    "PROFILE_COPY.daysExplanation",
+    "In the Days signed in section of Profile. Explain that each day with a signed-in visit counts once.",
+  ],
+  [
+    "PROFILE_COPY.daysTracking.variant1",
+    "In the Days signed in section of Profile. Explain that tracking begins with the first signed-in visit and counts days in UTC, with no earlier days included.",
+  ],
+  [
+    "PROFILE_COPY.daysTracking.variant2",
+    "In the Days signed in section of Profile. Show the tracking start date and explain that the count uses UTC and excludes earlier days.",
   ],
   [
     "PROGRESS_TIMELINE_COPY.deleteDescription",
@@ -483,12 +747,36 @@ const COPY_BRIEFS = new Map<string, string>([
     "On a quest’s conversation page, beside the controls for starting or resetting it. Confirm permanent conversation reset: clear messages and the spell currently turned on.",
   ],
   [
+    "QUEST_CONVERSATION_COPY.confirmStartDay",
+    "In the Dailies quest conversation. Before confirmation, explain that the new conversation begins empty, the active spell ends and completed recurring tasks reopen. State that undo is available until someone sends a message.",
+  ],
+  [
     "QUEST_CONVERSATION_COPY.keepTasks",
     "On a quest’s conversation page, beside the controls for starting or resetting it. Explain that conversation reset keeps existing tasks but unchecks them by default.",
   ],
   [
+    "QUEST_CONVERSATION_COPY.lastDayStarted.variant1",
+    "In the Dailies quest conversation. Under Start Day, report that the latest day began under an hour ago.",
+  ],
+  [
+    "QUEST_CONVERSATION_COPY.lastDayStarted.variant2",
+    "In the Dailies quest conversation. Under Start Day, report how many hours ago the latest day began.",
+  ],
+  [
+    "QUEST_CONVERSATION_COPY.lastDayStarted.variant3",
+    "In the Dailies quest conversation. Under Start Day, report how many days ago the latest day began.",
+  ],
+  [
+    "QUEST_CONVERSATION_COPY.noDayYet",
+    "In the Dailies quest conversation. Under Start Day, indicate that no day has begun.",
+  ],
+  [
     "QUEST_CONVERSATION_COPY.notStarted",
     "On a quest’s conversation page, beside the controls for starting or resetting it. Explain that the quest conversation has not begun and invite the user to start it.",
+  ],
+  [
+    "QUEST_CONVERSATION_COPY.undoNote",
+    "In the Dailies quest conversation. Explain that undo restores the previous conversation, tasks and Ideas.",
   ],
   [
     "QUEST_INVITATION_EMAIL_COPY.expiry",
@@ -587,20 +875,56 @@ const COPY_BRIEFS = new Map<string, string>([
     "In a quest’s Members section, where people invite others, remove them or leave. Confirm withdrawing the named person's invitation.",
   ],
   [
+    "QUEST_NOTES_COPY.actions",
+    "In a quest's Quick Notes. Give the menu of actions an accessible name that identifies the Quick Note by its text.",
+  ],
+  [
+    "QUEST_NOTES_COPY.bucketIntro",
+    "In a quest's Quick Notes. Explain that Quick Notes save dated thoughts for later.",
+  ],
+  [
+    "QUEST_NOTES_COPY.cancel",
+    "In a quest's Quick Notes. Label the action that exits editing without saving changes to the Quick Note.",
+  ],
+  [
     "QUEST_NOTES_COPY.deleteLabel",
     "In a quest’s Quick Notes section, where saved Quick Notes are read and deleted. Text read aloud by screen-reading software on the button for deleting a Quick Note identified by its text.",
+  ],
+  [
+    "QUEST_NOTES_COPY.emptyHeading",
+    "In a quest's Quick Notes. Use a short heading for the empty Quick Notes list.",
   ],
   [
     "QUEST_NOTES_COPY.failed",
     "In a quest’s Quick Notes section, where saved Quick Notes are read and deleted. Report failure to delete a Quick Note and suggest retrying.",
   ],
   [
+    "QUEST_NOTES_COPY.inactive",
+    "In a quest's Quick Notes. Explain that adding notes requires an Active quest and existing notes can still be read, edited or deleted.",
+  ],
+  [
     "QUEST_NOTES_COPY.none",
     "In a quest’s Quick Notes section, where saved Quick Notes are read and deleted. When the quest has no Quick Notes, explain the site panel item used to add one.",
   ],
   [
+    "QUEST_NOTES_COPY.summary",
+    "In a quest's Quick Notes. Show the saved note count and explain that newest notes come first.",
+  ],
+  [
+    "QUEST_NOTES_COPY.unavailable",
+    "In a quest's Quick Notes. Explain that the quest has become inactive or inaccessible. The attempted save failed and the draft text is still present.",
+  ],
+  [
     "QUEST_SHARING_COPY.option.variant3",
     "In a list where someone chooses between their own quests and quests they have joined. Text in the list where someone chooses a quest identifying a quest joined from another owner, using quest and owner names.",
+  ],
+  [
+    "QUEST_SIDEBAR_COPY.noNextTask",
+    "In the quest sidebar, indicate there is no next task to show.",
+  ],
+  [
+    "QUEST_SIDEBAR_COPY.restoreDay",
+    "In the quest sidebar, explain that the person must restore the Dailies quest before starting a day.",
   ],
   [
     "QUEST_START_COPY.back",
@@ -747,6 +1071,10 @@ const COPY_BRIEFS = new Map<string, string>([
     "In Spellbook’s Forgotten tab, where a person can restore or permanently delete their forgotten spells. Label explaining that forgotten spells are ordered most recently forgotten first.",
   ],
   [
+    "RETIREMENT_COPY.title",
+    "Name the Forgotten spells view in the browser title and retain the site name.",
+  ],
+  [
     "SIGNUP_COPY.intro",
     "On the page for creating an account using an emailed link. Explain creating an account through an emailed link and ask for an email address.",
   ],
@@ -761,6 +1089,22 @@ const COPY_BRIEFS = new Map<string, string>([
   [
     "SITE_COPY.tagline",
     "In the site’s introduction to Project Buddy. Short product tagline describing working on personal quests and ideas with constructs.",
+  ],
+  [
+    "SPELLBOOK_COPY.empty",
+    "In Spellbook. For an empty spell list, explain how to get a spell by making one or copying a built-in spell.",
+  ],
+  [
+    "SPELLBOOK_COPY.help",
+    "In Spellbook. Explain where people cast and stop spells, and where they can copy or forget one.",
+  ],
+  [
+    "SPELLBOOK_COPY.noMatches",
+    "In Spellbook. Explain that the search returned no matching spells and suggest changing the name or filter.",
+  ],
+  [
+    "SPELLBOOK_COPY.search",
+    "In Spellbook. Label the control that searches for spells by name.",
   ],
   [
     "SPELL_MODE_COPY.ambiguous",
@@ -819,6 +1163,10 @@ const COPY_BRIEFS = new Map<string, string>([
     "In a conversation note showing a change to Tasks and a button to undo it. Text read aloud by screen-reading software on the button undoing the particular change to Tasks shown in a card.",
   ],
   [
+    "TASKS_COPY.empty",
+    "In the empty Tasks list, prompt the person to add the next piece of agreed work.",
+  ],
+  [
     "TASKS_COPY.failed.already-undone",
     "In the Tasks section of a quest, where the person adds, changes and checks off tasks. Explain that this change to Tasks has already been undone.",
   ],
@@ -847,8 +1195,32 @@ const COPY_BRIEFS = new Map<string, string>([
     "In the Tasks section of a quest, where the person adds, changes and checks off tasks. Explain that changes made afterward have already replaced or removed everything this change did, so there is nothing left for Undo to reverse.",
   ],
   [
+    "TASKS_COPY.intro",
+    "In the Tasks section of the quest sidebar, describe Tasks as the place to keep agreed work and take it one step at a time.",
+  ],
+  [
+    "TASKS_COPY.makeOneOff",
+    "Give the action an accessible name that identifies the task and describes changing it from recurring to one-off.",
+  ],
+  [
     "TASKS_COPY.needsText",
     "In the Tasks section of a quest, where the person adds, changes and checks off tasks. When someone tries to save a blank Tasks task, ask them to write what needs doing.",
+  ],
+  [
+    "TASKS_COPY.openSummary",
+    "In the Tasks section of the quest sidebar, show the number of open tasks and identify them as agreed work.",
+  ],
+  [
+    "TASKS_COPY.streakNote.variant1",
+    "For a recurring task without a streak, explain that checking it off starts one.",
+  ],
+  [
+    "TASKS_COPY.streakNote.variant2",
+    "For a recurring task still open today, show the current streak and the length it will reach if checked off.",
+  ],
+  [
+    "TASKS_COPY.streakNote.variant4",
+    "For a recurring task already done today, show its streak and remaining progress toward the next streak milestone.",
   ],
   [
     "TASKS_COPY.tooLong",
@@ -869,6 +1241,14 @@ const COPY_BRIEFS = new Map<string, string>([
   [
     "TEXT_LIST_COPY.invalid",
     "Beside the list of replies a person writes for a spell in Workshop. When a reply written for a spell cannot be saved, explain that it needs at least one character and no more than the supplied maximum.",
+  ],
+  [
+    "TIMER_COPY.dial.inscription",
+    "On the timer dial, write a short inscription that evokes time, work and rest.",
+  ],
+  [
+    "TIMER_COPY.dial.refrain",
+    "On the timer dial, write a short motto about returning to work and rest as the cycle repeats.",
   ],
   [
     "TOOL_FAILURES_COPY.castSpell",
@@ -965,6 +1345,31 @@ const COPY_BRIEFS = new Map<string, string>([
 ]);
 
 const MARKER_HELP = new Map<string, string>([
+  ["count", "the number of items in the list"],
+  ["place", "the position of the item in the list"],
+  [
+    'cleared.join("_and_the_")',
+    "the names of the lists cleared when the day started",
+  ],
+  ["IDEA_TEXT_MAX_LENGTH", "the maximum number of characters in an idea"],
+  ["most", "the highest valid position in the list"],
+  ["since", "the date tracking began"],
+  [
+    'plural(hours,_"hour",_"hours")',
+    "the elapsed hours with the appropriate singular or plural unit",
+  ],
+  [
+    'plural(Math.floor(hours_/_HOURS_PER_DAY),_"day",_"days")',
+    "the elapsed days with the appropriate singular or plural unit",
+  ],
+  ["quoted(text)", "the task text in quotation marks"],
+  ["streak(count)", "the current streak in days"],
+  ["count_+_1", "the streak length after checking off the task"],
+  [
+    "milestone_-_count",
+    "the number of days remaining to the next streak milestone",
+  ],
+  ["milestone", "the next streak milestone in days"],
   [
     "firstStep",
     "the first thing to do in the ability, such as adding a first task",
@@ -1029,7 +1434,7 @@ const MARKER_HELP = new Map<string, string>([
     "status",
     "Active, Completed or Abandoned, where the quest can now be found",
   ],
-  ["text", "the saved text of the milestone or Quick Note"],
+  ["text", "the text of the idea, milestone or Quick Note"],
   ["time", "when the invitation was sent"],
   ["minutes", "the number of minutes of work or break"],
   ["hours", "the same duration expressed in hours"],
