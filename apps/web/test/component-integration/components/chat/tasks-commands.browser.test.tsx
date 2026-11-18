@@ -1,3 +1,5 @@
+import { QUEST_SIDEBAR_COPY } from "@/ui/copy/quest-sidebar.ts";
+import { QUEST_STATUS_COPY } from "@/ui/copy/quest-status.ts";
 // The quest's tasks in an adventure, in Chromium and WebKit: "/" in the
 // composer lists the built-in commands, and the construct's while it runs; a
 // tasks command runs without the construct and shows its change in the
@@ -260,7 +262,9 @@ describe("use_case_tasks_commands", () => {
       });
       await page.getByRole("button", { name: "Undo", exact: true }).click();
       await expect
-        .element(page.getByText("Quest restored.", { exact: true }))
+        .element(
+          page.getByText(QUEST_STATUS_COPY.saved.active, { exact: true }),
+        )
         .toHaveFocus();
     },
   );
@@ -268,14 +272,16 @@ describe("use_case_tasks_commands", () => {
   test("a command with a problem keeps its text and says why", async () => {
     actions.runChatCommandAction.mockResolvedValue({
       kind: "problem",
-      text: "There is no task 9.",
+      text: CHAT_COMMANDS_COPY.problem({ kind: "no-task", task: "9" }),
     });
     await openChat();
     await userEvent.type(messageBox(), "/done 9{Enter}");
 
     await expect
       .element(page.getByRole("alert"))
-      .toHaveTextContent("There is no task 9.");
+      .toHaveTextContent(
+        CHAT_COMMANDS_COPY.problem({ kind: "no-task", task: "9" }),
+      );
     await expect.element(messageBox()).toHaveValue("/done 9");
   });
 });
@@ -283,9 +289,9 @@ describe("use_case_tasks_commands", () => {
 describe("use_case_tasks_panel", () => {
   test("waits, saying why, while the last message's reply stopped, so it can still be sent again", async () => {
     await openAwaitingChat("m1");
-    await page.getByRole("button", { name: "Open quest sidebar" }).click();
+    await page.getByRole("button", { name: QUEST_SIDEBAR_COPY.expand }).click();
     const panel = page.getByRole("complementary", {
-      name: "Quest side menu",
+      name: QUEST_SIDEBAR_COPY.label,
       exact: true,
     });
 
@@ -302,9 +308,9 @@ describe("use_case_tasks_panel", () => {
 
   test("waits while a reply is made elsewhere, such as for another member", async () => {
     await openAwaitingChat();
-    await page.getByRole("button", { name: "Open quest sidebar" }).click();
+    await page.getByRole("button", { name: QUEST_SIDEBAR_COPY.expand }).click();
     const panel = page.getByRole("complementary", {
-      name: "Quest side menu",
+      name: QUEST_SIDEBAR_COPY.label,
       exact: true,
     });
 
@@ -334,9 +340,9 @@ describe("use_case_tasks_panel", () => {
     // A phone's width, where a button above the conversation opens the panel.
     await page.viewport(PHONE_WIDTH, PHONE_HEIGHT);
     await openChat();
-    await page.getByRole("button", { name: "Open quest sidebar" }).click();
+    await page.getByRole("button", { name: QUEST_SIDEBAR_COPY.expand }).click();
     const panel = page.getByRole("complementary", {
-      name: "Quest side menu",
+      name: QUEST_SIDEBAR_COPY.label,
       exact: true,
     });
 
@@ -384,7 +390,9 @@ describe("use_case_tasks_panel", () => {
     await expect
       .element(panel.getByRole("status"))
       .toMatchTextContent(`Reopened “${BLOCK_OUT}”`);
-    await page.getByRole("button", { name: "Collapse quest sidebar" }).click();
+    await page
+      .getByRole("button", { name: QUEST_SIDEBAR_COPY.collapse })
+      .click();
     // The conversation records the panel's change, as for a typed command.
     await expect
       .element(page.getByRole("article", { name: TASKS_CHANGE_COPY.label }))
@@ -407,9 +415,9 @@ describe("use_case_tasks_panel", () => {
       state: added,
     });
     await openChat();
-    await page.getByRole("button", { name: "Open quest sidebar" }).click();
+    await page.getByRole("button", { name: QUEST_SIDEBAR_COPY.expand }).click();
     const panel = page.getByRole("complementary", {
-      name: "Quest side menu",
+      name: QUEST_SIDEBAR_COPY.label,
       exact: true,
     });
     await panel
@@ -438,12 +446,12 @@ describe("use_case_tasks_panel", () => {
   test("a refused panel change keeps the tasks and the composer says why", async () => {
     actions.runChatCommandAction.mockResolvedValue({
       kind: "problem",
-      text: "There is no task 1.",
+      text: CHAT_COMMANDS_COPY.problem({ kind: "no-task", task: "1" }),
     });
     await openChat();
-    await page.getByRole("button", { name: "Open quest sidebar" }).click();
+    await page.getByRole("button", { name: QUEST_SIDEBAR_COPY.expand }).click();
     const panel = page.getByRole("complementary", {
-      name: "Quest side menu",
+      name: QUEST_SIDEBAR_COPY.label,
       exact: true,
     });
     await userEvent.click(
@@ -456,7 +464,9 @@ describe("use_case_tasks_panel", () => {
     });
     await expect
       .element(page.getByRole("alert"))
-      .toHaveTextContent("There is no task 1.");
+      .toHaveTextContent(
+        CHAT_COMMANDS_COPY.problem({ kind: "no-task", task: "1" }),
+      );
     await expect
       .element(
         panel.getByRole("checkbox", { name: TASKS_COPY.checkOff(BLOCK_OUT) }),
@@ -483,8 +493,8 @@ describe("use_case_tasks_panel", () => {
       state: moved,
     });
     await openChat();
-    await page.getByRole("button", { name: "Open quest sidebar" }).click();
-    const panel = page.getByRole("dialog", { name: "Quest side menu" });
+    await page.getByRole("button", { name: QUEST_SIDEBAR_COPY.expand }).click();
+    const panel = page.getByRole("dialog", { name: QUEST_SIDEBAR_COPY.label });
     await panel
       .getByRole("button", { name: TASKS_COPY.edit(BLOCK_OUT) })
       .click();
@@ -586,7 +596,7 @@ test("saved Tasks cards point to the side menu without inline form controls", as
   await openChat([
     tasksCardMessage("legacy-tasks-card", { command: "/tasks" }),
   ]);
-  await page.getByRole("button", { name: "Open quest sidebar" }).click();
+  await page.getByRole("button", { name: QUEST_SIDEBAR_COPY.expand }).click();
   await expect
     .element(page.getByText(TASKS_CHANGE_COPY.sideMenu))
     .toBeVisible();
@@ -595,7 +605,7 @@ test("saved Tasks cards point to the side menu without inline form controls", as
   await expect
     .element(
       page
-        .getByRole("complementary", { name: "Quest side menu" })
+        .getByRole("complementary", { name: QUEST_SIDEBAR_COPY.label })
         .getByRole("button", { name: TASKS_COPY.addPlaceholder }),
     )
     .toBeVisible();

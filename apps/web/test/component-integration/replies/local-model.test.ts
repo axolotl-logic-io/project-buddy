@@ -12,6 +12,7 @@ import { replyModel } from "@/replies/model.ts";
 import { renderReplyInstructions } from "@/replies/system-prompt.ts";
 import { CAST_SPELL_TOOL } from "@/spells/cast-spell-contract.ts";
 import { EMPTY_TASKS } from "@/tasks/tasks.ts";
+import { LOCAL_CONSTRUCT_COPY } from "@/ui/copy/local-construct.ts";
 
 const MAX_STEPS = 4;
 
@@ -40,7 +41,7 @@ test("production streams local help with configured credentials and no model usa
   for await (const chunk of result.textStream) {
     chunks.push(chunk);
   }
-  expect(chunks.join("")).toContain("cast <spell name>");
+  expect(chunks.join("")).toBe(LOCAL_CONSTRUCT_COPY.help);
   expect((await result.totalUsage).totalTokens).toBe(0);
   expect(fetch).not.toHaveBeenCalled();
 });
@@ -139,8 +140,7 @@ test("ordinary prose receives command guidance", async () => {
     model: localConstructModel(),
     prompt: "I want a balcony garden",
   });
-  expect(result.text).toContain("Your message is saved");
-  expect(result.text).toContain("Available commands");
+  expect(result.text).toBe(LOCAL_CONSTRUCT_COPY.unknownCommand);
   expect(result.toolCalls).toHaveLength(0);
 });
 
@@ -161,5 +161,5 @@ test("constructs share command guidance", async () => {
   );
   expect(answers.length).toBeGreaterThan(1);
   expect(new Set(answers).size).toBe(1);
-  expect(answers[0]).toContain("Available commands");
+  expect(answers[0]).toBe(LOCAL_CONSTRUCT_COPY.help);
 });

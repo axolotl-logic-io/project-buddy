@@ -1,3 +1,4 @@
+import { QUEST_SIDEBAR_COPY } from "@/ui/copy/quest-sidebar.ts";
 // "use_case_choose_theme", signed in, in Chromium and WebKit: each theme on
 // the pages it styles beyond its colours. A long quest name, the trail
 // band's heading, shares its row with the quest's section controls, the memory's
@@ -160,7 +161,10 @@ async function sectionsAlongsideLongName(): Promise<boolean> {
   // The quest opens on its latest message; the frame is at the page's top.
   window.scrollTo(0, 0);
   const heading = page.getByRole("heading", { level: 1, name: LONG_NAME });
-  const link = page.getByRole("heading", { name: "Quest", exact: true });
+  const link = page.getByRole("heading", {
+    name: QUEST_SIDEBAR_COPY.quest,
+    exact: true,
+  });
   const brand = page.getByRole("link", { name: SITE_COPY.name });
   const sectionBounds = link.element().getBoundingClientRect();
   return (

@@ -5,6 +5,7 @@ import { ChatBusyContext } from "@/components/chat/chat-send.ts";
 import { QuestNotes } from "@/components/quest-notes.tsx";
 import { NOTE_ID, NOTE_MAX_LENGTH, type NoteResult } from "@/notes/note.ts";
 import { saveNoteAction } from "@/notes/note-actions.ts";
+import { PANEL_COMMANDS_COPY } from "@/ui/copy/commands.ts";
 import { QUEST_NOTES_COPY, QUICK_NOTE_COPY } from "@/ui/copy/notes.ts";
 import { FOX_QUEST } from "../app/(workspace)/page-fixtures.ts";
 import {
@@ -47,15 +48,17 @@ describe("bucket Quick Note creation", () => {
       await render(
         inConversation(send, <QuestNotes quest={FOX_QUEST} notes={notes} />),
       );
-      const form = page.getByRole("form", { name: "Add Quick Note" });
-      const field = form.getByRole("textbox", { name: "Quick Note" });
+      const form = page.getByRole("form", { name: QUEST_NOTES_COPY.composer });
+      const field = form.getByRole("textbox", {
+        name: QUICK_NOTE_COPY.textLabel,
+      });
       await expect.element(page.getByRole("combobox")).not.toBeInTheDocument();
       await field.fill("  Clay");
       await userEvent.keyboard("{End}");
       await userEvent.keyboard("{Enter}");
       await userEvent.keyboard("Glaze  ");
       expect(saveNoteAction).not.toHaveBeenCalled();
-      await form.getByRole("button", { name: "Save Quick Note" }).click();
+      await form.getByRole("button", { name: QUEST_NOTES_COPY.save }).click();
       expect(saveNoteAction).toHaveBeenCalledWith({
         questId: FOX_QUEST.id,
         text: NEW_NOTE.text,
@@ -65,12 +68,14 @@ describe("bucket Quick Note creation", () => {
       await expect.element(field).toHaveFocus();
       await expect
         .element(form.getByRole("status"))
-        .toHaveTextContent("Quick Note saved.");
+        .toHaveTextContent(QUEST_NOTES_COPY.saved);
       const rows = page
-        .getByRole("list", { name: "Quick Notes" })
+        .getByRole("list", { name: QUEST_NOTES_COPY.heading })
         .getByRole("listitem");
       await expect
-        .element(rows.first().getByRole("button", { name: "Edit Quick Note" }))
+        .element(
+          rows.first().getByRole("button", { name: QUEST_NOTES_COPY.edit }),
+        )
         .toHaveTextContent("Clay Glaze");
       const date = rows.first().element().querySelector("time");
       if (date === null) {
@@ -80,7 +85,9 @@ describe("bucket Quick Note creation", () => {
         NEW_NOTE.savedAt.toISOString(),
       );
       await field.fill("Discard");
-      await form.getByRole("button", { name: "Clear", exact: true }).click();
+      await form
+        .getByRole("button", { name: QUEST_NOTES_COPY.clear, exact: true })
+        .click();
       await expect.element(field).toHaveValue("");
       await expect.element(field).toHaveFocus();
       expect(saveNoteAction).toHaveBeenCalledTimes(1);
@@ -94,8 +101,10 @@ describe("bucket Quick Note creation", () => {
         <QuestNotes quest={FOX_QUEST} notes={[]} />,
       ),
     );
-    const field = page.getByRole("textbox", { name: "Quick Note" });
-    const save = page.getByRole("button", { name: "Save Quick Note" });
+    const field = page.getByRole("textbox", {
+      name: QUICK_NOTE_COPY.textLabel,
+    });
+    const save = page.getByRole("button", { name: QUEST_NOTES_COPY.save });
     await field.fill("  ");
     await save.click();
     await expect.element(field).toHaveAttribute("aria-invalid", "true");
@@ -133,20 +142,26 @@ describe("bucket Quick Note creation", () => {
         <QuestNotes quest={FOX_QUEST} notes={[OLD_NOTE]} />,
       ),
     );
-    const field = page.getByRole("textbox", { name: "Quick Note" });
+    const field = page.getByRole("textbox", {
+      name: QUICK_NOTE_COPY.textLabel,
+    });
     await field.fill(NEW_NOTE.text);
-    await page.getByRole("button", { name: "Save Quick Note" }).click();
+    await page.getByRole("button", { name: QUEST_NOTES_COPY.save }).click();
     await expect.element(field).toHaveAttribute("readonly");
     await expect
-      .element(page.getByRole("button", { name: "Clear", exact: true }))
+      .element(
+        page.getByRole("button", { name: QUEST_NOTES_COPY.clear, exact: true }),
+      )
       .toBeDisabled();
     await expect
-      .element(page.getByRole("button", { name: "Saving the Quick Note…" }))
+      .element(page.getByRole("button", { name: QUICK_NOTE_COPY.saving }))
       .toBeDisabled();
     await expect
-      .element(page.getByRole("button", { name: "Edit Quick Note" }))
+      .element(page.getByRole("button", { name: QUEST_NOTES_COPY.edit }))
       .toBeDisabled();
-    const form = page.getByRole("form", { name: "Add Quick Note" }).element();
+    const form = page
+      .getByRole("form", { name: QUEST_NOTES_COPY.composer })
+      .element();
     if (!(form instanceof HTMLFormElement)) {
       throw new Error("The composer is not a form");
     }
@@ -167,13 +182,13 @@ describe("bucket Quick Note creation", () => {
         ),
       );
       await expect
-        .element(page.getByRole("button", { name: "Save Quick Note" }))
+        .element(page.getByRole("button", { name: QUEST_NOTES_COPY.save }))
         .toBeDisabled();
       await expect
         .element(page.getByText(QUEST_NOTES_COPY.inactive))
         .toBeVisible();
       await expect
-        .element(page.getByRole("button", { name: "Edit Quick Note" }))
+        .element(page.getByRole("button", { name: QUEST_NOTES_COPY.edit }))
         .toBeEnabled();
       expect(saveNoteAction).not.toHaveBeenCalled();
     },
@@ -182,10 +197,10 @@ describe("bucket Quick Note creation", () => {
   test("outside a conversation no new Quick Note can be submitted", async () => {
     await render(<QuestNotes quest={FOX_QUEST} notes={[]} />);
     await expect
-      .element(page.getByRole("button", { name: "Save Quick Note" }))
+      .element(page.getByRole("button", { name: QUEST_NOTES_COPY.save }))
       .toBeDisabled();
     await expect
-      .element(page.getByText("Open the quest's conversation to do this."))
+      .element(page.getByText(PANEL_COMMANDS_COPY.problems.noConversation))
       .toBeVisible();
   });
 
@@ -198,7 +213,9 @@ describe("bucket Quick Note creation", () => {
         </ChatBusyContext.Provider>,
       ),
     );
-    const field = page.getByRole("textbox", { name: "Quick Note" });
+    const field = page.getByRole("textbox", {
+      name: QUICK_NOTE_COPY.textLabel,
+    });
     await field.fill("Keep me");
     await screen.rerender(
       inConversation(
@@ -209,7 +226,7 @@ describe("bucket Quick Note creation", () => {
       ),
     );
     await expect
-      .element(page.getByRole("button", { name: "Save Quick Note" }))
+      .element(page.getByRole("button", { name: QUEST_NOTES_COPY.save }))
       .toBeDisabled();
     await expect.element(field).toHaveValue("Keep me");
     expect(saveNoteAction).not.toHaveBeenCalled();
@@ -226,7 +243,7 @@ describe("bucket Quick Note creation", () => {
           <QuestNotes quest={FOX_QUEST} notes={[OLD_NOTE]} />,
         ),
       );
-      const form = page.getByRole("form", { name: "Add Quick Note" });
+      const form = page.getByRole("form", { name: QUEST_NOTES_COPY.composer });
       await expect.element(form).toBeVisible();
       expect(document.documentElement.scrollWidth).toBeLessThanOrEqual(
         NARROWEST_VIEWPORT.width,

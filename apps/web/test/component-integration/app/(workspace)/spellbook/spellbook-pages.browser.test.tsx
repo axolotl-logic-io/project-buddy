@@ -128,7 +128,7 @@ test("name, replies and destination survive navigation and submit together", asy
     .getByRole("combobox", { name: SPELLBOOK_COPY.destination, exact: true })
     .element();
   const heading = page
-    .getByRole("heading", { name: "Spell Messages", exact: true })
+    .getByRole("heading", { name: SPELLBOOK_COPY.settings, exact: true })
     .element();
   expect(nameInput.getBoundingClientRect().bottom).toBeLessThanOrEqual(
     destinationInput.getBoundingClientRect().top,
@@ -217,12 +217,12 @@ vi.mock("@/retirement/retirement-store.ts", () => ({
 test("a quest picker casts the chosen own spell by sending cast and its name", async () => {
   const send = chatSendMock();
   await render(inConversation(send, <SpellPicker spells={[OWN]} />));
-  await page
-    .getByRole("combobox", { name: SPELLBOOK_COPY.choose })
-    .selectOptions(OWN.id);
   expect(send).not.toHaveBeenCalled();
   await page
-    .getByRole("button", { name: SPELLBOOK_COPY.cast, exact: true })
+    .getByRole("button", {
+      name: SPELLBOOK_COPY.castNamed(OWN.name),
+      exact: true,
+    })
     .click();
   await vi.waitFor(() => {
     expect(sentTexts(send)).toEqual([`cast ${OWN.name}`]);
@@ -234,10 +234,10 @@ test("a quest picker shows why a cast wasn't sent", async () => {
   const send = chatSendMock().mockResolvedValue({ sent: false, problem });
   await render(inConversation(send, <SpellPicker spells={[OWN]} />));
   await page
-    .getByRole("combobox", { name: SPELLBOOK_COPY.choose })
-    .selectOptions(OWN.id);
-  await page
-    .getByRole("button", { name: SPELLBOOK_COPY.cast, exact: true })
+    .getByRole("button", {
+      name: SPELLBOOK_COPY.castNamed(OWN.name),
+      exact: true,
+    })
     .click();
 
   await expect.element(page.getByRole("alert")).toHaveTextContent(problem);

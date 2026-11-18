@@ -1,7 +1,7 @@
 "use client";
 
 import { DropdownMenu, Tabs } from "radix-ui";
-import { type JSX, type ReactNode, useCallback, useState } from "react";
+import { type JSX, type ReactNode, useState } from "react";
 import { POINTER_FOCUS_HANDLERS } from "@/components/tab-pointer-focus.ts";
 import { Icon } from "@/components/ui/icon.tsx";
 import type {
@@ -76,7 +76,6 @@ function SectionMenu({ menu }: { readonly menu: WorkspaceMenu }): JSX.Element {
 
 // Panels stay mounted so switching sections preserves drafts and pending forms.
 // The caller validates initialSection against its own query/route contract.
-// At most one section opens a menu; opening it selects that section's tab.
 function WorkspaceTabs({
   label,
   sections,
@@ -99,31 +98,24 @@ function WorkspaceTabs({
   );
   const current = value ?? selected;
   const select = onValueChange ?? setSelected;
-  const menuSection = sections.find((section) => section.menu !== undefined);
-  const menuId = menuSection?.id;
-  const openChange = useCallback(
-    (open: boolean): void => {
-      if (open && menuId !== undefined) {
-        select(menuId);
-      }
-    },
-    [menuId, select],
-  );
   return (
     <Tabs.Root value={current} onValueChange={select}>
-      <DropdownMenu.Root onOpenChange={openChange}>
-        <div className="workspace-rail">
-          <Tabs.List aria-label={label} className="workspace-tablist">
-            {sections.map((section) => (
-              <SectionTab key={section.id} section={section} />
-            ))}
-          </Tabs.List>
-          {menuSection?.menu !== undefined && (
-            <SectionMenu menu={menuSection.menu} />
-          )}
-          {navigation}
-        </div>
-      </DropdownMenu.Root>
+      <div className="workspace-rail">
+        <Tabs.List aria-label={label} className="workspace-tablist">
+          {sections.map((section) => {
+            if (section.menu === undefined) {
+              return <SectionTab key={section.id} section={section} />;
+            }
+            return (
+              <DropdownMenu.Root key={section.id} modal={false}>
+                <SectionTab section={section} />
+                <SectionMenu menu={section.menu} />
+              </DropdownMenu.Root>
+            );
+          })}
+        </Tabs.List>
+        {navigation}
+      </div>
       {sections
         .filter((section) => preserveState === true || section.id === current)
         .map((section) => (

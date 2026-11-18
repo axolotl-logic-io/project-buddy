@@ -30,6 +30,7 @@ export default async function QuestPage({
     | "progress"
     | "notes"
     | "members"
+    | "spells"
     | "actions" = "conversation";
   if (
     section === "days" ||
@@ -38,6 +39,7 @@ export default async function QuestPage({
     section === "progress" ||
     section === "notes" ||
     section === "members" ||
+    section === "spells" ||
     section === "actions"
   ) {
     current = section;

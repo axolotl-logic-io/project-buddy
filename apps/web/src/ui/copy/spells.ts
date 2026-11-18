@@ -52,6 +52,8 @@ const SPELLBOOK_COPY = {
     brainstorm: "Ideas",
   },
   cast: "Cast spell",
+  castLabel: "Cast",
+  castNamed: (name: string): string => `Cast ${name}`,
   choose: "Choose a spell",
   command: (name: string): string => `Cast with: cast ${name}`,
   saved: "Saved.",
@@ -65,6 +67,7 @@ const SPELL_MODE_COPY = {
     "Use cast followed by the spell’s name, such as cast Tasks or cast Brainstorm.",
   ambiguous:
     "Several spells share that name. Rename one in Spellbook before casting it.",
+  stopLabel: "Stop",
   stop: (name: string): string => `Stop ${name}`,
   active: (name: string): string => `${name} active`,
 };

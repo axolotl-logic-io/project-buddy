@@ -37,6 +37,10 @@ function copyFields(
   const fields: CopyField[] = [];
 
   function declaration(node: ts.Node): ts.Declaration | undefined {
+    if (ts.isShorthandPropertyAssignment(node.parent)) {
+      return checker.getShorthandAssignmentValueSymbol(node.parent)
+        ?.valueDeclaration;
+    }
     let symbol = checker.getSymbolAtLocation(node);
     if (symbol && symbol.flags === ts.SymbolFlags.Alias) {
       symbol = checker.getAliasedSymbol(symbol);
@@ -189,6 +193,8 @@ function copyFields(
       for (const property of value.properties) {
         if (ts.isSpreadAssignment(property)) {
           walk(identifier, property.expression);
+        } else if (ts.isShorthandPropertyAssignment(property)) {
+          walk(`${identifier}.${property.name.text}`, property.name);
         } else if (ts.isPropertyAssignment(property)) {
           let name = property.name.getText();
           if (ts.isStringLiteral(property.name)) {
