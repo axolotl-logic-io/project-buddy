@@ -1141,7 +1141,7 @@
   .trail-content {
     margin-inline-start: calc(var(--panel-tab-width) + var(--header-gutter));
     margin-inline-end: var(--header-gutter);
-    @apply flex min-w-0 flex-1 items-baseline gap-2;
+    @apply flex min-w-0 flex-1 items-center gap-2;
   }
 
   .trail-band:has(.header-panel-control > .quest-sidebar-expand)
