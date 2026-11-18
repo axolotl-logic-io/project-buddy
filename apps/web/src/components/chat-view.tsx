@@ -172,7 +172,11 @@ function ChatView({
   panel,
   panelTitle,
   initialSection,
+  followOnMount,
+  cast,
 }: {
+  cast?: string | undefined;
+  followOnMount?: boolean | undefined;
   spellName?: string | undefined;
   panel?: ReactNode;
   panelTitle?: string | undefined;
@@ -210,7 +214,7 @@ function ChatView({
     },
     onError: (error: Error): void => {
       const errorCase = chatFailureCase(error);
-      if (errorCase === "already-answered") {
+      if (errorCase === "already-answered" || errorCase === "spell-required") {
         router.refresh();
       }
       if (isFromNewerBuild(error)) {
@@ -232,7 +236,7 @@ function ChatView({
     }
   }, [initialMessages, chat.status, chat.setMessages, chat.clearError]);
   const runtime = useAISDKRuntime(chat);
-  useComposerDraft(runtime, { viewer, chatId });
+  useComposerDraft(runtime, { viewer, chatId, cast });
   const replying = chat.status === "streaming" || chat.status === "submitted";
   const lastSaved = initialMessages.at(-1);
   const replyingElsewhere =
@@ -469,6 +473,7 @@ function ChatView({
       )}
       <ChatThread
         chatId={chatId}
+        followOnMount={followOnMount}
         error={shownError}
         replyStopped={replyStopped}
         onRetry={retryReply}

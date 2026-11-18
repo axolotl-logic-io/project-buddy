@@ -169,7 +169,7 @@ const projectsPage = workspacePage(
 
 // A quest's page, as its owner sees it.
 function projectPageFor(
-  section = "conversation",
+  section = "",
   dailies = false,
 ): () => Promise<JSX.Element> {
   return workspacePage(
@@ -288,7 +288,7 @@ const PHONE_PAGES: readonly PhonePage[] = [
   {
     name: "the Dailies quest, with Start Day",
     path: QUEST_PATH,
-    render: projectPageFor("actions", true),
+    render: projectPageFor("", true),
     open: async (): Promise<void> => {
       await vi.waitFor(() =>
         page

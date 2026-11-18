@@ -3,7 +3,7 @@
 The site panel and Settings offer three texture swatches:
 
 - **Ivory Vellum** uses pale parchment, sepia text, cream panels, and gold accents. This is the default.
-- **Soot & Brass** uses a burgundy book cover, warm charcoal panels, ivory text, and restrained brass accents. Its header, navigation, fields, buttons, and quest sidebar follow the approved palette.
+- **Soot & Brass** uses a burgundy book cover, warm charcoal panels, ivory text, and restrained brass accents. Its header, navigation, fields, buttons, and Timer panel follow the approved palette.
 - **Espresso Leather** uses dark brown leather with the sepia and gold dark palette.
 
 The swatch row stays compact on desktop and reserves space above the tiles so tooltips do not cover the Theme label.

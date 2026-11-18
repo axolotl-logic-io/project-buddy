@@ -14,16 +14,15 @@ import {
   type NoteQuest,
   type NoteResult,
 } from "@/notes/note.ts";
-import { listNoteQuestsAction, saveNoteAction } from "@/notes/note-actions.ts";
+import {
+  changeNoteAction,
+  listNoteQuestsAction,
+  saveNoteAction,
+} from "@/notes/note-actions.ts";
 import { PANEL_COMMANDS_COPY } from "@/ui/copy/commands.ts";
 import { QUEST_NOTES_COPY, QUICK_NOTE_COPY } from "@/ui/copy/notes.ts";
 import { QUEST_SHARING_COPY } from "@/ui/copy/quest-members.ts";
 import { FOX_QUEST } from "../app/(workspace)/page-fixtures.ts";
-import {
-  chatSendMock,
-  inConversation,
-  sentTexts,
-} from "../components/chat/chat-send-test-kit.tsx";
 import {
   openPanel,
   panelButton,
@@ -214,13 +213,11 @@ describe("use_case_quick_note", () => {
         savedAt: new Date("2026-11-12T12:00:00Z"),
       },
     ];
-    const send = chatSendMock().mockResolvedValue({
-      sent: true,
-      note: "Deleted the Quick Note “Buy more clay”.",
+    const send = vi.mocked(changeNoteAction).mockReset().mockResolvedValue({
+      kind: "saved",
+      message: "Deleted the Quick Note “Buy more clay”.",
     });
-    await render(
-      inConversation(send, <QuestNotes notes={notes} quest={FOX_QUEST} />),
-    );
+    await render(<QuestNotes notes={notes} quest={FOX_QUEST} />);
 
     const list = page.getByRole("list", { name: QUEST_NOTES_COPY.heading });
     await expect
@@ -234,7 +231,7 @@ describe("use_case_quick_note", () => {
     await page
       .getByRole("menuitem", { name: 'Delete the Quick Note "Buy more clay"' })
       .click();
-    expect(sentTexts(send)).toEqual(["/drop-note 1"]);
+    expect(send).toHaveBeenCalledWith({ questId: FOX_QUEST.id, id: newest.id });
     await expect
       .element(page.getByRole("status").filter({ hasText: "Deleted" }))
       .toHaveTextContent(PANEL_COMMANDS_COPY.notes.dropNote("Buy more clay"));
@@ -245,21 +242,21 @@ describe("use_case_quick_note", () => {
   });
 
   test("a note has a multiline editor, saves line breaks and cancels changes", async () => {
-    const send = chatSendMock().mockResolvedValue({ sent: true });
+    const send = vi
+      .mocked(changeNoteAction)
+      .mockReset()
+      .mockResolvedValue({ kind: "saved" });
     await render(
-      inConversation(
-        send,
-        <QuestNotes
-          quest={FOX_QUEST}
-          notes={[
-            {
-              id: NOTE_ID.parse("33333333-3333-4333-8333-333333333333"),
-              text: "Buy more clay",
-              savedAt: new Date("2026-11-14T12:00:00Z"),
-            },
-          ]}
-        />,
-      ),
+      <QuestNotes
+        quest={FOX_QUEST}
+        notes={[
+          {
+            id: NOTE_ID.parse("33333333-3333-4333-8333-333333333333"),
+            text: "Buy more clay",
+            savedAt: new Date("2026-11-14T12:00:00Z"),
+          },
+        ]}
+      />,
     );
     const edit = page.getByRole("button", { name: QUEST_NOTES_COPY.edit });
     await edit.click();
@@ -280,7 +277,11 @@ describe("use_case_quick_note", () => {
       .getByRole("group", { name: QUICK_NOTE_COPY.textLabel })
       .getByRole("button", { name: QUICK_NOTE_COPY.save, exact: true })
       .click();
-    expect(sentTexts(send)).toEqual(["/edit-note 1 Clay\nGlaze"]);
+    expect(send).toHaveBeenCalledWith({
+      questId: FOX_QUEST.id,
+      id: "33333333-3333-4333-8333-333333333333",
+      text: "Clay\nGlaze",
+    });
     await expect
       .element(page.getByText("Clay\nGlaze", { exact: true }))
       .toBeVisible();
@@ -293,24 +294,21 @@ describe("use_case_quick_note", () => {
   });
 
   test("invalid and refused edits keep the draft", async () => {
-    const send = chatSendMock().mockResolvedValue({
-      sent: false,
-      problem: PANEL_COMMANDS_COPY.problems.awaitingReply,
+    const send = vi.mocked(changeNoteAction).mockReset().mockResolvedValue({
+      kind: "problem",
+      text: PANEL_COMMANDS_COPY.problems.awaitingReply,
     });
     await render(
-      inConversation(
-        send,
-        <QuestNotes
-          quest={FOX_QUEST}
-          notes={[
-            {
-              id: NOTE_ID.parse("33333333-3333-4333-8333-333333333333"),
-              text: "Buy more clay",
-              savedAt: new Date("2026-11-14T12:00:00Z"),
-            },
-          ]}
-        />,
-      ),
+      <QuestNotes
+        quest={FOX_QUEST}
+        notes={[
+          {
+            id: NOTE_ID.parse("33333333-3333-4333-8333-333333333333"),
+            text: "Buy more clay",
+            savedAt: new Date("2026-11-14T12:00:00Z"),
+          },
+        ]}
+      />,
     );
     await page.getByRole("button", { name: QUEST_NOTES_COPY.edit }).click();
     const field = page
@@ -342,21 +340,20 @@ describe("use_case_quick_note", () => {
 
   test("a refused Quick Note deletion keeps the note and says why", async () => {
     const problem = "Wait for the reply to your last message, then try again.";
-    const send = chatSendMock().mockResolvedValue({ sent: false, problem });
+    vi.mocked(changeNoteAction)
+      .mockReset()
+      .mockResolvedValue({ kind: "problem", text: problem });
     await render(
-      inConversation(
-        send,
-        <QuestNotes
-          quest={FOX_QUEST}
-          notes={[
-            {
-              id: NOTE_ID.parse("33333333-3333-4333-8333-333333333333"),
-              text: "Buy more clay",
-              savedAt: new Date("2026-11-14T12:00:00Z"),
-            },
-          ]}
-        />,
-      ),
+      <QuestNotes
+        quest={FOX_QUEST}
+        notes={[
+          {
+            id: NOTE_ID.parse("33333333-3333-4333-8333-333333333333"),
+            text: "Buy more clay",
+            savedAt: new Date("2026-11-14T12:00:00Z"),
+          },
+        ]}
+      />,
     );
 
     await page

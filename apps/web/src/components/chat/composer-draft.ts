@@ -20,10 +20,21 @@ const COMPOSER_DRAFT = z.union([
 // kept.
 function useComposerDraft(
   runtime: AssistantRuntime,
-  { viewer, chatId }: { readonly viewer: UserId; readonly chatId: ChatId },
+  {
+    viewer,
+    chatId,
+    cast,
+  }: {
+    readonly viewer: UserId;
+    readonly chatId: ChatId;
+    readonly cast?: string | undefined;
+  },
 ): void {
   useEffect(() => {
-    const key = `chat:${viewer}:${chatId}`;
+    let key = `chat:${viewer}:${chatId}`;
+    if (cast !== undefined) {
+      key += `:${cast}`;
+    }
     const { composer } = runtime.thread;
     const kept = readLocalDraft(key, COMPOSER_DRAFT);
     if (kept !== undefined && composer.getState().text === "") {
@@ -37,7 +48,7 @@ function useComposerDraft(
       }
       keepLocalDraft(key, text);
     });
-  }, [runtime, viewer, chatId]);
+  }, [runtime, viewer, chatId, cast]);
 }
 
 export { useComposerDraft };

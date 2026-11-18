@@ -29,12 +29,16 @@ export function FormDialog({
   children,
   trigger,
   portalContainer,
+  open,
+  onOpenChange,
 }: {
   title: string;
   closeLabel: string;
   children: ReactNode;
   trigger?: ReactNode;
   portalContainer?: HTMLElement | undefined;
+  open?: boolean | undefined;
+  onOpenChange?: ((open: boolean) => void) | undefined;
 }): JSX.Element {
   let triggerButton = trigger;
   if (triggerButton === undefined) {
@@ -46,7 +50,7 @@ export function FormDialog({
     );
   }
   return (
-    <Dialog.Root>
+    <Dialog.Root open={open} onOpenChange={onOpenChange}>
       <Dialog.Trigger asChild={true}>{triggerButton}</Dialog.Trigger>
       <Dialog.Portal container={portalContainer}>
         <Dialog.Overlay className="dialog-overlay" />

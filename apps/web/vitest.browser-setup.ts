@@ -2,6 +2,7 @@
 // Tailwind utilities included, as the root layout does.
 import type { TestError } from "vitest";
 import { beforeEach, vi } from "vitest";
+import type { findConversation } from "@/conversations/conversation-store.ts";
 import "./src/app/globals.css";
 
 // Server Actions are RPC boundaries in the site. Keep their server imports
@@ -32,11 +33,26 @@ vi.mock("@/quests/rename-quest-action.ts", () => ({
 }));
 
 vi.mock("@/dailies/day-actions.ts", () => ({
-  startDayAction: vi.fn(() => {
-    throw new Error("Mock the Start Day action in this test");
+  changeDayAction: vi.fn(() => {
+    throw new Error("Mock the day action in this test");
   }),
-  undoStartDayAction: vi.fn(() => {
-    throw new Error("Mock the Undo Start Day action in this test");
+}));
+
+vi.mock("@/spells/quest-spell-action.ts", () => ({
+  changeQuestSpellAction: vi.fn(() => {
+    throw new Error("Mock the spell action in this test");
+  }),
+}));
+
+vi.mock("@/ideas/idea-actions.ts", () => ({
+  changeIdeaAction: vi.fn(() => {
+    throw new Error("Mock the idea action in this test");
+  }),
+}));
+
+vi.mock("@/milestones/milestone-actions.ts", () => ({
+  changeMilestoneAction: vi.fn(() => {
+    throw new Error("Mock the milestone action in this test");
   }),
 }));
 
@@ -117,7 +133,7 @@ vi.mock("@/notes/note-actions.ts", () => ({
   saveNoteAction: vi.fn(() => {
     throw new Error("Mock the Quick Note save action in this test");
   }),
-  deleteNoteAction: vi.fn(() => {
+  changeNoteAction: vi.fn(() => {
     throw new Error("Mock the Quick Note delete action in this test");
   }),
 }));
@@ -128,6 +144,12 @@ vi.mock("@/timer/presence-action.ts", () => ({
   reportTimerPresenceAction: vi.fn(() =>
     Promise.resolve({ kind: "count", others: 0 }),
   ),
+}));
+
+vi.mock("@/conversations/conversation-store.ts", () => ({
+  findConversation: vi
+    .fn<typeof findConversation>()
+    .mockResolvedValue(undefined),
 }));
 
 vi.mock("@/notes/note-store.ts", () => ({

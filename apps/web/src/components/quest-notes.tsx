@@ -1,12 +1,6 @@
 "use client";
 
-import { type JSX, useCallback, useContext, useRef, useState } from "react";
-import { PANEL_COMMAND } from "@/commands/panel-commands.ts";
-import {
-  ChatBusyContext,
-  useChatSend,
-  usePanelSend,
-} from "@/components/chat/chat-send.ts";
+import { type JSX, useCallback, useRef, useState } from "react";
 import { LocalTime } from "@/components/local-time.tsx";
 import { QuestNoteComposer } from "@/components/quest-note-composer.tsx";
 import {
@@ -17,14 +11,15 @@ import {
 import type { EditorOptions } from "@/components/ui/editable-list-contract.ts";
 import { Alert, FormStatus } from "@/components/ui/form-message.tsx";
 import { Icon } from "@/components/ui/icon.tsx";
+import { useQuestAction } from "@/components/use-quest-action.ts";
 import {
   checkNoteText,
   NOTE_MAX_LENGTH,
   type Note,
   type NoteId,
 } from "@/notes/note.ts";
+import { changeNoteAction } from "@/notes/note-actions.ts";
 import type { Quest } from "@/quests/store.ts";
-import { PANEL_COMMANDS_COPY } from "@/ui/copy/commands.ts";
 import { QUEST_NOTES_COPY, QUICK_NOTE_COPY } from "@/ui/copy/notes.ts";
 
 function validateNote(text: string): { text: string } | { problem: string } {
@@ -89,10 +84,6 @@ function NoteRow({
   );
 }
 
-// A quest's Quick Notes, newest first, with direct creation and command edits
-// and deletions.
-// A deleted note's button goes with it, so focus moves to the list's heading, and the status line says
-// what the conversation noted.
 function QuestNotes({
   notes: savedNotes,
   quest,
@@ -101,9 +92,7 @@ function QuestNotes({
   readonly quest: Pick<Quest, "id" | "status">;
 }): JSX.Element {
   const [notes, setNotes] = useState(savedNotes);
-  const { send, busy, status, problem } = usePanelSend();
-  const conversationBusy: boolean = useContext(ChatBusyContext);
-  const chatSend = useChatSend();
+  const { run, busy, status, problem } = useQuestAction(changeNoteAction);
   const [creating, setCreating] = useState(false);
   const receive = useCallback(
     (saved: readonly Note[]): void => setNotes(saved),
@@ -112,10 +101,6 @@ function QuestNotes({
   let creationProblem: string | undefined;
   if (quest.status !== "active") {
     creationProblem = QUEST_NOTES_COPY.inactive;
-  } else if (chatSend === undefined) {
-    creationProblem = PANEL_COMMANDS_COPY.problems.noConversation;
-  } else if (conversationBusy) {
-    creationProblem = PANEL_COMMANDS_COPY.problems.awaitingReply;
   }
   const headingRef = useRef<HTMLParagraphElement>(null);
   // A route refresh can add a note saved from the site panel.
@@ -126,26 +111,17 @@ function QuestNotes({
   }
   const remove = useCallback(
     async (id: NoteId): Promise<void> => {
-      const index = notes.findIndex((note) => note.id === id);
-      if (index < 0) {
-        return;
-      }
-      const result = await send(PANEL_COMMAND.dropNote(index + 1));
-      if (result.sent) {
+      if (await run({ questId: quest.id, id })) {
         setNotes((current) => current.filter((note) => note.id !== id));
         headingRef.current?.focus();
       }
     },
-    [notes, send],
+    [quest.id, run],
   );
   const edit = useCallback(
     async (id: NoteId, text: string): Promise<boolean> => {
-      const index = notes.findIndex((note) => note.id === id);
-      if (index < 0) {
-        return false;
-      }
-      const result = await send(PANEL_COMMAND.editNote(index + 1, text));
-      if (result.sent) {
+      const saved = await run({ questId: quest.id, id, text });
+      if (saved) {
         setNotes((current) =>
           current.map((note) => {
             if (note.id === id) {
@@ -155,9 +131,9 @@ function QuestNotes({
           }),
         );
       }
-      return result.sent;
+      return saved;
     },
-    [notes, send],
+    [quest.id, run],
   );
   return (
     <section className="page-slot bucket-desk bucket-notes">

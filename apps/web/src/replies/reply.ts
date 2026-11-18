@@ -1,3 +1,4 @@
+import { inTransaction } from "@/db/client.ts";
 // The construct's entry point: reply to a chat's new message with a streamed
 // answer. It hides the model, the prompt, the tools, prompt caching and how
 // the conversation is saved.
@@ -373,20 +374,34 @@ async function replyToChat(
   // takes over releasing the claim.
   let claimedIn: Chat | undefined;
   try {
-    const chat = await getChat(actingUser, chatId);
-    if (chat === undefined) {
-      return appErrorResponse("not-found", HTTP_STATUS.notFound);
+    const accepted = await inTransaction(async (tx) => {
+      // Cast, stop and Start Day write this row. The admitted message and
+      // its reply use the spell selected under the same lock.
+      const chat = await getChat(actingUser, chatId, tx);
+      if (chat === undefined) {
+        return appErrorResponse("not-found", HTTP_STATUS.notFound);
+      }
+      if (
+        chat.spellStartedAt === undefined ||
+        (chat.activeSpell === undefined && chat.spell === undefined)
+      ) {
+        return appErrorResponse("spell-required", HTTP_STATUS.forbidden);
+      }
+      const answer = await conversationToAnswer(actingUser, chat, message, tx);
+      if (answer.kind === "refused") {
+        return answer.response;
+      }
+      return { chat, history: answer.conversation };
+    });
+    if (accepted instanceof Response) {
+      return accepted;
     }
-    const { construct } = chat;
-    const answer = await conversationToAnswer(actingUser, chat, message);
-    if (answer.kind === "refused") {
-      return answer.response;
-    }
+    const { chat, history } = accepted;
     claimedIn = chat;
     return await streamAndSaveReply(
       { actingUser, chat },
-      construct,
-      answer.conversation,
+      chat.construct,
+      history,
       message,
     );
   } catch (error) {

@@ -12,6 +12,7 @@ import {
   and,
   desc,
   eq,
+  gte,
   inArray,
   isNotNull,
   not,
@@ -36,7 +37,7 @@ import {
   toMessageAuthor,
   withAuthor,
 } from "@/chats/message-author.ts";
-import { type Database, getDb } from "@/db/client.ts";
+import { type Database, getDb, type Transaction } from "@/db/client.ts";
 import { chats, messages, quests } from "@/db/tables/quests-and-chats.ts";
 import { users } from "@/db/tables/users.ts";
 import { logAppError } from "@/errors/error-log.ts";
@@ -127,25 +128,35 @@ async function toMessage(row: MessageRow): Promise<UIMessage | undefined> {
 // forged client sends.
 type MessageSaveResult = "inserted" | "already-saved" | "id-taken";
 
+function atOrAfter(startedAt: string | undefined): SQL | undefined {
+  if (startedAt === undefined) {
+    return undefined;
+  }
+  return gte(messages.createdAt, sql`${startedAt}::timestamptz`);
+}
+
 // The owner's chat with this id, or undefined if the id is malformed,
 // unknown or another user's.
 export async function getChat(
   owner: UserId,
   id: string,
+  transaction?: Transaction,
 ): Promise<Chat | undefined> {
   const chatId = parseChatId(id);
   if (chatId === undefined) {
     return undefined;
   }
-  const [chat] = await withAppErrors("getChat", async () =>
-    toChats(
-      await getDb()
-        .select(chatWithQuestColumns())
-        .from(chats)
-        .leftJoin(quests, eq(chats.questId, quests.id))
-        .where(and(eq(chats.id, chatId), chatOpenTo(owner))),
-    ),
-  );
+  const [chat] = await withAppErrors("getChat", async () => {
+    const query = (transaction ?? getDb())
+      .select(chatWithQuestColumns())
+      .from(chats)
+      .leftJoin(quests, eq(chats.questId, quests.id))
+      .where(and(eq(chats.id, chatId), chatOpenTo(owner)));
+    if (transaction !== undefined) {
+      return toChats(await query.for("update", { of: chats }));
+    }
+    return toChats(await query);
+  });
   return chat;
 }
 
@@ -161,12 +172,20 @@ export async function getChat(
 export async function listMessagesForModel(
   owner: UserId,
   chatId: ChatId,
-  newest?: number,
+  {
+    newest,
+    db = getDb(),
+    since,
+  }: {
+    readonly newest?: number;
+    readonly db?: Database;
+    readonly since?: string | undefined;
+  } = {},
 ): Promise<ChatMessage[]> {
   // The joins only read the author's columns; messageOpenTo is what keeps
   // a message open to the owner.
   const rows = await withAppErrors("listMessages", () =>
-    getDb()
+    db
       .select({
         id: messages.id,
         role: messages.role,
@@ -188,7 +207,13 @@ export async function listMessagesForModel(
           ),
         ),
       )
-      .where(and(eq(messages.chatId, chatId), messageOpenTo(owner)))
+      .where(
+        and(
+          eq(messages.chatId, chatId),
+          messageOpenTo(owner),
+          atOrAfter(since),
+        ),
+      )
       .orderBy(desc(messages.createdAt), desc(messages.id))
       .limit(newest ?? Number.MAX_SAFE_INTEGER),
   );
@@ -202,8 +227,9 @@ export async function listMessagesForModel(
 export async function listMessages(
   owner: UserId,
   chatId: ChatId,
+  since?: string,
 ): Promise<ChatMessage[]> {
-  const read = await listMessagesForModel(owner, chatId);
+  const read = await listMessagesForModel(owner, chatId, { since });
   return read;
 }
 
@@ -217,6 +243,7 @@ export async function listMessages(
 export async function readStoppedReply(
   owner: UserId,
   chatId: ChatId,
+  since?: string,
 ): Promise<string | undefined> {
   const [last] = await withAppErrors("readStoppedReply", () =>
     getDb()
@@ -227,7 +254,13 @@ export async function readStoppedReply(
         unclaimed: sql<boolean>`coalesce(${replyUnclaimed()}, false)`,
       })
       .from(messages)
-      .where(and(eq(messages.chatId, chatId), messageOpenTo(owner)))
+      .where(
+        and(
+          eq(messages.chatId, chatId),
+          messageOpenTo(owner),
+          atOrAfter(since),
+        ),
+      )
       .orderBy(desc(messages.createdAt), desc(messages.id))
       .limit(1),
   );
@@ -246,11 +279,11 @@ export async function readStoppedReply(
 // reply is being made, here or elsewhere, failed or stopped. Nothing may
 // come after such a message but its reply, which a retry or "send again"
 // asks for with the conversation that ends in it.
-export function noReplyAwaited(chatId: ChatId): SQL {
+export function noReplyAwaited(chatId: ChatId, since?: string): SQL {
   const newest = new QueryBuilder()
     .select({ role: messages.role, parts: messages.parts })
     .from(messages)
-    .where(eq(messages.chatId, chatId))
+    .where(and(eq(messages.chatId, chatId), atOrAfter(since)))
     .orderBy(desc(messages.createdAt), desc(messages.id))
     .limit(1)
     .as("newest");
@@ -262,12 +295,13 @@ export function noReplyAwaited(chatId: ChatId): SQL {
 export async function chatAwaitsReply(
   owner: UserId,
   chatId: ChatId,
+  since?: string,
 ): Promise<boolean> {
   const rows = await withAppErrors("chatAwaitsReply", () =>
     getDb()
       .select({ id: chats.id })
       .from(chats)
-      .where(and(openChat(owner, chatId), not(noReplyAwaited(chatId)))),
+      .where(and(openChat(owner, chatId), not(noReplyAwaited(chatId, since)))),
   );
   return rows.length > 0;
 }
@@ -301,9 +335,10 @@ export async function saveTasksMessage(
 // longer exist. One read by primary key.
 export async function readMessageAuthor(
   user: UserId,
+  db: Database = getDb(),
 ): Promise<MessageAuthor | undefined> {
   const [row] = await withAppErrors("readMessageAuthor", () =>
-    getDb()
+    db
       .select({ name: users.name, email: users.email })
       .from(users)
       .where(eq(users.id, user)),
@@ -326,15 +361,17 @@ export async function saveMessage(
   owner: UserId,
   chatId: ChatId,
   message: NewMessage,
+  db: Database = getDb(),
 ): Promise<MessageSaveResult> {
   const saved = await withAppErrors("saveMessage", () =>
-    getDb()
+    db
       .insert(messages)
       .select(
         new QueryBuilder()
           .select(
             messageColumns(chatId, message, {
-              replyStartedAt: sql`now()`,
+              replyStartedAt: sql`clock_timestamp()`,
+              createdAt: sql`clock_timestamp()`,
               author: owner,
             }),
           )
@@ -406,9 +443,10 @@ export async function claimReply(
   owner: UserId,
   chatId: ChatId,
   messageId: MessageId,
+  db: Database = getDb(),
 ): Promise<boolean> {
   const claimed = await withAppErrors("claimReply", () =>
-    getDb()
+    db
       .update(messages)
       .set({ replyStartedAt: sql`now()` })
       .where(and(openMessage(owner, chatId, messageId), replyUnclaimed()))

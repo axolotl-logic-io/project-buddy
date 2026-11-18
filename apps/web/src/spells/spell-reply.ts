@@ -22,7 +22,7 @@ import { SPELL_MODE_COPY } from "@/ui/copy/spells.ts";
 
 const COMMAND = z.enum(["brainstorm", "tasks", "stop"]);
 const LEADING_SLASH = /^\//u;
-const OTHER_COMMAND = /^\s*(?:\/|help\b|look\b|cast\b)/iu;
+const OTHER_COMMAND = /^(?:\/|(?:help|look)$)/iu;
 
 interface SpellResponse {
   readonly text: string | null;
@@ -54,7 +54,7 @@ async function respond(
     .trim();
   const verb = text.toLowerCase().replace(LEADING_SLASH, "");
   const command = COMMAND.safeParse(verb);
-  const casting = verb.startsWith("cast ");
+  const casting = text.startsWith("/") && verb.startsWith("cast ");
   if (command.success || casting) {
     if (verb === "stop") {
       const active = await readActiveSpell(owner, chat, tx);
@@ -86,7 +86,10 @@ async function respond(
   if (OTHER_COMMAND.test(text)) {
     return { text: null };
   }
-  const spell = await readActiveSpell(owner, chat, tx);
+  let spell = chat.activeSpell;
+  if (spell === undefined && chat.spell !== undefined) {
+    spell = getSpell(chat.spell);
+  }
   if (spell === undefined) {
     return { text: null };
   }

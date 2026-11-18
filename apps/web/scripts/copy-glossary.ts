@@ -271,14 +271,21 @@ const WRITER_TERMS: readonly WriterTerm[] = [
       "turning a spell",
     ],
     definition:
-      "Turn off the current spell so new messages are no longer saved by it. Use the Stop control beside the message box or type stop. This is different from stopping a reply while it is being written.",
+      "Turn off the current spell with the Stop control. Its conversation and message box close. The quest keeps the items the spell saved.",
   },
   {
     term: "Conversation",
     heading: "Conversation",
     aliases: ["conversation", "conversations"],
     definition:
-      "The continuing exchange of messages between people working on a quest and its one construct. Each quest has one conversation, shared with everyone who has joined that quest.",
+      "The messages and replies for an active spell. The quest owner and members share the conversation.",
+  },
+  {
+    term: "Overview",
+    heading: "Overview",
+    aliases: ["overview", "back to overview"],
+    definition:
+      "The page a quest opens on. It summarizes the work and links to the quest's sections. Ordinary quests show Next task. Dailies shows its day controls and Day grid.",
   },
   {
     term: "Quest status",
@@ -491,14 +498,14 @@ const WRITER_TERMS: readonly WriterTerm[] = [
     heading: "Buckets",
     aliases: ["Buckets", "bucket", "buckets"],
     definition:
-      "The collections beside a quest conversation: Tasks, Ideas, Quick Notes and Progress, each reached by a direct tab. Dailies also has Day grid for recurring history. Switching collections keeps unfinished edits.",
+      "Tasks and Ideas, the collections where spells save captured messages. Each has a section linked from the quest overview.",
   },
   {
-    term: "Quest sidebar actions",
-    heading: "Quest sidebar actions",
-    aliases: ["quest sidebar actions", "Spells & status", "side menu"],
+    term: "Spells & status",
+    heading: "Spells & status",
+    aliases: ["spells & status", "spells and status"],
     definition:
-      "The Spells & status disclosure beside a quest conversation. It contains the spell picker and quest status controls. Active Dailies keeps Start Day and its available Undo above the collection tabs.",
+      "A quest section where people cast spells, change quest status and undo a status change. Open it from Overview.",
   },
   {
     term: "Tasks",
@@ -519,14 +526,14 @@ const WRITER_TERMS: readonly WriterTerm[] = [
     heading: "Tasks change",
     aliases: ["Tasks change", "change to Tasks", "changes to Tasks"],
     definition:
-      "A note in the conversation showing what changed in Tasks, with an Undo control. The change may have been made by a person or by the construct.",
+      "An edit to Tasks, such as adding a task or marking one done. The Tasks section shows what changed and offers Undo.",
   },
   {
     term: "Command",
     heading: "Command",
     aliases: ["command", "commands"],
     definition:
-      "A short instruction typed in the message box, such as /done 3. The site runs it as soon as it is sent. Typing / shows the command list. Commands such as tasks and brainstorm also work without /. Each control in the quest sidebar sends one of these to the conversation, as if the user had typed it.",
+      "A reserved message such as /exp that the local construct answers with its command behavior. Quest controls save changes directly.",
   },
   {
     term: "Command note",
