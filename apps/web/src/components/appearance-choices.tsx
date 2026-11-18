@@ -35,7 +35,7 @@ function listenForTooltipEscape(): () => void {
       return;
     }
     const choices = document.querySelectorAll(
-      ".panel-mode:not([data-tooltip-dismissed]):is(:hover, :focus-within)",
+      "[data-theme-choice]:not([data-tooltip-dismissed]):is(:hover, :focus-within)",
     );
     if (choices.length > 0) {
       for (const choice of choices) {
@@ -73,6 +73,7 @@ export function AppearanceChoices({
         {THEME_SWATCHES.map(({ mode, attributes }) => (
           <label
             className="panel-mode"
+            data-theme-choice=""
             key={mode}
             onPointerEnter={revealThemeName}
           >
