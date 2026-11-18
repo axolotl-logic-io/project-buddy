@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-// A tab that opens a menu of choices: the quest sidebar's Buckets. The
+// A tab that opens a menu of choices, such as Buckets or Actions. The
 // section's content shows whichever choice is selected.
 interface WorkspaceMenu {
   readonly label: string;
@@ -15,7 +15,7 @@ interface WorkspaceSection {
   readonly content: ReactNode;
   readonly icon?: ReactNode;
   readonly description?: string;
-  // A collection in a tailored panel, rather than a utility disclosure.
+  // A collection in the Buckets menu.
   readonly bucket?: boolean;
   readonly menu?: WorkspaceMenu;
 }

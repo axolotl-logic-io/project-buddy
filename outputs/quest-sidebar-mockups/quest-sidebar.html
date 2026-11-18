@@ -1,0 +1,276 @@
+<div id="quest-placement" aria-label="Quest sidebar mockup"></div>
+<style>
+  #quest-placement [hidden] { display: none !important; }
+  #quest-placement .quest-mock {
+    --paper: #f6e6c5;
+    --ink: #291e14;
+    --raised: #332418;
+    --quiet: #d4b88e;
+    --gold: #f0c278;
+    --rule: #725737;
+    font: 16px/1.5 Georgia, serif;
+    color: var(--paper);
+    background: var(--ink);
+    max-width: 390px;
+    min-height: 525px;
+    margin: auto;
+    border: 1px solid var(--rule);
+    border-radius: 7px;
+    position: relative;
+  }
+  #quest-placement .quest-mock * { box-sizing: border-box; }
+  #quest-placement .quest-mock button {
+    font: inherit;
+    color: inherit;
+    background: none;
+    border: 0;
+    min-height: 44px;
+    cursor: pointer;
+  }
+  #quest-placement header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 51px;
+    padding: 3px 12px 3px 18px;
+    border-bottom: 1px solid var(--rule);
+  }
+  #quest-placement header h2 { flex: 1; font-size: 21px; font-weight: normal; margin: 0; }
+  #quest-placement .quest-mock :focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+  #quest-placement .panel-symbol {
+    display: inline-block;
+    width: 19px;
+    height: 16px;
+    border: 2px solid currentColor;
+    vertical-align: middle;
+    background: linear-gradient(currentColor,currentColor) 72% 0 / 2px 100% no-repeat;
+  }
+  #quest-placement .next-task { border-left: 2px solid var(--gold); margin: 16px 18px 12px; padding-left: 11px; }
+  #quest-placement p { margin: 4px 0; }
+  #quest-placement .muted { color: var(--quiet); font-size: 14px; }
+  #quest-placement nav { display: flex; padding: 0 6px; border-bottom: 1px solid var(--rule); }
+  #quest-placement .quest-mock nav button {
+    padding: 0 7px;
+    min-width: 44px;
+    white-space: nowrap;
+    border-bottom: 2px solid transparent;
+    color: var(--quiet);
+  }
+  #quest-placement nav button[aria-pressed="true"] { color: var(--paper); border-color: var(--gold); }
+  #quest-placement main { padding: 14px 18px 20px; }
+  #quest-placement h3 { margin: 0 0 6px; font-size: 20px; }
+  #quest-placement .collection-title { border-top: 3px solid var(--paper); text-align: right; padding-top: 8px; }
+  #quest-placement .empty { border: 1px dashed var(--rule); background: var(--raised); text-align: center; margin: 12px 0 0; padding: 16px 12px 12px; }
+  #quest-placement .empty strong { font-size: 20px; font-weight: normal; }
+  #quest-placement .quest-mock .empty button { display: block; width: 100%; margin-top: 10px; border: 1px solid var(--rule); color: var(--gold); }
+  #quest-placement .primary-nav { padding-inline: 12px; }
+  #quest-placement .quest-mock .primary-nav button { padding-inline: 12px; }
+  #quest-placement .dropdown { position: relative; }
+  #quest-placement .dropdown-list {
+    position: absolute;
+    inset: 100% auto auto 0;
+    z-index: 2;
+    min-width: 154px;
+    padding: 3px;
+    border: 1px solid var(--rule);
+    background: var(--raised);
+    box-shadow: 0 6px 16px #150d0790;
+  }
+  #quest-placement .quest-mock .dropdown-list button {
+    display: block;
+    width: 100%;
+    text-align: left;
+    border: 0;
+  }
+  #quest-placement .dropdown-list button:hover { background: var(--ink); }
+  #quest-placement .dropdown-list button[aria-pressed="true"]::after {
+    content: "✓";
+    float: right;
+    color: var(--gold);
+    margin-inline-start: 10px;
+  }
+  #quest-placement .spell {
+    padding: 12px 0;
+    border-bottom: 1px solid var(--rule);
+  }
+  #quest-placement .dropdown:last-child .dropdown-list {
+    inset-inline-start: auto;
+    inset-inline-end: 0;
+  }
+  #quest-placement .spell-heading { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+  #quest-placement .quest-mock .spell-heading button,
+  #quest-placement .quest-mock .invite button {
+    min-width: 60px;
+    padding-inline: 12px;
+    color: var(--gold);
+    border: 1px solid var(--rule);
+  }
+  #quest-placement .invite { margin-top: 12px; }
+  #quest-placement .invite label { display: block; margin-bottom: 5px; }
+  #quest-placement .invite-row { display: flex; gap: 8px; }
+  #quest-placement .invite input {
+    flex: 1;
+    min-width: 0;
+    padding-inline: 10px;
+    background: var(--raised);
+    color: var(--paper);
+    border: 1px solid var(--rule);
+    font: inherit;
+  }
+  #quest-placement .invite-result { overflow-wrap: anywhere; }
+  #quest-placement .member-list { list-style: none; margin: 16px 0 0; padding: 0; }
+  #quest-placement .member-list li { border-top: 1px solid var(--rule); padding-block: 10px; }
+  #quest-placement .quest-mock .index-group button {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    text-align: left;
+    width: 100%;
+    padding: 0 4px;
+    border-bottom: 1px solid var(--rule);
+  }
+  #quest-placement .index-group button span { color: var(--gold); }
+  @media (max-width: 350px) {
+    #quest-placement .quest-mock nav button { padding-inline: 6px; }
+  }
+</style>
+<script>
+  (() => {
+    const root = document.getElementById("quest-placement");
+    const utilities = {
+      "Quest status": '<p>Active</p>',
+      Members: `<form class="invite">
+          <label for="quest-invite-email">Invite by email</label>
+          <div class="invite-row">
+            <input id="quest-invite-email" name="email" type="email" autocomplete="email" aria-describedby="quest-invite-hint" required>
+            <button type="submit">Invite</button>
+          </div>
+          <p id="quest-invite-hint" class="muted">They’ll get an email with a link to join.</p>
+          <p class="invite-result" role="status"></p>
+        </form>
+        <ul class="member-list" aria-label="Quest members">
+          <li>Rowan <span class="muted">· Owner</span></li>
+          <li>Mira</li>
+          <li>Ellis</li>
+        </ul>`,
+    };
+    const collections = {
+      Tasks: ["No open tasks", "Add the next piece of agreed work.", "Add a task"],
+      Ideas: ["No ideas yet", "", "Add an idea"],
+      "Quick Notes": ["No quick notes yet", "", "Add a quick note"],
+    };
+    const spellDescriptions = {
+      Tasks: "Save subsequent messages as open tasks until you stop the spell.",
+      Brainstorm: "Save subsequent messages in Ideas until you stop the spell.",
+    };
+    function spells(activeSpell) {
+      return `<h3 class="collection-title">Spells</h3>
+        ${Object.entries(spellDescriptions).map(([label, description]) => {
+          const action = activeSpell === label ? "Stop" : "Cast";
+          return `<div class="spell"><div class="spell-heading"><strong>${label}${activeSpell === label ? ' <span class="muted">· Active</span>' : ""}</strong>
+            <button type="button" data-cast="${label}" aria-label="${action} ${label}">${action}</button></div>
+            <p class="muted">${description}</p></div>`;
+        }).join("")}`;
+    }
+    function bucketContent(bucket) {
+      const [empty, hint, action] = collections[bucket];
+      return `<h3 class="collection-title">${bucket}</h3>
+        ${bucket === "Tasks" ? '<p class="muted">Agreed work. One step at a time.</p>' : ""}
+        <div class="empty"><strong>${empty}</strong>
+        ${hint ? `<p class="muted">${hint}</p>` : ""}
+        <button type="button" data-add>＋ ${action}</button></div>`;
+    }
+
+    function dropdown(label, items) {
+      const id = `quest-${label.toLowerCase()}-menu`;
+      return `<div class="dropdown">
+        <button type="button" data-toggle aria-expanded="false" aria-controls="${id}">${label} <span aria-hidden="true">▾</span></button>
+        <div id="${id}" class="dropdown-list" hidden>${items.map(item =>
+          `<button type="button" data-view="${item}">${item}</button>`
+        ).join("")}</div>
+      </div>`;
+    }
+
+    root.innerHTML = `<div class="quest-mock" aria-label="Quest sidebar">
+      <header><h2>Quest</h2><span class="panel-symbol" aria-hidden="true"></span></header>
+      <div class="next-task"><p class="muted">Next task</p><p>No open tasks. Add a task to choose your next step.</p></div>
+      <nav class="primary-nav" aria-label="Quest sections">
+        <button type="button" data-view="Spells">Spells</button>
+        ${dropdown("Buckets", Object.keys(collections))}
+        ${dropdown("Actions", Object.keys(utilities))}
+      </nav>
+      <main></main></div>`;
+
+    const main = root.querySelector("main");
+    const triggers = [...root.querySelectorAll("[data-toggle]")];
+    let view = "Tasks";
+    let activeSpell = "";
+    let invitedEmail = "";
+
+    function showMenu(openTrigger) {
+      for (const trigger of triggers) {
+        const open = trigger === openTrigger;
+        trigger.setAttribute("aria-expanded", String(open));
+        trigger.nextElementSibling.hidden = !open;
+      }
+    }
+
+    function draw() {
+      showMenu(null);
+      root.querySelector('nav > [data-view="Spells"]').setAttribute("aria-pressed", String(view === "Spells"));
+      for (const trigger of triggers) {
+        const items = [...trigger.nextElementSibling.querySelectorAll("[data-view]")];
+        trigger.setAttribute("aria-pressed", String(items.some(item => item.dataset.view === view)));
+        for (const item of items) item.setAttribute("aria-pressed", String(item.dataset.view === view));
+      }
+      main.innerHTML = view === "Spells" ? spells(activeSpell)
+        : Object.hasOwn(collections, view) ? bucketContent(view)
+        : `<h3 class="collection-title">${view}</h3>${utilities[view]}`;
+      if (invitedEmail && view === "Members") showInvitation();
+    }
+
+    function showInvitation() {
+      main.querySelector(".invite-result").textContent = `${invitedEmail} · Invited (preview)`;
+    }
+
+    root.addEventListener("submit", event => {
+      if (!event.target.matches(".invite")) return;
+      event.preventDefault();
+      invitedEmail = event.target.elements.email.value.trim();
+      event.target.reset();
+      showInvitation();
+    });
+
+    root.addEventListener("click", event => {
+      const button = event.target.closest("button");
+      if (!button) return;
+      if (button.hasAttribute("data-toggle")) {
+        showMenu(button.getAttribute("aria-expanded") === "true" ? null : button);
+      } else if (button.dataset.view) {
+        view = button.dataset.view;
+        draw();
+        button.closest(".dropdown")?.querySelector("[data-toggle]").focus();
+      } else if (button.dataset.cast) {
+        const spell = button.dataset.cast;
+        activeSpell = activeSpell === spell ? "" : spell;
+        draw();
+        main.querySelector(`[data-cast="${spell}"]`).focus();
+      } else if (button.hasAttribute("data-add")) {
+        button.outerHTML = `<label>${collections[view][2]} <input type="text" /></label>`;
+        main.querySelector("input").focus();
+      }
+    });
+
+    root.addEventListener("keydown", event => {
+      if (event.key !== "Escape") return;
+      const openTrigger = triggers.find(trigger => trigger.getAttribute("aria-expanded") === "true");
+      if (!openTrigger) return;
+      showMenu(null);
+      openTrigger.focus();
+    });
+    document.addEventListener("click", event => {
+      if (!event.target.closest("#quest-placement .dropdown")) showMenu(null);
+    });
+    draw();
+  })();
+</script>

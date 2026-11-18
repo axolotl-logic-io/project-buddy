@@ -1,62 +1,74 @@
 "use client";
 
-import { type JSX, type SubmitEvent, useCallback } from "react";
+import { type JSX, type MouseEvent, useCallback } from "react";
 import { PANEL_COMMAND } from "@/commands/panel-commands.ts";
 import { usePanelSend } from "@/components/chat/chat-send.ts";
 import { Button } from "@/components/ui/button.tsx";
-import { SelectField } from "@/components/ui/field.tsx";
 import { Alert } from "@/components/ui/form-message.tsx";
 import type { SpellSnapshot } from "@/spells/spell-definition.ts";
-import { SPELLBOOK_COPY } from "@/ui/copy/spells.ts";
+import { SPELL_MODE_COPY, SPELLBOOK_COPY } from "@/ui/copy/spells.ts";
 
-// Casts the chosen spell by sending "cast" and its name to the quest's
-// conversation, as if typed there; the spell's cast reply answers, and a
-// spell already active gives way to it.
 function SpellPicker({
   spells,
+  activeSpell,
 }: {
   readonly spells: readonly SpellSnapshot[];
+  readonly activeSpell?: string | undefined;
 }): JSX.Element {
   const { send, busy, problem } = usePanelSend();
-  const cast = useCallback(
-    (event: SubmitEvent<HTMLFormElement>): void => {
-      event.preventDefault();
-      const chosen = new FormData(event.currentTarget).get("spellId");
-      const spell = spells.find((candidate) => candidate.id === chosen);
+  const toggleSpell = useCallback(
+    (event: MouseEvent<HTMLButtonElement>): void => {
+      const spell = spells.find(
+        (item) => item.id === event.currentTarget.value,
+      );
       if (spell === undefined) {
         return;
       }
-      send(PANEL_COMMAND.cast(spell.name)).catch(() => undefined);
+      let command = PANEL_COMMAND.cast(spell.name);
+      if (spell.id === activeSpell) {
+        command = PANEL_COMMAND.stop;
+      }
+      send(command).catch(() => undefined);
     },
-    [send, spells],
+    [activeSpell, send, spells],
   );
   return (
-    <form className="flex flex-col gap-2" onSubmit={cast}>
-      <SelectField
-        name="spellId"
-        label={SPELLBOOK_COPY.choose}
-        defaultValue=""
-        required={true}
-      >
-        <option value="" disabled={true}>
-          {SPELLBOOK_COPY.choose}
-        </option>
-        {spells.map((spell) => (
-          <option key={spell.id} value={spell.id}>
-            {spell.name}
-          </option>
-        ))}
-      </SelectField>
-      <Button
-        type="submit"
-        variant="secondary"
-        aria-busy={busy}
-        disabled={busy}
-      >
-        {SPELLBOOK_COPY.cast}
-      </Button>
+    <>
+      <ul className="divided-rows">
+        {spells.map((spell) => {
+          let label = SPELLBOOK_COPY.castLabel;
+          let accessibleLabel = SPELLBOOK_COPY.castNamed(spell.name);
+          if (spell.id === activeSpell) {
+            label = SPELL_MODE_COPY.stopLabel;
+            accessibleLabel = SPELL_MODE_COPY.stop(spell.name);
+          }
+          return (
+            <li key={spell.id} className="flex flex-col gap-1 py-2">
+              <div className="flex items-center justify-between gap-3">
+                <strong className="wrap-anywhere min-w-0">{spell.name}</strong>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  aria-label={accessibleLabel}
+                  aria-busy={busy}
+                  disabled={busy}
+                  onClick={toggleSpell}
+                  value={spell.id}
+                >
+                  {label}
+                </Button>
+              </div>
+              <p className="text-muted">
+                {SPELLBOOK_COPY.collectionDestination(
+                  SPELLBOOK_COPY.destinations[spell.definition.destination],
+                )}
+              </p>
+            </li>
+          );
+        })}
+      </ul>
       {problem !== undefined && <Alert>{problem}</Alert>}
-    </form>
+    </>
   );
 }
 

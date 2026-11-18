@@ -56,6 +56,7 @@ import {
 import {
   bucket,
   collectionTab,
+  openAction,
   openBucket,
 } from "../../../../components/quest-sidebar-test-kit.ts";
 import {
@@ -529,7 +530,7 @@ describe("use_case_send_message", () => {
     await page.getByRole("button", { name: "Open quest sidebar" }).click();
     await openBucket("Ideas");
     await expect
-      .element(collectionTab("Ideas"))
+      .element(collectionTab("Buckets"))
       .toHaveAttribute("aria-selected", "true");
     await openBucket("Tasks");
     await expect
@@ -615,7 +616,7 @@ describe("use_case_open_quest", () => {
       .element(page.getByRole("complementary", { name: "Quest side menu" }))
       .toBeVisible();
     await Promise.all(
-      ["Tasks", "Ideas", "Quick Notes", "Progress"].map((name) =>
+      ["Spells", "Buckets", "Actions"].map((name) =>
         expect
           .element(page.getByRole("tab", { name, exact: true }))
           .toBeVisible(),
@@ -733,7 +734,6 @@ describe("use_case_dailies", () => {
       name: QUEST_CONVERSATION_COPY.startDay,
     });
     await expect.element(start).toBeVisible();
-    await page.getByText("Spells & status", { exact: true }).click();
     const actions = page.getByRole("region", {
       name: "Start Day",
       exact: true,
@@ -745,11 +745,10 @@ describe("use_case_dailies", () => {
         }),
       )
       .toBeVisible();
+    await collectionTab("Spells").click();
     await expect
       .element(
-        page
-          .getByRole("region", { name: "Actions", exact: true })
-          .getByRole("button", { name: "Cast spell" }),
+        bucket("Spells").getByRole("button", { name: "Cast Brainstorm" }),
       )
       .toBeVisible();
     await start.click();
@@ -782,7 +781,6 @@ describe("use_case_dailies", () => {
     });
     await render(await chatPage());
     await page.getByRole("button", { name: "Open quest sidebar" }).click();
-    await page.getByText("Spells & status", { exact: true }).click();
     await page
       .getByRole("button", { name: QUEST_CONVERSATION_COPY.startDay })
       .click();
@@ -822,7 +820,6 @@ describe("use_case_dailies", () => {
     });
     await render(await chatPage());
     await page.getByRole("button", { name: "Open quest sidebar" }).click();
-    await page.getByText("Spells & status", { exact: true }).click();
     const actions = page.getByRole("region", {
       name: "Start Day",
       exact: true,
@@ -856,7 +853,6 @@ describe("use_case_dailies", () => {
     });
     await render(await chatPage());
     await page.getByRole("button", { name: "Open quest sidebar" }).click();
-    await page.getByText("Spells & status", { exact: true }).click();
     const actions = page.getByRole("region", {
       name: "Start Day",
       exact: true,
@@ -882,7 +878,6 @@ describe("use_case_dailies", () => {
     store.listMessages.mockResolvedValue([]);
     await render(await chatPage());
     await page.getByRole("button", { name: "Open quest sidebar" }).click();
-    await page.getByText("Spells & status", { exact: true }).click();
     const actions = page.getByRole("region", {
       name: "Start Day",
       exact: true,
@@ -915,7 +910,7 @@ describe("use_case_dailies", () => {
 });
 
 describe("use_case_daily_streaks", () => {
-  test("a recurring task shows its streak, and Progress shows its days with the gap", async () => {
+  test("a recurring task shows its streak, and Day grid shows its days with the gap", async () => {
     store.getQuest.mockResolvedValue({ ...FOX_QUEST, dailies: true });
     store.listMessages.mockResolvedValue([]);
     readTasksState.mockResolvedValueOnce({
@@ -989,7 +984,7 @@ describe("use_case_daily_streaks", () => {
     store.listMessages.mockResolvedValue([]);
     await render(await chatPage());
     await page.getByRole("button", { name: "Open quest sidebar" }).click();
-    await openBucket("Progress");
+    await openAction("Milestones");
     await expect
       .element(page.getByRole("heading", { name: DAY_GRID_COPY.heading }))
       .not.toBeInTheDocument();
@@ -1079,7 +1074,7 @@ describe("use_case_tailored_quest_panels", () => {
     await expect
       .element(page.getByRole("region", { name: "Start Day", exact: true }))
       .toBeVisible();
-    await expect.element(collectionTab("Day grid")).toBeVisible();
+    await openBucket("Day grid");
     await expect
       .element(page.getByRole("region", { name: "Next task", exact: true }))
       .not.toBeInTheDocument();
@@ -1097,7 +1092,11 @@ describe("use_case_tailored_quest_panels", () => {
     await expect
       .element(page.getByRole("region", { name: "Next task", exact: true }))
       .toBeVisible();
-    await expect.element(collectionTab("Day grid")).not.toBeInTheDocument();
+    await collectionTab("Buckets").click();
+    await expect
+      .element(page.getByRole("menuitemradio", { name: "Day grid" }))
+      .not.toBeInTheDocument();
+    await userEvent.keyboard("{Escape}");
     await expect
       .element(page.getByRole("button", { name: "Start Day", exact: true }))
       .not.toBeInTheDocument();
@@ -1110,11 +1109,11 @@ describe("use_case_tailored_quest_panels", () => {
       store.listMessages.mockResolvedValue([]);
       await render(await chatPage());
       await page.getByRole("button", { name: "Open quest sidebar" }).click();
-      await expect.element(collectionTab("Day grid")).toBeVisible();
+      await openBucket("Day grid");
       await expect
         .element(page.getByRole("button", { name: "Start Day", exact: true }))
         .not.toBeInTheDocument();
-      await page.getByText("Spells & status", { exact: true }).click();
+      await openAction("Quest status");
       await expect
         .element(page.getByRole("button", { name: "Restore quest" }))
         .toBeVisible();

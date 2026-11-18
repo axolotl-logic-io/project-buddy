@@ -168,7 +168,7 @@ function InviteForm(): JSX.Element {
     label = QUEST_MEMBERS_COPY.inviting;
   }
   return (
-    <form className="flex flex-col gap-3" noValidate={true} onSubmit={submit}>
+    <form className="quest-member-invite" noValidate={true} onSubmit={submit}>
       <TextField
         ref={emailRef}
         label={QUEST_MEMBERS_COPY.emailLabel}
@@ -179,12 +179,7 @@ function InviteForm(): JSX.Element {
         required={true}
         error={problem}
       />
-      <Button
-        className="self-start"
-        aria-busy={busy}
-        disabled={busy}
-        type="submit"
-      >
+      <Button aria-busy={busy} disabled={busy} type="submit">
         {label}
       </Button>
       <FormStatus>{status}</FormStatus>
@@ -251,9 +246,9 @@ function QuestMembers({
       <p className="sr-only" ref={headingRef} tabIndex={-1}>
         {QUEST_MEMBERS_COPY.heading}
       </p>
-      <p className="text-muted">{QUEST_MEMBERS_COPY.intro}</p>
       <FormStatus>{status}</FormStatus>
       {problem !== undefined && <Alert>{problem}</Alert>}
+      <InviteForm />
       <ul aria-label={QUEST_MEMBERS_COPY.listLabel} className="divided-rows">
         {rows.map(({ person, role }) => (
           <PersonRow
@@ -266,7 +261,7 @@ function QuestMembers({
           />
         ))}
       </ul>
-      <InviteForm />
+      <p className="text-muted">{QUEST_MEMBERS_COPY.intro}</p>
     </section>
   );
 }
