@@ -242,7 +242,9 @@ describe("Feature: Visual work and break timer", () => {
       .element(page.getByRole("link", { name: TIMER_COPY.invalidAction }))
       .toHaveAttribute("href", "/timer");
     await expect.element(countdown()).not.toBeInTheDocument();
-    expect(document.querySelector("svg")).toBeNull();
+    await expect
+      .element(page.getByRole("region", { name: TIMER_COPY.displayLabel }))
+      .not.toBeInTheDocument();
   });
 
   test("Scenario: Recover from an incomplete timer link", async () => {

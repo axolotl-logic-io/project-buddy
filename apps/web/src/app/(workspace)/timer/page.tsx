@@ -11,7 +11,7 @@ export const metadata: Metadata = { title: TIMER_COPY.title };
 export default function TimerSetupPage(): JSX.Element {
   return (
     <PageWorkspace intro={TIMER_COPY.intro}>
-      <div className="workspace-content">
+      <div className="panel">
         <TimerSetup />
       </div>
     </PageWorkspace>

@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import type { CSSProperties, JSX, SyntheticEvent } from "react";
+import { constructDrawing } from "@/components/constructs/artwork/construct-drawing.tsx";
 import type {
   ConstructAvatarProps,
   ConstructIllustrationProps,
@@ -32,8 +33,10 @@ function ConstructIllustration({
   if (decorative === true) {
     label = undefined;
   }
-  let image: JSX.Element | undefined;
-  if (src !== undefined) {
+  // Drawn built-ins render inline, in the appearance's colours; image
+  // assets load from their file.
+  let image = constructDrawing(visual.asset, visualRole, visual.frame);
+  if (image === undefined && src !== undefined) {
     const { x, y, size } = visual.frame;
     const style: CSSProperties = {
       width: `${PERCENT / size}%`,

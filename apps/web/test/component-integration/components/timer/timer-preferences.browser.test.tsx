@@ -1,4 +1,4 @@
-import { wcagContrast } from "culori";
+import { parse, wcagContrast } from "culori";
 import { beforeEach, expect, test, vi } from "vitest";
 import { commands, page, userEvent } from "vitest/browser";
 import { saveThemeChoiceAction } from "@/themes/save-theme-choice-action.ts";
@@ -12,9 +12,14 @@ import {
   minutesAfter,
   openTimerPreferences,
   phaseHeading,
+  progressColor,
   renderTimer,
   returnToTabAt,
+  sand,
+  sandHeight,
   T,
+  timerIllustration,
+  timerStage,
 } from "../../../support/timer/timer-test-kit.tsx";
 import { applyTheme } from "../../themes/theme-test-kit.ts";
 
@@ -162,13 +167,13 @@ test.each(THEME_MODES)(
     applyTheme("parchment", mode);
     await renderTimer(longSchedule);
     await openTimerPreferences();
-    const stage = page
-      .getByRole("region", { name: TIMER_COPY.displayLabel })
-      .element();
-    expect(getComputedStyle(stage).backgroundColor).toBe("rgba(0, 0, 0, 0)");
-    const paper = getComputedStyle(document.documentElement).getPropertyValue(
-      "--background",
-    );
+    // The illustration sits on the page's own texture and adds no second
+    // paper surface (docs/timer.md).
+    expect(
+      parse(getComputedStyle(timerStage()).backgroundColor)?.alpha,
+      "the timer's stage paints no surface of its own",
+    ).toBe(0);
+    const paper = backdrop(timerStage());
     for (const element of [
       countdown().element(),
       phaseHeading("Work").element(),
@@ -178,24 +183,13 @@ test.each(THEME_MODES)(
         wcagContrast(getComputedStyle(element).color, paper),
       ).toBeGreaterThanOrEqual(AA_TEXT_CONTRAST);
     }
-    const illustration = [...stage.querySelectorAll("svg")].find(
-      (svg) => svg.getBoundingClientRect().width > 0,
+    expect(wcagContrast(progressColor(), paper)).toBeGreaterThanOrEqual(
+      AA_GRAPHIC_CONTRAST,
     );
-    const progress = illustration?.querySelector("pattern rect");
-    if (progress === null || progress === undefined) {
-      throw new Error("The timer has no visible progress paint");
-    }
-    expect(
-      wcagContrast(getComputedStyle(progress).fill, paper),
-    ).toBeGreaterThanOrEqual(AA_GRAPHIC_CONTRAST);
     await userEvent.keyboard("{Escape}");
     await expect.element(countdown()).toHaveTextContent("02:00:00");
     const bounds = countdown().element().getBoundingClientRect();
-    const dial = illustration;
-    if (dial === undefined) {
-      throw new Error("The timer has no dial");
-    }
-    const circle = dial.getBoundingClientRect();
+    const circle = timerIllustration().getBoundingClientRect();
     const centerX = bounds.left + bounds.width / 2;
     expect(centerX).toBeCloseTo(circle.left + circle.width / 2, 0);
     expect(bounds.left).toBeGreaterThanOrEqual(0);
@@ -209,20 +203,52 @@ test.each(THEME_MODES)(
   },
 );
 
+// The colour behind `element`: the first background colour on it or an
+// element it sits in, or the page's paper under any texture.
+function backdrop(element: Element): string {
+  for (
+    let current: Element | null = element;
+    current !== null;
+    current = current.parentElement
+  ) {
+    const color = getComputedStyle(current).backgroundColor;
+    if (parse(color)?.alpha !== 0) {
+      return color;
+    }
+  }
+  return getComputedStyle(document.documentElement).getPropertyValue(
+    "--background",
+  );
+}
+
+// How a marker is drawn: the paint, opacity and filter of it and each shape
+// in it, so a lit marker differs from an unlit one however it is lit.
+function drawing(marker: Element): string {
+  return [marker, ...marker.querySelectorAll("*")]
+    .map((part) => {
+      const style = getComputedStyle(part);
+      return [
+        style.color,
+        style.fill,
+        style.stroke,
+        style.opacity,
+        style.filter,
+      ].join(" ");
+    })
+    .join("|");
+}
+
+// How many of the dial's markers are drawn lit: like the first, which the
+// arc has passed from the period's start. The dial marks each with
+// data-passed (timer-dial.tsx).
 function litMarkers(): number {
-  const markers = [
-    ...page
-      .getByRole("region", { name: TIMER_COPY.displayLabel })
-      .element()
-      .querySelectorAll("g[data-passed]"),
-  ];
+  const markers = [...timerStage().querySelectorAll("[data-passed]")];
   const first = markers.at(0);
   if (first === undefined) {
-    throw new Error("The dial has no markers");
+    throw new Error("The dial has no markers marked data-passed");
   }
-  const litColor = getComputedStyle(first).color;
-  return markers.filter((marker) => getComputedStyle(marker).color === litColor)
-    .length;
+  const lit = drawing(first);
+  return markers.filter((marker) => drawing(marker) === lit).length;
 }
 
 test.each(["soot-brass", "dark"] as const)(
@@ -232,13 +258,7 @@ test.each(["soot-brass", "dark"] as const)(
     applyTheme("parchment", mode);
     await page.viewport(PHONE_WIDTH, HEIGHT);
     await renderTimer(SCHEDULE);
-    const ring = document
-      .querySelector("svg circle[stroke-dasharray]")
-      ?.closest("svg");
-    if (ring === null || ring === undefined) {
-      throw new Error("The timer has no dial");
-    }
-    const dialBounds = ring.getBoundingClientRect();
+    const dialBounds = timerIllustration().getBoundingClientRect();
     const timeBounds = countdown().element().getBoundingClientRect();
     expect(timeBounds.top + timeBounds.height / 2).toBeCloseTo(
       dialBounds.top + dialBounds.height / 2,
@@ -258,44 +278,32 @@ test.each(["soot-brass", "dark"] as const)(
 test("the hourglass drains, fills, and resets with the next period", async () => {
   await page.viewport(PHONE_WIDTH, HEIGHT);
   await renderTimer(SCHEDULE);
-  const stage = page
-    .getByRole("region", { name: TIMER_COPY.displayLabel })
-    .element();
-  const top = stage.querySelector("rect[data-sand-top]");
-  const bottom = stage.querySelector("rect[data-sand-bottom]");
-  if (!(top instanceof SVGRectElement && bottom instanceof SVGRectElement)) {
-    throw new Error("The timer has no hourglass sand");
-  }
-  expect(top.getBoundingClientRect().width).toBeGreaterThan(0);
-  const glass = top.ownerSVGElement;
-  if (glass === null) {
-    throw new Error("The sand has no hourglass");
-  }
+  const { top, bottom } = sand();
   expect(countdown().element().getBoundingClientRect().top).toBeGreaterThan(
-    glass.getBoundingClientRect().bottom,
+    timerIllustration().getBoundingClientRect().bottom,
   );
-  const fullTop = top.height.baseVal.value;
+  const fullTop = sandHeight(top);
   expect(fullTop).toBeGreaterThan(0);
-  expect(bottom.height.baseVal.value).toBe(0);
+  expect(sandHeight(bottom)).toBe(0);
   returnToTabAt(minutesAfter(SCHEDULE, PARTWAY));
   await expect.element(countdown()).toHaveTextContent("25:00");
-  expect(top.height.baseVal.value).toBeCloseTo(fullTop / 2);
-  const halfBottom = bottom.height.baseVal.value;
+  expect(sandHeight(top)).toBeCloseTo(fullTop / 2);
+  const halfBottom = sandHeight(bottom);
   expect(halfBottom).toBeGreaterThan(0);
   returnToTabAt(minutesAfter(SCHEDULE, SCHEDULE.workMinutes - 1));
   await expect.element(countdown()).toHaveTextContent("01:00");
-  expect(top.height.baseVal.value).toBeLessThan(fullTop / 2);
-  expect(bottom.height.baseVal.value).toBeGreaterThan(halfBottom);
+  expect(sandHeight(top)).toBeLessThan(fullTop / 2);
+  expect(sandHeight(bottom)).toBeGreaterThan(halfBottom);
   returnToTabAt(minutesAfter(SCHEDULE, SCHEDULE.workMinutes));
   await expect.element(phaseHeading("Break")).toBeVisible();
-  expect(top.height.baseVal.value).toBe(fullTop);
-  expect(bottom.height.baseVal.value).toBe(0);
+  expect(sandHeight(top)).toBe(fullTop);
+  expect(sandHeight(bottom)).toBe(0);
   returnToTabAt(
     minutesAfter(SCHEDULE, SCHEDULE.workMinutes + SCHEDULE.breakMinutes / 2),
   );
   await expect.element(countdown()).toHaveTextContent("05:00");
-  expect(top.height.baseVal.value).toBeCloseTo(fullTop / 2);
-  expect(bottom.height.baseVal.value).toBeCloseTo(halfBottom);
+  expect(sandHeight(top)).toBeCloseTo(fullTop / 2);
+  expect(sandHeight(bottom)).toBeCloseTo(halfBottom);
 });
 
 test.each([
