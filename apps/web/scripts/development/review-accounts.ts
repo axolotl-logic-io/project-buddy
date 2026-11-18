@@ -24,6 +24,7 @@ const WEB_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 // The setting the site reads its database from.
 const DATABASE_SETTING = "DATABASE_URL";
 const DEFAULT_BASE_EMAIL = "review@project-buddy.test";
+const LOOPBACK_HOSTS = new Set(["localhost", "127.0.0.1", "[::1]"]);
 const ADDRESS = /^(?<local>[^@+]+)(?:\+[^@]*)?@(?<domain>.+)$/u;
 
 const REVIEW_KINDS = ["empty", "typical", "crowded"] as const;
@@ -91,6 +92,16 @@ async function reviewSession(
   return createSessionToken(user, sessionSecret, new Date());
 }
 
+// The origin of url when it names this computer, else undefined: the review
+// accounts are only ever used with the local site.
+function loopbackOrigin(url: string): string | undefined {
+  const parsed = URL.parse(url);
+  if (parsed === null || !LOOPBACK_HOSTS.has(parsed.hostname)) {
+    return undefined;
+  }
+  return parsed.origin;
+}
+
 // Closes the site's database connections, so the script can exit.
 async function closeAppDatabase(): Promise<void> {
   const { closeDb } = await import("@/db/client.ts");
@@ -100,6 +111,7 @@ async function closeAppDatabase(): Promise<void> {
 export type { ReviewAccount, ReviewKind };
 export {
   closeAppDatabase,
+  loopbackOrigin,
   pointAtLocalDatabase,
   REVIEW_KINDS,
   reviewAccounts,

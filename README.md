@@ -193,6 +193,41 @@ The command deletes the three accounts, makes them again and prints a 30-minute 
 
 The command refuses any database but your worktree's own development database, and any site address but `localhost`. It starts quests and sends messages through the running site's API, so the construct's replies are the local engine's own. It makes everything else with the site's own stores. Two kinds of message go straight into the database, because the local construct engine never writes them: replies that record a milestone, and replies in Markdown. The content is in `apps/web/scripts/development/review-content.ts`.
 
+### Visual comparison
+
+The visual comparison screenshots each critical view of the site as the review accounts, in each appearance at each width. Given a folder of mockups, it also screenshots each view's mockup and writes a page that shows the two side by side.
+
+To compare the site with mockups, make the review accounts first, then run this command from the repository root:
+
+```sh
+mise run visual-compare -- --mockups MOCKUPS
+```
+
+`MOCKUPS` is a folder of mockup pages named `<view>--<state>.html`, such as `quests--list.html`. Each page must show itself alone in the appearance and at the width given by `?bare&appearance=<appearance>&width=<width>`.
+
+The command builds this worktree for production, starts it on a free port with your worktree's development database, takes the screenshots and stops the site. It writes these files to `project-buddy-visual` in your temporary folder, or to `--out`:
+
+- `site/` and `mockups/`: the screenshots, named `<view>--<state>--<appearance>--<width>.png`.
+- `index.html`: the comparison page. It lists the views with no mockup, the mockups that match no view and any view that didn't reach its state, and filters by appearance and width.
+- `results.json`: the same, for other tools.
+- `site.log`: the site's own output.
+
+The command exits with an error if a view had a problem, such as a page error or a step that failed.
+
+These options change what it shows:
+
+- `--only PARTS`: only the views whose names contain one of these comma-separated parts, such as `--only quest--,settings`.
+- `--widths LIST`: the widths in pixels, `1280,360` by default, the theme redesign's widths. [The site's agent rules](apps/web/AGENTS.md) ask for a 320 px check, so add it with `--widths 1280,360,320`. Widths below 1024 px get the phone layout.
+- `--appearances LIST`: `light,soot-brass,dark` by default.
+- `--dev`: start the development server instead of a production build. A worktree runs one development server at a time, so stop your own first.
+- `--no-build`: start the last production build without building again.
+- `--site URL`: use a site already running on this computer, such as `http://localhost:3000`. It must use your worktree's development database.
+- `--email EMAIL`: the base address given to `mise run review-data`.
+
+Run `mise run visual-compare -- --help` for the full list.
+
+The views are in `apps/web/scripts/visual/views.ts`. Each one names its view and state, its review account, its page and the steps that bring it to its state, such as opening the row menu or holding a construct reply. To add a view, add an entry there. A view's state steps use Playwright, as the end-to-end tests do.
+
 ## Installed app
 
 Project Buddy installs on a phone's Home Screen from the browser: Chrome on Android offers **Install app**, and Safari on an iPhone offers **Add to Home Screen** in the Share menu. The web app manifest is `apps/web/src/app/manifest.ts`, with icons in `apps/web/public/icons/`.

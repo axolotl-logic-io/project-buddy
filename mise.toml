@@ -31,3 +31,7 @@ run = 'node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON "{{config_root}}/apps
 description = "Make the empty, typical and crowded review accounts again, with the local site running, and print their sign-in links"
 usage = 'arg "[email]" help="The base address; review@project-buddy.test without one, giving review+empty@, review+typical@ and review+crowded@"'
 run = 'node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON "{{config_root}}/apps/web/scripts/development/run.ts" review-data {{usage.email}}'
+
+[tasks.visual-compare]
+description = "Screenshot every critical view as the review accounts, in each appearance at each width, beside its mockup; --help for the options"
+run = 'node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON "{{config_root}}/apps/web/scripts/visual/compare.ts"'
