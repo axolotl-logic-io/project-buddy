@@ -35,3 +35,7 @@ run = 'node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON "{{config_root}}/apps
 [tasks.visual-compare]
 description = "Screenshot every critical view as the review accounts, in each appearance at each width, beside its mockup; --help for the options"
 run = 'node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON "{{config_root}}/apps/web/scripts/visual/compare.ts"'
+
+[tasks.visual-baseline]
+description = "Measure the critical views' page weight, fonts, LCP, CLS and axe violations in a production build; --help for the options"
+run = 'node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON "{{config_root}}/apps/web/scripts/visual/baseline.ts"'
