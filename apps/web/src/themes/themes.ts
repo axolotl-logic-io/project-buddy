@@ -135,6 +135,19 @@
 //   --header-paper    light text and medallion on the HUD
 //   --header-line     HUD separators and button shadow
 //   --header-gold     HUD accent, controls and focus rings
+// The built-in constructs' drawings (components/constructs/artwork/), set
+// per mode and read by construct-art.css. Ink stays dark in every mode,
+// because it only draws over metal, paper and light:
+//   --construct-ground       the portrait's backdrop
+//   --construct-ground-ink   faint backdrop detail: coastlines, motes
+//   --construct-ink          outlines, eyes and runes
+//   --construct-metal        the lit face of brass
+//   --construct-metal-shade  the shadowed face of brass
+//   --construct-metal-light  polish highlights on brass
+//   --construct-paper        map paper, the quill, the compass plate
+//   --construct-glow         Lumen's light and Vellum's lenses
+//   --construct-glow-core    the hottest centre of a light
+//   --construct-accent       one rubric red: jewels, the compass's north
 // A shadow or decoration that should differ by mode uses colour tokens, as
 // in color-mix(in oklab, var(--shadow) 30%, transparent).
 //

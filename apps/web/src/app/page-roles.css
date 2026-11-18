@@ -1255,7 +1255,6 @@
 }
 
 @layer components {
-  /* One square canonical composition; only the avatar uses a face crop. */
   /* Without artwork, or while it loads, the frame shows the construct's
      initials as a seal: the accent colour, with letters scaled to the
      frame, so a 32 px avatar and a full portrait read alike. */

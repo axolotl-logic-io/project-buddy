@@ -110,6 +110,16 @@
     --light-header-line: oklch(51% 0.06 65);
     --light-header-gold: oklch(78% 0.13 80);
     --light-page-decoration: url("/textures/ivory-vellum.webp");
+    --light-construct-ground: rgb(251 239 213);
+    --light-construct-ground-ink: rgb(150 112 64);
+    --light-construct-ink: rgb(58 36 18);
+    --light-construct-metal: rgb(214 168 74);
+    --light-construct-metal-shade: rgb(150 104 42);
+    --light-construct-metal-light: rgb(250 230 164);
+    --light-construct-paper: rgb(255 249 230);
+    --light-construct-glow: rgb(230 166 48);
+    --light-construct-glow-core: rgb(255 251 232);
+    --light-construct-accent: rgb(160 44 28);
 
     --dark-navigation-surface: rgb(49 36 24);
     --dark-trail-surface: rgb(49 36 24);
@@ -120,6 +130,16 @@
     --dark-header-line: oklch(51% 0.06 65);
     --dark-header-gold: oklch(78% 0.13 80);
     --dark-page-decoration: url("/textures/espresso-leather.webp");
+    --dark-construct-ground: rgb(40 27 18);
+    --dark-construct-ground-ink: rgb(132 98 64);
+    --dark-construct-ink: rgb(32 20 11);
+    --dark-construct-metal: rgb(218 168 88);
+    --dark-construct-metal-shade: rgb(140 96 44);
+    --dark-construct-metal-light: rgb(248 220 160);
+    --dark-construct-paper: rgb(240 225 196);
+    --dark-construct-glow: rgb(248 188 92);
+    --dark-construct-glow-core: rgb(255 245 218);
+    --dark-construct-accent: rgb(164 48 32);
 
     --soot-brass-background: rgb(33 23 26);
     --soot-brass-surface: rgb(41 36 38);
@@ -150,6 +170,16 @@
     --soot-brass-header-line: rgb(142 128 107);
     --soot-brass-header-gold: rgb(185 160 106);
     --soot-brass-page-decoration: url("/textures/soot-brass.webp");
+    --soot-brass-construct-ground: rgb(60 29 36);
+    --soot-brass-construct-ground-ink: rgb(160 116 108);
+    --soot-brass-construct-ink: rgb(28 19 21);
+    --soot-brass-construct-metal: rgb(200 174 120);
+    --soot-brass-construct-metal-shade: rgb(128 104 68);
+    --soot-brass-construct-metal-light: rgb(238 224 186);
+    --soot-brass-construct-paper: rgb(230 219 196);
+    --soot-brass-construct-glow: rgb(234 200 132);
+    --soot-brass-construct-glow-core: rgb(255 247 226);
+    --soot-brass-construct-accent: rgb(158 40 46);
 
     --light-action-fill: rgb(128 80 20);
     --light-on-action: rgb(255 244 220);

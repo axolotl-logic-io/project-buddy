@@ -461,11 +461,13 @@
   }
 
   @media (prefers-reduced-motion: no-preference) {
-    .chat-presence[data-active="true"][data-artwork="lumen-v1"] {
+    .chat-presence[data-active="true"][data-artwork="lumen-v1"],
+    .chat-presence[data-active="true"][data-artwork="lumen-v2"] {
       animation: construct-glow 2s ease-in-out infinite;
     }
 
-    .chat-presence[data-active="true"][data-artwork="vellum-v1"] {
+    .chat-presence[data-active="true"][data-artwork="vellum-v1"],
+    .chat-presence[data-active="true"][data-artwork="vellum-v2"] {
       animation: construct-working 2s ease-in-out infinite;
     }
   }

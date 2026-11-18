@@ -3,7 +3,9 @@
    - src/themes/themes.css: the token contract and the themes;
    - page-roles.css: the roles that pages share, such as headings, links,
      buttons and fields;
-   - src/components/chat/chat.css: the chat and the Markdown. */
+   - src/components/chat/chat.css: the chat and the Markdown;
+   - src/components/constructs/: the character profile and the built-in
+     constructs' drawings. */
 
 /* Tailwind's entry point, split so each part sits in its cascade layer. */
 @layer theme, base, components, utilities;
@@ -15,6 +17,7 @@
 @import "./page-roles.css" layer(components);
 @import "../components/chat/chat.css" layer(components);
 @import "../components/constructs/construct-discovery.css" layer(components);
+@import "../components/constructs/construct-art.css" layer(components);
 
 /* The Markdown (chat.css): Tailwind skips node_modules, so name the files
    whose classes Streamdown and its code highlighter render. npm hoists them
