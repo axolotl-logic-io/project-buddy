@@ -13,9 +13,9 @@
 ## use_case_experience_command
 
 - **Intent:** See their experience without leaving the quest's conversation.
-- **Prerequisites:** a signed-in user in a quest's conversation, with or without an active spell.
+- **Prerequisites:** a signed-in user in a quest's conversation, with an active spell.
 - **Steps:**
-  - They type `exp`, or `/exp` from the composer's command list, and send it.
+  - They type `exp`, or `/exp`, and send it.
 - **Outcome:** the construct answers in the conversation with their circle and its title, their experience and how much more the next circle needs, and their points in each ability, read as it replies. The command changes nothing: an active spell doesn't save it to Tasks or Ideas. In a shared conversation, the answer shows the experience of whoever sent it. It makes no model request.
 
 ## use_case_experience_ring

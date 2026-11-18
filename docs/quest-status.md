@@ -1,8 +1,8 @@
 # Quest status
 
-A quest starts Active. Its owner or any [member](multi-user-quests.md) can mark it Completed or Abandoned with Complete or Abandon in Spells & status, or by typing `/complete` or `/abandon` in its conversation. Both commands keep the conversation, Tasks and progress available. No one outside the quest can change its status.
+A quest starts Active. Its owner or any [member](multi-user-quests.md) can mark it Completed or Abandoned with Complete or Abandon in Spells & status. The quest keeps its work and any active spell. No one outside the quest can change its status.
 
-Quests has folder tabs for Active, Completed and Abandoned quests, then Pending for the user's unaccepted [quest invitations](multi-user-quests.md#pending-tab), below the four starting points, with Active selected by default. A user with no quests and a pending invitation sees Pending first. The selected status is kept in the URL. Completed and abandoned rows have Restore quest for the owner and members; the conversation offers `/restore`. Restoring returns the quest to Active. A successful change offers Undo, which restores the previous status only if there has been no later status change.
+Quests has folder tabs for Active, Completed and Abandoned quests, then Pending for the user's unaccepted [quest invitations](multi-user-quests.md#pending-tab), below the four starting points, with Active selected by default. A user with no quests and a pending invitation sees Pending first. The selected status is kept in the URL. Completed and abandoned rows have Restore quest for the owner and members; Spells & status also offers Restore quest. Restoring returns the quest to Active. A successful change offers Undo, which restores the previous status only if there has been no later status change.
 
 Continue and the Quick Note dialog offer only the Active quests open to the user: their own and those they are a member of. Completing or abandoning removes a quest from subsequent choices; restoring it makes it available again. A quest's conversation remains available to continue, including in Completed and Abandoned quests. Status changes and Undo replace previous feedback and focus the current result, including when a restored card leaves the list.
 
@@ -18,7 +18,7 @@ Quests store their status and a status revision; proposals live in a separate ap
 
 ## Quest workspace
 
-The quest’s conversation starts below the site header’s trail band, whose heading is the quest’s title. Direct collection tabs expose Tasks, Ideas, Progress and Quick Notes. [Members](multi-user-quests.md#members) and Spells & status are disclosures below the collections. Dailies puts Start Day above its tabs and adds Day grid; ordinary quests show Next task. Type `/` in the composer to find `/complete`, `/abandon` and `/restore`. These commands change the whole quest without a construct reply. They take no arguments. Conversation, the default, follows the trail band with its composer and no separate portrait bar. The sidebar sits flush with the right page edge on wide screens. A panel icon opens or collapses it. On phones it starts collapsed and opens as a drawer; closing it keeps drafts and returns focus to the toggle.
+Open **Spells & status** from the quest overview to complete, abandon or restore the quest. These controls save the change directly and offer Undo. The Timer panel shares the trail band with the title.
 
 The owner or a member can choose the pencil beside the quest name in the trail band to open the title editor in a dialog. Save title or Enter saves a trimmed name of up to 80 characters, and the band's heading and parent link show it. Cancel title edit or Escape discards the draft, and focus returns to Rename. Invalid names and storage failures keep the draft open for correction.
 

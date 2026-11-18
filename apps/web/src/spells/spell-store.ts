@@ -1,4 +1,4 @@
-import { and, eq, isNotNull } from "drizzle-orm";
+import { and, eq, isNotNull, sql } from "drizzle-orm";
 import { chatOpenTo } from "@/accounts/owner-scope.ts";
 import { type Database, getDb } from "@/db/client.ts";
 import { chats } from "@/db/tables/quests-and-chats.ts";
@@ -61,12 +61,17 @@ async function setSpell(
       return false;
     }
   }
+  let spellStartedAt: ReturnType<typeof sql> | null = null;
+  if (snapshot !== undefined) {
+    spellStartedAt = sql`clock_timestamp()`;
+  }
   return withAppErrors("set spell", async () => {
     const rows = await db
       .update(chats)
       .set({
         spell: snapshot?.definition.destination ?? null,
         spellSnapshot: snapshot ?? null,
+        spellStartedAt,
       })
       .where(
         and(

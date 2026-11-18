@@ -26,6 +26,7 @@ export const QUEST_MEMBERS_COPY = {
   inQuest: (email: string): string => `${email} is already in this quest.`,
   limited: `You can send up to ${INVITATIONS_PER_HOUR} invitations an hour, and you've reached that. Try again later.`,
   notFound: "This quest is no longer available to you.",
+  removed: "Quest access updated.",
   remove: "Remove",
   removeLabel: (name: string): string => `Remove ${name} from this quest`,
   removeConfirm: (name: string): string =>

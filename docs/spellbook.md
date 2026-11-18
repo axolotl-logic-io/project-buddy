@@ -10,7 +10,7 @@ Each spell also owns editable reply lists for casting, saving a message, stoppin
 
 Built-ins remain read-only. The shared editor keeps browser drafts through navigation and offers Save and Cancel. Own spells can be copied or forgotten. Spellbook’s Forgotten tab supports restoration and permanent deletion.
 
-Use the spell picker and Cast spell in the quest sidebar’s Spells & status disclosure, or type `cast <spell name>`, such as `cast Alstorm`. Names are matched without regard to case or repeated whitespace. Duplicate names require renaming before casting. `tasks` and `brainstorm` cast the built-in spells. Commands ignore case and accept an optional leading slash. Stop beside the composer, or `stop`, ends the spell.
+Open **Spells & status** from the quest overview, then choose **Cast** beside a built-in or own spell. The cast opens its transcript and composer below the workspace. Cast another spell to switch destinations. Choose **Stop** beside the spell conversation to close it.
 
 A cast saves a snapshot of its name, destination and replies. Editing, forgetting or deleting the source never changes an active spell. Cast again to use the latest definition. The local engine uses the destination for capture and the saved reply lists for responses. Reply templates replace `{{name}}` with the user’s name. Prose Instructions fields are not offered.
 
@@ -18,7 +18,7 @@ Each ordinary message becomes one item of at most 200 characters. Commands bypas
 
 ## Storage
 
-Own spells reuse the owner-scoped definition storage used by constructs, with kind `spell`. Active snapshots live in the nullable `chats.spell_snapshot` column; `chats.spell` holds the destination.
+Own spells reuse the owner-scoped definition storage used by constructs, with kind `spell`. Active snapshots live in `chats.spell_snapshot`. The `spell` column holds the destination and `spell_started_at` marks the first instant of the active transcript. A cast starts a fresh transcript. Earlier messages remain in storage.
 
 Destination identifiers and display labels are shared by the editor, spell cards, forgotten spell details, reply placeholders and active-spell context. Capture selects a destination handler that validates and saves with the destination’s own rules inside the message transaction.
 

@@ -6,7 +6,7 @@ The conventions for these cases are in [the index](README.md#conventions).
 
 The user writes to the construct and gets a reply.
 
-- **Prerequisites:** [`use_case_open_quest`](quests.md#use_case_open_quest).
+- **Prerequisites:** An open quest with a spell cast in Spells & status.
 - **Steps:**
   - The user types a message and sends it.
   - Their message appears in the conversation at once, under their name.
@@ -49,20 +49,19 @@ The user leaves the conversation while the construct is still replying.
 - **Next:**
   - `use_case_continue_chat`: carry on from the reply.
 
-## use_case_ask_any_subject
+## use_case_spell_required
 
-- **Goal:** Save a message about any subject in the quest conversation.
-- **Prerequisites:** an open quest conversation.
-- **Steps:** The user sends an ordinary message without a spell active.
-- **Outcome:** The message is saved and the construct explains the supported local commands. It makes no external lookup or model request.
+- **Intent:** Send only to an active spell.
+- **Steps:** Open a quest with no active spell. Submit a chat request directly.
+- **Outcome:** The page shows its Overview without chat controls. The request is rejected before saving a message.
 
 ## use_case_continue_chat
 
 The user continues an earlier conversation.
 
 - **Prerequisites:** [`use_case_open_quest`](quests.md#use_case_open_quest), with saved messages.
-- **Steps:** reopen the quest and send `help`, `look` or another supported command.
-- **Outcome:** earlier messages remain visible and the local engine handles the command. Ordinary prose is saved and receives command guidance; the engine does not recall facts or infer intent from earlier messages. The saved construct and active spell persist across visits.
+- **Steps:** reopen a quest while its spell is active and send another message.
+- **Outcome:** the active cast keeps its transcript. The spell captures the new message in its destination and replies.
 - **Next:** `use_case_send_message`.
 
 ## use_case_construct_voice_consistent

@@ -6,7 +6,9 @@ import { type RefObject, useLayoutEffect, useRef } from "react";
 // Page scrolling belongs here: assistant-ui's viewport follows only its own
 // scroll container, whereas this chat shares the document with its header.
 // All moves are instant, including for users who request reduced motion.
-function useChatScroll(): RefObject<HTMLDivElement | null> {
+function useChatScroll(
+  followOnMount: boolean,
+): RefObject<HTMLDivElement | null> {
   const rootRef = useRef<HTMLDivElement>(null);
   const runtime = useAui();
 
@@ -15,7 +17,7 @@ function useChatScroll(): RefObject<HTMLDivElement | null> {
     if (element === null) {
       return;
     }
-    let following = true;
+    let following = followOnMount;
     let lastY = window.scrollY;
     const viewport = window.visualViewport;
     let lastHeight = window.innerHeight;
@@ -238,7 +240,7 @@ function useChatScroll(): RefObject<HTMLDivElement | null> {
       viewport?.removeEventListener("resize", onResize);
       viewport?.removeEventListener("scroll", onResize);
     };
-  }, [runtime]);
+  }, [runtime, followOnMount]);
 
   return rootRef;
 }

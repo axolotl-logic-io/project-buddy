@@ -96,6 +96,7 @@ const PANEL_COMMANDS_COPY = {
     startDayWords:
       "Write /start-day alone, or with clear-tasks, clear-ideas or both.",
     notDailies: "Start Day is only in the Dailies quest, while it is Active.",
+    dayChanged: "The day has changed. Check Dailies and try again.",
     cantUndoStartDay:
       "There's no Start Day to take back, or someone has written in the new day's conversation.",
     noEmail: "Write an email address after /invite, such as name@example.com.",

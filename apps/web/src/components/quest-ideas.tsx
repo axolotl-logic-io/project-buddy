@@ -1,8 +1,6 @@
 "use client";
 
 import { type JSX, useCallback, useRef, useState } from "react";
-import { PANEL_COMMAND, placeBefore } from "@/commands/panel-commands.ts";
-import { usePanelSend } from "@/components/chat/chat-send.ts";
 import { Button } from "@/components/ui/button.tsx";
 import {
   AddListItem,
@@ -13,7 +11,10 @@ import {
 import type { EditorOptions } from "@/components/ui/editable-list-contract.ts";
 import { Alert, FormStatus } from "@/components/ui/form-message.tsx";
 import { Icon } from "@/components/ui/icon.tsx";
+import { useQuestAction } from "@/components/use-quest-action.ts";
 import { IDEA_TEXT_MAX_LENGTH, type Idea } from "@/ideas/idea.ts";
+import { changeIdeaAction } from "@/ideas/idea-actions.ts";
+import type { QuestId } from "@/ids.ts";
 import { IDEAS_COPY } from "@/ui/copy/ideas.ts";
 
 function checkIdeaText(text: string): { text: string } | { problem: string } {
@@ -35,8 +36,8 @@ const ADD_EDITOR: EditorOptions = { ...IDEA_EDITOR, save: IDEAS_COPY.add };
 
 // What a row's control does to its idea.
 type IdeaChange =
-  | { readonly op: "edit"; readonly id: string; readonly text: string }
-  | { readonly op: "move" | "remove"; readonly id: string };
+  | { readonly op: "edit"; readonly id: Idea["id"]; readonly text: string }
+  | { readonly op: "move" | "remove"; readonly id: Idea["id"] };
 
 function IdeaRow({
   idea,
@@ -87,31 +88,21 @@ function IdeaRow({
   );
 }
 
-// The command a row's control sends for its idea, at place, 1 being first.
-function ideaCommand(change: IdeaChange, place: number): string {
-  switch (change.op) {
-    case "edit":
-      return PANEL_COMMAND.editIdea(place, change.text);
-    case "move":
-      return PANEL_COMMAND.ideaToTasks(place);
-    case "remove":
-      return PANEL_COMMAND.dropIdea(place);
-    default:
-      return change satisfies never;
-  }
-}
-
-// A quest's Ideas. Each control sends its command to the quest's
-// conversation (src/commands/panel-commands.ts), which saves the change and
-// notes it; the list follows the route refresh that comes with it.
 function QuestIdeas({
   ideas: savedIdeas,
   embedded,
+  questId,
 }: {
+  readonly questId: QuestId;
   readonly ideas: readonly Idea[];
   readonly embedded?: boolean;
 }): JSX.Element {
-  const { send, busy, status, problem } = usePanelSend();
+  const {
+    run: changeIdea,
+    busy,
+    status,
+    problem,
+  } = useQuestAction(changeIdeaAction);
   const [ideas, setIdeas] = useState(savedIdeas);
   const headingRef = useRef<HTMLHeadingElement>(null);
   // A route refresh brings the saved list, as after a command.
@@ -122,35 +113,24 @@ function QuestIdeas({
   }
   const run = useCallback(
     async (change: IdeaChange): Promise<boolean> => {
-      const index = ideas.findIndex((idea) => idea.id === change.id);
-      if (index < 0) {
-        return false;
-      }
-      const result = await send(ideaCommand(change, index + 1));
-      if (result.sent && change.op !== "edit") {
+      const saved = await changeIdea({ ...change, questId });
+      if (saved && change.op !== "edit") {
         setIdeas((current) => current.filter((idea) => idea.id !== change.id));
         headingRef.current?.focus();
       }
-      return result.sent;
+      return saved;
     },
-    [ideas, send],
+    [questId, changeIdea],
   );
   const add = useCallback(
-    async (text: string): Promise<boolean> =>
-      (await send(PANEL_COMMAND.idea(text))).sent,
-    [send],
+    (text: string): Promise<boolean> =>
+      changeIdea({ op: "add", questId, text }),
+    [changeIdea, questId],
   );
   const reorder = useCallback(
-    async (id: string, before: string | undefined): Promise<boolean> => {
-      const ids: readonly string[] = ideas.map((idea) => idea.id);
-      const from = ids.indexOf(id);
-      const to = placeBefore(ids, id, before);
-      if (from < 0 || to === undefined) {
-        return false;
-      }
-      return (await send(PANEL_COMMAND.moveIdea(from + 1, to))).sent;
-    },
-    [ideas, send],
+    (id: string, before: string | undefined): Promise<boolean> =>
+      changeIdea({ op: "reorder", questId, id, before }),
+    [changeIdea, questId],
   );
   let Heading: "h2" | "p" = "h2";
   let headingClass = "section-heading";

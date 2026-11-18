@@ -25,9 +25,9 @@ These cases cover the `project-buddy` command, which works with the user's quest
 
 ## use_case_cli_api_conversation
 
-- **Intent:** Talk with a quest's construct from a terminal.
+- **Intent:** Run a spell conversation from a terminal.
 - **Prerequisites:** [`use_case_cli_api_quests`](#use_case_cli_api_quests).
 - **Steps:**
-  - They send a message, from `--text`, a file or stdin.
-  - They read the conversation, cast a spell and stop it.
-- **Outcome:** sending waits for the construct's reply, and the conversation then shows both messages with their authors. A message sent while a reply is in progress is refused. A quest's members can read its conversation; anyone else gets not found.
+  - They cast a spell.
+  - They send a message from `--text`, a file or stdin, read the conversation, then stop the spell.
+- **Outcome:** sending waits for the construct's reply, and the conversation then shows both messages with their authors. Sending requires an active spell. A quest's members can read its conversation; anyone else gets not found.

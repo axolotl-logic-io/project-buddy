@@ -114,7 +114,7 @@ test("use_case_send_while_construct_replies", async () => {
     return release.promise;
   });
   // Spell execution precedes the response, so keep the first request in flight.
-  const response = postMessage(user, chat, question("cast brainstorm"));
+  const response = postMessage(user, chat, question("/cast brainstorm"));
   try {
     await started.promise;
     await sendToEnd(user, chat, "Another thought");
@@ -134,10 +134,10 @@ test("use_case_send_while_construct_replies", async () => {
     spellResponse(
       getSpell("brainstorm").definition.castReply,
       getSpell("brainstorm"),
-      "cast brainstorm",
+      "/cast brainstorm",
     ),
   );
   expect(
     saved.filter(({ role }) => role === "user").map(({ text }) => text),
-  ).toEqual(["cast brainstorm", "Another thought"]);
+  ).toEqual(["/cast brainstorm", "Another thought"]);
 });
