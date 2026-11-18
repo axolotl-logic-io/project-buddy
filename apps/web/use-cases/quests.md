@@ -81,7 +81,7 @@ The user opens one of their quests, from Quests.
 - **Prerequisites:** `use_case_view_quests`.
 - **Steps:**
   - They open the quest.
-- **Outcome:** the quest opens on its one continuing conversation, with the composer ready, under the quest's title, the page's heading in the site header's trail band, and a collapsible sidebar for Tasks, Ideas, Progress, Quick Notes and Actions. A pencil beside the quest name opens the rename dialog. The composer offers `/complete`, `/abandon` and `/restore` for quest status changes. There is no list of conversations to choose from and nothing to start. The sidebar holds the quest’s Tasks; on phones it opens as a drawer. Opening the quest shows saved messages without sending a reply request. The sidebar puts Next task above direct collection tabs in ordinary quests, and Start Day above Tasks, Day grid, Quick Notes, Ideas and Progress in Dailies. Spells & status and Members remain reachable below the collections. The shell heading aligns with the breadcrumbs. Switching collections retains drafts. The sidebar docks flush with the page edge on wide screens. On phones it starts collapsed; the panel icon opens a modal drawer, and Escape closes it without losing edits or scrolling the page sideways.
+- **Outcome:** the quest opens on its one continuing conversation, with the composer ready, under the quest's title, the page's heading in the site header's trail band, and a collapsible sidebar with Spells, Buckets and Actions. A pencil beside the quest name opens the rename dialog. The composer offers `/complete`, `/abandon` and `/restore` for quest status changes. There is no list of conversations to choose from and nothing to start. The sidebar holds the quest’s Tasks; on phones it opens as a drawer. Opening the quest shows saved messages without sending a reply request. Next task stays above the sidebar navigation in ordinary quests, and Start Day takes its place in Dailies. The Buckets dropdown opens Tasks, Ideas and Quick Notes, with Day grid also available in Dailies. The Actions dropdown opens Quest status, Members and Milestones. Spells opens directly and offers a Cast button for each spell. The shell heading aligns with the breadcrumbs. Switching collections retains drafts. The sidebar docks flush with the page edge on wide screens. On phones it starts collapsed; the panel icon opens a modal drawer, and Escape closes it without losing edits or scrolling the page sideways.
 - **Variations:**
   - The Dailies quest: `use_case_dailies`.
   - A quest with no conversation yet offers Start the conversation, which sends `/start`: the conversation shows the command, then the construct's opening.
@@ -142,7 +142,7 @@ The user looks back at what the user has done in a quest.
 
 - **Prerequisites:** `use_case_open_quest`.
 - **Steps:**
-  - The user looks at the quest's progress timeline on its page.
+  - The user opens Actions → Milestones in the quest sidebar to see the progress timeline.
 - **Outcome:** the timeline lists every milestone of the quest, newest first, each with the day it was recorded and its text. Milestones of their other quests, and of other users, don't appear. With none yet, the timeline says no milestones have been recorded.
 - **Next:**
   - `use_case_edit_milestone`: change or remove one.
@@ -180,5 +180,5 @@ Anyone in the quest, its owner or an accepted member, changes the quest title in
 ## use_case_tailored_quest_panels
 
 - **Prerequisites:** an open quest conversation.
-- **Steps:** open the sidebar on desktop or at 320 px, choose collections, edit an item, collapse and reopen the panel.
-- **Outcome:** a persisted Dailies quest keeps its day-first composition after renaming. An ordinary quest named Dailies shows live Next task context and no day controls. Direct collection tabs keep editors and drafts mounted. Spells, status and Members stay reachable below the collections. Completed and Abandoned Dailies retain their composition but offer no Start Day until restored. Existing section URLs and command sending retain their behavior.
+- **Steps:** open the sidebar on desktop or at 320 px, choose a bucket, edit an item, collapse and reopen the panel.
+- **Outcome:** a persisted Dailies quest keeps its day-first composition after renaming. An ordinary quest named Dailies shows live Next task context and no day controls. The Buckets and Actions dropdowns keep editors and drafts mounted. Spells stays one tap away, and Quest status, Members and Milestones open directly from Actions. Completed and Abandoned Dailies retain their composition but offer no Start Day until restored. Existing section URLs and command sending retain their behavior.

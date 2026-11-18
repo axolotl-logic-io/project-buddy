@@ -164,6 +164,13 @@ describe("a quest's Members tab", () => {
     const email = page.getByRole("textbox", {
       name: QUEST_MEMBERS_COPY.emailLabel,
     });
+    expect(email.element().getBoundingClientRect().bottom).toBeLessThan(
+      list.element().getBoundingClientRect().top,
+    );
+    const [owner, member, invited] = list.getByRole("listitem").elements();
+    expect(owner?.textContent).toContain("Morgan (you)");
+    expect(member?.textContent).toContain("Rae");
+    expect(invited?.textContent).toContain(INVITEE.displayName);
     await email.fill("ash@example.test");
     await userEvent.keyboard("{Enter}");
     await expect

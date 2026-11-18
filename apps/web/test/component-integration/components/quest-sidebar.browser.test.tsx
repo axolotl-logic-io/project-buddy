@@ -17,7 +17,12 @@ import {
   setViewport,
 } from "../viewports-test-kit.ts";
 import { QuestSidebar } from "./quest-panel-test-kit.tsx";
-import { bucket, collectionTab, openBucket } from "./quest-sidebar-test-kit.ts";
+import {
+  bucket,
+  collectionTab,
+  openAction,
+  openBucket,
+} from "./quest-sidebar-test-kit.ts";
 import { openPanel, panelButton, sitePanel } from "./site-panel-test-kit.ts";
 
 const TASKS_CONTENT = "Tasks steps";
@@ -29,7 +34,7 @@ const ACTIONS_CONTENT = "Spells to cast";
 // are unavailable.
 const WIDE_FALLBACK_FONT = '"DejaVu Sans", sans-serif';
 const QUEST_NAME = "A useful quest";
-const EDGE_TAB_MINIMUM_PX = 56;
+const EDGE_TAB_MINIMUM_PX = 44;
 
 beforeEach(() => {
   applyTheme("parchment");
@@ -65,13 +70,12 @@ async function sidebar(initialSection?: string): Promise<void> {
           },
           {
             id: "progress",
-            label: "Progress",
-            bucket: true,
+            label: "Milestones",
             content: <p>{PROGRESS_CONTENT}</p>,
           },
           {
             id: "actions",
-            label: "Actions",
+            label: "Quest status",
             content: <p>{ACTIONS_CONTENT}</p>,
           },
         ]}
@@ -208,52 +212,52 @@ test("a phone starts with the conversation and Escape closes its drawer", async 
     .toHaveValue("Keep this draft");
 });
 
-test("collection tabs switch with arrow keys and preserve the hidden editor", async () => {
+test("the bucket dropdown works by keyboard and preserves the hidden editor", async () => {
   await setViewport(LAPTOP_VIEWPORT);
-  await sidebar("tasks");
-  const tasks = collectionTab();
-  await expect.element(tasks).toHaveAttribute("aria-selected", "true");
-  tasks.element().focus();
-  await userEvent.keyboard("{ArrowRight}");
-  await expect.element(collectionTab("Ideas")).toHaveFocus();
-  await expect.element(page.getByLabelText(DRAFT_LABEL)).toBeVisible();
-  await expect.element(page.getByText(TASKS_CONTENT)).not.toBeVisible();
-  await userEvent.keyboard("{ArrowLeft}");
-  await expect.element(tasks).toHaveFocus();
+  await sidebar("ideas");
+  const buckets = collectionTab();
+  await expect.element(buckets).toHaveAttribute("aria-selected", "true");
+  const draft = page.getByLabelText(DRAFT_LABEL);
+  await draft.fill("Keep this draft");
+  buckets.element().focus();
+  await userEvent.keyboard("{ArrowDown}");
+  await expect
+    .element(page.getByRole("menu", { name: "Buckets" }))
+    .toBeVisible();
+  await userEvent.keyboard("{Enter}");
   await expect.element(page.getByText(TASKS_CONTENT)).toBeVisible();
+  await openBucket("Ideas");
+  await expect.element(draft).toHaveValue("Keep this draft");
 });
 
-test("direct collection tabs expose every bucket and utility entry remains available", async () => {
+test("Scopes each destination to its menu and supports direct action links", async () => {
   await setViewport(LAPTOP_VIEWPORT);
   await sidebar("actions");
   await expect
-    .element(bucket("Actions").getByText(ACTIONS_CONTENT))
+    .element(bucket("Quest status").getByText(ACTIONS_CONTENT))
     .toBeVisible();
   await openBucket("Ideas");
   await expect
-    .element(collectionTab("Ideas"))
-    .toHaveAttribute("aria-selected", "true");
-  await expect
     .element(bucket("Ideas").getByRole("heading", { name: "Ideas" }))
     .toBeVisible();
-  await openBucket("Progress");
+  await expect.element(bucket("Quest status")).not.toBeInTheDocument();
+  await openAction("Milestones");
   await expect
-    .element(bucket("Progress").getByText(PROGRESS_CONTENT))
+    .element(bucket("Milestones").getByText(PROGRESS_CONTENT))
     .toBeVisible();
 });
 
-// The quest page's sidebar sections: four collections, then utilities.
-const SIX_SECTIONS = [
-  { label: "Tasks", bucket: true },
-  { label: "Ideas", bucket: true },
-  { label: "Quick Notes", bucket: true },
-  { label: "Progress", bucket: true },
-  { label: "Actions", bucket: false },
-  { label: "Members", bucket: false },
+const SECTIONS = [
+  { id: "tasks", label: "Tasks", bucket: true },
+  { id: "ideas", label: "Ideas", bucket: true },
+  { id: "notes", label: "Quick Notes", bucket: true },
+  { id: "spells", label: "Spells", bucket: false },
+  { id: "actions", label: "Quest status", bucket: false },
+  { id: "members", label: "Members", bucket: false },
 ];
-const SIDEBAR_TABS = ["Tasks", "Ideas", "Quick Notes", "Progress"];
+const SIDEBAR_TABS = ["Spells", "Buckets", "Actions"];
 
-describe("the sidebar's direct collection tabs", () => {
+describe("the sidebar's menu tabs", () => {
   test.each([
     { width: 320, height: 640 },
     { width: 360, height: 780 },
@@ -275,11 +279,9 @@ describe("the sidebar's direct collection tabs", () => {
       await render(
         <QuestSidebar
           initialSection="members"
-          sideSections={SIX_SECTIONS.map(({ label, bucket: inMenu }) => ({
-            id: label.toLowerCase(),
-            label,
-            bucket: inMenu,
-            content: <p>{label}</p>,
+          sideSections={SECTIONS.map((section) => ({
+            ...section,
+            content: <p>{section.label}</p>,
           }))}
         />,
       );
@@ -303,8 +305,7 @@ describe("the sidebar's direct collection tabs", () => {
           tab.element().clientWidth,
         );
       }
-      // The approved direct tabs may wrap, but remain a compact two-row rail.
-      expect(tops.size).toBeLessThanOrEqual(2);
+      expect(tops.size).toBe(1);
       await expect
         .element(page.getByRole("region", { name: "Members" }))
         .toBeVisible();

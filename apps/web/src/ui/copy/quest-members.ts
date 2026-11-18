@@ -17,7 +17,7 @@ export const QUEST_MEMBERS_COPY = {
   invited: "Invited, not accepted yet",
   you: (name: string): string => `${name} (you)`,
   intro:
-    "Everyone here shares this quest's conversation, Tasks, Ideas, Progress and Quick Notes. Members can do everything the owner can, except remove the owner.",
+    "Everyone here shares this quest's conversation, Tasks, Ideas, Quick Notes and milestones. Members can do everything the owner can, except remove the owner.",
   emailLabel: "Invite by email",
   emailHint:
     "They'll get an email with a link to join. People without an account get one when you invite them.",
@@ -128,7 +128,7 @@ export const QUEST_INVITATION_EMAIL_COPY = {
     if (owner !== undefined) {
       quest = `${owner}'s quest "${questName}"`;
     }
-    return `${invitedBy} invited you to join ${quest} on ${SITE_COPY.name}. Everyone in the quest shares its conversation, Tasks, Ideas, Progress and Quick Notes. Open the link to join:`;
+    return `${invitedBy} invited you to join ${quest} on ${SITE_COPY.name}. Everyone in the quest shares its conversation, Tasks, Ideas, Quick Notes and milestones. Open the link to join:`;
   },
   linkText: "Join the quest",
   expiry: `The link works once, for ${INVITATION_LINK_LIFETIME_DAYS} days, on any device. It signs you in and joins only this quest.`,

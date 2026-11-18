@@ -8,7 +8,7 @@ The user invites someone to work on a quest with them.
 
 - **Prerequisites:** [`use_case_open_quest`](quests.md#use_case_open_quest), as the quest's owner or a member.
 - **Steps:**
-  - In the quest's sidebar, the user opens Members.
+  - In the quest's sidebar, the user opens Actions → Members. Invite by email comes first, followed by the owner and the other members.
   - Under Invite by email, they type an address and choose Invite, which sends `/invite EMAIL` to the quest's conversation. The user can also type it.
 - **Outcome:** the conversation notes the invitation, the form says the invitation was sent, and Members lists the address as invited, not accepted yet: always the address, never an existing account's name. Focus returns to the address field. An email holding an acceptance link reaches the address. It invites them to "the quest", names the owner when a member invites, lists what everyone shares, and says when an account was set aside for the address. If the address had no account, it now has an invited account, before anyone opens the email. An address that already has an account keeps it, with its name and sign-up unchanged. Inviting the same address to another quest uses the same account. Inviting the owner or a member again changes nothing, says they are already in the quest and keeps the address in the field. Inviting a pending invitee again sends a fresh link. Pending invitees, removed members and other users can't invite anyone to the quest.
 - **Variations:**

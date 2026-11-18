@@ -273,7 +273,7 @@ test("the Tasks section shows the todo list without Goal, Preferences or Journal
 test("Ideas opens as a separate quest section beside Tasks", async () => {
   await renderQuest("ideas");
   await expect
-    .element(collectionTab("Ideas"))
+    .element(collectionTab("Buckets"))
     .toHaveAttribute("aria-selected", "true");
   await expect.element(bucket("Ideas")).toBeVisible();
   await expect
@@ -283,7 +283,10 @@ test("Ideas opens as a separate quest section beside Tasks", async () => {
 
 test("Actions offers Complete and Abandon for the active quest", async () => {
   await renderQuest("actions");
-  const actions = page.getByRole("region", { name: "Actions", exact: true });
+  const actions = page.getByRole("region", {
+    name: "Quest status",
+    exact: true,
+  });
   await expect
     .element(actions.getByRole("button", { name: "Complete", exact: true }))
     .toBeVisible();
@@ -299,7 +302,10 @@ test("status failures stay visible and focused inside the phone Actions drawer",
     feedback: { kind: "invalid", message: "Refresh and try again." },
   });
   await renderQuest("actions");
-  const actions = page.getByRole("region", { name: "Actions", exact: true });
+  const actions = page.getByRole("region", {
+    name: "Quest status",
+    exact: true,
+  });
   await actions.getByRole("button", { name: "Complete", exact: true }).click();
   expect(runChatCommandAction).toHaveBeenCalledWith(
     expect.objectContaining({ chatId: FOX_CONVERSATION.id, text: "/complete" }),
