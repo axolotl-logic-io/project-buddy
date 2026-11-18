@@ -13,14 +13,20 @@ function dashed(element: Element): boolean {
   return getComputedStyle(element).strokeDasharray !== "none";
 }
 
-// Every SVG shape inside `within` that draws a dashed stroke.
+// Every SVG shape inside `within` that is drawn (not hidden) with a dashed
+// stroke.
 function dashedArcs(within: Element): SVGGeometryElement[] {
   return [...within.querySelectorAll("*")].filter(
     (element): element is SVGGeometryElement =>
       element instanceof SVGGeometryElement &&
       dashed(element) &&
-      element.getBBox().width > 0,
+      element.getBoundingClientRect().width > 0,
   );
+}
+
+// Whether `within` draws a dashed arc at all.
+function drawsArc(within: Element): boolean {
+  return dashedArcs(within).length > 0;
 }
 
 // The one dashed arc inside `within`; throws, naming `what`, if there is
@@ -58,4 +64,4 @@ function filledFraction(within: Element, what: string): number {
   return Math.min(Math.max(dash - offset, 0), length) / length;
 }
 
-export { filledFraction, progressArc };
+export { drawsArc, filledFraction, progressArc };
