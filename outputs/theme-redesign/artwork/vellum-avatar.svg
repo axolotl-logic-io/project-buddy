@@ -1,0 +1,108 @@
+<svg xmlns="http://www.w3.org/2000/svg" class="construct-art" viewBox="6 6 52 52" role="img" aria-labelledby="title desc">
+<title id="title">Vellum</title>
+<desc id="desc">Vellum's brass head and lens eyes, simplified for small sizes.</desc>
+<style>
+/* Construct artwork: the paint roles of the built-in SVG portraits.
+
+   The drawings in lumen.svg, vellum.svg and their avatar cuts name no
+   colour. Every shape carries a fill class (f-*) and a stroke class (s-*),
+   and this file maps those classes to the construct paint roles below.
+
+   An appearance sets the --construct-* roles. Each role falls back to an
+   existing contract token, so the art renders in any appearance that sets
+   nothing new. The fallbacks resolve on the drawing's own root element,
+   so an appearance swatch or a specimen panel with its own data-mode gets
+   its own values. */
+
+.construct-art {
+  /* The portrait's backdrop: vellum, night or leather. */
+  --ca-ground: var(--construct-ground, var(--field, transparent));
+  /* Faint backdrop detail: map coastlines, routes, motes. */
+  --ca-ground-ink: var(--construct-ground-ink, var(--line, currentColor));
+  /* Outlines and line work. Drawn over metal, paper or light only. */
+  --ca-ink: var(--construct-ink, var(--header-ink, currentColor));
+  /* The lit face of brass: Vellum's body, Lumen's rune ring. */
+  --ca-metal: var(--construct-metal, var(--header-gold, currentColor));
+  /* The shadowed face of brass: bands, joints, gears. */
+  --ca-metal-shade: var(
+    --construct-metal-shade,
+    color-mix(in oklab, var(--ca-metal) 58%, var(--ca-ink))
+  );
+  /* Polish highlights on brass. */
+  --ca-metal-light: var(
+    --construct-metal-light,
+    color-mix(in oklab, var(--ca-metal) 45%, var(--ca-paper))
+  );
+  /* Map paper, the quill's vane, the compass plate. */
+  --ca-paper: var(--construct-paper, var(--header-paper, currentColor));
+  /* Lumen's light and Vellum's lenses. */
+  --ca-glow: var(--construct-glow, var(--ca-metal));
+  /* The hottest centre of a light. */
+  --ca-glow-core: var(--construct-glow-core, var(--ca-paper));
+  /* One rubric accent: jewels, the compass's north, the map's ribbon. */
+  --ca-accent: var(--construct-accent, var(--rubric, var(--accent, currentColor)));
+
+  display: block;
+  inline-size: 100%;
+  block-size: 100%;
+}
+
+.construct-art .f-none { fill: none; }
+.construct-art .f-ground { fill: var(--ca-ground); }
+.construct-art .f-ground-ink { fill: var(--ca-ground-ink); }
+.construct-art .f-ink { fill: var(--ca-ink); }
+.construct-art .f-metal { fill: var(--ca-metal); }
+.construct-art .f-shade { fill: var(--ca-metal-shade); }
+.construct-art .f-light { fill: var(--ca-metal-light); }
+.construct-art .f-paper { fill: var(--ca-paper); }
+.construct-art .f-glow { fill: var(--ca-glow); }
+.construct-art .f-core { fill: var(--ca-glow-core); }
+.construct-art .f-accent { fill: var(--ca-accent); }
+
+.construct-art [class*="s-"] {
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.construct-art .s-ink { stroke: var(--ca-ink); }
+.construct-art .s-ground-ink { stroke: var(--ca-ground-ink); }
+.construct-art .s-metal { stroke: var(--ca-metal); }
+.construct-art .s-shade { stroke: var(--ca-metal-shade); }
+.construct-art .s-light { stroke: var(--ca-metal-light); }
+.construct-art .s-paper { stroke: var(--ca-paper); }
+.construct-art .s-glow { stroke: var(--ca-glow); }
+.construct-art .s-core { stroke: var(--ca-glow-core); }
+.construct-art .s-accent { stroke: var(--ca-accent); }
+
+.construct-art .st-ground { stop-color: var(--ca-ground); }
+.construct-art .st-ground-edge {
+  stop-color: color-mix(in oklab, var(--ca-ground) 84%, var(--ca-ink));
+}
+.construct-art .st-glow { stop-color: var(--ca-glow); }
+.construct-art .st-core { stop-color: var(--ca-glow-core); }
+
+/* Fine detail (hatching, motes, map margins, rune ticks) drops out when
+   the portrait is drawn small. The nearest size container is the
+   construct frame (.construct-visual, container-type: inline-size). */
+@container (max-width: 96px) {
+  .construct-art .fine { display: none; }
+}
+</style>
+<defs>
+<radialGradient id="vellum-avatar-lens" cx="40%" cy="36%" r="70%"><stop offset="0" class="st-core"/><stop offset=".45" class="st-core"/><stop offset="1" class="st-glow"/></radialGradient>
+<clipPath id="vellum-avatar-dome"><path d="M12 42C12 23 20 13 32 13C44 13 52 23 52 42Z"/></clipPath>
+</defs>
+<rect class="f-ground" width="64" height="66"/>
+<path class="f-metal s-ink" stroke-width="1.6" d="M7 66Q8 52 20 50H44Q56 52 57 66Z"/>
+<path class="f-shade" opacity=".55" d="M45 51Q53 54 55 66H48Q48 57 45 51Z"/>
+<circle class="f-paper s-ink" stroke-width="1.3" cx="32" cy="62" r="8.5"/>
+<g transform="rotate(45 32 62)"><path class="f-ink" d="M32 62L32 57.6 30.6 60.6Z"/><path class="f-paper s-ink" stroke-width=".6" d="M32 62L32 57.6 33.4 60.6Z"/></g><g transform="rotate(135 32 62)"><path class="f-ink" d="M32 62L32 57.6 30.6 60.6Z"/><path class="f-paper s-ink" stroke-width=".6" d="M32 62L32 57.6 33.4 60.6Z"/></g><g transform="rotate(225 32 62)"><path class="f-ink" d="M32 62L32 57.6 30.6 60.6Z"/><path class="f-paper s-ink" stroke-width=".6" d="M32 62L32 57.6 33.4 60.6Z"/></g><g transform="rotate(315 32 62)"><path class="f-ink" d="M32 62L32 57.6 30.6 60.6Z"/><path class="f-paper s-ink" stroke-width=".6" d="M32 62L32 57.6 33.4 60.6Z"/></g><g transform="rotate(0 32 62)"><path class="f-accent s-ink" stroke-width=".6" d="M32 62L32 54.8 30 60Z"/><path class="f-paper s-ink" stroke-width=".6" d="M32 62L32 54.8 34 60Z"/></g><g transform="rotate(90 32 62)"><path class="f-ink s-ink" stroke-width=".6" d="M32 62L32 54.8 30 60Z"/><path class="f-paper s-ink" stroke-width=".6" d="M32 62L32 54.8 34 60Z"/></g><g transform="rotate(180 32 62)"><path class="f-ink s-ink" stroke-width=".6" d="M32 62L32 54.8 30 60Z"/><path class="f-paper s-ink" stroke-width=".6" d="M32 62L32 54.8 34 60Z"/></g><g transform="rotate(270 32 62)"><path class="f-ink s-ink" stroke-width=".6" d="M32 62L32 54.8 30 60Z"/><path class="f-paper s-ink" stroke-width=".6" d="M32 62L32 54.8 34 60Z"/></g><rect class="f-shade s-ink" stroke-width="1.3" x="26" y="45" width="12" height="6"/>
+<rect class="f-shade s-ink" stroke-width="1.3" x="30" y="9" width="4" height="5" rx=".8"/>
+<circle class="f-metal s-ink" stroke-width="1.3" cx="32" cy="9.6" r="2.8"/>
+<path class="f-metal" d="M12 42C12 23 20 13 32 13C44 13 52 23 52 42Z"/>
+<g clip-path="url(#vellum-avatar-dome)"><path class="f-shade" opacity=".55" d="M41 11C48 20 50 30 48 44H56V11Z"/><path class="f-none s-light" stroke-width="2.2" opacity=".9" d="M16.5 31C16.5 24 20 19 25 16.5"/></g>
+<path class="f-none s-ink" stroke-width="1.7" d="M12 42C12 23 20 13 32 13C44 13 52 23 52 42Z"/>
+<rect class="f-shade s-ink" stroke-width="1.5" x="9" y="39.5" width="46" height="6.5" rx="3.25"/>
+<circle class="f-shade s-ink" stroke-width="1.4" cx="24" cy="28" r="7.2"/><circle cx="24" cy="28" r="5.3" fill="url(#vellum-avatar-lens)"/><circle class="f-ink" cx="24.5" cy="29" r="2.3"/><path class="f-metal s-ink" stroke-width="1" d="M18.7 28A5.3 5.3 0 0 1 29.3 28Q24 25.4 18.7 28Z"/>
+<circle class="f-shade s-ink" stroke-width="1.4" cx="40" cy="28" r="7.2"/><circle cx="40" cy="28" r="5.3" fill="url(#vellum-avatar-lens)"/><circle class="f-ink" cx="40.5" cy="29" r="2.3"/><path class="f-metal s-ink" stroke-width="1" d="M34.7 28A5.3 5.3 0 0 1 45.3 28Q40 25.4 34.7 28Z"/>
+<path class="f-none s-ink" stroke-width="1.8" d="M27.5 36.4Q32 39.6 36.5 36.4"/>
+</svg>
