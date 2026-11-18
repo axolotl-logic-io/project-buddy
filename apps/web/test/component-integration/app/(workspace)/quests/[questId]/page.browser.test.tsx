@@ -1,3 +1,7 @@
+import { IDEAS_COPY } from "@/ui/copy/ideas.ts";
+import { QUEST_SIDEBAR_COPY } from "@/ui/copy/quest-sidebar.ts";
+import { QUEST_STATUS_COPY } from "@/ui/copy/quest-status.ts";
+import { TASKS_COPY } from "@/ui/copy/tasks.ts";
 // A quest's page in Chromium and WebKit: its frame, sections, status
 // actions, and its loading and error
 // states. The conversation it opens on is conversation.browser.test.tsx's.
@@ -128,7 +132,7 @@ test.each(["completed", "abandoned"] as const)(
   async (status) => {
     stores.getQuest.mockResolvedValue({ ...FOX_QUEST, status });
     await renderQuest();
-    await page.getByRole("button", { name: "Open quest sidebar" }).click();
+    await page.getByRole("button", { name: QUEST_SIDEBAR_COPY.expand }).click();
     await expect
       .element(collectionTab())
       .toHaveAttribute("aria-selected", "true");
@@ -258,8 +262,12 @@ test("the quest opens directly on the conversation without a portrait bar", asyn
 test("the Tasks section shows the todo list without Goal, Preferences or Journal", async () => {
   await renderQuest("tasks");
   await expect.element(bucket("Tasks")).toBeVisible();
-  await page.getByRole("button", { name: "Add a task", exact: true }).click();
-  await expect.element(page.getByPlaceholder("Add a task")).toBeVisible();
+  await page
+    .getByRole("button", { name: TASKS_COPY.addPlaceholder, exact: true })
+    .click();
+  await expect
+    .element(page.getByPlaceholder(TASKS_COPY.addPlaceholder))
+    .toBeVisible();
   for (const name of ["Goal", "Preferences"]) {
     expect(
       page.getByRole("heading", { name, exact: true }).elements(),
@@ -273,22 +281,35 @@ test("the Tasks section shows the todo list without Goal, Preferences or Journal
 test("Ideas opens as a separate quest section beside Tasks", async () => {
   await renderQuest("ideas");
   await expect
-    .element(collectionTab("Ideas"))
+    .element(collectionTab("Buckets"))
     .toHaveAttribute("aria-selected", "true");
   await expect.element(bucket("Ideas")).toBeVisible();
   await expect
-    .element(page.getByRole("button", { name: "Add idea" }))
+    .element(page.getByRole("button", { name: IDEAS_COPY.add }))
     .toBeVisible();
 });
 
 test("Actions offers Complete and Abandon for the active quest", async () => {
   await renderQuest("actions");
-  const actions = page.getByRole("region", { name: "Actions", exact: true });
+  const actions = page.getByRole("region", {
+    name: QUEST_SIDEBAR_COPY.status,
+    exact: true,
+  });
   await expect
-    .element(actions.getByRole("button", { name: "Complete", exact: true }))
+    .element(
+      actions.getByRole("button", {
+        name: QUEST_STATUS_COPY.complete,
+        exact: true,
+      }),
+    )
     .toBeVisible();
   await expect
-    .element(actions.getByRole("button", { name: "Abandon", exact: true }))
+    .element(
+      actions.getByRole("button", {
+        name: QUEST_STATUS_COPY.abandon,
+        exact: true,
+      }),
+    )
     .toBeVisible();
 });
 
@@ -299,8 +320,13 @@ test("status failures stay visible and focused inside the phone Actions drawer",
     feedback: { kind: "invalid", message: "Refresh and try again." },
   });
   await renderQuest("actions");
-  const actions = page.getByRole("region", { name: "Actions", exact: true });
-  await actions.getByRole("button", { name: "Complete", exact: true }).click();
+  const actions = page.getByRole("region", {
+    name: QUEST_SIDEBAR_COPY.status,
+    exact: true,
+  });
+  await actions
+    .getByRole("button", { name: QUEST_STATUS_COPY.complete, exact: true })
+    .click();
   expect(runChatCommandAction).toHaveBeenCalledWith(
     expect.objectContaining({ chatId: FOX_CONVERSATION.id, text: "/complete" }),
   );
@@ -310,6 +336,11 @@ test("status failures stay visible and focused inside the phone Actions drawer",
     .toHaveTextContent("Refresh and try again.");
   await expect.element(actions.getByRole("status")).toHaveFocus();
   await expect
-    .element(actions.getByRole("button", { name: "Complete", exact: true }))
+    .element(
+      actions.getByRole("button", {
+        name: QUEST_STATUS_COPY.complete,
+        exact: true,
+      }),
+    )
     .toBeEnabled();
 });

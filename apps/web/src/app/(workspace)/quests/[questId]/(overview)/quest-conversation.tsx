@@ -124,22 +124,26 @@ async function questConversation(
       bucket: true,
     },
     {
+      id: "actions",
+      label: QUEST_SIDEBAR_COPY.status,
+      content: <QuestStatusControls quest={quest} />,
+    },
+    ...membersSection(quest, viewer, people),
+    {
       id: "progress",
       label: PROGRESS_TIMELINE_COPY.heading,
       content: <ProgressTimeline milestones={milestones} />,
-      bucket: true,
     },
     {
-      id: "actions",
-      label: QUEST_SIDEBAR_COPY.actions,
+      id: "spells",
+      label: QUEST_SIDEBAR_COPY.spells,
       content: (
-        <div className="flex flex-col gap-3">
-          <QuestStatusControls quest={quest} />
-          <SpellPicker spells={[...listSpells(), ...ownSpells]} />
-        </div>
+        <SpellPicker
+          spells={[...listSpells(), ...ownSpells]}
+          activeSpell={conversation.activeSpell?.id ?? conversation.spell}
+        />
       ),
     },
-    ...membersSection(quest, viewer, people),
   ];
   let panel = (
     <QuestPanel sections={sections} initialSection={initialSection} />

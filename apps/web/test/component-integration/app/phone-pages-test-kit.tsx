@@ -287,7 +287,6 @@ const PHONE_PAGES: readonly PhonePage[] = [
   { name: "a project", path: QUEST_PATH, render: projectPage },
   {
     name: "the Dailies quest, with Start Day",
-    wrappedTabRowsAt320: ["Collections: 2"],
     path: QUEST_PATH,
     render: projectPageFor("actions", true),
     open: async (): Promise<void> => {

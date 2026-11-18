@@ -13,6 +13,7 @@ import {
   listRetiredDefinitions,
 } from "@/retirement/retirement-store.ts";
 import { RETIREMENT_COPY } from "@/ui/copy/retirement.ts";
+import { SPELLBOOK_COPY } from "@/ui/copy/spells.ts";
 import { inWorkspace } from "../app/workspace-test-kit.tsx";
 import { SIGNED_IN_USER, signInAs } from "../auth/current-user-test-kit.ts";
 import { paintOf, tokenColor } from "../components/ui/button-fill-test-kit.ts";
@@ -148,7 +149,11 @@ test("the read-only retired view shows its saved destination and restores the sa
       }),
     ),
   );
-  await expect.element(page.getByText("Ideas", { exact: true })).toBeVisible();
+  await expect
+    .element(
+      page.getByText(SPELLBOOK_COPY.destinations.brainstorm, { exact: true }),
+    )
+    .toBeVisible();
   expect(
     page.getByRole("heading", { level: 1 }).query(),
     "the trail band, not the page, names it",

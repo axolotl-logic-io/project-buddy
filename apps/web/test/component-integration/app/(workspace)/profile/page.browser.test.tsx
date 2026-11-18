@@ -11,6 +11,7 @@ import {
 } from "@/experience/experience.ts";
 import { ACCOUNT_COPY } from "@/ui/copy/account.ts";
 import { EXPERIENCE_COPY } from "@/ui/copy/experience.ts";
+import { PROFILE_COPY } from "@/ui/copy/profile.ts";
 import {
   MABEL_EXPERIENCE,
   readExperience,
@@ -200,27 +201,17 @@ test.each([0, 1, 24])(
     }
     readSignedInDays.mockResolvedValueOnce({ total, trackedSince });
     await renderProfile();
-    const card = page.getByRole("region", { name: "Days signed in" });
-    let label = `${total} days total`;
-    if (total === 1) {
-      label = "1 day total";
-    }
+    const card = page.getByRole("region", { name: PROFILE_COPY.daysHeading });
+    const label = `${total} ${PROFILE_COPY.daysUnit(total)}`;
     await expect.element(card.getByText(label, { exact: true })).toBeVisible();
     await expect
-      .element(
-        card.getByText("Each day you visit while signed in counts once."),
-      )
+      .element(card.getByText(PROFILE_COPY.daysExplanation))
       .toBeVisible();
-    let tracking =
-      "Tracked since 2026-10-20 · Days use UTC. Earlier days are not included.";
-    if (trackedSince === null) {
-      tracking =
-        "Tracking starts with your first signed-in visit. Days use UTC; earlier days are not included.";
-    }
+    const tracking = PROFILE_COPY.daysTracking(trackedSince);
     await expect.element(card.getByText(tracking)).toBeVisible();
     expect(
       page
-        .getByRole("region", { name: "Experience" })
+        .getByRole("region", { name: EXPERIENCE_COPY.heading })
         .element()
         .contains(card.element()),
     ).toBe(false);
