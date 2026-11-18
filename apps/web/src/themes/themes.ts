@@ -19,8 +19,9 @@
 //
 // Colours. A theme sets each one for light, soot-brass and dark, and
 // contract.css picks the fixed appearance. Each "on-" colour
-// is the text and icons on the filled colour it names. contrast.test.ts
-// checks every pair that meets on the page for WCAG AA, in all three appearances.
+// is the text and icons on the filled colour it names.
+// theme-tokens.browser.test.tsx checks every pair that meets on the page for
+// WCAG AA, in all three appearances.
 //   background      the page                           bg-background
 //   surface         panels on the page: menus, cards   bg-surface
 //   navigation-surface  site panel                     bg-navigation-surface
@@ -73,7 +74,7 @@
 //                     (Tailwind's own)                  gap-2, size-4
 // Heading sizes, one value for all three appearances, each in rem and larger than body
 // text (1rem), from the site's title down to a section's heading, with a
-// page's heading at least 1.2 times a section's (contract.test.ts checks
+// page's heading at least 1.2 times a section's (theme-tokens.browser.test.tsx checks
 // both). page-roles.css's heading roles use them; the line heights are the
 // contract's.
 //   --site-title-size       the site's name, as the   text-site-title
@@ -87,7 +88,7 @@
 //                           clearly above a section's
 //   --section-heading-size  a heading inside a page   text-section-heading
 // Title sizes, one value for all three appearances, each in rem, for titles that
-// aren't a page's headings (contract.test.ts checks each sits below the
+// aren't a page's headings (theme-tokens.browser.test.tsx checks each sits below the
 // heading named). page-roles.css's title roles use them.
 //   --header-title-size     the site's name in the    text-header-title
 //                           header, below a page's
