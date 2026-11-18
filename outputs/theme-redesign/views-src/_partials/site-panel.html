@@ -3,7 +3,7 @@
     <button class="icon-button" type="button" aria-controls="site-panel" aria-expanded="true" aria-label="Close site panel" title="Close site panel"><svg class="icon" aria-hidden="true"><use href="#i-close"/></svg></button>
     <h2 id="site-panel-title">Site panel</h2>
   </div>
-  <button class="button-primary" type="button"><svg class="icon" aria-hidden="true"><use href="#i-note"/></svg>Quick Note</button>
+  {{!signed-out}}<button class="button-primary" type="button"><svg class="icon" aria-hidden="true"><use href="#i-note"/></svg>Quick Note</button>
   <div class="divider"><span class="ornament" data-ornament="divider" aria-hidden="true"></span></div>
   <nav class="panel-nav" aria-label="Site panel">
   <div class="panel-group">
@@ -22,7 +22,7 @@
     </ul>
   </div>
   </nav>
-  <div class="divider"><span class="ornament" data-ornament="divider" aria-hidden="true"></span></div>
+  <div class="divider"><span class="ornament" data-ornament="divider" aria-hidden="true"></span></div>{{/!}}
   <section class="panel-group" aria-labelledby="site-panel-appearance">
     <h3 class="panel-label" id="site-panel-appearance">Appearance</h3>
     <!-- include:swatches name="panel-theme{{swatch-suffix}}" size="" checked="{{checked}}" focus="{{swatch-focus}}" -->

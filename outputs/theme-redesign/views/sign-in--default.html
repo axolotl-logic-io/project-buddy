@@ -65,6 +65,52 @@
 
 </header>
 
+<section class="trail-band" aria-label="Page trail">
+  <button class="icon-button" type="button" aria-controls="site-panel" aria-expanded="false" title="Site panel"><svg class="icon" aria-hidden="true"><use href="#i-site-panel"/></svg><span class="sr-only">Site panel</span></button>
+  <span class="trail-divider" aria-hidden="true"></span>
+  <div class="trail-content">
+    <div class="trail-path">
+
+      <h1 class="trail-heading">Sign in</h1>
+    </div>
+
+  </div>
+</section>
+
+<dialog class="site-panel" id="site-panel" aria-labelledby="site-panel-title">
+  <div class="site-panel-heading">
+    <button class="icon-button" type="button" aria-controls="site-panel" aria-expanded="true" aria-label="Close site panel" title="Close site panel"><svg class="icon" aria-hidden="true"><use href="#i-close"/></svg></button>
+    <h2 id="site-panel-title">Site panel</h2>
+  </div>
+
+  <section class="panel-group" aria-labelledby="site-panel-appearance">
+    <h3 class="panel-label" id="site-panel-appearance">Appearance</h3>
+    <fieldset class="appearance-fieldset">
+  <legend class="panel-label">Theme</legend>
+  <div class="appearance-swatches">
+    <label class="appearance-swatch" data-size="">
+      <input class="appearance-swatch-input" type="radio" name="panel-theme" value="light" aria-label="Ivory Vellum">
+      <span class="appearance-swatch-face" data-mode="light" aria-hidden="true"></span>
+      <span class="appearance-swatch-tooltip" role="tooltip"><span class="appearance-swatch-name">Ivory Vellum</span></span>
+    </label>
+    <label class="appearance-swatch" data-size="">
+      <input class="appearance-swatch-input" type="radio" name="panel-theme" value="soot-brass" aria-label="Soot &amp; Brass">
+      <span class="appearance-swatch-face" data-mode="soot-brass" aria-hidden="true"></span>
+      <span class="appearance-swatch-tooltip" role="tooltip"><span class="appearance-swatch-name">Soot &amp; Brass</span></span>
+    </label>
+    <label class="appearance-swatch" data-size="">
+      <input class="appearance-swatch-input" type="radio" name="panel-theme" value="dark" aria-label="Espresso Leather">
+      <span class="appearance-swatch-face" data-mode="dark" aria-hidden="true"></span>
+      <span class="appearance-swatch-tooltip" role="tooltip"><span class="appearance-swatch-name">Espresso Leather</span></span>
+    </label>
+  </div>
+</fieldset>
+
+  </section>
+  <div class="divider"><span class="ornament" data-ornament="divider" aria-hidden="true"></span></div>
+  <ul class="panel-links"><li><a class="panel-link" href="#credits">Credits</a></li></ul>
+</dialog>
+
 <main class="page">
   <div class="page-centre">
     <section class="card" data-frame="feature" style="inline-size:min(100%,26rem)" aria-labelledby="sign-in-title">
@@ -75,7 +121,7 @@
       <form class="form-stack">
         <div class="field">
           <label class="field-label" for="email">Email address</label>
-          <input class="input-field" id="email" type="email" autocomplete="email" value="mara@example.com">
+          <input class="input-field" id="email" type="email" autocomplete="email">
         </div>
         <button class="button-primary" type="submit"><svg class="icon" aria-hidden="true"><use href="#i-mail"/></svg>Email me a link</button>
         <p class="form-status" role="status"></p>

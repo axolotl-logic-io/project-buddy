@@ -82,7 +82,7 @@
       <nav class="trail-parents" aria-label="Breadcrumbs"><ol><li><a href="quests--list.html">Quests</a><span aria-hidden="true">/</span></li></ol></nav>
       <h1 class="trail-heading">Read Latin on old maps</h1>
     </div>
-    <div class="trail-tools"><button class="icon-button" type="button" aria-label="Rename" title="Rename"><svg class="icon" aria-hidden="true"><use href="#i-pencil"/></svg></button><button class="button-secondary" type="button" aria-controls="quest-sidebar" aria-expanded="true"><svg class="icon" aria-hidden="true"><use href="#i-sidebar"/></svg><span class="button-label">Quest</span></button></div>
+    <div class="trail-tools"><button class="icon-button" type="button" aria-label="Rename" title="Rename"><svg class="icon" aria-hidden="true"><use href="#i-pencil"/></svg></button><button class="button-secondary" type="button" aria-controls="quest-sidebar" aria-expanded="false" aria-label="Quest sidebar"><svg class="icon" aria-hidden="true"><use href="#i-sidebar"/></svg><span class="button-label">Quest</span></button></div>
   </div>
 </section>
 
@@ -209,7 +209,7 @@ Vellum</p>
     <p class="chat-speaker">You</p>
     <div class="chat-message-body"><p>I translated the whole cartouche on the Ortelius map today, every word.</p></div>
   </li>
-  <li class="chat-message chat-message-construct">
+  <li class="chat-message chat-message-construct" data-preview-latest>
     <p class="chat-speaker"><span class="construct-avatar" aria-hidden="true"><svg aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" class="construct-art" viewBox="6 6 52 52">
 <defs>
 <radialGradient id="vellum-avatar-lens-c12" cx="40%" cy="36%" r="70%"><stop offset="0" class="st-core"/><stop offset=".45" class="st-core"/><stop offset="1" class="st-glow"/></radialGradient>
@@ -289,18 +289,24 @@ Vellum</p>
       <ul class="editable-list" aria-label="Tasks">
         <li class="editable-row">
           <span class="editable-check"><input type="checkbox" aria-label="Check off “Make flash cards for compass words”"></span>
+          <span class="editable-check"><button class="icon-button" type="button" aria-label="Reorder “Make flash cards for compass words”" title="Reorder “Make flash cards for compass words”"><svg class="icon" aria-hidden="true"><use href="#i-grip"/></svg></button></span>
           <span class="editable-text">Make flash cards for compass words</span>
-          <span class="editable-actions"><button class="icon-button" type="button" aria-haspopup="menu" aria-expanded="false" aria-label="Actions for “Make flash cards for compass words”"><svg class="icon" aria-hidden="true"><use href="#i-more"/></svg></button></span>
+          <span class="editable-actions"><button class="icon-button" type="button" aria-label="Edit “Make flash cards for compass words”" title="Edit “Make flash cards for compass words”"><svg class="icon" aria-hidden="true"><use href="#i-pencil"/></svg></button><button class="icon-button" type="button" aria-haspopup="menu" aria-expanded="false" aria-label="Actions for “Make flash cards for compass words”"><svg class="icon" aria-hidden="true"><use href="#i-more"/></svg></button></span>
 
         </li>
         <li class="editable-row">
           <span class="editable-check"><input type="checkbox" aria-label="Check off “Read one inscription aloud each morning”"></span>
+          <span class="editable-check"><button class="icon-button" type="button" aria-label="Reorder “Read one inscription aloud each morning”" title="Reorder “Read one inscription aloud each morning”"><svg class="icon" aria-hidden="true"><use href="#i-grip"/></svg></button></span>
           <span class="editable-text">Read one inscription aloud each morning</span>
-          <span class="editable-actions"><button class="icon-button" type="button" aria-haspopup="menu" aria-expanded="false" aria-label="Actions for “Read one inscription aloud each morning”"><svg class="icon" aria-hidden="true"><use href="#i-more"/></svg></button></span>
+          <span class="editable-actions"><button class="icon-button" type="button" aria-label="Edit “Read one inscription aloud each morning”" title="Edit “Read one inscription aloud each morning”"><svg class="icon" aria-hidden="true"><use href="#i-pencil"/></svg></button><button class="icon-button" type="button" aria-haspopup="menu" aria-expanded="false" aria-label="Actions for “Read one inscription aloud each morning”"><svg class="icon" aria-hidden="true"><use href="#i-more"/></svg></button></span>
         </li>
       </ul>
       <details class="done-list">
         <summary class="list-summary"><svg class="icon" aria-hidden="true"><use href="#i-chevron-right"/></svg>Done (2)</summary>
+        <ul class="editable-list" aria-label="Done tasks">
+          <li class="editable-row editable-done"><span class="editable-check"><input type="checkbox" checked aria-label="Reopen “Gather examples of old maps”"></span><span class="editable-text">Gather examples of old maps</span></li>
+          <li class="editable-row editable-done"><span class="editable-check"><input type="checkbox" checked aria-label="Reopen “Find an introduction to map inscriptions”"></span><span class="editable-text">Find an introduction to map inscriptions</span></li>
+        </ul>
       </details>
 
     </section>
@@ -315,8 +321,8 @@ Vellum</p>
         <button class="button-quiet" type="button"><svg class="icon" aria-hidden="true"><use href="#i-plus"/></svg>Add idea</button>
       </div>
       <ul class="editable-list" aria-label="Ideas">
-        <li class="editable-row"><span class="editable-check"><svg class="icon" aria-hidden="true"><use href="#i-sparkle"/></svg></span><span class="editable-text">Ask the map library about their Latin reading group<br><span class="muted">Possibility</span></span><span class="editable-actions"><button class="button-quiet" type="button">Move to Tasks</button></span></li>
-        <li class="editable-row"><span class="editable-check"><svg class="icon" aria-hidden="true"><use href="#i-sparkle"/></svg></span><span class="editable-text">Keep a glossary of place-name abbreviations<br><span class="muted">Possibility</span></span><span class="editable-actions"><button class="button-quiet" type="button">Move to Tasks</button></span></li>
+        <li class="editable-row"><span class="editable-check"><button class="icon-button" type="button" aria-label="Reorder “Ask the map library about their Latin reading group”" title="Reorder “Ask the map library about their Latin reading group”"><svg class="icon" aria-hidden="true"><use href="#i-grip"/></svg></button></span><span class="editable-text">Ask the map library about their Latin reading group<br><span class="muted">Possibility</span></span><span class="editable-actions"><button class="icon-button" type="button" aria-label="Edit “Ask the map library about their Latin reading group”" title="Edit “Ask the map library about their Latin reading group”"><svg class="icon" aria-hidden="true"><use href="#i-pencil"/></svg></button><button class="icon-button" type="button" aria-label="Actions for “Ask the map library about their Latin reading group”" title="Actions for “Ask the map library about their Latin reading group”"><svg class="icon" aria-hidden="true"><use href="#i-more"/></svg></button><button class="button-quiet" type="button">Move to Tasks</button></span></li>
+        <li class="editable-row"><span class="editable-check"><button class="icon-button" type="button" aria-label="Reorder “Keep a glossary of place-name abbreviations”" title="Reorder “Keep a glossary of place-name abbreviations”"><svg class="icon" aria-hidden="true"><use href="#i-grip"/></svg></button></span><span class="editable-text">Keep a glossary of place-name abbreviations<br><span class="muted">Possibility</span></span><span class="editable-actions"><button class="icon-button" type="button" aria-label="Edit “Keep a glossary of place-name abbreviations”" title="Edit “Keep a glossary of place-name abbreviations”"><svg class="icon" aria-hidden="true"><use href="#i-pencil"/></svg></button><button class="icon-button" type="button" aria-label="Actions for “Keep a glossary of place-name abbreviations”" title="Actions for “Keep a glossary of place-name abbreviations”"><svg class="icon" aria-hidden="true"><use href="#i-more"/></svg></button><button class="button-quiet" type="button">Move to Tasks</button></span></li>
       </ul>
     </section>
   </div>
@@ -349,9 +355,9 @@ Vellum</p>
     <section class="bucket" aria-labelledby="bucket-progress">
       <h3 class="section-heading" id="bucket-progress"><span class="ornament" data-ornament="heading" aria-hidden="true"></span>Progress</h3>
       <ul class="dated-list" aria-label="Progress timeline">
-        <li><time datetime="2026-11-17">2026-11-17</time><p>Translated the whole cartouche on the Ortelius map</p><span class="card-actions"><button class="button-quiet" type="button">Edit</button><button class="button-quiet-danger" type="button">Delete</button></span></li>
-        <li><time datetime="2026-11-15">2026-11-15</time><p>Learned the compass words: septentrio, meridies, oriens, occidens</p><span class="card-actions"><button class="button-quiet" type="button">Edit</button><button class="button-quiet-danger" type="button">Delete</button></span></li>
-        <li><time datetime="2026-11-11">2026-11-11</time><p>Read the first declension table without notes</p><span class="card-actions"><button class="button-quiet" type="button">Edit</button><button class="button-quiet-danger" type="button">Delete</button></span></li>
+        <li><time datetime="2026-11-17">2026-11-17</time><p>Translated the whole cartouche on the Ortelius map</p><span class="card-actions"><button class="button-quiet" type="button">Edit</button><button class="button-quiet-danger" type="button" aria-label="Delete milestone “Translated the whole cartouche on the Ortelius map”">Delete</button></span></li>
+        <li><time datetime="2026-11-15">2026-11-15</time><p>Learned the compass words: septentrio, meridies, oriens, occidens</p><span class="card-actions"><button class="button-quiet" type="button">Edit</button><button class="button-quiet-danger" type="button" aria-label="Delete milestone “Learned the compass words: septentrio, meridies, oriens, occidens”">Delete</button></span></li>
+        <li><time datetime="2026-11-11">2026-11-11</time><p>Read the first declension table without notes</p><span class="card-actions"><button class="button-quiet" type="button">Edit</button><button class="button-quiet-danger" type="button" aria-label="Delete milestone “Read the first declension table without notes”">Delete</button></span></li>
       </ul>
     </section>
   </div>

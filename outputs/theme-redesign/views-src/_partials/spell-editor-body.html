@@ -26,17 +26,35 @@
       <h2 class="section-heading" id="spell-messages"><span class="ornament" data-ornament="heading" aria-hidden="true"></span>Spell Messages</h2>
       <div class="editor-layout">
         <div class="tabs" role="tablist" aria-orientation="vertical" aria-label="Spell messages">
-          <button class="tab" type="button" role="tab" aria-selected="true">Reply when cast</button>
-          <button class="tab" type="button" role="tab" aria-selected="false">Reply when a message is saved</button>
-          <button class="tab" type="button" role="tab" aria-selected="false">Reply when stopped</button>
-          <button class="tab" type="button" role="tab" aria-selected="false">Reply when a message is invalid</button>
+          <button class="tab" type="button" role="tab" id="reply-tab-cast" aria-controls="reply-cast" aria-selected="true">Reply when cast</button>
+          <button class="tab" type="button" role="tab" id="reply-tab-save" aria-controls="reply-save" aria-selected="false">Reply when a message is saved</button>
+          <button class="tab" type="button" role="tab" id="reply-tab-stop" aria-controls="reply-stop" aria-selected="false">Reply when stopped</button>
+          <button class="tab" type="button" role="tab" id="reply-tab-invalid" aria-controls="reply-invalid" aria-selected="false">Reply when a message is invalid</button>
         </div>
-        <div class="tab-panel" role="tabpanel">
+        <div class="tab-panel" role="tabpanel" id="reply-cast" aria-labelledby="reply-tab-cast">
           <p class="field-hint">Add one or more replies. One is chosen randomly each time. Use <code>&#123;&#123;spell&#125;&#125;</code> for the spell's name, <code>&#123;&#123;bucket&#125;&#125;</code> for its destination, <code>&#123;&#123;message&#125;&#125;</code> for the saved message and <code>&#123;&#123;name&#125;&#125;</code> for your name.</p>
           <ul class="editable-list" aria-label="Replies when cast">
-            <li class="editable-row"><span class="editable-check"><svg class="icon" aria-hidden="true"><use href="#i-grip"/></svg></span><span class="editable-text">Sawdust settles. Tell me the next cut and I’ll write it into <code>&#123;&#123;bucket&#125;&#125;</code>.</span><span class="editable-actions"><button class="icon-button" type="button" aria-label="Remove reply 1"><svg class="icon" aria-hidden="true"><use href="#i-trash"/></svg></button></span></li>
-            <li class="editable-row"><span class="editable-check"><svg class="icon" aria-hidden="true"><use href="#i-grip"/></svg></span><span class="editable-text">The workshop log is open, <code>&#123;&#123;name&#125;&#125;</code>. Each message becomes a task until you say stop.</span><span class="editable-actions"><button class="icon-button" type="button" aria-label="Remove reply 2"><svg class="icon" aria-hidden="true"><use href="#i-trash"/></svg></button></span></li>
-            <li class="editable-row"><span class="editable-check"><svg class="icon" aria-hidden="true"><use href="#i-grip"/></svg></span><span class="editable-text">Cast <code>&#123;&#123;spell&#125;&#125;</code>. Subsequent messages go into <code>&#123;&#123;bucket&#125;&#125;</code>. Use stop when you’re finished.</span><span class="editable-actions"><button class="icon-button" type="button" aria-label="Remove reply 3"><svg class="icon" aria-hidden="true"><use href="#i-trash"/></svg></button></span></li>
+            <li class="editable-row"><span class="editable-check"><button class="icon-button" type="button" aria-label="Reorder reply 1"><svg class="icon" aria-hidden="true"><use href="#i-grip"/></svg></button></span><span class="editable-text">Sawdust settles. Tell me the next cut and I’ll write it into <code>&#123;&#123;bucket&#125;&#125;</code>.</span><span class="editable-actions"><button class="icon-button" type="button" aria-label="Edit reply 1"><svg class="icon" aria-hidden="true"><use href="#i-pencil"/></svg></button><button class="icon-button" type="button" aria-label="Remove reply 1"><svg class="icon" aria-hidden="true"><use href="#i-trash"/></svg></button></span></li>
+            <li class="editable-row"><span class="editable-check"><button class="icon-button" type="button" aria-label="Reorder reply 2"><svg class="icon" aria-hidden="true"><use href="#i-grip"/></svg></button></span><span class="editable-text">The workshop log is open, <code>&#123;&#123;name&#125;&#125;</code>. Each message becomes a task until you say stop.</span><span class="editable-actions"><button class="icon-button" type="button" aria-label="Edit reply 2"><svg class="icon" aria-hidden="true"><use href="#i-pencil"/></svg></button><button class="icon-button" type="button" aria-label="Remove reply 2"><svg class="icon" aria-hidden="true"><use href="#i-trash"/></svg></button></span></li>
+            <li class="editable-row"><span class="editable-check"><button class="icon-button" type="button" aria-label="Reorder reply 3"><svg class="icon" aria-hidden="true"><use href="#i-grip"/></svg></button></span><span class="editable-text">Cast <code>&#123;&#123;spell&#125;&#125;</code>. Subsequent messages go into <code>&#123;&#123;bucket&#125;&#125;</code>. Use stop when you’re finished.</span><span class="editable-actions"><button class="icon-button" type="button" aria-label="Edit reply 3"><svg class="icon" aria-hidden="true"><use href="#i-pencil"/></svg></button><button class="icon-button" type="button" aria-label="Remove reply 3"><svg class="icon" aria-hidden="true"><use href="#i-trash"/></svg></button></span></li>
+          </ul>
+          <div class="editable-add"><input class="input-field" aria-label="New reply" placeholder="Add a reply"><button class="button-secondary" type="button"><svg class="icon" aria-hidden="true"><use href="#i-plus"/></svg>Add</button></div>
+        </div>
+        <div class="tab-panel" role="tabpanel" id="reply-save" aria-labelledby="reply-tab-save" hidden>
+          <ul class="editable-list" aria-label="Replies when a message is saved">
+            <li class="editable-row"><span class="editable-check"><button class="icon-button" type="button" aria-label="Reorder reply 1"><svg class="icon" aria-hidden="true"><use href="#i-grip"/></svg></button></span><span class="editable-text">I saved that in the workshop log.</span><span class="editable-actions"><button class="icon-button" type="button" aria-label="Edit reply 1"><svg class="icon" aria-hidden="true"><use href="#i-pencil"/></svg></button><button class="icon-button" type="button" aria-label="Remove reply 1"><svg class="icon" aria-hidden="true"><use href="#i-trash"/></svg></button></span></li>
+          </ul>
+          <div class="editable-add"><input class="input-field" aria-label="New reply" placeholder="Add a reply"><button class="button-secondary" type="button"><svg class="icon" aria-hidden="true"><use href="#i-plus"/></svg>Add</button></div>
+        </div>
+        <div class="tab-panel" role="tabpanel" id="reply-stop" aria-labelledby="reply-tab-stop" hidden>
+          <ul class="editable-list" aria-label="Replies when stopped">
+            <li class="editable-row"><span class="editable-check"><button class="icon-button" type="button" aria-label="Reorder reply 1"><svg class="icon" aria-hidden="true"><use href="#i-grip"/></svg></button></span><span class="editable-text">The workshop log is closed.</span><span class="editable-actions"><button class="icon-button" type="button" aria-label="Edit reply 1"><svg class="icon" aria-hidden="true"><use href="#i-pencil"/></svg></button><button class="icon-button" type="button" aria-label="Remove reply 1"><svg class="icon" aria-hidden="true"><use href="#i-trash"/></svg></button></span></li>
+          </ul>
+          <div class="editable-add"><input class="input-field" aria-label="New reply" placeholder="Add a reply"><button class="button-secondary" type="button"><svg class="icon" aria-hidden="true"><use href="#i-plus"/></svg>Add</button></div>
+        </div>
+        <div class="tab-panel" role="tabpanel" id="reply-invalid" aria-labelledby="reply-tab-invalid" hidden>
+          <ul class="editable-list" aria-label="Replies when a message is invalid">
+            <li class="editable-row"><span class="editable-check"><button class="icon-button" type="button" aria-label="Reorder reply 1"><svg class="icon" aria-hidden="true"><use href="#i-grip"/></svg></button></span><span class="editable-text">Give me a task to save to the workshop log.</span><span class="editable-actions"><button class="icon-button" type="button" aria-label="Edit reply 1"><svg class="icon" aria-hidden="true"><use href="#i-pencil"/></svg></button><button class="icon-button" type="button" aria-label="Remove reply 1"><svg class="icon" aria-hidden="true"><use href="#i-trash"/></svg></button></span></li>
           </ul>
           <div class="editable-add"><input class="input-field" aria-label="New reply" placeholder="Add a reply"><button class="button-secondary" type="button"><svg class="icon" aria-hidden="true"><use href="#i-plus"/></svg>Add</button></div>
         </div>
@@ -45,6 +63,8 @@
     <div class="save-bar">
       <button class="button-primary" type="submit">Save spell</button>
       <a class="button-quiet" href="spellbook--list.html">Cancel</a>
+      <button class="button-secondary" type="button">Copy spell</button>
+      <button class="button-quiet-danger" type="button">Forget spell</button>
       <p class="form-status" role="status">{{?invalid}}Fix the highlighted field to save.{{/?}}</p>
     </div>
   </form>

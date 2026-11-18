@@ -32,6 +32,8 @@ Autumn should settle these first, because each one changes a token value or a co
 - **Sign-in confirmation.** The current confirmation retains the address and retry action. Treat the prototype’s alternate confirmation as a separate copy and behavior decision.
 - **Ornament density.** Review the competing illustrations in empty states and the Espresso Leather trail rule in long conversations before finalizing their emphasis.
 
+- **Phone wordmark.** Confirm whether the phone header should display Project Buddy beside the medallion. The captures show the medallion alone.
+
 ## Commit checklist
 
 Each commit leaves the site working, so a reviewer can check out any commit and see a whole page. To make that possible, the new component layer lands beside the old page roles first. Each area then moves to the new classes in its own commit. The old roles go only when nothing uses them.
@@ -57,6 +59,8 @@ Each commit leaves the site working, so a reviewer can check out any commit and 
    8. construct portraits and avatars.
 
    Preserve the production conversation’s latest-message positioning and the ability to scroll back while a reply is underway. Keep the Settings tooltip’s Escape behavior and restore focus to the invalid field on save. The static fixtures exercise the layout for these states.
+
+   Keep the signed-out site panel and appearance choices on both sign-in states. Preserve all four spell reply panels, reply editing and keyboard reordering, Copy and Forget. Keep the task and idea row actions, completed task reopening, and the existing Spells & status and Members contents. Carry the distinct phone drawer state, Escape dismissal and focus return into the styled controls. Keep modal focus in the existing Radix dialog, including focus on Keep it for milestone deletion and return to the invoking row. The mockups show control placement. The existing React controllers own mutations, permissions and persistence.
 
    [Component-to-React mapping](#component-to-react-mapping) says where to find each change. These commits also fix the [existing problems](#existing-problems-to-fix) that sit in the markup.
 6. **Remove the old roles.**

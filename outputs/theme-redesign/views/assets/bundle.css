@@ -2657,6 +2657,12 @@
     flex: none;
   }
 
+  .editable-actions:has(.button-quiet) {
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    max-inline-size: 7.5rem;
+  }
+
   .editable-actions .icon-button {
     color: var(--muted);
   }
@@ -2755,6 +2761,20 @@
     place-items: center;
     padding: 1rem;
     background: var(--scrim);
+  }
+
+  .dialog-overlay[data-preview-modal] {
+    inline-size: 100%;
+    block-size: 100%;
+    max-inline-size: none;
+    max-block-size: none;
+    margin: 0;
+    border: 0;
+    color: inherit;
+  }
+
+  .dialog-overlay[data-preview-modal]:not([open]) {
+    display: none;
   }
 
   .dialog-panel {

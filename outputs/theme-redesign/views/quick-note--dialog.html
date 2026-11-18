@@ -251,16 +251,16 @@
   </div>
 </main>
 
-<div class="dialog-overlay">
-  <form class="dialog-panel" role="dialog" aria-modal="true" aria-labelledby="qn-title" aria-describedby="qn-copy">
+<dialog class="dialog-overlay" data-preview-modal aria-labelledby="qn-title" aria-describedby="qn-copy">
+  <form class="dialog-panel">
     <div class="card-header">
       <h2 class="dialog-title" id="qn-title">Quick Note</h2>
-      <button class="icon-button" type="button" aria-label="Close" title="Close"><svg class="icon" aria-hidden="true"><use href="#i-close"/></svg></button>
+      <button class="icon-button" type="button" data-preview-dismiss aria-label="Close" title="Close"><svg class="icon" aria-hidden="true"><use href="#i-close"/></svg></button>
     </div>
     <p class="muted" id="qn-copy">Save a short note to a quest without opening it. Find it later in the quest's Quick Notes tab.</p>
     <div class="field">
       <label class="field-label" for="qn-quest">Quick Note for</label>
-      <span class="select-field"><select class="input-field" id="qn-quest"><option>Build a walnut bookshelf</option><option selected>Read Latin on old maps</option></select><svg class="icon select-chevron" aria-hidden="true"><use href="#i-chevron-down"/></svg></span>
+      <span class="select-field"><select class="input-field" id="qn-quest" autofocus><option>Build a walnut bookshelf</option><option selected>Read Latin on old maps</option></select><svg class="icon select-chevron" aria-hidden="true"><use href="#i-chevron-down"/></svg></span>
     </div>
     <div class="field">
       <label class="field-label" for="qn-text">Quick Note</label>
@@ -271,7 +271,7 @@
       <button class="button-primary" type="submit">Save Quick Note</button>
     </div>
   </form>
-</div>
+</dialog>
 
 </div>
 </body>

@@ -1,5 +1,5 @@
 <!-- include:site-header circle="4" -->
-<!-- include:trail-band panel="" parents="Quests" heading="Read Latin on old maps" tools="<button class='icon-button' type='button' aria-label='Rename' title='Rename'><svg class='icon' aria-hidden='true'><use href='#i-pencil'/></svg></button><button class='button-secondary' type='button' aria-controls='quest-sidebar' aria-expanded='true'><svg class='icon' aria-hidden='true'><use href='#i-sidebar'/></svg><span class='button-label'>Quest</span></button>" -->
+<!-- include:trail-band panel="" parents="Quests" heading="Read Latin on old maps" tools="<button class='icon-button' type='button' aria-label='Rename' title='Rename'><svg class='icon' aria-hidden='true'><use href='#i-pencil'/></svg></button><button class='button-secondary' type='button' aria-controls='quest-sidebar' aria-expanded='false' aria-label='Quest sidebar'><svg class='icon' aria-hidden='true'><use href='#i-sidebar'/></svg><span class='button-label'>Quest</span></button>" -->
 <!-- include:site-panel open="" current="quests" swatch-focus="" -->
 <div class="page-frame-quest">
   <main class="quest-main">
@@ -17,13 +17,13 @@
   </main>
   <!-- include:quest-sidebar tab="{{tab}}" menu="{{rowmenu}}" drawer="{{drawer}}" completed="{{completed}}" confirm="{{dialog}}" -->
 </div>
-{{?dialog}}<div class="dialog-overlay">
-  <div class="dialog-panel" role="alertdialog" aria-modal="true" aria-labelledby="confirm-title" aria-describedby="confirm-copy">
+{{?dialog}}<dialog class="dialog-overlay" data-preview-modal role="alertdialog" aria-labelledby="confirm-title" aria-describedby="confirm-copy">
+  <div class="dialog-panel">
     <h2 class="dialog-title" id="confirm-title">Delete this milestone?</h2>
     <p id="confirm-copy">“Translated the whole cartouche on the Ortelius map” leaves the progress timeline. The conversation stays as it is.</p>
     <div class="dialog-actions">
-      <button class="button-secondary" type="button">Keep it</button>
+      <button class="button-secondary" type="button" autofocus data-preview-dismiss>Keep it</button>
       <button class="button-danger" type="button"><svg class="icon" aria-hidden="true"><use href="#i-trash"/></svg>Delete milestone</button>
     </div>
   </div>
-</div>{{/?}}
+</dialog>{{/?}}

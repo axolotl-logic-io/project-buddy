@@ -33,6 +33,52 @@
 
   function wireBare() {
     setMode(mode);
+    var modal = document.querySelector("[data-preview-modal]");
+    if (modal) {
+      modal.showModal();
+      modal.addEventListener("click", function (event) {
+        if (event.target.closest("[data-preview-dismiss]")) modal.close();
+      });
+      modal.addEventListener("close", function () {
+        var trigger = document.querySelector('[aria-expanded="true"].button-quiet-danger');
+        if (!trigger || !trigger.getClientRects().length) {
+          var panel = modal.getAttribute("role") === "alertdialog" ? "quest-sidebar" : "site-panel";
+          trigger = document.querySelector('.trail-band [aria-controls="' + panel + '"]');
+        }
+        if (trigger) trigger.focus();
+      });
+    }
+
+    var narrow = window.matchMedia("(width < 64rem)");
+    var sidebar = document.getElementById("quest-sidebar");
+    var sidebarTrigger = document.querySelector('.trail-band [aria-controls="quest-sidebar"]');
+    function syncSidebar() {
+      if (!sidebar || !sidebarTrigger) return;
+      var open = sidebar.hasAttribute(narrow.matches ? "data-drawer-open" : "data-open");
+      sidebarTrigger.setAttribute("aria-expanded", String(open));
+      sidebarTrigger.setAttribute("aria-label", (open ? "Close" : "Open") + " quest sidebar");
+    }
+    syncSidebar();
+    narrow.addEventListener("change", syncSidebar);
+    document.addEventListener("keydown", function (event) {
+      if (event.key !== "Escape" || (modal && modal.open)) return;
+      document.querySelectorAll(".appearance-swatch:is(:hover, :focus-within)").forEach(function (choice) {
+        choice.setAttribute("data-tooltip-dismissed", "");
+      });
+      if (sidebar && narrow.matches && sidebar.hasAttribute("data-drawer-open")) {
+        sidebar.removeAttribute("data-drawer-open");
+        syncSidebar();
+        sidebarTrigger.focus();
+      }
+    });
+    document.querySelectorAll(".appearance-swatch").forEach(function (choice) {
+      function resetTooltip() {
+        if (!choice.matches(":hover, :focus-within")) choice.removeAttribute("data-tooltip-dismissed");
+      }
+      choice.addEventListener("pointerleave", resetTooltip);
+      choice.addEventListener("focusout", function () { requestAnimationFrame(resetTooltip); });
+    });
+
     var latest = document.querySelector("[data-preview-latest]");
     if (latest) {
       document.fonts.ready.then(function () {
@@ -45,6 +91,27 @@
         setMode(t.value);
         if (framed) window.parent.postMessage({ pbAppearance: t.value }, "*");
       }
+    });
+    document.querySelectorAll('[role="tab"][aria-controls]').forEach(function (tab) {
+      tab.tabIndex = tab.getAttribute("aria-selected") === "true" ? 0 : -1;
+    });
+    document.addEventListener("keydown", function (event) {
+      var tab = event.target.closest('[role="tab"][aria-controls]');
+      if (!tab) return;
+      var list = tab.closest('[role="tablist"]');
+      var vertical = list.getAttribute("aria-orientation") === "vertical";
+      var previous = vertical ? "ArrowUp" : "ArrowLeft";
+      var next = vertical ? "ArrowDown" : "ArrowRight";
+      if ([previous, next, "Home", "End"].indexOf(event.key) === -1) return;
+      var tabs = Array.from(list.querySelectorAll('[role="tab"][aria-controls]'));
+      var index = tabs.indexOf(tab);
+      if (event.key === "Home") index = 0;
+      if (event.key === "End") index = tabs.length - 1;
+      if (event.key === previous) index = (index + tabs.length - 1) % tabs.length;
+      if (event.key === next) index = (index + 1) % tabs.length;
+      event.preventDefault();
+      tabs[index].click();
+      tabs[index].focus();
     });
     document.addEventListener("click", function (event) {
       var control = event.target.closest("[aria-controls]");
@@ -63,13 +130,18 @@
         var attr = phone ? "data-drawer-open" : "data-open";
         var on = target.hasAttribute(attr);
         if (on) target.removeAttribute(attr); else target.setAttribute(attr, "");
-        control.setAttribute("aria-expanded", String(!on));
+        syncSidebar();
+        if (phone) {
+          var destination = on ? target.querySelector("[aria-controls=quest-sidebar]") : sidebarTrigger;
+          if (destination) destination.focus();
+        }
       } else if (control.getAttribute("role") === "tab") {
         var list = control.closest("[role=tablist]");
         list.querySelectorAll("[role=tab]").forEach(function (tab) {
           var panel = document.getElementById(tab.getAttribute("aria-controls"));
           var selected = tab === control;
           tab.setAttribute("aria-selected", String(selected));
+          tab.tabIndex = selected ? 0 : -1;
           if (panel) panel.hidden = !selected;
         });
       }
