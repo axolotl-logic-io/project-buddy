@@ -24,7 +24,10 @@ export function SignInPanel({
             aria-hidden="true"
           />
           <h1 className="site-title">{SITE_COPY.name}</h1>
-          <p className="text-balance break-words text-muted">{intro}</p>
+          <div className="ornamented-divider" aria-hidden="true">
+            <span className="ornament" data-ornament="divider" />
+          </div>
+          <p className="w-full break-words text-left text-muted">{intro}</p>
         </div>
         {children}
       </div>
