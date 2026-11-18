@@ -48,6 +48,13 @@
     --focus-offset: 2px;
     --target-size: 2.75rem;
 
+    /* ---- New: site header focus ------------------------------------------
+       The colour of the keyboard focus outline inside the site header. The
+       header has its own dark or light band (header-ink), where the page's
+       focus colour may not show; this one must reach 3:1 against
+       header-ink. */
+    --header-focus: var(--focus);
+
     /* ---- New: type roles ------------------------------------------------ */
 
     /* The face for the site's title, a page's heading and the sign-in
@@ -70,6 +77,9 @@
     --label-caps: normal;
     /* Letter spacing as an em length. */
     --label-tracking: 0em;
+    /* The weight of the current quest label, a menu's label and a date in
+       a dated list. A light face may need 500 or 600 to stay readable. */
+    --label-weight: 400;
 
     /* Numerals set as figures: the circle in the progress ring, an
        ability's points, a collection tab's count. The Timer keeps its own
@@ -81,6 +91,9 @@
     --initial-font: var(--display-font);
     --initial-size: 1em;
     --initial-float: none;
+    /* The space after the initial. A face whose capitals overhang their
+       box, such as a blackletter, needs more. */
+    --initial-gap: 0.08em;
 
     /* ---- New: colour roles for ornament --------------------------------
        Each is a role, never a palette name. Ornament is decorative, so
@@ -167,6 +180,10 @@
     --orn-emblem: var(--orn-blank);
     --orn-emblem-accent: var(--orn-blank);
     --orn-emblem-size: 0px;
+    /* The emblem's size in an empty state only. A theme that shows a
+       vignette there sets it to 0px, so the empty state has one picture,
+       and the sign-in card keeps its emblem. */
+    --orn-empty-emblem-size: var(--orn-emblem-size);
 
     /* The ornament on an appearance swatch, over its texture. */
     --orn-swatch: var(--orn-blank);
@@ -177,6 +194,10 @@
     --orn-portrait: var(--orn-blank);
     --orn-portrait-accent: var(--orn-blank);
     --orn-portrait-bleed: 0px;
+    /* The corner radius of a construct's portrait. 50% makes a round
+       medallion: the built-in art keeps its figure inside a central circle
+       of 88% of the width. */
+    --portrait-radius: var(--action-radius);
 
     /* Optional: the picture of an empty state. It may be wide; the build
        writes its width-to-height ratio from the symbol's viewBox. The

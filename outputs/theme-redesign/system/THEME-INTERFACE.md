@@ -90,13 +90,13 @@ These tokens exist today in `apps/web/src/themes/contract.css` and `themes.ts`. 
 | `--surface` | Cards, panels, dialogs, notices | — |
 | `--field` | Fields and the composer | — |
 | `--code-surface` | Code blocks | — |
-| `--foreground` | Text | 4.5:1 on background (darkest texture pixel), surface and field |
+| `--foreground` | Text | 4.5:1 on background (the texture pixel closest in lightness), surface and field |
 | `--muted` | Secondary text | 4.5:1 on the same surfaces |
 | `--line` | Borders of controls and frames | 3:1 against the surfaces it divides |
 | `--primary`, `--on-primary` | Links, selection, the progress arc; text on primary | 4.5:1 as text; pair 4.5:1 |
 | `--accent`, `--on-accent` | Accent text; text on accent | 4.5:1 as text; pair 4.5:1 |
 | `--danger`, `--on-danger` | Errors and destructive actions | 4.5:1 as text; pair 4.5:1 |
-| `--focus` | The dashed focus outline | 3:1 on every surface |
+| `--focus` | The keyboard focus outline (dashed on an appearance swatch) | 3:1 on every surface except the site header, which uses `--header-focus` |
 | `--shadow` | Shadows and the scrim | — |
 | `--code-comment`, `--code-keyword`, `--code-string`, `--code-function`, `--code-constant` | Code highlighting | 4.5:1 on code-surface |
 | `--navigation-surface` | The site panel | — |
@@ -154,10 +154,12 @@ The Timer keeps its 42 tokens unchanged. A theme may tune them, but the Timer's 
 | `--label-case` | `none` | `text-transform` of small labels other than the site panel's |
 | `--label-caps` | `normal` | `font-variant-caps` of all small labels, including the site panel's. Use `all-small-caps` for tracked small capitals |
 | `--label-tracking` | `0em` | Letter spacing of small labels other than the site panel's |
-| `--numeral-font` | heading-font | Figures: the circle number in the progress ring, an ability's points, a collection tab's count |
+| `--label-weight` | `400` | Weight of the current quest label, a menu's label and a dated list's dates. The chat speaker (700), the progress ring's caption (600) and the site panel's labels (600) keep their own. |
+| `--numeral-font` | heading-font | Figures: the circle number in the progress ring, an ability's points, a collection tab's count. The collection count asks for lining figures, so an old-style face's zero doesn't read as "o" |
 | `--initial-font` | display-font | A rubricated initial: the first letter of the sign-in lede and an empty state's copy |
 | `--initial-size` | `1em` | The initial's size, such as `2.6em` for a drop initial |
 | `--initial-float` | `none` | `left` for a drop initial; `none` for a raised one |
+| `--initial-gap` | `0.08em` | The space after the initial. A face whose capitals overhang their box, such as a blackletter, needs about `0.15em`. |
 
 The site panel's group labels keep the existing `--panel-label-case` and `--panel-label-tracking`. To make every label match, set `--label-case` and `--label-tracking` to the same values.
 
@@ -171,6 +173,14 @@ The site panel's group labels keep the existing `--panel-label-case` and `--pane
 | `--rule-ink` | line | Rules and dividers between content | 3:1 against the surfaces it divides |
 | `--frame-ink` | line | The border and keyline of a frame | 3:1 |
 | `--scrim` | shadow at 45% | The dimmed page behind a dialog | — |
+
+### Site header focus
+
+| Token | Default | Role | Contrast rule |
+| --- | --- | --- | --- |
+| `--header-focus` | focus | The colour of the keyboard focus outline inside the site header. Its style and width stay those of the page's focus outline | 3:1 against header-ink |
+
+The site header has its own band, coloured by `--header-ink`, which may be much darker or lighter than the page. Check `--focus` against header-ink. When it falls below 3:1, set `--header-focus`; header-gold or header-paper often passes.
 
 ### Rules and frames
 
@@ -213,8 +223,10 @@ Each ornament slot reads a size token. Every size defaults to `0px`, so a slot t
 | `--orn-divider-width` | 1.5–2rem | A divider glyph's width; its height is half of it |
 | `--orn-heading-width` | 0.875–1rem | The square mark before a section heading |
 | `--orn-band-height` | 0.5–0.75rem | The band's height. A band of fine lines needs at least 0.5rem to show |
-| `--orn-emblem-size` | 3–4rem | The square emblem |
+| `--orn-emblem-size` | 3–4rem | The square emblem on the sign-in card, and in an empty state unless the next token says otherwise |
+| `--orn-empty-emblem-size` | emblem-size | The emblem in an empty state only. Set `0px` when the empty state shows a vignette |
 | `--orn-portrait-bleed` | 0.375–0.75rem | How far the portrait frame reaches past the image on each side |
+| `--portrait-radius` | action-radius | The portrait's corner radius. `50%` makes a round medallion; the built-in art keeps its figure inside a central circle of 88% of the width |
 | `--orn-bullet-size` | 0.375–0.5rem | A list marker |
 | `--orn-vignette-width` | 0 or 7.5–10rem | Optional. The empty-state picture's width; its height follows the symbol's ratio |
 | `--orn-notice-size` | 0 or 1–1.25rem | Optional. The notice mark |
@@ -272,7 +284,7 @@ These rules apply to every symbol:
 
 A theme that omits an optional symbol, or leaves its size at 0, shows nothing in that place and leaves no gap.
 
-An empty state shows the vignette and then the emblem. A theme normally sets one of `--orn-vignette-width` and `--orn-emblem-size`, and leaves the other at 0. The sign-in card shows only the emblem.
+An empty state shows the vignette and then the emblem. Two pictures where one would do look crowded, so a theme normally shows one of them. To show the vignette alone, set `--orn-vignette-width` and set `--orn-empty-emblem-size: 0px`. The sign-in card shows only the emblem and reads `--orn-emblem-size`, so it keeps its emblem either way.
 
 ### Appearance swatch
 
@@ -291,6 +303,8 @@ The portrait frame sits outside the image. The component adds `--orn-portrait-bl
 
 - Draw the frame in the outer band of the viewBox. With a bleed of 0.75rem on a 16rem portrait, the image covers about 91% of the frame's width, so keep the inner edge of the drawing within the outer 4% of the viewBox.
 - Keep the centre empty. Anything drawn there covers the construct.
+- Keep the frame within 6% of the image's width from its edge (9.5 on the 100-unit board). The built-in art keeps only ground and motes in that strip.
+- To frame a round portrait, set `--portrait-radius: 50%` and draw a round frame.
 - The symbol is stretched to a square, so draw it square.
 
 ## Theme checks
@@ -298,7 +312,7 @@ The portrait frame sits outside the image. The component adds `--orn-portrait-bl
 The build and the PR's tests check a theme in these ways:
 
 - **XML:** `ornaments.svg` parses, and every required symbol is present.
-- **Contrast:** each pair in the tables above meets its ratio. Text on the texture is measured against the texture's darkest pixel.
+- **Contrast:** each pair in the tables above meets its ratio. Text on the texture is measured against the texture pixel closest in lightness to the text: the darkest pixel for dark text on a light texture, and the lightest pixel for light text on a dark texture.
 - **Focus:** the dashed focus outline stays distinct from the solid selection ring on every surface.
 - **Fit:** every view fits at 320 px with no horizontal scroll, and targets stay at least 44 px.
 - **Reduced motion:** a theme adds no animation; components handle motion.

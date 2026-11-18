@@ -88,6 +88,8 @@
     --ornament-accent-ink: var(--primary);
     --rule-ink: var(--line);
     --frame-ink: var(--line);
+    /* 3:1 against header-ink. */
+    --header-focus: var(--header-gold);
     --rule-style: solid;
     --frame-inset: 0.25rem;
     --frame-keyline: 1px;
@@ -96,7 +98,9 @@
     --orn-heading-width: 1rem;
     --orn-band-height: 0.375rem;
     --orn-emblem-size: 3rem;
+    --orn-empty-emblem-size: var(--orn-emblem-size);
     --orn-portrait-bleed: 0.375rem;
+    --portrait-radius: var(--action-radius);
     --orn-bullet-size: 0.4375rem;
 
     /* Labels and numerals */
@@ -104,6 +108,8 @@
     --label-case: none;
     --label-caps: normal;
     --label-tracking: 0em;
+    --label-weight: 400;
+    --initial-gap: 0.08em;
     --numeral-font: var(--heading-font);
 
     /* Corner size per frame kind; 0px turns that kind's corners off. */

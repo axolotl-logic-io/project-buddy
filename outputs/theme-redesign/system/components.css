@@ -81,6 +81,12 @@
     display: block;
   }
 
+  /* As Tailwind's preflight does in the app: the rule above would
+     otherwise show a hidden icon sprite or tab panel. */
+  [hidden]:where(:not([hidden="until-found"])) {
+    display: none !important;
+  }
+
   code {
     padding: 0.05em 0.3em;
     border-radius: 0.25rem;
@@ -138,6 +144,42 @@
 
   .text-link:hover {
     text-decoration-thickness: 2px;
+  }
+
+  /* Touch targets. Every control's hit area is at least --target-size
+     (44 px) tall, while its drawing keeps its own size:
+     - a link in running text, or a breadcrumb link, gets a transparent
+       ::before, centred on the text and --target-size tall, so the text
+       keeps its place and the focus outline stays on the text;
+     - a button sets min-block-size: var(--target-size);
+     - a checkbox or radio is the full target with appearance: none, and
+       its ::before draws the visible mark;
+     - a label that wraps a radio is the radio's target, so the label sets
+       min-block-size. */
+  .text-link,
+  .trail-parents a {
+    position: relative;
+  }
+
+  .text-link::before,
+  .trail-parents a::before {
+    content: "";
+    position: absolute;
+    inset-inline: 0;
+    inset-block-start: 50%;
+    block-size: max(100%, var(--target-size));
+    translate: 0 -50%;
+  }
+
+  /* A label that wraps its own radio or checkbox. */
+  .icon-line:has(> input:is([type="radio"], [type="checkbox"])) {
+    min-block-size: var(--target-size);
+    cursor: pointer;
+  }
+
+  .icon-line > input:is([type="radio"], [type="checkbox"]) {
+    margin: 0;
+    accent-color: var(--primary);
   }
 
   .muted {
@@ -344,7 +386,7 @@
     font-family: var(--initial-font);
     font-size: var(--initial-size);
     line-height: 0.85;
-    padding-inline-end: 0.08em;
+    padding-inline-end: var(--initial-gap);
     color: var(--rubric);
   }
 
@@ -783,6 +825,12 @@
     color: var(--hud-paper);
   }
 
+  /* Focus inside the header uses the header's own focus colour; the
+     outline's style and width stay those of focus-outline. */
+  .site-header :focus-visible {
+    outline-color: var(--header-focus);
+  }
+
   .hud-title {
     display: inline-flex;
     align-items: center;
@@ -984,17 +1032,17 @@
     }
   }
 
+  /* Below 64rem the panel is a modal drawer over an undimmed page
+     (docs/chats.md): its shadow sets it apart, and its backdrop stays
+     clear. */
   @media (width < 64rem) {
     .site-panel[data-open="always"] {
       box-shadow: var(--raised-shadow);
     }
-    .app:has(.site-panel[data-open="always"])::after {
-      content: "";
-      position: fixed;
-      inset: var(--chrome-height) 0 0;
-      z-index: 24;
-      background: var(--scrim);
-    }
+  }
+
+  .site-panel::backdrop {
+    background: transparent;
   }
 
   .site-panel-heading {
@@ -1083,6 +1131,13 @@
      that appearance's own texture, palette and ornament. Selection is a
      solid ring on the label; keyboard focus is a dashed outline outside
      it; the tooltip names the appearance. */
+  /* The fieldset that groups the swatches (the elements layer resets its
+     box); its legend names the choice. */
+  .appearance-fieldset > legend {
+    margin-block-end: 0.5rem;
+    padding: 0;
+  }
+
   .appearance-swatches {
     display: flex;
     flex-wrap: wrap;
@@ -1176,25 +1231,28 @@
     color: var(--background);
     font-size: 0.8125rem;
     white-space: nowrap;
-    pointer-events: none;
     opacity: 0;
     visibility: hidden;
   }
 
-  .appearance-swatch:hover .appearance-swatch-tooltip,
-  .appearance-swatch:has(:focus-visible) .appearance-swatch-tooltip,
+  /* The tooltip shows on hover and while the choice has focus, including
+     after a touch, and stays while the pointer moves onto it (WCAG 1.4.13).
+     Escape sets data-tooltip-dismissed until the pointer and focus leave. */
+  .appearance-swatch:not([data-tooltip-dismissed]):is(:hover, :focus-within)
+    .appearance-swatch-tooltip,
   .appearance-swatch[data-show-tooltip] .appearance-swatch-tooltip {
     opacity: 1;
     visibility: visible;
   }
 
   /* ==== Tabs ============================================================ */
+  /* The row wraps rather than scrolls, so no tab's label is ever cut off
+     on a phone. */
   .tabs {
     display: flex;
-    gap: 0.25rem;
-    overflow-x: auto;
+    flex-wrap: wrap;
+    gap: 0 0.25rem;
     border-block-end: var(--rule-width) var(--rule-style) var(--rule-ink);
-    scrollbar-width: none;
   }
 
   .tab {
@@ -1246,12 +1304,23 @@
 
   /* ==== Collection: folder tabs over a list of rows =====================
      The quests list and the Spellbook share it. */
+  /* The folder tabs wrap rather than scroll, so no label is cut off on a
+     phone. wrap-reverse keeps the first tabs on the row that touches the
+     panel and stacks the rest above them. */
   .collection-tabs {
     display: flex;
+    flex-wrap: wrap-reverse;
     gap: 0.25rem;
-    overflow-x: auto;
     padding-inline: 0.5rem;
-    scrollbar-width: none;
+  }
+
+  /* On a phone each row of tabs fills the width, so a wrapped row reads
+     as a second rank of folders rather than a stray tab. */
+  @media (width < 30rem) {
+    .collection-tab {
+      flex: 1 0 auto;
+      justify-content: center;
+    }
   }
 
   .collection-tab {
@@ -1289,7 +1358,8 @@
     border-radius: 999px;
     font-family: var(--numeral-font);
     font-size: 0.75rem;
-    font-variant-numeric: tabular-nums;
+    /* Lining figures: an old-style zero at this size reads as "o". */
+    font-variant-numeric: lining-nums tabular-nums;
     line-height: 1.375rem;
   }
 
@@ -1318,6 +1388,7 @@
   }
 
   .collection-mark {
+    container-type: inline-size;
     display: grid;
     place-items: center;
     flex: none;
@@ -1328,7 +1399,7 @@
     color: var(--primary);
   }
 
-  .collection-mark img {
+  .collection-mark :is(img, svg) {
     inline-size: 100%;
     block-size: 100%;
     border-radius: inherit;
@@ -1470,6 +1541,24 @@
     text-align: center;
   }
 
+  /* The empty state's emblem has its own size, so a theme can show the
+     vignette alone here and keep the sign-in card's emblem. */
+  .empty-state .ornament[data-ornament="emblem"] {
+    --orn-w: var(--orn-empty-emblem-size);
+    --orn-h: var(--orn-empty-emblem-size);
+  }
+
+  /* The quest sidebar is too narrow for a vignette above an emblem, so its
+     empty state shows the emblem alone, at the ordinary emblem size. */
+  .quest-sidebar .empty-state .ornament[data-ornament="vignette"] {
+    display: none;
+  }
+
+  .quest-sidebar .empty-state .ornament[data-ornament="emblem"] {
+    --orn-w: var(--orn-emblem-size);
+    --orn-h: var(--orn-emblem-size);
+  }
+
   .empty-state-heading {
     font-size: var(--section-heading-size);
   }
@@ -1505,11 +1594,48 @@
     block-size: var(--target-size);
   }
 
+  /* The input fills the 44 px cell; ::before draws the 20 px ring and
+     ::after the tick, as the current site does. */
   .editable-check input {
+    display: grid;
+    place-content: center;
+    inline-size: var(--target-size);
+    block-size: var(--target-size);
+    margin: 0;
+    appearance: none;
+    color: var(--muted);
+    cursor: pointer;
+  }
+
+  .editable-check input::before {
+    content: "";
+    grid-area: 1 / 1;
     inline-size: 1.25rem;
     block-size: 1.25rem;
-    margin: 0;
-    accent-color: var(--primary);
+    border: 2px solid currentColor;
+    border-radius: 50%;
+  }
+
+  .editable-check input:checked::before {
+    border-color: var(--primary);
+    background: var(--primary);
+  }
+
+  .editable-check input:checked::after {
+    content: "";
+    grid-area: 1 / 1;
+    justify-self: center;
+    inline-size: 0.375rem;
+    block-size: 0.625rem;
+    margin-block-start: -0.125rem;
+    border-block-end: 2px solid var(--on-primary);
+    border-inline-end: 2px solid var(--on-primary);
+    rotate: 45deg;
+  }
+
+  .editable-check input:focus-visible {
+    outline: var(--focus-outline);
+    outline-offset: calc(-1 * var(--focus-offset));
   }
 
   .editable-text {
@@ -1688,7 +1814,10 @@
     stroke-linecap: round;
   }
 
+  /* Positioned so it paints above the rotated SVG, which a transform
+     lifts into the positioned layer. */
   .progress-ring-label {
+    position: relative;
     grid-area: 1 / 1;
     display: flex;
     flex-direction: column;
@@ -1790,18 +1919,24 @@
   }
 
   /* ==== Construct portrait and avatar ================================== */
+  /* The portrait holds the construct's image or its inline drawing. The
+     container lets the drawing drop its fine detail when it is small. */
   .construct-portrait {
     position: relative;
+    display: block;
     inline-size: min(100%, 16rem);
     aspect-ratio: 1;
     margin: var(--orn-portrait-bleed);
+    container-type: inline-size;
   }
 
-  .construct-portrait img {
+  .construct-portrait :is(img, svg) {
+    display: block;
     inline-size: 100%;
     block-size: 100%;
+    overflow: hidden;
     object-fit: cover;
-    border-radius: var(--action-radius);
+    border-radius: var(--portrait-radius);
   }
 
   .construct-portrait::before,
@@ -1827,15 +1962,24 @@
     flex: none;
     inline-size: 2rem;
     block-size: 2rem;
+    container-type: inline-size;
     overflow: hidden;
     border: 1px solid var(--line);
     border-radius: 50%;
     background: var(--field);
   }
 
+  /* A raster avatar is a crop of the portrait, placed by its style; a
+     drawn avatar is its own cut and fills the circle. */
   .construct-avatar img {
     position: absolute;
     max-inline-size: none;
+  }
+
+  .construct-avatar svg {
+    display: block;
+    inline-size: 100%;
+    block-size: 100%;
   }
 
   /* ==== Conversation ==================================================== */
@@ -1947,8 +2091,9 @@
     font-weight: 600;
   }
 
+  /* A compact Undo: the padding is small, but the target stays 44 px. */
   .tasks-change .button-quiet {
-    min-block-size: 2rem;
+    min-block-size: var(--target-size);
     padding-block: 0.25rem;
   }
 
@@ -2448,9 +2593,11 @@
     font-size: 0.875rem;
   }
 
+  /* Two durations side by side; they stack when a column would be too
+     narrow to show "120 minutes (2 hours)" without cutting it. */
   .duration-fields {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr));
     gap: 1rem;
   }
 
@@ -2476,5 +2623,11 @@
   :is(.current-quest-label, .menu-label, .dated-list time,
       .progress-ring-caption) {
     color: var(--label-ink);
+  }
+
+  /* The plain labels' weight. The chat speaker, the ring's caption and the
+     site panel's labels keep their own heavier weights. */
+  :is(.current-quest-label, .menu-label, .dated-list time) {
+    font-weight: var(--label-weight);
   }
 }

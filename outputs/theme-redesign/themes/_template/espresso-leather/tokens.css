@@ -87,6 +87,7 @@
     --ornament-accent-ink: var(--primary);
     --rule-ink: var(--line);
     --frame-ink: var(--line);
+    --header-focus: var(--focus);
     --rule-style: solid;
     --frame-inset: 0.25rem;
     --frame-keyline: 1px;
@@ -95,7 +96,9 @@
     --orn-heading-width: 1rem;
     --orn-band-height: 0.375rem;
     --orn-emblem-size: 3rem;
+    --orn-empty-emblem-size: var(--orn-emblem-size);
     --orn-portrait-bleed: 0.375rem;
+    --portrait-radius: var(--action-radius);
     --orn-bullet-size: 0.4375rem;
 
     /* Labels and numerals */
@@ -103,6 +106,8 @@
     --label-case: none;
     --label-caps: normal;
     --label-tracking: 0em;
+    --label-weight: 400;
+    --initial-gap: 0.08em;
     --numeral-font: var(--heading-font);
 
     /* Corner size per frame kind; 0px turns that kind's corners off. */
@@ -118,10 +123,10 @@
 
     /* Timer: illustration, inks and type, then layout. */
     --timer-body-font: var(--typeface-im-fell-english);
-    --timer-phase-font: var(--typeface-im-fell-english-italic);
+    --timer-phase-font: var(--timer-blackletter-font);
     --timer-numeral-font: var(--typeface-cormorant-garamond);
     --timer-blackletter-font: var(--typeface-unifrakturmaguntia);
-    --timer-phase-size: 1.75rem;
+    --timer-phase-size: 2rem;
     --timer-numeral-size: 6rem;
     --timer-number-scale: 26cqi;
     --timer-hours-scale: 16cqi;
@@ -144,19 +149,19 @@
     --timer-next-padding: 0;
     --timer-next-rule: none;
     --timer-sand: rgb(165 119 40);
-    --timer-radius: 173px;
-    --timer-stroke: 10px;
+    --timer-radius: 162px;
+    --timer-stroke: 12px;
     --timer-arc: var(--primary);
-    --timer-marker-active: var(--primary);
+    --timer-marker-active: var(--foreground);
     --timer-track: var(--line);
     --timer-ornament-ink: var(--muted);
-    --timer-guide-outer: 182px;
-    --timer-guide-middle: 165px;
-    --timer-guide-inner: 0px;
-    --timer-inscription-display: none;
-    --timer-sigil-display: none;
+    --timer-guide-outer: 186px;
+    --timer-guide-middle: 0px;
+    --timer-guide-inner: 136px;
+    --timer-inscription-display: block;
+    --timer-sigil-display: block;
     --timer-chapter-display: none;
-    --timer-seal-display: none;
+    --timer-seal-display: block;
     --timer-mark-glow: drop-shadow( 0 0 3px color-mix(in srgb, var(--timer-marker-active) 45%, transparent) );
     --timer-hatch-opacity: 0;
   }

@@ -1,18 +1,21 @@
 #!/usr/bin/env python3
 """Build the theme redesign mockups.
 
-Reads views-src/, system/tokens.css, system/components.css and each
-appearance's tokens.css and ornaments.svg, and writes:
+Reads views-src/, system/tokens.css, system/components.css, each
+appearance's tokens.css and ornaments.svg, and the construct artwork in
+artwork/ (the SVG drawings and construct-art.css), and writes:
 
   views/<view>--<state>.html   one page per view and state
   views/assets/bundle.css      fonts, textures, tokens, ornaments, components
   views/assets/view.js         the appearance switcher and width toggle
-  views/assets/constructs/     construct images used by the views
   index.html                   the gallery: each capture beside its view
   system/specimen.html         every component in every state, per appearance
 
 An appearance uses themes/<folder>/ when it has a tokens.css, and
-themes/_template/<folder>/ otherwise. Python 3 standard library only.
+themes/_template/<folder>/ otherwise. Each view source names the current
+raster art (apps/web/public/constructs/*-v1-*.webp); the build replaces
+each such image with the proposed SVG drawing, inline: the avatar cut for
+the 64 and 128 px images and the full drawing for the 512 px one. Python 3 standard library only.
 
 Run it from anywhere:
 
@@ -24,9 +27,10 @@ from __future__ import annotations
 import base64
 import html
 import json
+import os
 import re
-import shutil
 import sys
+import tempfile
 import urllib.parse
 import xml.etree.ElementTree as ET
 from pathlib import Path
@@ -41,7 +45,7 @@ CAPTURES = OUT / "capture" / "screenshots"
 
 FONT_DIR = ROOT / "apps/web/src/themes/fonts"
 TEXTURE_DIR = ROOT / "apps/web/public/textures"
-CONSTRUCT_DIR = ROOT / "apps/web/public/constructs"
+ARTWORK = OUT / "artwork"
 
 # (theme folder, mode: the data-mode and theme cookie value, display name)
 APPEARANCES = [
@@ -75,8 +79,9 @@ FONTS = [
      "normal", "serif"),
 ]
 
-CONSTRUCT_FILES = [f"{name}-v1-{size}.webp" for name in ("lumen", "vellum")
-                   for size in (64, 128, 512)]
+# A view's <img> of the v1 raster art, with its optional crop style.
+RASTER_ART = re.compile(
+    r'<img alt="" src="[^"]*constructs/(lumen|vellum)-v1-(\d+)\.webp"(?: style="[^"]*")?>')
 
 ORNAMENT_SLOTS = ["divider", "heading", "band", "emblem", "swatch", "portrait",
                   "vignette", "notice"]
@@ -113,6 +118,24 @@ def strip_ns(element: ET.Element) -> None:
         for key in list(node.attrib):
             if "}" in key:
                 node.attrib[key.split("}", 1)[1]] = node.attrib.pop(key)
+
+
+def write_atomic(path: Path, data: str | bytes) -> None:
+    """Write a file so that a reader never sees it half written.
+
+    Several threads run this build in one checkout at once. Each output is
+    written to a temporary file in the same folder and then renamed over
+    the target, which is atomic on one file system."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    fd, temp = tempfile.mkstemp(dir=path.parent, prefix=f".{path.name}.", suffix=".tmp")
+    try:
+        with os.fdopen(fd, "wb") as handle:
+            handle.write(data.encode() if isinstance(data, str) else data)
+        os.chmod(temp, 0o644)
+        os.replace(temp, path)
+    except BaseException:
+        Path(temp).unlink(missing_ok=True)
+        raise
 
 
 def svg_uri(view_box: str, children: list[ET.Element], transform: str = "") -> str:
@@ -288,7 +311,6 @@ def forced_rules(items: list[tuple[str, object]]) -> str:
 
 PREVIEW_CSS = """
 @layer preview {
-  .appearance-fieldset legend { margin-block-end: 0.5rem; }
   html.pb-shell-page body > :not(.pb-shell) { display: none !important; }
   html.pb-shell-page body { background: Canvas; color: CanvasText; }
   .pb-shell { display: flex; flex-direction: column; block-size: 100dvh;
@@ -306,9 +328,12 @@ PREVIEW_CSS = """
   .pb-stage iframe { display: block; margin: 1rem auto; block-size: calc(100% - 2rem);
     border: 1px solid GrayText; background: Canvas; }
 
-  /* Specimen sheet */
+  /* Specimen sheet. Each section's texture is fixed to the viewport, as on
+     the app's body: covering a section thousands of pixels tall would
+     scale the texture up many times. */
   .specimen-mode { padding: 2rem 1.5rem 4rem; background-color: var(--background);
     background-image: var(--page-decoration); background-size: cover;
+    background-attachment: fixed;
     color: var(--foreground); font-family: var(--body-font); }
   .specimen-mode + .specimen-mode { border-block-start: 4px solid var(--line); }
   .specimen-title { font-family: var(--display-font); font-size: 2rem; margin-block-end: 1.5rem; }
@@ -372,11 +397,55 @@ def build_bundle() -> tuple[str, list[str]]:
 
     components = (SYSTEM / "components.css").read_text()
     parts.append(components)
+    art_css = ARTWORK / "construct-art.css"
+    if art_css.exists():
+        parts.append("/* ---- Construct artwork paint roles, from artwork/construct-art.css ---- */\n")
+        parts.append(f"@layer components {{\n{art_css.read_text()}\n}}\n")
     forced = forced_rules(parse_blocks(strip_comments(components)))
     parts.append("/* ---- Forced states for mockups: data-force=\"hover focus active\" ---- */\n")
     parts.append(forced)
     parts.append(PREVIEW_CSS)
     return "".join(parts), notes
+
+
+# ---- Construct artwork ------------------------------------------------------
+
+ART_IDS = re.compile(r'\bid="([\w-]+)"')
+_art_cache: dict[str, str] = {}
+_art_copies = 0
+
+
+def art_svg(name: str) -> str:
+    """One artwork SVG, decorative, with its own <style> removed (the
+    bundle carries construct-art.css once)."""
+    if name not in _art_cache:
+        path = ARTWORK / f"{name}.svg"
+        if not path.exists():
+            fail(f"missing construct artwork {path}")
+        text = path.read_text()
+        text = re.sub(r"<\?xml[^>]*\?>\s*", "", text)
+        text = re.sub(r"<style>.*?</style>\s*", "", text, flags=re.S)
+        text = re.sub(r"<(title|desc)\b[^>]*>.*?</\1>\s*", "", text, flags=re.S)
+        text = re.sub(r'\s(role|aria-labelledby)="[^"]*"', "", text)
+        text = text.replace("<svg ", '<svg aria-hidden="true" focusable="false" ', 1)
+        _art_cache[name] = text.strip()
+    return _art_cache[name]
+
+
+def inline_art(markup: str) -> str:
+    """Replace each v1 raster image with the v2 SVG drawing. Each copy gets
+    its own gradient and clip ids, because a gradient resolves var() where
+    it is defined."""
+    def swap(match: re.Match) -> str:
+        global _art_copies
+        _art_copies += 1
+        name = match.group(1) if match.group(2) == "512" else f"{match.group(1)}-avatar"
+        svg = art_svg(name)
+        suffix = f"-c{_art_copies}"
+        for ident in set(ART_IDS.findall(svg)):
+            svg = re.sub(rf'(id="|url\(#|href="#){re.escape(ident)}(?=["\)])', rf"\g<1>{ident}{suffix}", svg)
+        return svg
+    return RASTER_ART.sub(swap, markup)
 
 
 # ---- Templates --------------------------------------------------------------
@@ -595,10 +664,10 @@ def build_views(icons: str) -> list[dict[str, str]]:
             continue
         meta, text = read_view(path)
         name = path.stem
-        body = render(text, {})
+        body = inline_art(render(text, {}))
         title = meta.get("title", name)
-        (VIEWS / f"{name}.html").write_text(
-            page(title, body, "assets/bundle.css", "assets/view.js", icons))
+        html = page(title, body, "assets/bundle.css", "assets/view.js", icons)
+        write_atomic(VIEWS / f"{name}.html", re.sub(r"(?m)^[ \t]+$", "", html))
         entries.append({"name": name, "title": title, "note": meta.get("note", ""),
                         "capture": meta.get("capture", "")})
     return entries
@@ -611,7 +680,7 @@ def build_specimen(icons: str) -> None:
     meta, text = read_view(source)
     sections = []
     for folder, mode, name in APPEARANCES:
-        inner = render(text, {"mode": mode, "name": name})
+        inner = inline_art(render(text, {"mode": mode, "name": name}))
         sections.append(
             f'<section class="specimen-mode" data-mode="{mode}" aria-labelledby="specimen-{mode}">\n'
             f'<h2 class="specimen-title" id="specimen-{mode}">{html.escape(name)}</h2>\n{inner}\n</section>')
@@ -632,7 +701,7 @@ def build_specimen(icons: str) -> None:
 </body>
 </html>
 """
-    (SYSTEM / "specimen.html").write_text(out)
+    write_atomic(SYSTEM / "specimen.html", out)
 
 
 def build_index(entries: list[dict[str, str]], notes: list[str]) -> None:
@@ -733,25 +802,34 @@ draw();
 </body>
 </html>
 """
-    (OUT / "index.html").write_text(out)
+    write_atomic(OUT / "index.html", out)
 
 
 def main() -> None:
     for required in (SRC, SYSTEM / "tokens.css", SYSTEM / "components.css"):
         if not required.exists():
             fail(f"missing {required}")
-    if VIEWS.exists():
-        shutil.rmtree(VIEWS)
-    (ASSETS / "constructs").mkdir(parents=True)
-
+    # views/ is never deleted: another run may be reading or writing it.
+    # Every output is replaced atomically, and views whose source is gone
+    # are removed afterwards.
     css, notes = build_bundle()
-    (ASSETS / "bundle.css").write_text(css)
-    (ASSETS / "view.js").write_text(VIEW_JS)
-    for file in CONSTRUCT_FILES:
-        shutil.copyfile(CONSTRUCT_DIR / file, ASSETS / "constructs" / file)
+    write_atomic(ASSETS / "bundle.css", css)
+    write_atomic(ASSETS / "view.js", VIEW_JS)
+    # The views draw the construct artwork inline; the v1 rasters that
+    # earlier builds copied are no longer used.
+    for stale in (ASSETS / "constructs").glob("*-v1-*.webp"):
+        stale.unlink(missing_ok=True)
+    try:
+        (ASSETS / "constructs").rmdir()
+    except OSError:
+        pass
 
     icons = (SRC / "_partials" / "icons.html").read_text()
     entries = build_views(icons)
+    built = {f"{entry['name']}.html" for entry in entries}
+    for stale in VIEWS.glob("*.html"):
+        if stale.name not in built:
+            stale.unlink(missing_ok=True)
     build_specimen(icons)
     build_index(entries, notes)
 

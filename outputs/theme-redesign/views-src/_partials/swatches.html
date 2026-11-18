@@ -1,20 +1,20 @@
 <fieldset class="appearance-fieldset">
   <legend class="panel-label">Theme</legend>
   <div class="appearance-swatches">
-    <label class="appearance-swatch" data-size="{{size}}">
+    <label class="appearance-swatch" data-size="{{size}}"{{?hover=light}} data-force="hover"{{/?}}>
       <input class="appearance-swatch-input" type="radio" name="{{name}}" value="light" aria-label="Ivory Vellum"{{?checked=light}} checked{{/?}}{{?focus=light}} data-force="focus"{{/?}}>
       <span class="appearance-swatch-face" data-mode="light" aria-hidden="true"></span>
-      <span class="appearance-swatch-tooltip" aria-hidden="true">Ivory Vellum</span>
+      <span class="appearance-swatch-tooltip" role="tooltip"><span class="appearance-swatch-name">Ivory Vellum</span></span>
     </label>
-    <label class="appearance-swatch" data-size="{{size}}">
+    <label class="appearance-swatch" data-size="{{size}}"{{?hover=soot-brass}} data-force="hover"{{/?}}>
       <input class="appearance-swatch-input" type="radio" name="{{name}}" value="soot-brass" aria-label="Soot &amp; Brass"{{?checked=soot-brass}} checked{{/?}}{{?focus=soot-brass}} data-force="focus"{{/?}}>
       <span class="appearance-swatch-face" data-mode="soot-brass" aria-hidden="true"></span>
-      <span class="appearance-swatch-tooltip" aria-hidden="true">Soot &amp; Brass</span>
+      <span class="appearance-swatch-tooltip" role="tooltip"><span class="appearance-swatch-name">Soot &amp; Brass</span></span>
     </label>
-    <label class="appearance-swatch" data-size="{{size}}">
+    <label class="appearance-swatch" data-size="{{size}}"{{?hover=dark}} data-force="hover"{{/?}}>
       <input class="appearance-swatch-input" type="radio" name="{{name}}" value="dark" aria-label="Espresso Leather"{{?checked=dark}} checked{{/?}}{{?focus=dark}} data-force="focus"{{/?}}>
       <span class="appearance-swatch-face" data-mode="dark" aria-hidden="true"></span>
-      <span class="appearance-swatch-tooltip" aria-hidden="true">Espresso Leather</span>
+      <span class="appearance-swatch-tooltip" role="tooltip"><span class="appearance-swatch-name">Espresso Leather</span></span>
     </label>
   </div>
 </fieldset>
