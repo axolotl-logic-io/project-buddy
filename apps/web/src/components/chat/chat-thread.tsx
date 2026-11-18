@@ -33,7 +33,9 @@ export function ChatThread({
   stop,
   stopStatus = "",
   spellStop,
+  followOnMount = true,
 }: {
+  followOnMount?: boolean | undefined;
   construct: ConstructSnapshot;
   chatId: ChatId;
   openingMessageId?: string | undefined;
@@ -51,7 +53,7 @@ export function ChatThread({
       }
     | undefined;
 }): JSX.Element {
-  const scrollRef = useChatScroll();
+  const scrollRef = useChatScroll(followOnMount);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const retry = useCallback((): void => {
     onRetry?.();

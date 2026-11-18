@@ -1,4 +1,6 @@
-import { QUEST_SIDEBAR_COPY } from "@/ui/copy/quest-sidebar.ts";
+import { findConversation } from "@/conversations/conversation-store.ts";
+import { getSpell } from "@/spells/spell.ts";
+import { TIMER_COPY } from "@/ui/copy/timer.ts";
 // "use_case_choose_theme", signed in, in Chromium and WebKit: each theme on
 // the pages it styles beyond its colours. A long quest name, the trail
 // band's heading, shares its row with the quest's section controls, the memory's
@@ -141,6 +143,11 @@ async function renderQuest(name: string): Promise<void> {
 async function renderMarkdownChat(): Promise<void> {
   stores.quests.getQuest.mockResolvedValue(FOX_QUEST);
   stores.chats.listMessages.mockResolvedValue(markdownExchange());
+  vi.mocked(findConversation).mockResolvedValue({
+    ...FOX_CONVERSATION,
+    spellStartedAt: "2026-11-18T12:00:00Z",
+    activeSpell: getSpell("tasks"),
+  });
   const content = await QuestPage({
     params: Promise.resolve({ questId: FOX_QUEST.id }),
     searchParams: Promise.resolve({}),
@@ -162,7 +169,7 @@ async function sectionsAlongsideLongName(): Promise<boolean> {
   window.scrollTo(0, 0);
   const heading = page.getByRole("heading", { level: 1, name: LONG_NAME });
   const link = page.getByRole("heading", {
-    name: QUEST_SIDEBAR_COPY.quest,
+    name: TIMER_COPY.heading,
     exact: true,
   });
   const brand = page.getByRole("link", { name: SITE_COPY.name });
@@ -201,6 +208,7 @@ beforeEach(async () => {
     FOX_CONVERSATION,
   );
   stores.chats.listMessages.mockResolvedValue([]);
+  vi.mocked(findConversation).mockResolvedValue(undefined);
   await page.viewport(LAPTOP_VIEWPORT.width, LAPTOP_VIEWPORT.height);
   await vi.waitFor(() => {
     if (window.innerWidth !== LAPTOP_VIEWPORT.width) {
@@ -217,7 +225,7 @@ describe("use_case_choose_theme", () => {
         applyTheme(id);
       });
 
-      test("a long quest title keeps Tasks navigation on its row below the brand at 1280 px", async () => {
+      test("a long quest title keeps the Timer panel on its row below the brand at 1280 px", async () => {
         expect(await sectionsAlongsideLongName()).toBe(true);
       });
 

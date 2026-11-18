@@ -18,6 +18,7 @@ const APP_ERROR_CASES = [
   "signed-out",
   "not-found",
   "already-answered",
+  "spell-required",
   "unknown",
 ] as const;
 
@@ -53,6 +54,7 @@ const USER_MESSAGES: Readonly<Record<AppErrorCase, string>> = {
   // The chat reloads to show the answer, so this shows only if it can't.
   "already-answered":
     "That message has been answered already. Reload the page to see the answer.",
+  "spell-required": "Cast a spell from the quest to send messages.",
   unknown: "Something went wrong. Please try again later.",
 };
 

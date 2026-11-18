@@ -52,6 +52,7 @@ const SPELLBOOK_COPY = {
     brainstorm: "Ideas",
   },
   cast: "Cast spell",
+  activeLabel: "Active",
   castLabel: "Cast",
   castNamed: (name: string): string => `Cast ${name}`,
   choose: "Choose a spell",
@@ -63,6 +64,7 @@ const SPELLBOOK_COPY = {
   intro: "Find a spell to inspect or customize.",
 };
 const SPELL_MODE_COPY = {
+  unavailable: "The spell couldn’t be changed. Try again.",
   castUsage:
     "Use cast followed by the spell’s name, such as cast Tasks or cast Brainstorm.",
   ambiguous:

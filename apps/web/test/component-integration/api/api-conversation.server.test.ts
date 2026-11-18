@@ -31,6 +31,22 @@ describe("use_case_cli_api_conversation", () => {
       body: { error: { code: "not_found" } },
     });
 
+    const refused = await callApi(sendMessage, {
+      params,
+      body: { text: "An idea" },
+    });
+    expect(refused).toMatchObject({
+      status: HTTP_STATUS.forbidden,
+      body: { error: { code: "spell_required" } },
+    });
+    expect((await callApi(getConversation, { params })).status).toBe(
+      HTTP_STATUS.notFound,
+    );
+    await callApi(castSpell, {
+      params,
+      method: "PUT",
+      body: { spell: "brainstorm" },
+    });
     const answered = await callApi(sendMessage, {
       params,
       body: { text: "help" },
@@ -51,7 +67,7 @@ describe("use_case_cli_api_conversation", () => {
     const conversation = dataOf(await callApi(getConversation, { params }));
     expect(conversation).toMatchObject({
       id: conversationId,
-      activeSpell: null,
+      activeSpell: { id: "brainstorm" },
       awaitingReply: false,
       messages: expect.arrayContaining([
         expect.objectContaining({ role: "user", text: "help" }),
@@ -69,7 +85,6 @@ describe("use_case_cli_api_conversation", () => {
   test("a spell is cast and stopped in the quest's conversation", async () => {
     const { her, herData } = await twoUsers();
     const quest = await herData.quest();
-    await herData.chat(quest);
     await signIn(her);
     const params = { questId: quest.id };
 
@@ -101,6 +116,11 @@ describe("use_case_cli_api_conversation", () => {
     const { her, herData, other } = await twoUsers();
     const quest = await herData.quest("Shared");
     await signIn(her);
+    await callApi(castSpell, {
+      params: { questId: quest.id },
+      method: "PUT",
+      body: { spell: "tasks" },
+    });
     await callApi(sendMessage, {
       params: { questId: quest.id },
       body: { text: "help" },

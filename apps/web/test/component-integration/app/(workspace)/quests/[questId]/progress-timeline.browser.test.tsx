@@ -1,20 +1,10 @@
-// A quest's progress timeline in Chromium and WebKit: its milestones,
-// newest first, each with its day, and the controls that edit and delete
-// one by sending /edit-milestone and /drop-milestone to the conversation.
-// What the commands change is milestones.server.test.ts's, and which
-// milestones the page lists is page.server.test.ts's.
-
-import { describe, expect, test, vi } from "vitest";
+import { beforeEach, describe, expect, test, vi } from "vitest";
 import { page } from "vitest/browser";
 import { render } from "vitest-browser-react";
 import { ProgressTimeline } from "@/app/(workspace)/quests/[questId]/(overview)/progress-timeline.tsx";
-import type { ChatSend } from "@/components/chat/chat-send.ts";
+import { changeMilestoneAction } from "@/milestones/milestone-actions.ts";
 import { PROGRESS_TIMELINE_COPY } from "@/ui/copy/milestones.ts";
-import {
-  chatSendMock,
-  inConversation,
-  sentTexts,
-} from "../../../../components/chat/chat-send-test-kit.tsx";
+
 import {
   paintOf,
   tokenColor,
@@ -29,10 +19,13 @@ import {
 const NEWEST_TEXT: string = FOX_TAIL_MILESTONE.text;
 const EDITED_TEXT: string = "Fixed the tail and the ears";
 
-async function renderTimeline(send: ChatSend): Promise<void> {
-  await render(
-    inConversation(send, <ProgressTimeline milestones={FOX_MILESTONES} />),
-  );
+const change = vi.mocked(changeMilestoneAction);
+beforeEach(() => {
+  change.mockReset().mockResolvedValue({ kind: "saved" });
+});
+
+async function renderTimeline(): Promise<void> {
+  await render(<ProgressTimeline milestones={FOX_MILESTONES} />);
 }
 
 function textField(): ReturnType<typeof page.getByRole> {
@@ -41,7 +34,7 @@ function textField(): ReturnType<typeof page.getByRole> {
 
 describe("use_case_view_progress_timeline", () => {
   test("lists the milestones newest first, each with its day", async () => {
-    await renderTimeline(chatSendMock());
+    await renderTimeline();
 
     const entries = page
       .getByRole("list", { name: PROGRESS_TIMELINE_COPY.heading })
@@ -79,11 +72,11 @@ describe("use_case_view_progress_timeline", () => {
 describe("use_case_edit_milestone", () => {
   test("edits a milestone's text, keeping refused text on screen with the reason", async () => {
     applyTheme("parchment");
-    const send = chatSendMock().mockResolvedValueOnce({
-      sent: false,
-      problem: PROGRESS_TIMELINE_COPY.needsText,
+    change.mockResolvedValueOnce({
+      kind: "problem",
+      text: PROGRESS_TIMELINE_COPY.needsText,
     });
-    await renderTimeline(send);
+    await renderTimeline();
 
     await page
       .getByRole("button", {
@@ -111,15 +104,14 @@ describe("use_case_edit_milestone", () => {
       .click();
 
     await expect.element(textField()).not.toBeInTheDocument();
-    expect(sentTexts(send)).toEqual([
-      "/edit-milestone 1  ",
-      `/edit-milestone 1 ${EDITED_TEXT}`,
+    expect(change.mock.calls.flat()).toEqual([
+      { id: FOX_TAIL_MILESTONE.id, text: " " },
+      { id: FOX_TAIL_MILESTONE.id, text: EDITED_TEXT },
     ]);
   });
 
   test("cancelling an edit keeps the milestone as it was", async () => {
-    const send = chatSendMock();
-    await renderTimeline(send);
+    await renderTimeline();
 
     await page
       .getByRole("button", {
@@ -132,11 +124,11 @@ describe("use_case_edit_milestone", () => {
       .click();
 
     await expect.element(page.getByText(NEWEST_TEXT)).toBeVisible();
-    expect(send).not.toHaveBeenCalled();
+    expect(change).not.toHaveBeenCalled();
   });
 
   test("closing the editor puts keyboard focus back on the milestone's Edit button, after Cancel and after Save", async () => {
-    await renderTimeline(chatSendMock());
+    await renderTimeline();
     const editButton = page.getByRole("button", {
       name: PROGRESS_TIMELINE_COPY.editLabel(NEWEST_TEXT),
     });
@@ -157,9 +149,8 @@ describe("use_case_edit_milestone", () => {
   });
 
   test("deletes a milestone only once she confirms", async () => {
-    const send = chatSendMock();
     applyTheme("parchment");
-    await renderTimeline(send);
+    await renderTimeline();
     const deleteButton = page.getByRole("button", {
       name: PROGRESS_TIMELINE_COPY.deleteLabel(NEWEST_TEXT),
     });
@@ -168,7 +159,7 @@ describe("use_case_edit_milestone", () => {
     await page
       .getByRole("button", { name: PROGRESS_TIMELINE_COPY.deleteCancel })
       .click();
-    expect(send).not.toHaveBeenCalled();
+    expect(change).not.toHaveBeenCalled();
     await deleteButton.click();
     const confirm = page.getByRole("button", {
       name: PROGRESS_TIMELINE_COPY.deleteConfirm,
@@ -177,7 +168,7 @@ describe("use_case_edit_milestone", () => {
     await confirm.click();
 
     await vi.waitFor(() => {
-      expect(sentTexts(send)).toEqual(["/drop-milestone 1"]);
+      expect(change).toHaveBeenCalledWith({ id: FOX_TAIL_MILESTONE.id });
     });
   });
 });

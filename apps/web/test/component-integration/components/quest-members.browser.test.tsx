@@ -5,6 +5,10 @@ import { render } from "vitest-browser-react";
 import { QuestMembers } from "@/components/quest-members.tsx";
 import { QuestStatusTabs } from "@/components/quest-status-tabs.tsx";
 import type { MembershipResult } from "@/quests/membership.ts";
+import {
+  inviteToQuestAction,
+  removeFromQuestAction,
+} from "@/quests/membership-actions.ts";
 import type { PendingQuest, QuestPeople } from "@/quests/membership-store.ts";
 import { THEME_MODES } from "@/themes/themes.ts";
 import { PANEL_COMMANDS_COPY } from "@/ui/copy/commands.ts";
@@ -26,11 +30,6 @@ import {
   setViewport,
   type ViewportSize,
 } from "../viewports-test-kit.ts";
-import {
-  chatSendMock,
-  inConversation,
-  sentTexts,
-} from "./chat/chat-send-test-kit.tsx";
 import { QuestSidebar } from "./quest-panel-test-kit.tsx";
 
 vi.mock("next/navigation", () => import("./router-test-kit.ts"));
@@ -74,8 +73,9 @@ const QUEST_B: PendingQuest = {
   invitedAt: new Date("2026-11-04T10:00:00Z"),
 };
 
-// The conversation the Members tab sends its commands to.
-const send = chatSendMock();
+const QUEST_ID = questIdFixture();
+const invite = vi.mocked(inviteToQuestAction);
+const remove = vi.mocked(removeFromQuestAction);
 const answer =
   vi.fn<
     (request: { questId: string; accept: boolean }) => Promise<MembershipResult>
@@ -83,13 +83,17 @@ const answer =
 
 beforeEach(() => {
   vi.clearAllMocks();
-  send.mockResolvedValue({ sent: true });
+  invite.mockResolvedValue({ kind: "saved" });
+  remove.mockResolvedValue({ kind: "saved" });
 });
 
 function members(viewer = OWNER.id, dailies = false): JSX.Element {
-  return inConversation(
-    send,
-    <QuestMembers viewer={viewer} people={PEOPLE} dailies={dailies} />,
+  return (
+    <QuestMembers
+      viewer={viewer}
+      people={PEOPLE}
+      quest={{ id: QUEST_ID, name: "Fox project", dailies }}
+    />
   );
 }
 
@@ -135,9 +139,9 @@ function pendingTabs(quests: readonly PendingQuest[]): JSX.Element {
 
 describe("a quest's Members tab", () => {
   test("lists the owner, members and invitations by address, and invites by email with the keyboard", async () => {
-    send.mockResolvedValue({
-      sent: true,
-      note: notes.invited("ash@example.test"),
+    invite.mockResolvedValue({
+      kind: "saved",
+      message: notes.invited("ash@example.test"),
     });
     await render(members());
     const list = page.getByRole("list", { name: QUEST_MEMBERS_COPY.listLabel });
@@ -177,13 +181,16 @@ describe("a quest's Members tab", () => {
       .element(page.getByText(notes.invited("ash@example.test")))
       .toBeVisible();
     await expect.element(email).toHaveValue("");
-    expect(sentTexts(send)).toEqual(["/invite ash@example.test"]);
+    expect(invite).toHaveBeenCalledWith({
+      questId: QUEST_ID,
+      email: "ash@example.test",
+    });
   });
 
   test("after Invite is clicked, focus returns to the address, which a refused invitation keeps", async () => {
-    send.mockResolvedValue({
-      sent: false,
-      problem: QUEST_MEMBERS_COPY.limited,
+    invite.mockResolvedValue({
+      kind: "problem",
+      text: QUEST_MEMBERS_COPY.limited,
     });
     await render(members());
     const email = page.getByRole("textbox", {
@@ -198,9 +205,9 @@ describe("a quest's Members tab", () => {
     await expect.element(email).toHaveValue("ash@example.test");
     await expect.element(email).toHaveFocus();
 
-    send.mockResolvedValue({
-      sent: false,
-      problem: QUEST_MEMBERS_COPY.inQuest("rae@example.test"),
+    invite.mockResolvedValue({
+      kind: "problem",
+      text: QUEST_MEMBERS_COPY.inQuest("rae@example.test"),
     });
     await email.fill("rae@example.test");
     await page.getByRole("button", { name: QUEST_MEMBERS_COPY.invite }).click();
@@ -210,9 +217,9 @@ describe("a quest's Members tab", () => {
     await expect.element(email).toHaveValue("rae@example.test");
     await expect.element(email).toHaveFocus();
 
-    send.mockResolvedValue({
-      sent: true,
-      note: notes.invited("rae@example.test"),
+    invite.mockResolvedValue({
+      kind: "saved",
+      message: notes.invited("rae@example.test"),
     });
     await page.getByRole("button", { name: QUEST_MEMBERS_COPY.invite }).click();
     await expect
@@ -222,8 +229,8 @@ describe("a quest's Members tab", () => {
     await expect.element(email).toHaveFocus();
   });
 
-  test("removing a member asks first, sends /remove, and says who was removed", async () => {
-    send.mockResolvedValue({ sent: true, note: notes.removed("Rae") });
+  test("removing a member asks first and reports success", async () => {
+    remove.mockResolvedValue({ kind: "saved", message: notes.removed("Rae") });
     await render(members());
     await page
       .getByRole("button", { name: QUEST_MEMBERS_COPY.removeLabel("Rae") })
@@ -235,19 +242,22 @@ describe("a quest's Members tab", () => {
           .getByText(QUEST_MEMBERS_COPY.removeConfirm("Rae")),
       )
       .toBeVisible();
-    expect(send).not.toHaveBeenCalled();
+    expect(remove).not.toHaveBeenCalled();
     await page
       .getByRole("alertdialog")
       .getByRole("button", { name: QUEST_MEMBERS_COPY.remove })
       .click();
     await expect.element(page.getByText(notes.removed("Rae"))).toBeVisible();
-    expect(sentTexts(send)).toEqual(["/remove Rae"]);
+    expect(remove).toHaveBeenCalledWith({
+      questId: QUEST_ID,
+      person: MEMBER.id,
+    });
   });
 
   test("a member may withdraw an invitation without confirming, and focus stays in the tab", async () => {
-    send.mockResolvedValue({
-      sent: true,
-      note: notes.withdrawn(INVITEE.displayName),
+    remove.mockResolvedValue({
+      kind: "saved",
+      message: notes.withdrawn(INVITEE.displayName),
     });
     await render(members(MEMBER.id));
     await expect
@@ -261,27 +271,35 @@ describe("a quest's Members tab", () => {
     await expect
       .element(page.getByText(notes.withdrawn(INVITEE.displayName)))
       .toBeVisible();
-    expect(sentTexts(send)).toEqual([`/withdraw ${INVITEE.displayName}`]);
+    expect(remove).toHaveBeenCalledWith({
+      questId: QUEST_ID,
+      person: INVITEE.id,
+    });
     await expect
       .element(page.getByText(QUEST_MEMBERS_COPY.heading))
       .toHaveFocus();
   });
 
-  test("leaving asks first, then sends /leave", async () => {
+  test("leaving asks first and removes the viewer", async () => {
     await render(members(MEMBER.id));
     await page.getByRole("button", { name: QUEST_MEMBERS_COPY.leave }).click();
-    expect(send).not.toHaveBeenCalled();
+    expect(remove).not.toHaveBeenCalled();
     await page
       .getByRole("alertdialog")
       .getByRole("button", { name: QUEST_MEMBERS_COPY.leaveConfirmButton })
       .click();
-    await vi.waitFor(() => expect(sentTexts(send)).toEqual(["/leave"]));
+    await vi.waitFor(() =>
+      expect(remove).toHaveBeenCalledWith({
+        questId: QUEST_ID,
+        person: MEMBER.id,
+      }),
+    );
   });
 
   test("a refused removal says why and keeps the member listed", async () => {
-    send.mockResolvedValue({
-      sent: false,
-      problem: PANEL_COMMANDS_COPY.problems.awaitingReply,
+    remove.mockResolvedValue({
+      kind: "problem",
+      text: PANEL_COMMANDS_COPY.problems.awaitingReply,
     });
     await render(members());
     await page
@@ -330,7 +348,10 @@ describe("the Members tab in the quest sidebar's drawer", () => {
     TABLET_VIEWPORT,
   ]) {
     test(`at ${viewport.width} px, Remove asks above the drawer, keeps focus in its question, and Cancel and Remove work by touch and keyboard`, async () => {
-      send.mockResolvedValue({ sent: true, note: notes.removed("Rae") });
+      remove.mockResolvedValue({
+        kind: "saved",
+        message: notes.removed("Rae"),
+      });
       await setViewport(viewport);
       await render(sidebarMembers());
       const drawer = page.getByRole("dialog", { name: SIDEBAR_LABEL });
@@ -361,7 +382,7 @@ describe("the Members tab in the quest sidebar's drawer", () => {
       await cancel.click();
       await expect.element(question).not.toBeInTheDocument();
       await expect.element(drawer).toBeVisible();
-      expect(send).not.toHaveBeenCalled();
+      expect(remove).not.toHaveBeenCalled();
 
       await drawer
         .getByRole("button", { name: QUEST_MEMBERS_COPY.removeLabel("Rae") })
@@ -373,7 +394,10 @@ describe("the Members tab in the quest sidebar's drawer", () => {
       await expect
         .element(drawer.getByText(notes.removed("Rae")))
         .toBeVisible();
-      expect(sentTexts(send)).toEqual(["/remove Rae"]);
+      expect(remove).toHaveBeenCalledWith({
+        questId: QUEST_ID,
+        person: MEMBER.id,
+      });
     });
   }
 
@@ -400,7 +424,7 @@ describe("the Members tab in the quest sidebar's drawer", () => {
     expect(hitAtMiddle(stay.element())).toBe(stay.element());
     await stay.click();
     await expect.element(question).not.toBeInTheDocument();
-    expect(send).not.toHaveBeenCalled();
+    expect(remove).not.toHaveBeenCalled();
 
     await leave.click();
     const confirm = question.getByRole("button", {
@@ -409,11 +433,16 @@ describe("the Members tab in the quest sidebar's drawer", () => {
     await animationsDone();
     expect(hitAtMiddle(confirm.element())).toBe(confirm.element());
     await confirm.click();
-    await vi.waitFor(() => expect(sentTexts(send)).toEqual(["/leave"]));
+    await vi.waitFor(() =>
+      expect(remove).toHaveBeenCalledWith({
+        questId: QUEST_ID,
+        person: MEMBER.id,
+      }),
+    );
   });
 
   test("at 1280 px the sidebar is no drawer, and Remove still asks first", async () => {
-    send.mockResolvedValue({ sent: true, note: notes.removed("Rae") });
+    remove.mockResolvedValue({ kind: "saved", message: notes.removed("Rae") });
     await setViewport(LAPTOP_VIEWPORT);
     await render(sidebarMembers());
     await page

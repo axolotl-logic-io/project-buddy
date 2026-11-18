@@ -1538,6 +1538,16 @@
     container-type: inline-size;
   }
 
+  .quest-timer .timer-stage {
+    padding-block: 0 var(--timer-panel-tail);
+  }
+
+  .quest-timer .timer-face {
+    grid-template-columns: minmax(0, 1fr);
+    min-block-size: 0;
+    padding: 0;
+  }
+
   .timer-ring {
     display: var(--timer-ring-display);
     position: absolute;
@@ -1642,6 +1652,11 @@
     flex-direction: column;
     align-items: var(--timer-readout-align);
     text-align: var(--timer-readout-align);
+  }
+
+  .quest-timer .timer-readout {
+    align-items: center;
+    text-align: center;
   }
 
   .timer-value {
@@ -2290,6 +2305,10 @@
     margin-inline: calc(-1 * var(--header-gutter));
     padding-inline-start: var(--header-gutter);
     @apply sticky top-0 z-10 flex items-center justify-between border-line/40 border-b bg-sidebar-surface;
+  }
+
+  .quest-overview-link {
+    min-block-size: var(--target-size);
   }
 
   .quest-sidebar .workspace-rail {

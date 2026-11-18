@@ -14,6 +14,7 @@ import {
   listOwnSpells,
   updateSpell,
 } from "@/spells/own-spell-store.ts";
+import { changeQuestSpellAction } from "@/spells/quest-spell-action.ts";
 import { spellReply } from "@/spells/spell-reply.ts";
 import {
   currentSpell,
@@ -33,6 +34,8 @@ import {
   signedInChat,
 } from "../test-database/chat-test-kit.ts";
 
+vi.mock("next/cache", () => ({ refresh: vi.fn() }));
+
 test("use_case_customize_spell", async () => {
   const { user, chat } = await signedInChat();
   const copy = await cloneSpell(user.id, "brainstorm");
@@ -50,7 +53,7 @@ test("use_case_customize_spell", async () => {
     },
   });
   expect(edited?.definition.destination).toBe("tasks");
-  expect(messageText(await constructReply(chat.id, "cast Small tasks"))).toBe(
+  expect(messageText(await constructReply(chat.id, "/cast Small tasks"))).toBe(
     "Ready: Small tasks in Tasks.",
   );
   expect(await currentSpell(user.id, chat)).toBe(copy.id);
@@ -82,7 +85,11 @@ test("use_case_customize_spell", async () => {
     "Until next time.",
   );
 
-  await constructReply(chat.id, "cast New ideas");
+  const switched = await changeQuestSpellAction({
+    questId: chat.quest.id,
+    spell: copy.id,
+  });
+  expect(switched.kind).toBe("saved");
   await constructReply(chat.id, "Try origami");
   expect(
     (await listIdeas(user.id, chat.quest.id)).map((idea) => idea.text),
@@ -184,17 +191,23 @@ test("a saved random reply is reused on retry while a new message can select ano
     },
   });
   await setSpell(user.id, { chatId: chat.id, spell: spell.id });
+  const active = await getChat(user.id, chat.id);
+  if (active === undefined) {
+    throw new Error("Expected active spell");
+  }
   const first = question("Try clay");
   await saveMessage(user.id, chat.id, first);
   const LastChoiceRandom = 0.999;
   const random = vi.spyOn(Math, "random").mockReturnValue(0);
   try {
-    expect(await spellReply(user.id, chat, first)).toBe("First: Try clay");
+    expect(await spellReply(user.id, active, first)).toBe("First: Try clay");
     random.mockReturnValue(LastChoiceRandom);
-    expect(await spellReply(user.id, chat, first)).toBe("First: Try clay");
+    expect(await spellReply(user.id, active, first)).toBe("First: Try clay");
     const second = question("Try origami");
     await saveMessage(user.id, chat.id, second);
-    expect(await spellReply(user.id, chat, second)).toBe("Second: Try origami");
+    expect(await spellReply(user.id, active, second)).toBe(
+      "Second: Try origami",
+    );
     const ideas = await listIdeas(user.id, chat.quest.id);
     expect(ideas).toHaveLength(2);
     expect(ideas.map((idea) => idea.text)).toEqual(
@@ -216,22 +229,22 @@ test("casting uses case-insensitive owner-scoped names and refuses ids and ambig
     name: "Alstorm",
     definition: { destination: "tasks" },
   });
-  await constructReply(chat.id, "cast aLsToRm");
+  await constructReply(chat.id, "/cast aLsToRm");
   expect(await currentSpell(user.id, chat)).toBe(own.id);
-  await constructReply(chat.id, "cast Tasks");
-  await constructReply(chat.id, `cast ${own.id}`);
+  await constructReply(chat.id, "/cast Tasks");
+  await constructReply(chat.id, `/cast ${own.id}`);
   expect(await currentSpell(user.id, chat)).toBe("tasks");
   await createSpell(user.id, {
     name: "Alstorm",
     definition: { destination: "tasks" },
   });
-  const refused = messageText(await constructReply(chat.id, "cast alstorm"));
+  const refused = messageText(await constructReply(chat.id, "/cast alstorm"));
   expect(refused).toBe(SPELL_MODE_COPY.ambiguous);
   expect(await currentSpell(user.id, chat)).toBe("tasks");
   const multiword = await createSpell(user.id, {
     name: "Small experiments",
     definition: { destination: "brainstorm" },
   });
-  await constructReply(chat.id, "cast SMALL   experiments");
+  await constructReply(chat.id, "/cast SMALL   experiments");
   expect(await currentSpell(user.id, chat)).toBe(multiword.id);
 });
