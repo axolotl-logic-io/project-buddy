@@ -9,6 +9,10 @@ icons and appearance metadata provide its name, launch address and colors.
 Every launch reaches the site and requires sign-in when the session has ended.
 Nothing is cached for offline use.
 
+The logo and app icons show a tilted, angular hourglass inside a gear. Its
+unequal chambers and off-center position make the mark asymmetric. The app
+icons use gold on ink brown; the header mark follows its appearance colors.
+
 The site registers no service worker, requests no notification permission
 and sends no notifications.
 

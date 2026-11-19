@@ -815,7 +815,7 @@
 
   /* The header is a game's HUD in every theme, with an independent ink and
      gold palette: one row, an ink tile with a gold rim, holding the brand,
-     a compass medallion and the site's name, and, for a signed-in user,
+     an hourglass inside a gear and the site's name, and, for a signed-in user,
      the ring of their progress at its right end. The site panel and its
      contents keep the theme's own look. The expand buttons sit in the
      breadcrumb row; the panels open from the same row. */

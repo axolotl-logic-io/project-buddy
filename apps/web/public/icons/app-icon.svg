@@ -1,14 +1,8 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
   <title>Project Buddy</title>
-  <!-- Project Buddy's app icon: the header's compass, in its gold, on its
-       ink brown (the parchment theme's --header-gold and --header-ink, in
-       rgb). The compass is drawn on the header icon's 16-unit grid, scaled
-       20 times about the middle, so it stays inside the middle 80% that a
-       maskable icon keeps. public/icons/*.png are rendered from this file,
-       and the favicon from favicon.svg beside it. -->
+  <!-- The header brand in gold on ink brown. The mark stays inside the maskable safe area. The PNG icons are rendered from this file. -->
   <rect width="512" height="512" fill="rgb(48 29 13)"/>
-  <g transform="translate(256 256) scale(20) translate(-8 -8)" fill="none" stroke="rgb(227 173 75)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-    <circle cx="8" cy="8" r="6.5"/>
-    <path d="M10.75 5.25 9 9l-3.75 1.75L7 7z" fill="rgb(227 173 75)"/>
+  <g transform="translate(256 256) scale(20) translate(-8 -8)" fill="none" stroke="rgb(227 173 75)" stroke-width="1.5" stroke-linecap="butt" stroke-linejoin="miter">
+    <path d="M6.944 1.333 9.056 1.333 9.331 2.663 10.833 3.286 11.968 2.539 13.461 4.032 12.714 5.167 13.337 6.669 14.667 6.944 14.667 9.056 13.337 9.331 12.714 10.833 13.461 11.968 11.968 13.461 10.833 12.714 9.331 13.337 9.056 14.667 6.944 14.667 6.669 13.337 5.167 12.714 4.032 13.461 2.539 11.968 3.286 10.833 2.663 9.331 1.333 9.056 1.333 6.944 2.663 6.669 3.286 5.167 2.539 4.032 4.032 2.539 5.167 3.286 6.669 2.663zM7.446 4.628 10.970 5.910 10.713 6.615 8.506 7.780 9.076 10.382 8.819 11.087 5.765 9.975 6.022 9.271 8.506 7.780 7.189 5.332z"/>
   </g>
 </svg>
