@@ -25,9 +25,12 @@ export function CircleProgress({
       className="circle-progress"
       href="/profile#experience"
     >
-      <ProgressRing experience={experience} />
-      <span aria-hidden="true" className="circle-progress-number">
-        {circle}
+      <span aria-hidden="true" className="circle-progress-ring">
+        <ProgressRing experience={experience} />
+        <span className="circle-progress-number">{circle}</span>
+      </span>
+      <span aria-hidden="true" className="circle-progress-title">
+        {title}
       </span>
     </Link>
   );
