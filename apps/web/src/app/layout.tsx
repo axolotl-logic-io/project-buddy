@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { cookies } from "next/headers";
 import type { JSX } from "react";
+import { ExperienceFeedback } from "@/components/experience/circle-progress.tsx";
 import { SignedInHeader } from "@/components/signed-in-header.tsx";
 import {
   parseThemeChoiceCookie,
@@ -58,7 +59,7 @@ export default async function RootLayout({
       lang="en"
     >
       <body className="flex min-h-full flex-col">
-        {header ?? <SignedInHeader />}
+        <ExperienceFeedback>{header ?? <SignedInHeader />}</ExperienceFeedback>
         <main className="flex flex-1 flex-col">{children}</main>
       </body>
     </html>
