@@ -14,7 +14,7 @@
 // invited account's sign-up with the name they give, and accepts that one
 // quest invitation.
 
-import { and, asc, desc, eq, gt, ne, sql } from "drizzle-orm";
+import { and, asc, desc, eq, gt, inArray, ne, sql } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 import { hashToken, newToken, TOKEN_FORMAT } from "@/accounts/emailed-link.ts";
 import {
@@ -210,27 +210,44 @@ async function isInQuest(
   return row !== undefined;
 }
 
-// The account's display name and whether it is an invited account.
-async function accountOf(
+// The people on an invitation, read together within the transaction.
+async function invitationAccounts(
   tx: Transaction,
-  id: string,
-): Promise<{ readonly name: string; readonly invited: boolean }> {
-  const [row] = await tx
+  ids: {
+    readonly inviter: UserId;
+    readonly owner: typeof users.$inferSelect.id;
+    readonly invitee: UserId;
+  },
+): Promise<{
+  readonly invitedBy: string;
+  readonly owner: string | undefined;
+  readonly invitedAccount: boolean;
+}> {
+  const rows = await tx
     .select({
+      id: users.id,
       name: users.name,
       email: users.email,
       accountState: users.accountState,
     })
     .from(users)
-    .where(eq(users.id, id));
+    .where(inArray(users.id, [ids.inviter, ids.owner, ids.invitee]));
+  const byId = new Map(rows.map((row) => [row.id, row]));
+  const inviter = byId.get(ids.inviter);
+  const invitee = byId.get(ids.invitee);
+  let ownerName: string | undefined;
+  if (ids.owner !== ids.inviter) {
+    const owner = byId.get(ids.owner);
+    ownerName = displayName(owner?.name ?? null, owner?.email ?? "");
+  }
   return {
-    name: displayName(row?.name ?? null, row?.email ?? ""),
-    invited: row?.accountState === "invited",
+    invitedBy: displayName(inviter?.name ?? null, inviter?.email ?? ""),
+    owner: ownerName,
+    invitedAccount: invitee?.accountState === "invited",
   };
 }
 
-// A new acceptance link's token, saved on the pending invitation of
-// invitee to the quest, created or replaced, inside tx.
+// Creates or replaces the pending invitation and its acceptance link.
 async function savePendingInvitation(
   tx: Transaction,
   invitation: {
@@ -238,10 +255,9 @@ async function savePendingInvitation(
     readonly inviteeId: UserId;
     readonly inviterId: UserId;
   },
+  tokenHash: string,
   now: Date,
-): Promise<{ readonly token: string; readonly tokenHash: string }> {
-  const token = newToken();
-  const tokenHash = await hashToken(token);
+): Promise<void> {
   const linkExpiresAt = new Date(
     now.getTime() + INVITATION_LINK_LIFETIME_DAYS * MS_PER_DAY,
   );
@@ -252,7 +268,6 @@ async function savePendingInvitation(
       target: [questInvitations.questId, questInvitations.inviteeId],
       set: { tokenHash, linkExpiresAt, inviterId: invitation.inviterId },
     });
-  return { token, tokenHash };
 }
 
 // What to log an unsent invitation email as.
@@ -294,26 +309,27 @@ async function inviteToQuest(
         return { kind: "limited" };
       }
       const inviteeId = await findOrInviteAccount(tx, email);
-      const link = await savePendingInvitation(
+      const token = newToken();
+      const [tokenHash, accounts] = await Promise.all([
+        hashToken(token),
+        invitationAccounts(tx, {
+          inviter,
+          owner: quest.ownerId,
+          invitee: inviteeId,
+        }),
+      ]);
+      await savePendingInvitation(
         tx,
         { questId, inviteeId, inviterId: inviter },
+        tokenHash,
         now,
       );
-      // One after another: a transaction's client runs one query at a time.
-      const inviterAccount = await accountOf(tx, inviter);
-      const owner = await accountOf(tx, quest.ownerId);
-      const invitee = await accountOf(tx, inviteeId);
-      let ownerName: string | undefined;
-      if (quest.ownerId !== inviter) {
-        ownerName = owner.name;
-      }
       return {
         kind: "pending",
         questName: quest.name,
-        invitedBy: inviterAccount.name,
-        owner: ownerName,
-        invitedAccount: invitee.invited,
-        ...link,
+        ...accounts,
+        token,
+        tokenHash,
       };
     }),
   );
@@ -652,7 +668,7 @@ async function acceptInvitationLink(
       if (questId === undefined || inviteeId === undefined) {
         return { kind: "gone" };
       }
-      if (!(await completeSignUpIn(tx, inviteeId, name))) {
+      if ((await completeSignUpIn(tx, inviteeId, name)) === undefined) {
         return { kind: "needs-name" };
       }
       await acceptInTransaction(tx, inviteeId, questId);

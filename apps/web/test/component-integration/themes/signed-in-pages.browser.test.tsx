@@ -9,7 +9,7 @@ import { TIMER_COPY } from "@/ui/copy/timer.ts";
 // and under the site header the @header slot gives it, with the site's
 // stylesheet
 // (vitest.browser-setup.ts) and the theme's fonts (theme-fonts-test-kit.ts).
-// test/app/layout-first-paint.test.tsx covers the theme's first paint,
+// theme-layout.server.test.ts covers the theme's first paint,
 // test/component-integration/components/appearance-choices.browser.test.tsx choosing it, and
 // test/component-integration/components/focus.browser.test.tsx how each theme draws focus.
 

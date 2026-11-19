@@ -1,14 +1,16 @@
-// "use_case_choose_theme", without the Cookie Store API: browsers before
-// 2025, and pages not on HTTPS or localhost, have none, and the site panel still
-// applies a choice and saves it, through its Server Action (#42). That the
-// saved cookie reaches the next page is
-// save-theme-choice-action.server.test.ts's and
-// test/app/layout-first-paint.test.tsx's to check.
+// A browser without the Cookie Store API still saves an appearance.
 
-import { afterAll, beforeAll, describe, expect, test, vi } from "vitest";
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  describe,
+  expect,
+  test,
+  vi,
+} from "vitest";
 import { render } from "vitest-browser-react";
 import { SitePanel } from "@/components/site-panel.tsx";
-import type { saveThemeChoiceAction } from "@/themes/save-theme-choice-action.ts";
 import { DEFAULT_THEME_ATTRIBUTES } from "@/themes/theme-choice.ts";
 import { DEFAULT_THEME_CHOICE, type ThemeChoice } from "@/themes/themes.ts";
 import { THEME_COPY } from "@/ui/copy/theme.ts";
@@ -18,11 +20,6 @@ import {
   closePanel,
   openPanel,
 } from "./site-panel-test-kit.ts";
-
-const action = vi.hoisted(() => ({
-  saveThemeChoiceAction: vi.fn<typeof saveThemeChoiceAction>(),
-}));
-vi.mock("@/themes/save-theme-choice-action.ts", () => action);
 
 const COOKIE_STORE = "cookieStore";
 
@@ -42,10 +39,13 @@ beforeAll(() => {
   for (const owner of COOKIE_STORE_OWNERS) {
     Reflect.deleteProperty(owner, COOKIE_STORE);
   }
-  action.saveThemeChoiceAction.mockResolvedValue();
   for (const [name, value] of Object.entries(DEFAULT_THEME_ATTRIBUTES)) {
     document.documentElement.setAttribute(name, value);
   }
+});
+
+afterEach(() => {
+  vi.unstubAllGlobals();
 });
 
 afterAll(() => {
@@ -60,6 +60,10 @@ afterAll(() => {
 describe("use_case_choose_theme", () => {
   test("saves the choice without the Cookie Store API", async () => {
     expect(COOKIE_STORE in globalThis).toBe(false);
+    const request = vi
+      .fn<typeof fetch>()
+      .mockResolvedValue(new Response(null, { status: 204 }));
+    vi.stubGlobal("fetch", request);
     await render(<SitePanel links={null} />);
 
     await openPanel();
@@ -67,8 +71,11 @@ describe("use_case_choose_theme", () => {
     await closePanel();
 
     expect(appliedChoice()).toStrictEqual(PARCHMENT_DARK);
-    expect(action.saveThemeChoiceAction).toHaveBeenLastCalledWith(
-      PARCHMENT_DARK,
-    );
+    expect(request).toHaveBeenCalledWith("/api/appearance", {
+      method: "PUT",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(PARCHMENT_DARK),
+      keepalive: true,
+    });
   });
 });

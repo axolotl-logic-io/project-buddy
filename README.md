@@ -192,7 +192,7 @@ mise run review-data
 
 The command deletes the three accounts, makes them again and prints a 30-minute sign-in link for each. To use other addresses, pass a base address, such as `mise run review-data me@example.test`, which gives `me+empty@example.test` and so on. The base address itself is never changed. If the site runs on another port, set `PROJECT_BUDDY_URL`, such as `PROJECT_BUDDY_URL=http://localhost:3210`.
 
-The command refuses any database but your worktree's own development database, and any site address but `localhost`. It starts quests and sends messages through the running site's API, so the construct's replies are the local engine's own. It makes everything else with the site's own stores. Two kinds of message go straight into the database, because the local construct engine never writes them: replies that record a milestone, and replies in Markdown. The content is in `apps/web/scripts/development/review-content.ts`.
+The command refuses any database but your worktree's own development database, and any site address but `localhost`. It starts quests, casts and stops spells, and sends spell messages through the local site's API. The local construct engine writes the spell replies. It makes everything else with the site's own stores. Two kinds of message go straight into the database, because the local construct engine never writes them: replies that record a milestone, and replies in Markdown. The content is in `apps/web/scripts/development/review-content.ts`.
 
 ### Visual comparison
 

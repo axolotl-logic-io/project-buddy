@@ -140,7 +140,13 @@ export function createQuestWithChat(
     const dailies = chat.dailies === true;
     const inserted = await db
       .insert(quests)
-      .values({ id: questId, userId: owner, name: questName, dailies })
+      .values({
+        id: questId,
+        userId: owner,
+        name: questName,
+        dailies,
+        startingContext: chat.context,
+      })
       .onConflictDoNothing({
         target: quests.userId,
         where: sql`dailies`,

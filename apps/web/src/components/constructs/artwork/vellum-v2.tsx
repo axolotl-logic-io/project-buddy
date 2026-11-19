@@ -13,16 +13,13 @@ import {
 // names a colour: construct-art.css paints each class with the
 // appearance's --construct-* tokens.
 
-const PORTRAIT_BOX = { x: 0, y: 0, size: 256 } as const;
-
-function VellumPortrait({ frame }: DrawingProps): JSX.Element {
-  const id = useId();
+function VellumPortraitMapBackdrop({
+  id,
+}: {
+  readonly id: string;
+}): JSX.Element {
   return (
-    <svg
-      className="construct-art"
-      viewBox={frameViewBox(PORTRAIT_BOX, frame)}
-      aria-hidden={true}
-    >
+    <>
       <defs>
         <radialGradient id={`${id}sheet`} cx="50%" cy="46%" r="74%">
           <stop offset=".5" className="st-ground" />
@@ -197,6 +194,13 @@ function VellumPortrait({ frame }: DrawingProps): JSX.Element {
         ry="4.5"
         opacity=".35"
       />
+    </>
+  );
+}
+
+function VellumPortraitTorso({ id }: { readonly id: string }): JSX.Element {
+  return (
+    <>
       <g className="legs">
         <rect
           className="f-shade s-ink"
@@ -417,6 +421,13 @@ function VellumPortrait({ frame }: DrawingProps): JSX.Element {
         width="6"
         height="5.5"
       />
+    </>
+  );
+}
+
+function VellumPortraitArmsAndTools(): JSX.Element {
+  return (
+    <>
       <g transform="rotate(-62 178 150)">
         <rect
           className="f-paper s-ink"
@@ -598,6 +609,13 @@ function VellumPortrait({ frame }: DrawingProps): JSX.Element {
         <circle cx="168" cy="155" r="1.6" />
         <circle cx="172" cy="155" r="1.6" />
       </g>
+    </>
+  );
+}
+
+function VellumPortraitHead({ id }: { readonly id: string }): JSX.Element {
+  return (
+    <>
       <rect
         className="f-shade s-ink"
         strokeWidth="1.5"
@@ -758,6 +776,24 @@ function VellumPortrait({ frame }: DrawingProps): JSX.Element {
         strokeWidth="2.3"
         d="M120 92.5Q128 98.5 136 92.5"
       />
+    </>
+  );
+}
+
+const PORTRAIT_BOX = { x: 0, y: 0, size: 256 } as const;
+
+function VellumPortrait({ frame }: DrawingProps): JSX.Element {
+  const id = useId();
+  return (
+    <svg
+      className="construct-art"
+      viewBox={frameViewBox(PORTRAIT_BOX, frame)}
+      aria-hidden={true}
+    >
+      <VellumPortraitMapBackdrop id={id} />
+      <VellumPortraitTorso id={id} />
+      <VellumPortraitArmsAndTools />
+      <VellumPortraitHead id={id} />
     </svg>
   );
 }

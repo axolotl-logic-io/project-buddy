@@ -1,42 +1,54 @@
-// Applies the mode chosen in the site panel to this
-// page at once, then saves the whole choice to this browser's cookie through
-// a Server Action (theme-choice.ts's header has where the cookie is written
-// and read).
-import { saveThemeChoiceAction } from "@/themes/save-theme-choice-action.ts";
 import {
-  MODE_ATTRIBUTE,
+  APPEARANCE_PREFERENCE_PATH,
+  applyThemeAttributes,
   readAppliedTheme,
-  THEME_ATTRIBUTE,
+  themeChoiceCookie,
 } from "@/themes/theme-choice.ts";
 import { parseThemeChoice, type ThemeChoice } from "@/themes/themes.ts";
 
-function keepUnsaved(): void {
-  // The choice still applies to this page; this browser keeps the one saved
-  // before.
+const MS_PER_SECOND = 1000;
+let latestSave = Promise.resolve();
+
+async function persist(choice: ThemeChoice): Promise<void> {
+  const { cookieStore } = globalThis;
+  // Cookie Store writes secure cookies. On HTTP some browsers create a
+  // cookie they cannot read or replace through a same-origin HTTP response.
+  if (globalThis.location.protocol === "https:" && cookieStore !== undefined) {
+    const { maxAge, ...cookie } = themeChoiceCookie(choice);
+    try {
+      await cookieStore.set({
+        ...cookie,
+        expires: Date.now() + maxAge * MS_PER_SECOND,
+      });
+      if ((await cookieStore.get(cookie.name))?.value === cookie.value) {
+        return;
+      }
+    } catch {
+      // Some browsers expose Cookie Store where it cannot write cookies.
+    }
+  }
+  // HTTP and older browsers save through the same-origin preference route.
+  const response = await fetch(APPEARANCE_PREFERENCE_PATH, {
+    method: "PUT",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify(choice),
+    keepalive: true,
+  });
+  if (!response.ok) {
+    // The current document still reflects the selected appearance.
+  }
 }
 
-// The one place the browser saves the choice. The Server Action writes it
-// to this browser's cookie. Each call carries the whole choice, and Next
-// runs a page's Server Actions one at a time, so the last pick wins.
-function saveThemeChoice(choice: ThemeChoice): void {
-  saveThemeChoiceAction(choice).catch(keepUnsaved);
+function keepAppliedChoice(): void {
+  // Browser policy or a failed request may prevent saving for the next visit.
 }
 
-// Restyles the page at once and saves the choice for the next visit.
-function applyThemeChoice(raw: {
-  readonly theme: unknown;
-  readonly mode: unknown;
-}): void {
-  const choice = parseThemeChoice(raw);
-  const root = document.documentElement;
-  root.setAttribute(THEME_ATTRIBUTE, choice.theme);
-  root.setAttribute(MODE_ATTRIBUTE, choice.mode);
-  saveThemeChoice(choice);
-}
-
-// An unknown mode applies the default.
+// Applies the mode immediately. Serial saves keep the last selection when
+// the user switches appearances repeatedly.
 function chooseMode(mode: string): void {
-  applyThemeChoice({ theme: readAppliedTheme(), mode });
+  const choice = parseThemeChoice({ theme: readAppliedTheme(), mode });
+  applyThemeAttributes(choice);
+  latestSave = latestSave.then(() => persist(choice)).catch(keepAppliedChoice);
 }
 
 export { chooseMode };

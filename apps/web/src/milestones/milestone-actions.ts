@@ -4,7 +4,7 @@ import { refresh } from "next/cache";
 import { z } from "zod";
 import { requireUser } from "@/auth/current-user.ts";
 import type { QuestActionResult } from "@/components/use-quest-action.ts";
-import { MILESTONE_ID } from "@/ids.ts";
+import { MILESTONE_ID, QUEST_ID } from "@/ids.ts";
 import {
   MILESTONE_TEXT,
   MILESTONE_TEXT_MAX_LENGTH,
@@ -12,6 +12,7 @@ import {
 import {
   deleteMilestone,
   editMilestone,
+  recordMilestone,
 } from "@/milestones/milestone-store.ts";
 import { PROGRESS_TIMELINE_COPY } from "@/ui/copy/milestones.ts";
 
@@ -19,6 +20,27 @@ const MILESTONE_CHANGE = z.object({
   id: MILESTONE_ID,
   text: z.string().optional(),
 });
+
+const MILESTONE_ADD = z.object({ questId: QUEST_ID, text: MILESTONE_TEXT });
+
+async function addMilestoneAction(
+  request: unknown,
+): Promise<QuestActionResult> {
+  const user = await requireUser();
+  const change = MILESTONE_ADD.safeParse(request).data;
+  if (
+    change === undefined ||
+    (await recordMilestone(
+      user.id,
+      { questId: change.questId },
+      change.text,
+    )) === undefined
+  ) {
+    return { kind: "problem", text: PROGRESS_TIMELINE_COPY.unavailable };
+  }
+  refresh();
+  return { kind: "saved" };
+}
 
 async function changeMilestoneAction(
   request: unknown,
@@ -49,4 +71,4 @@ async function changeMilestoneAction(
   return { kind: "saved" };
 }
 
-export { changeMilestoneAction };
+export { addMilestoneAction, changeMilestoneAction };

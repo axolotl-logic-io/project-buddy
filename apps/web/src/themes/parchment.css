@@ -23,6 +23,13 @@
     --timer-number-scale: max(4.25rem, 26cqi);
     --timer-hours-scale: 23cqi;
     --timer-number-leading: 1;
+    --timer-panel-columns: auto minmax(0, 1fr);
+    --timer-panel-align: start;
+    --timer-panel-phase-size: 1.25rem;
+    --timer-panel-number-scale: 20cqi;
+    --timer-panel-hours-scale: 15cqi;
+    --timer-panel-stage-end: 0px;
+    --timer-panel-next-position: static;
     --timer-next-font: var(--timer-body-font);
     --timer-hourglass-display: block;
     --timer-ring-display: none;
@@ -31,7 +38,6 @@
     --timer-face-ratio: auto;
     --timer-face-height: 35.625rem;
     --timer-stage-padding: 1.5rem 4rem;
-    --timer-panel-tail: 0;
     --timer-face-padding: 2.5rem 3.4375rem;
     --timer-readout-align: start;
     --timer-phase-position: static;
@@ -282,6 +288,13 @@
 
   [data-mode="soot-brass"],
   [data-mode="dark"] {
+    --timer-panel-columns: 1fr;
+    --timer-panel-align: center;
+    --timer-panel-phase-size: 1.75rem;
+    --timer-panel-number-scale: 24cqi;
+    --timer-panel-hours-scale: 20cqi;
+    --timer-panel-stage-end: 1.5rem;
+    --timer-panel-next-position: absolute;
     --timer-hourglass-display: none;
     --timer-ring-display: block;
     --timer-face-columns: 1fr;
@@ -299,7 +312,6 @@
     --timer-number-leading: 1.1;
     --timer-next-font: var(--heading-font);
     --timer-phase-gap: 0;
-    --timer-panel-tail: 3rem;
     --timer-next-position: absolute;
     --timer-next-offset: calc(100% + 1.25rem);
     --timer-next-margin: 0;
@@ -391,6 +403,7 @@
     --timer-marker-active: var(--foreground);
     --timer-phase-font: var(--timer-blackletter-font);
     --timer-phase-size: 2rem;
+    --timer-panel-phase-size: 2rem;
     --timer-radius: 162px;
     --timer-stroke: 12px;
     --timer-guide-outer: 186px;

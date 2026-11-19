@@ -1,7 +1,7 @@
 "use client";
 
 import { type JSX, useCallback } from "react";
-import type { ToolCallPart } from "@/components/chat/tool-parts.tsx";
+import type { ToolCallPart } from "@/components/chat/tool-parts.ts";
 import { useTasks } from "@/components/tasks/use-tasks.ts";
 import { Button } from "@/components/ui/button.tsx";
 import { Icon } from "@/components/ui/icon.tsx";

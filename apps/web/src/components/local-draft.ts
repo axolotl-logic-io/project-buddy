@@ -19,26 +19,51 @@ function storageOrNull(): Storage | null {
   }
 }
 
-// The draft kept under key, or undefined if there is none, or none that
-// draft parses, as after a change of its shape.
+// A stable snapshot for React consumers of this browser's saved drafts.
+function readLocalDraftSnapshot(key: string): string | null {
+  try {
+    return storageOrNull()?.getItem(`${KEY_PREFIX}${key}`) ?? null;
+  } catch {
+    return null;
+  }
+}
+
+function parseLocalDraft<Draft>(
+  snapshot: string | null,
+  draft: z.ZodType<Draft>,
+): Draft | undefined {
+  if (snapshot === null) {
+    return undefined;
+  }
+  try {
+    const value: unknown = JSON.parse(snapshot);
+    return draft.safeParse(value).data;
+  } catch {
+    return undefined;
+  }
+}
+
+// The draft kept under key, or undefined if it is missing or invalid.
 function readLocalDraft<Draft>(
   key: string,
   draft: z.ZodType<Draft>,
 ): Draft | undefined {
-  try {
-    const stored = storageOrNull()?.getItem(`${KEY_PREFIX}${key}`) ?? null;
-    if (stored === null) {
-      return undefined;
+  return parseLocalDraft(readLocalDraftSnapshot(key), draft);
+}
+
+// The writing tab already updates its own editor. Observe changes from
+// other tabs while this tab has no edits of its own.
+function subscribeToLocalDraft(key: string, changed: () => void): () => void {
+  function onStorage(event: StorageEvent): void {
+    if (
+      event.storageArea === storageOrNull() &&
+      (event.key === null || event.key === `${KEY_PREFIX}${key}`)
+    ) {
+      changed();
     }
-    const value: unknown = JSON.parse(stored);
-    const parsed = draft.safeParse(value);
-    if (!parsed.success) {
-      return undefined;
-    }
-    return parsed.data;
-  } catch {
-    return undefined;
   }
+  globalThis.addEventListener("storage", onStorage);
+  return (): void => globalThis.removeEventListener("storage", onStorage);
 }
 
 // Keeps draft under key, or forgets the draft under key when draft is
@@ -57,4 +82,10 @@ function keepLocalDraft(key: string, draft: unknown): void {
   }
 }
 
-export { keepLocalDraft, readLocalDraft };
+export {
+  keepLocalDraft,
+  parseLocalDraft,
+  readLocalDraft,
+  readLocalDraftSnapshot,
+  subscribeToLocalDraft,
+};

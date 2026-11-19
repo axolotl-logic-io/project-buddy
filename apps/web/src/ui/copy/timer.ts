@@ -33,7 +33,6 @@ export const TIMER_COPY = {
     expand: "Open Timer panel",
     collapse: "Close Timer panel",
   },
-  changeSchedule: "Set up another timer",
   preferences: "Timer preferences",
   closePreferences: "Close timer preferences",
   displayLabel: "Running timer",
@@ -41,6 +40,8 @@ export const TIMER_COPY = {
     inscription: "TEMPUS · LABOR · QUIES",
     refrain: "AS THE HOUR TURNS, BEGIN AGAIN",
   },
+  nextWithMinutes: (label: string, minutes: number): string =>
+    `${label} ${minutes} min`,
   next: (kind: keyof typeof PHASES): string => `Next · ${PHASES[kind]}`,
   title: pageTitle("Timer"),
   panelLink: "Timer",
@@ -53,6 +54,7 @@ export const TIMER_COPY = {
   breakLabel: "Break for",
   minutes: minutesLabel,
   start: "Start",
+  startAgain: "Start again",
   startHint: "Starts a new schedule now, beginning with work.",
   joinGlobal: "Join global timer",
   joinGlobalHint:

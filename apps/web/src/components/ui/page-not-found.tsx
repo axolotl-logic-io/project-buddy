@@ -6,7 +6,7 @@ import { PROBLEMS_COPY } from "@/ui/copy/problems.ts";
 
 // What a page that isn't found shows: the message saying what can't be
 // found and a way back to the quests. A page that isn't found while
-// rendering arrives without <head>'s pre-paint scripts, so SavedChoices
+// rendering arrives without the server-rendered appearance, so SavedChoices
 // applies the saved mode.
 function PageNotFound({ message }: { readonly message: string }): JSX.Element {
   return (

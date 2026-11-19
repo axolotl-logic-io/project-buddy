@@ -7,7 +7,7 @@ The signed-in pages below group related content under the site header's trail ba
 | Spellbook | All, Built-in, Yours filters | Search active built-in and own spells by name. Create spell opens a new private spell; each row opens View or Edit. Detail pages keep copying and retirement. Graveyard restores or deletes retired spells. |
 | Profile | Name and Experience on one page | The name form's draft and feedback stay visible. Experience shows the user's circle, title and points in each ability. |
 | Settings | Appearance and Security on one page | Appearance changes this browser's mode. Security has both sign-out actions; loading and error states also offer sign-out. Old Account URLs reach the corresponding content. |
-| Quest | Overview and linked sections | Overview links to Tasks, Ideas, Quick Notes, Progress, Spells & status, and Members. Ordinary quests show Next task. Dailies shows Start Day, its available Undo, and Day grid. An active spell adds a conversation below the workspace. The Timer panel docks on wide screens and opens as a modal drawer on phones. |
+| Quest | Overview and linked sections | Overview links to Tasks, Ideas, Quick Notes, Progress, Spells & status, and Members. Ordinary quests show Next task. Dailies shows Start Day, its available Undo, and Day grid. An active spell opens a conversation above the section content. The Timer panel docks on wide screens and opens as a modal drawer on phones. |
 
 ## Navigation and drafts
 

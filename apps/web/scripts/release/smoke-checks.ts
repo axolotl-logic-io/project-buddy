@@ -175,34 +175,46 @@ async function releaseBody(response: Response): Promise<void> {
   }
 }
 
-// Runs every check against the site at baseUrl and returns the failures, one
-// line each, or an empty list if all pass. Redirects are not followed, so a
-// redirect is checked as the answer itself.
-function smokeChecks(baseUrl: string, fetchFn: SmokeFetch): Promise<string[]> {
-  // Chain requests instead of starting them all together: the live site
-  // receives one at a time, including reading and checking each response.
-  return CHECKS.reduce(
-    async (pending, { name, path, init, check }): Promise<string[]> => {
-      const failures = await pending;
-      const url = new URL(path, baseUrl).href;
-      let problem: string | undefined;
-      try {
-        const response = await fetchFn(url, { ...init, redirect: "manual" });
-        try {
-          problem = await check(response, baseUrl);
-        } finally {
-          await releaseBody(response);
-        }
-      } catch (error) {
-        problem = `request failed: ${describeError(error)}`;
-      }
+// Redirects are checked as responses in their own right.
+async function smokeFailure(
+  baseUrl: string,
+  fetchFn: SmokeFetch,
+  { name, path, init, check }: (typeof CHECKS)[number],
+): Promise<string | undefined> {
+  const url = new URL(path, baseUrl).href;
+  try {
+    const response = await fetchFn(url, { ...init, redirect: "manual" });
+    try {
+      const problem = await check(response, baseUrl);
       if (problem !== undefined) {
-        failures.push(`${name}: ${problem}`);
+        return `${name}: ${problem}`;
       }
-      return failures;
-    },
-    Promise.resolve<string[]>([]),
-  );
+      return undefined;
+    } finally {
+      await releaseBody(response);
+    }
+  } catch (error) {
+    return `${name}: request failed: ${describeError(error)}`;
+  }
+}
+
+// The live site receives one smoke check at a time, including body reads.
+async function smokeChecks(
+  baseUrl: string,
+  fetchFn: SmokeFetch,
+): Promise<string[]> {
+  const failures: string[] = [];
+  let pending = Promise.resolve();
+  for (const check of CHECKS) {
+    pending = pending.then(async (): Promise<void> => {
+      const failure = await smokeFailure(baseUrl, fetchFn, check);
+      if (failure !== undefined) {
+        failures.push(failure);
+      }
+    });
+  }
+  await pending;
+  return failures;
 }
 
 // Vercel's Deployment Protection answers a preview URL with a redirect to its

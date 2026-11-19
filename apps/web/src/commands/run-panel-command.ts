@@ -401,16 +401,24 @@ async function startDayCommand(
   const note = PANEL_COMMANDS_COPY.notes.startDay(cleared);
   // The new day's conversation starts empty, so the note goes in the one
   // before, which Start Day parks.
-  const message = await saveNote(user, chat.id, {
+  const closingNote = commandNoteMessage(generateId(), {
     command: context.text,
     note,
   });
-  const started = await startDay(user, chat.id, {
-    localDate: dayDate(context.localDate, new Date()),
-    ...options,
-  });
+  const [started, author] = await Promise.all([
+    startDay(user, chat.id, {
+      localDate: dayDate(context.localDate, new Date()),
+      ...options,
+      closingNote,
+    }),
+    readMessageAuthor(user),
+  ]);
   if (started === undefined) {
     return problem(PANEL_COMMANDS_COPY.problems.notDailies);
+  }
+  let message: ChatMessage = closingNote;
+  if (author !== undefined) {
+    message = withAuthor(closingNote, author);
   }
   refresh();
   return { kind: "noted", note, message, navigate: conversationPath(questId) };

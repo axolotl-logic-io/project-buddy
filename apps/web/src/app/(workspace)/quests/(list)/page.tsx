@@ -20,8 +20,7 @@ export const metadata: Metadata = { title: QUESTS_COPY.title };
 export default async function QuestsPage({
   searchParams,
 }: PageProps<"/quests">): Promise<JSX.Element> {
-  const { status } = await searchParams;
-  const user = await requireUser();
+  const [{ status }, user] = await Promise.all([searchParams, requireUser()]);
   const [quests, current, pending] = await Promise.all([
     listQuests(user.id),
     readCurrentQuest(user.id),
