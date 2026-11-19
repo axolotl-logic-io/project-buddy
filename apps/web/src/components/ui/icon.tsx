@@ -6,6 +6,7 @@ import type { JSX } from "react";
 interface IconPaths {
   readonly stroke: string;
   readonly fill?: string;
+  readonly lineJoin?: "miter" | "round" | "bevel";
 }
 
 const ICON_PATHS = {
@@ -71,7 +72,13 @@ const ICON_PATHS = {
     stroke:
       "M8 5a3 3 0 1 1 0 6 3 3 0 0 1 0-6zM8 1v1.5M8 13.5V15M1 8h1.5M13.5 8H15M3.05 3.05l1.06 1.06M11.89 11.89l1.06 1.06M12.95 3.05l-1.06 1.06M4.11 11.89l-1.06 1.06",
   },
-  // A compass rose, for the way back to Quests.
+  // The brand: an hourglass inside a gear, also in public/icons/*.svg.
+  brand: {
+    lineJoin: "miter",
+    stroke:
+      "M6.944 1.333 9.056 1.333 9.331 2.663 10.833 3.286 11.968 2.539 13.461 4.032 12.714 5.167 13.337 6.669 14.667 6.944 14.667 9.056 13.337 9.331 12.714 10.833 13.461 11.968 11.968 13.461 10.833 12.714 9.331 13.337 9.056 14.667 6.944 14.667 6.669 13.337 5.167 12.714 4.032 13.461 2.539 11.968 3.286 10.833 2.663 9.331 1.333 9.056 1.333 6.944 2.663 6.669 3.286 5.167 2.539 4.032 4.032 2.539 5.167 3.286 6.669 2.663zM7.446 4.628 10.970 5.910 10.713 6.615 8.506 7.780 9.076 10.382 8.819 11.087 5.765 9.975 6.022 9.271 8.506 7.780 7.189 5.332z",
+  },
+  // A compass rose, for quests.
   compass: {
     stroke:
       "M8 1.5a6.5 6.5 0 1 1 0 13 6.5 6.5 0 0 1 0-13zM10.75 5.25 9 9l-3.75 1.75L7 7z",
@@ -126,7 +133,7 @@ function Icon({
         strokeWidth="1.5"
         viewBox="0 0 16 16"
       >
-        <path d={paths.stroke} />
+        <path d={paths.stroke} strokeLinejoin={paths.lineJoin} />
         {paths.fill !== undefined && (
           <path d={paths.fill} fill="currentColor" stroke="none" />
         )}
