@@ -36,6 +36,8 @@ Profile (`/profile`) opens on the **Experience** card (`src/components/experienc
 
 For a signed-in user, the site header shows their circle's number inside a ring, at the right end of the bar (`src/components/experience/circle-progress.tsx`). The ring fills, like the timer's, from the circle's start to the next circle's, and links to Profile's Experience card; its accessible name gives the circle, its title and the experience still needed. `SignedInHeader` in `src/components/signed-in-header.tsx` reads the experience with the session, so every page's header reads it once. Actions that gain or lose points refresh the page, and so the ring, and a finished reply in the conversation refreshes it too.
 
+When a refreshed total increases, a message such as "+3 experience" briefly slides into view below the header. With reduced motion on, the message appears still. A screen reader can announce the gain without moving focus. Opening the site establishes the starting total for that account.
+
 ## The exp command
 
 In a quest's conversation, `exp`, or `/exp` from the composer's command list, shows the same in the chat: the construct answers it with the sender's circle and title, their experience, how much more the next circle needs, and their points in each ability. `src/experience/experience-reply.ts` reads the experience as the construct replies and writes the answer, which `src/replies/reply.ts` hands to the [local command engine](local-constructs.md). The command changes nothing, so an active spell never saves it to Tasks or Ideas. In a shared conversation, the answer shows the experience of whoever sent it.

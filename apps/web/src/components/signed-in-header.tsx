@@ -1,7 +1,10 @@
 import type { JSX, ReactNode } from "react";
 import { currentUser } from "@/auth/current-user.ts";
 import type { Breadcrumb } from "@/components/breadcrumb.ts";
-import { CircleProgress } from "@/components/experience/circle-progress.tsx";
+import {
+  CircleProgress,
+  ReportExperienceTotal,
+} from "@/components/experience/circle-progress.tsx";
 import {
   AccountLinks,
   SiteHeader,
@@ -27,7 +30,12 @@ async function SignedInHeader({
     trail = <TrailBand items={breadcrumbs} />;
   }
   if (user === undefined) {
-    return <SiteHeader trail={trail} />;
+    return (
+      <>
+        <SiteHeader trail={trail} />
+        <ReportExperienceTotal />
+      </>
+    );
   }
   const experience = await readExperience(user.id);
   return (
@@ -36,6 +44,9 @@ async function SignedInHeader({
       ring={
         <>
           <CircleProgress experience={experience} />
+          <ReportExperienceTotal
+            snapshot={{ user: user.id, total: experience.experience }}
+          />
           <SignedInVisits key={user.id} />
         </>
       }
