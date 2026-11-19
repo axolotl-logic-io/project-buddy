@@ -4,23 +4,17 @@ Each quest has a progress timeline: a dated list of what the user got done, on t
 
 ## Milestones
 
-A milestone is one short line, in the past tense, of something the user finished, such as "Blocked out the shell and body". The construct records it with the `record_milestone` tool when the user says they finished something meaningful in a quest's conversation. The global prompt (`src/replies/global-prompt.ts`) tells every construct to record milestones sparingly: a real achievement, not every step, question or tasks, and never twice for the same thing.
-
-To avoid a second record of the same thing, each reply in a quest's conversation has a system prompt that lists the quest's 10 newest milestones, with their days, beside the Tasks (`src/replies/milestones-prompt.ts`). The construct reads them as already recorded.
-
-The tool is active only in a quest's conversation. A call without a quest fails and records nothing.
-
-The conversation shows each recorded milestone as a notice, apart from the construct's words, with a link to the quest's page. The notice comes from the tool's saved result, so it looks the same while the reply streams and after the user reopens the quest.
+A milestone is one short line in the past tense about something the user finished, such as “Blocked out the shell and body.” Use **Add milestone** in Progress to record one.
 
 ## Timeline
 
-The quest's Progress section lists its milestones, newest first. Each entry shows the day it was recorded and its text; the conversation it came from is the quest's own, one tab away, so entries carry no link. The user can edit an entry's text or delete the entry. An edit keeps the entry's day. When the edit form closes, keyboard focus returns to the entry's Edit button.
+The quest's Progress section lists its milestones, newest first. Each entry shows the day it was recorded and its text. The user can edit an entry's text or delete the entry. An edit keeps the entry's day. When the edit form closes, keyboard focus returns to the entry's Edit button.
 
-A milestone's text is one line of at most 200 characters (`MILESTONE_TEXT` in `src/milestones/milestone.ts`). The tool and the edit form both check it.
+A milestone's text is one line of at most 200 characters (`MILESTONE_TEXT` in `src/milestones/milestone.ts`). The page and server both check it.
 
 ## Day grid
 
-In the Dailies quest, a separate Day grid tab shows recurring history; Progress keeps the recorded milestones. The day grid has one row for each recurring task, with a square for each of its last seven dates: filled when the task was done, empty when it wasn't, and dashed for a gap, a date with no day started. [Dailies](dailies.md) describes the days and streaks behind it.
+In the Dailies quest, Day grid on the overview shows recurring history; Progress keeps the recorded milestones. The day grid has one row for each recurring task, with a square for each of its last seven dates: filled when the task was done, empty when it wasn't, and dashed for a gap, a date with no day started. [Dailies](dailies.md) describes the days and streaks behind it.
 
 ## Storage
 

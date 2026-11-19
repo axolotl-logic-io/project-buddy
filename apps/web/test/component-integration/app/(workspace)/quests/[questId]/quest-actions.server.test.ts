@@ -9,6 +9,8 @@ import { readDailiesRecord } from "@/dailies/day-store.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
 import { changeIdeaAction } from "@/ideas/idea-actions.ts";
 import { listIdeas } from "@/ideas/idea-store.ts";
+import { addMilestoneAction } from "@/milestones/milestone-actions.ts";
+import { listMilestones } from "@/milestones/milestone-store.ts";
 import { changeNoteAction, saveNoteAction } from "@/notes/note-actions.ts";
 import { listNotes } from "@/notes/note-store.ts";
 import { QUEST_NAME } from "@/quests/quest-name.ts";
@@ -60,6 +62,12 @@ test("quest actions update collections and status with no conversation", async (
     ),
   ).toMatchObject({ kind: "saved" });
   expect((await getQuest(her.id, questId))?.status).toBe("completed");
+  expect(
+    await addMilestoneAction({ questId, text: "Built the frame" }),
+  ).toMatchObject({ kind: "saved" });
+  expect(await listMilestones(her.id, questId)).toMatchObject([
+    { text: "Built the frame", chatId: undefined },
+  ]);
   expect(await findConversation(her.id, questId)).toBeUndefined();
 
   await signIn(other);

@@ -1,28 +1,15 @@
-// The user's choice of theme and mode, per browser: saved in a cookie,
-// applied to <html> before the first paint, and changed in the site panel
-// at once, with no reload. The only module that knows the cookie and the
-// attributes. use-theme-choice.ts reads the applied choice in a component.
-//
-// The cookie is written only on the server: the panel applies a choice at
-// once (choose-theme.ts) and then calls saveThemeChoiceAction
-// (save-theme-choice-action.ts), which sets themeChoiceSetCookie. It is read
-// by THEME_PRE_PAINT_SCRIPT, to apply the choice, and by the proxy
-// (src/proxy.ts, through parseThemeChoiceCookie), only for the saved theme's
-// font preload hints.
-//
-// Rendering never reads the cookie, so every page keeps its prerendered
-// shell: the HTML carries the default choice (DEFAULT_THEME_ATTRIBUTES), and
-// THEME_PRE_PAINT_SCRIPT, inline in <head>, swaps in the saved choice while
-// the browser is still parsing. Appearances never follow the operating system.
+// The appearance lives in a browser cookie. The root layout reads it for
+// the first HTML and the proxy reads it for font preloads. The site panel
+// updates the document and cookie together.
 import {
   DEFAULT_THEME_CHOICE,
   parseThemeChoice,
-  THEME_IDS,
   THEME_MODES,
   type ThemeChoice,
 } from "@/themes/themes.ts";
 
 const COOKIE_NAME = "theme";
+const APPEARANCE_PREFERENCE_PATH = "/api/appearance";
 // The cookie's value is "<theme>.<mode>", such as "parchment.dark".
 const COOKIE_VALUE_SEPARATOR = ".";
 const SECONDS_PER_DAY = 86_400;
@@ -34,10 +21,14 @@ const DAYS_PER_YEAR = 365;
 const THEME_ATTRIBUTE = "data-theme";
 const MODE_ATTRIBUTE = "data-mode";
 
-const DEFAULT_THEME_ATTRIBUTES = {
-  [THEME_ATTRIBUTE]: DEFAULT_THEME_CHOICE.theme,
-  [MODE_ATTRIBUTE]: DEFAULT_THEME_CHOICE.mode,
-} as const;
+function themeAttributes(choice: ThemeChoice): {
+  readonly [THEME_ATTRIBUTE]: ThemeChoice["theme"];
+  readonly [MODE_ATTRIBUTE]: ThemeChoice["mode"];
+} {
+  return { [THEME_ATTRIBUTE]: choice.theme, [MODE_ATTRIBUTE]: choice.mode };
+}
+
+const DEFAULT_THEME_ATTRIBUTES = themeAttributes(DEFAULT_THEME_CHOICE);
 
 // Each preview resolves its own palette without changing the page's choice.
 // The picker receives opaque attributes; their names remain in this module.
@@ -49,54 +40,20 @@ const THEME_SWATCHES = THEME_MODES.map((mode) => ({
   },
 }));
 
-// Plain JavaScript, built from the values above, for an inline <script> in
-// <head>. It reads the cookie and copies each part of its value, in order,
-// onto its attribute if it names a known theme or mode; anything else leaves
-// the default.
-const THEME_PRE_PAINT_SCRIPT = `try {
-  var parts = [
-    [${JSON.stringify(THEME_ATTRIBUTE)}, ${JSON.stringify(THEME_IDS)}],
-    [${JSON.stringify(MODE_ATTRIBUTE)}, ${JSON.stringify(THEME_MODES)}]
-  ];
-  var prefix = ${JSON.stringify(`${COOKIE_NAME}=`)};
-  var cookie = document.cookie.split("; ").find(function (entry) {
-    return entry.indexOf(prefix) === 0;
-  });
-  if (cookie) {
-    var values = cookie.slice(prefix.length).split(${JSON.stringify(COOKIE_VALUE_SEPARATOR)});
-    parts.forEach(function (part, index) {
-      if (part[1].indexOf(values[index]) !== -1) {
-        document.documentElement.setAttribute(part[0], values[index]);
-      }
-    });
-  }
-} catch (error) {}`;
-
-// The cookie that saves a choice, as THEME_PRE_PAINT_SCRIPT reads it.
-// Exported for the tests that start with a saved choice; the app saves
-// through themeChoiceSetCookie.
-function themeChoiceCookie(choice: ThemeChoice): {
-  readonly name: string;
-  readonly value: string;
-} {
-  return {
-    name: COOKIE_NAME,
-    value: [choice.theme, choice.mode].join(COOKIE_VALUE_SEPARATOR),
-  };
-}
-
-// The choice a cookie's value saves, read part by part as
-// THEME_PRE_PAINT_SCRIPT reads it: a missing, unknown or malformed part is
-// the default, never an error.
+// Missing, invalid and retired values resolve through the appearance catalog.
 function parseThemeChoiceCookie(value: string | undefined): ThemeChoice {
   const [theme, mode] = (value ?? "").split(COOKIE_VALUE_SEPARATOR);
   return parseThemeChoice({ theme, mode });
 }
 
-// The cookie that saves a choice for a year, ready for Next's
-// cookies().set. Not HttpOnly, since the pre-paint script reads it, and not
-// Secure.
-function themeChoiceSetCookie(choice: ThemeChoice): {
+function applyThemeAttributes(choice: ThemeChoice): void {
+  const root = document.documentElement;
+  root.setAttribute(THEME_ATTRIBUTE, choice.theme);
+  root.setAttribute(MODE_ATTRIBUTE, choice.mode);
+}
+
+// Both save paths use the same cookie name, scope and lifetime.
+function themeChoiceCookie(choice: ThemeChoice): {
   readonly name: string;
   readonly value: string;
   readonly path: string;
@@ -104,29 +61,28 @@ function themeChoiceSetCookie(choice: ThemeChoice): {
   readonly maxAge: number;
 } {
   return {
-    ...themeChoiceCookie(choice),
+    name: COOKIE_NAME,
+    value: [choice.theme, choice.mode].join(COOKIE_VALUE_SEPARATOR),
     path: "/",
     sameSite: "lax",
     maxAge: DAYS_PER_YEAR * SECONDS_PER_DAY,
   };
 }
 
-// Applies the saved choice to the page, as THEME_PRE_PAINT_SCRIPT does,
-// for a page React rendered in the browser from nothing: when a page fails
-// while rendering, Next sends a bare document without <head>'s scripts, so
-// the pre-paint script never runs (PageError calls this). With no cookie,
-// the default stays.
-function applySavedThemeChoice(): void {
+function readThemeChoiceCookie(): string | undefined {
   const prefix = `${COOKIE_NAME}=`;
-  const saved = document.cookie
+  return document.cookie
     .split("; ")
-    .find((entry) => entry.startsWith(prefix));
-  if (saved === undefined) {
-    return;
+    .find((entry) => entry.startsWith(prefix))
+    ?.slice(prefix.length);
+}
+
+// A client-rendered error recovery can start with a fresh document.
+function applySavedThemeChoice(): void {
+  const saved = readThemeChoiceCookie();
+  if (saved !== undefined) {
+    applyThemeAttributes(parseThemeChoiceCookie(saved));
   }
-  const choice = parseThemeChoiceCookie(saved.slice(prefix.length));
-  document.documentElement.setAttribute(THEME_ATTRIBUTE, choice.theme);
-  document.documentElement.setAttribute(MODE_ATTRIBUTE, choice.mode);
 }
 
 // For useThemeChoice: calls onChange whenever the applied choice changes, and
@@ -151,7 +107,9 @@ function readAppliedMode(): string | null {
 }
 
 export {
+  APPEARANCE_PREFERENCE_PATH,
   applySavedThemeChoice,
+  applyThemeAttributes,
   COOKIE_NAME as THEME_COOKIE_NAME,
   DEFAULT_THEME_ATTRIBUTES,
   MODE_ATTRIBUTE,
@@ -160,7 +118,7 @@ export {
   readAppliedTheme,
   subscribeToThemeChoice,
   THEME_ATTRIBUTE,
-  THEME_PRE_PAINT_SCRIPT,
   THEME_SWATCHES,
-  themeChoiceSetCookie,
+  themeAttributes,
+  themeChoiceCookie,
 };

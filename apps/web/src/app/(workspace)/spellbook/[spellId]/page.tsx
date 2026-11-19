@@ -82,16 +82,14 @@ async function SpellPage({
   return (
     <section className="definition-editor flex min-w-0 flex-col gap-4">
       <FormStatus>{saved === "1" && SPELLBOOK_COPY.saved}</FormStatus>
-      <p className="wrap-anywhere text-muted">
-        {SPELLBOOK_COPY.command(spell.name)}
-      </p>
+      <p className="wrap-anywhere text-muted">{SPELLBOOK_COPY.castFromQuest}</p>
       <PromptEditor
         action={saveSpellAction}
         kind="spell"
         idName="spellId"
         promptId={spell.id}
         savedAt={revision}
-        key={revision}
+        key={`${user.id}:${spell.id}:${revision}`}
         name={spell.name}
         nameMaxLength={120}
         viewer={user.id}

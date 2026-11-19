@@ -1,7 +1,6 @@
 import { parse, wcagContrast } from "culori";
-import { beforeEach, expect, test, vi } from "vitest";
+import { afterEach, beforeAll, beforeEach, expect, test, vi } from "vitest";
 import { commands, page, userEvent } from "vitest/browser";
-import { saveThemeChoiceAction } from "@/themes/save-theme-choice-action.ts";
 import { THEME_MODES } from "@/themes/themes.ts";
 import { SITE_PANEL_COPY } from "@/ui/copy/site.ts";
 import { THEME_COPY } from "@/ui/copy/theme.ts";
@@ -23,18 +22,19 @@ import {
 } from "../../../support/timer/timer-test-kit.tsx";
 import { applyTheme } from "../../themes/theme-test-kit.ts";
 
-vi.mock("@/themes/save-theme-choice-action.ts", () => ({
-  saveThemeChoiceAction: vi.fn(),
-}));
-
 vi.mock(
   "next/navigation",
   () => import("../../../support/timer/timer-router.ts"),
 );
 
+beforeAll(() => commands.serveAppearancePreference());
+
 beforeEach(() => {
   applyTheme("parchment");
-  vi.mocked(saveThemeChoiceAction).mockResolvedValue();
+});
+
+afterEach(async () => {
+  await globalThis.cookieStore?.delete("theme");
 });
 
 const SCHEDULE = { workMinutes: 50, breakMinutes: 10, startMs: T } as const;
@@ -82,10 +82,9 @@ test("use_case_timer_choose_appearance", async () => {
   expect(getComputedStyle(countdown().element()).color).toBe(
     getComputedStyle(document.body).color,
   );
-  expect(saveThemeChoiceAction).toHaveBeenLastCalledWith({
-    theme: "parchment",
-    mode: "soot-brass",
-  });
+  await expect
+    .poll(() => document.cookie.split("; "))
+    .toContain("theme=parchment.soot-brass");
   await expect.element(countdown()).toHaveTextContent("25:00");
   await expect
     .element(page.getByText("Project Buddy · Timer", { exact: true }))

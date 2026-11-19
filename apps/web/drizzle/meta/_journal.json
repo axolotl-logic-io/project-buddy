@@ -526,6 +526,13 @@
       "when": 1795026173259,
       "tag": "0074_spell_conversation_start",
       "breakpoints": true
+    },
+    {
+      "idx": 75,
+      "version": "7",
+      "when": 1795033484144,
+      "tag": "0075_quest_starting_context",
+      "breakpoints": true
     }
   ]
 }

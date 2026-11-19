@@ -1,5 +1,5 @@
 // Each page that isn't found says what can't be found: any page, or a
-// quest. A page whose notFound() runs while rendering reaches the browser without <head>'s pre-paint scripts,
+// quest. A page whose notFound() runs while rendering reaches the browser without the server-rendered appearance,
 // and React renders <html> with the default theme attributes. The
 // not-found page applies the saved mode itself, so it looks like every
 // other page.

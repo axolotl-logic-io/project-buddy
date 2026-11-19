@@ -16,6 +16,7 @@
 import process from "node:process";
 import type { UIMessage } from "ai";
 import { z } from "zod";
+import type { SessionUser } from "@/auth/session-token.ts";
 import {
   closeAppDatabase,
   loopbackOrigin,
@@ -23,7 +24,6 @@ import {
   type ReviewAccount,
   type ReviewKind,
   reviewAccounts,
-  reviewSession,
 } from "./review-accounts.ts";
 import {
   CROWDED,
@@ -32,6 +32,7 @@ import {
   type ReviewQuest,
   TYPICAL,
 } from "./review-content.ts";
+import { createSessionToken } from "./session-token.ts";
 import { createSignInLink } from "./sign-in-link.ts";
 
 const DEFAULT_SITE = "http://localhost:3000";
@@ -75,13 +76,15 @@ function localSiteOrigin(): string {
 async function callApi(
   site: Site,
   path: string,
-  body?: unknown,
+  request?: {
+    readonly method: "POST" | "PUT" | "DELETE";
+    readonly body?: unknown;
+  },
 ): Promise<unknown> {
-  let method = "GET";
-  let payload: string | undefined;
-  if (body !== undefined) {
-    method = "POST";
-    payload = JSON.stringify(body);
+  const method = request?.method ?? "GET";
+  let payload: string | null = null;
+  if (request?.body !== undefined) {
+    payload = JSON.stringify(request.body);
   }
   const response = await fetch(new URL(`/api/v1${path}`, site.origin), {
     method,
@@ -89,36 +92,51 @@ async function callApi(
       cookie: `session=${site.session}`,
       "content-type": "application/json",
     },
-    body: payload ?? null,
+    body: payload,
     signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
   });
-  const answer: unknown = await response.json().catch(() => ({}));
-  if (!response.ok || typeof answer !== "object" || answer === null) {
+  const requestStatus = `${response.status} to ${method} ${path}`;
+  if (!response.ok) {
+    const error: unknown = await response.json().catch(() => ({}));
     throw new Error(
-      `The site answered ${response.status} to ${method} ${path}: ${JSON.stringify(answer)}`,
+      `The site answered ${requestStatus}: ${JSON.stringify(error)}`,
     );
   }
-  return Reflect.get(answer, "data");
+  const answer: unknown = await response.json().catch(() => ({}));
+  const envelope = z.object({ data: z.unknown() }).safeParse(answer);
+  if (!envelope.success) {
+    throw new Error(
+      `The site answered ${requestStatus} without a JSON data object.`,
+    );
+  }
+  return envelope.data.data;
 }
 
 // Deletes the account, and with it everything it made, then invites it again
 // and completes its sign-up with its name. The stores have no account
 // deletion, so the row is deleted directly; its quests, spells and the rest
 // go with it by foreign key.
-async function remakeAccount(account: ReviewAccount): Promise<string> {
-  const { getDb } = await import("@/db/client.ts");
-  const { users } = await import("@/db/tables/users.ts");
-  const { eq } = await import("drizzle-orm");
-  const { completeSignUp, findOrInviteAccount } = await import(
-    "@/accounts/users-store.ts"
-  );
-  const db = getDb();
-  await db.delete(users).where(eq(users.email, account.email));
-  const id = await findOrInviteAccount(db, account.email);
-  if (!(await completeSignUp(id, account.name))) {
-    throw new Error(`${account.email} could not complete sign-up.`);
-  }
-  return id;
+async function remakeAccount(account: ReviewAccount): Promise<SessionUser> {
+  const [
+    { inTransaction },
+    { users },
+    { eq },
+    { completeSignUpIn, findOrInviteAccount },
+  ] = await Promise.all([
+    import("@/db/client.ts"),
+    import("@/db/tables/users.ts"),
+    import("drizzle-orm"),
+    import("@/accounts/users-store.ts"),
+  ]);
+  return inTransaction(async (db) => {
+    await db.delete(users).where(eq(users.email, account.email));
+    const id = await findOrInviteAccount(db, account.email);
+    const user = await completeSignUpIn(db, id, account.name);
+    if (user === undefined) {
+      throw new Error(`${account.email} could not complete sign-up.`);
+    }
+    return user;
+  });
 }
 
 // Proves the site is this worktree's: it answers the session this script
@@ -152,8 +170,8 @@ async function saveExchange(
   message: string,
   parts: UIMessage["parts"],
 ): Promise<void> {
-  const { saveMessage, saveReply } = await import("@/chats/store.ts");
-  const { CHAT_ID, MESSAGE_ID, USER_ID } = await import("@/ids.ts");
+  const [{ saveMessage, saveReply }, { CHAT_ID, MESSAGE_ID, USER_ID }] =
+    await Promise.all([import("@/chats/store.ts"), import("@/ids.ts")]);
   const owner = USER_ID.parse(scene.owner);
   const chatId = CHAT_ID.parse(scene.chatId);
   const messageId = MESSAGE_ID.parse(await newMessageId());
@@ -180,8 +198,10 @@ async function saveTasksMessage(
   scene: Scene,
   message: UIMessage,
 ): Promise<void> {
-  const store = await import("@/chats/store.ts");
-  const { CHAT_ID, USER_ID } = await import("@/ids.ts");
+  const [store, { CHAT_ID, USER_ID }] = await Promise.all([
+    import("@/chats/store.ts"),
+    import("@/ids.ts"),
+  ]);
   await store.saveTasksMessage(
     USER_ID.parse(scene.owner),
     CHAT_ID.parse(scene.chatId),
@@ -192,14 +212,17 @@ async function saveTasksMessage(
 // Runs a tasks command, such as /add or /done, as the chat's command action
 // does (src/tasks/tasks-actions.ts), which only a Server Action may call.
 async function tasksCommand(scene: Scene, text: string): Promise<void> {
-  const { parseTasksCommand } = await import("@/tasks/tasks-commands.ts");
-  const { changeTasks, readTasksState } = await import(
-    "@/tasks/tasks-store.ts"
-  );
-  const { tasksCardMessage, tasksChangeMessage } = await import(
-    "@/tasks/tasks-message.ts"
-  );
-  const { CHAT_ID, QUEST_ID, USER_ID } = await import("@/ids.ts");
+  const [
+    { parseTasksCommand },
+    { changeTasks, readTasksState },
+    { tasksCardMessage, tasksChangeMessage },
+    { CHAT_ID, QUEST_ID, USER_ID },
+  ] = await Promise.all([
+    import("@/tasks/tasks-commands.ts"),
+    import("@/tasks/tasks-store.ts"),
+    import("@/tasks/tasks-message.ts"),
+    import("@/ids.ts"),
+  ]);
   const owner = USER_ID.parse(scene.owner);
   const questId = QUEST_ID.parse(scene.questId);
   const state = await readTasksState(owner, questId);
@@ -238,9 +261,15 @@ async function tasksCommand(scene: Scene, text: string): Promise<void> {
 
 // Tasks added from the Tasks panel, in one change with no command.
 async function addTasks(scene: Scene, texts: readonly string[]): Promise<void> {
-  const { changeTasks } = await import("@/tasks/tasks-store.ts");
-  const { tasksChangeMessage } = await import("@/tasks/tasks-message.ts");
-  const { CHAT_ID, QUEST_ID, USER_ID } = await import("@/ids.ts");
+  const [
+    { changeTasks },
+    { tasksChangeMessage },
+    { CHAT_ID, QUEST_ID, USER_ID },
+  ] = await Promise.all([
+    import("@/tasks/tasks-store.ts"),
+    import("@/tasks/tasks-message.ts"),
+    import("@/ids.ts"),
+  ]);
   const outcome = await changeTasks(
     USER_ID.parse(scene.owner),
     {
@@ -263,10 +292,17 @@ async function addTasks(scene: Scene, texts: readonly string[]): Promise<void> {
 // Runs /idea TEXT as the chat's panel command does
 // (src/commands/run-panel-command.ts), which only a Server Action may call.
 async function ideaCommand(scene: Scene, text: string): Promise<void> {
-  const { changeIdea } = await import("@/ideas/idea-store.ts");
-  const { commandNoteMessage } = await import("@/tasks/tasks-message.ts");
-  const { PANEL_COMMANDS_COPY } = await import("@/ui/copy/commands.ts");
-  const { QUEST_ID, USER_ID } = await import("@/ids.ts");
+  const [
+    { changeIdea },
+    { commandNoteMessage },
+    { PANEL_COMMANDS_COPY },
+    { QUEST_ID, USER_ID },
+  ] = await Promise.all([
+    import("@/ideas/idea-store.ts"),
+    import("@/tasks/tasks-message.ts"),
+    import("@/ui/copy/commands.ts"),
+    import("@/ids.ts"),
+  ]);
   const idea = text.replace(IDEA_COMMAND, "");
   const result = await changeIdea(USER_ID.parse(scene.owner), {
     op: "add",
@@ -287,8 +323,10 @@ async function ideaCommand(scene: Scene, text: string): Promise<void> {
 
 // A Quick Note, as the Quick Note box saves one.
 async function addNote(scene: Scene, text: string): Promise<void> {
-  const { saveNote } = await import("@/notes/note-store.ts");
-  const { QUEST_ID, USER_ID } = await import("@/ids.ts");
+  const [{ saveNote }, { QUEST_ID, USER_ID }] = await Promise.all([
+    import("@/notes/note-store.ts"),
+    import("@/ids.ts"),
+  ]);
   const saved = await saveNote(USER_ID.parse(scene.owner), {
     questId: QUEST_ID.parse(scene.questId),
     text,
@@ -306,11 +344,15 @@ async function addMilestone(
   text: string,
   exchange?: { readonly message: string; readonly reply: string },
 ): Promise<void> {
-  const { recordMilestone } = await import("@/milestones/milestone-store.ts");
-  const { RECORD_MILESTONE_TOOL } = await import(
-    "@/replies/tools/record-milestone-contract.ts"
-  );
-  const { CHAT_ID, QUEST_ID, USER_ID } = await import("@/ids.ts");
+  const [
+    { recordMilestone },
+    { RECORD_MILESTONE_TOOL },
+    { CHAT_ID, QUEST_ID, USER_ID },
+  ] = await Promise.all([
+    import("@/milestones/milestone-store.ts"),
+    import("@/replies/tools/record-milestone-contract.ts"),
+    import("@/ids.ts"),
+  ]);
   const milestone = await recordMilestone(
     USER_ID.parse(scene.owner),
     {
@@ -350,12 +392,14 @@ async function changeStatus(
   scene: Scene,
   status: "completed" | "abandoned",
 ): Promise<void> {
-  const { commandNoteMessage } = await import("@/tasks/tasks-message.ts");
-  const { PANEL_COMMANDS_COPY } = await import("@/ui/copy/commands.ts");
+  const [{ commandNoteMessage }, { PANEL_COMMANDS_COPY }] = await Promise.all([
+    import("@/tasks/tasks-message.ts"),
+    import("@/ui/copy/commands.ts"),
+  ]);
   const quest = QUEST.parse(await callApi(site, `/quests/${scene.questId}`));
   await callApi(site, `/quests/${scene.questId}/status`, {
-    status,
-    revision: quest.revision,
+    method: "POST",
+    body: { status, revision: quest.revision },
   });
   let command = "/complete";
   if (status === "abandoned") {
@@ -384,6 +428,25 @@ async function inOrder<T>(
   await inOrder(rest, act);
 }
 
+async function castSpell(
+  site: Site,
+  scene: Scene,
+  name: string,
+): Promise<void> {
+  const [{ resolveSpellName }, { USER_ID }] = await Promise.all([
+    import("@/spells/own-spell-store.ts"),
+    import("@/ids.ts"),
+  ]);
+  const resolved = await resolveSpellName(USER_ID.parse(scene.owner), name);
+  if (resolved.kind !== "found") {
+    throw new Error(`The review spell "${name}" could not be found by name.`);
+  }
+  await callApi(site, `/quests/${scene.questId}/conversation/spell`, {
+    method: "PUT",
+    body: { spell: resolved.spell.id },
+  });
+}
+
 // Does one step in the quest.
 async function runStep(
   site: Site,
@@ -391,9 +454,18 @@ async function runStep(
   step: QuestStep,
 ): Promise<void> {
   switch (step.kind) {
+    case "cast":
+      await castSpell(site, scene, step.name);
+      return;
+    case "stop":
+      await callApi(site, `/quests/${scene.questId}/conversation/spell`, {
+        method: "DELETE",
+      });
+      return;
     case "send":
       await callApi(site, `/quests/${scene.questId}/conversation/messages`, {
-        text: step.text,
+        method: "POST",
+        body: { text: step.text },
       });
       return;
     case "command":
@@ -437,9 +509,8 @@ async function makeQuest(
 ): Promise<void> {
   const started = STARTED.parse(
     await callApi(site, "/quests", {
-      from: quest.from,
-      name: quest.name,
-      why: quest.why,
+      method: "POST",
+      body: { from: quest.from, name: quest.name, why: quest.why },
     }),
   );
   const scene: Scene = {
@@ -456,8 +527,10 @@ async function fill(
   owner: string,
   content: ReviewContent,
 ): Promise<void> {
-  const { createSpell } = await import("@/spells/own-spell-store.ts");
-  const { USER_ID } = await import("@/ids.ts");
+  const [{ createSpell }, { USER_ID }] = await Promise.all([
+    import("@/spells/own-spell-store.ts"),
+    import("@/ids.ts"),
+  ]);
   await inOrder(content.spells, ({ name, ...definition }) =>
     createSpell(USER_ID.parse(owner), {
       name,
@@ -475,8 +548,10 @@ async function fill(
 
 // The account's experience, as its Profile shows it.
 async function experienceLine(owner: string): Promise<string> {
-  const { readExperience } = await import("@/experience/experience-store.ts");
-  const { USER_ID } = await import("@/ids.ts");
+  const [{ readExperience }, { USER_ID }] = await Promise.all([
+    import("@/experience/experience-store.ts"),
+    import("@/ids.ts"),
+  ]);
   const { experience, circle, title } = await readExperience(
     USER_ID.parse(owner),
   );
@@ -496,12 +571,12 @@ async function reviewData(base?: string): Promise<void> {
   const links: string[] = [];
   try {
     await inOrder(reviewAccounts(base), async (account) => {
-      const owner = await remakeAccount(account);
-      const session = await reviewSession(account, sessionSecret);
-      if (session === undefined) {
-        throw new Error(`${account.email} was not saved.`);
-      }
-      const site = { origin, session };
+      const user = await remakeAccount(account);
+      const owner = user.id;
+      const site = {
+        origin,
+        session: createSessionToken(user, sessionSecret, new Date()),
+      };
       await checkSite(site, account);
       await fill(site, owner, contents[account.kind]);
       console.log(

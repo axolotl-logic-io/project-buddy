@@ -3,8 +3,9 @@ import { readSessionToken, SESSION_COOKIE_NAME } from "@/auth/session-token.ts";
 import { readSessionSecret } from "@/env.ts";
 import { appErrorResponse } from "@/errors/app-error.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
-import { SIGN_IN_PATH } from "@/routes.ts";
+import { HOME_PATH, SIGN_IN_PATH } from "@/routes.ts";
 import {
+  APPEARANCE_PREFERENCE_PATH,
   parseThemeChoiceCookie,
   THEME_COOKIE_NAME,
 } from "@/themes/theme-choice.ts";
@@ -69,11 +70,13 @@ function nextPage(request: NextRequest): Response {
 //
 // Every page it lets through also gets a `Link` header that preloads the
 // fonts of the theme saved in the theme cookie (themeFontPreloadLinks), so
-// they start loading with the page while the HTML stays the same for every
-// visitor (theme-font-urls.ts).
+// they start loading with the page (theme-font-urls.ts).
 export async function proxy(request: NextRequest): Promise<Response> {
   const { pathname } = request.nextUrl;
   const isApi = pathname.startsWith("/api/");
+  if (pathname === APPEARANCE_PREFERENCE_PATH) {
+    return NextResponse.next();
+  }
   if (isPublicPath(pathname)) {
     return nextPage(request);
   }
@@ -88,6 +91,10 @@ export async function proxy(request: NextRequest): Promise<Response> {
     return NextResponse.next();
   }
   if (session !== undefined) {
+    // Redirect before the layout starts streaming the appearance.
+    if (pathname === "/") {
+      return NextResponse.redirect(new URL(HOME_PATH, request.url));
+    }
     return nextPage(request);
   }
 

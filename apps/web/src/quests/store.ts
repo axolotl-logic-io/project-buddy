@@ -25,6 +25,7 @@ interface Quest {
   createdAt: Date;
   status: QuestStatus;
   statusRevision: number;
+  startingContext?: string | undefined;
   // Whether it is the user's Dailies quest (src/conversations/dailies.ts).
   dailies: boolean;
   // How it is shared, as the user reading it sees it.
@@ -38,12 +39,14 @@ interface QuestRow {
   readonly status: string;
   readonly statusRevision: number;
   readonly dailies: boolean;
+  readonly startingContext: string | null;
 }
 
 // The columns a quest is read from. Select only the fields this store
 // uses, so a later release can drop retired columns while this build is
 // still live.
 const QUEST_COLUMNS: {
+  readonly startingContext: typeof quests.startingContext;
   readonly status: typeof quests.status;
   readonly statusRevision: typeof quests.statusRevision;
   readonly id: typeof quests.id;
@@ -51,6 +54,7 @@ const QUEST_COLUMNS: {
   readonly createdAt: typeof quests.createdAt;
   readonly dailies: typeof quests.dailies;
 } = {
+  startingContext: quests.startingContext,
   status: quests.status,
   statusRevision: quests.statusRevision,
   id: quests.id,
@@ -74,6 +78,7 @@ function toQuests(
       {
         id: questId,
         name: row.name,
+        startingContext: row.startingContext ?? undefined,
         createdAt: row.createdAt,
         status: QUEST_STATUS.parse(row.status),
         statusRevision: row.statusRevision,
@@ -132,6 +137,7 @@ export function createQuest(owner: UserId, name: QuestName): Promise<Quest> {
       .insert(quests)
       .values({ userId: owner, name })
       .returning({
+        startingContext: quests.startingContext,
         status: quests.status,
         statusRevision: quests.statusRevision,
         id: quests.id,

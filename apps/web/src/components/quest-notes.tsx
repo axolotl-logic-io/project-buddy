@@ -7,6 +7,7 @@ import {
   EditableList,
   EditableListAction,
   EditableListRow,
+  EditableListScope,
 } from "@/components/ui/editable-list.tsx";
 import type { EditorOptions } from "@/components/ui/editable-list-contract.ts";
 import { Alert, FormStatus } from "@/components/ui/form-message.tsx";
@@ -163,19 +164,21 @@ function QuestNotes({
           <p>{QUEST_NOTES_COPY.none}</p>
         </div>
       )}
-      {notes.length > 0 && (
-        <EditableList label={QUEST_NOTES_COPY.heading}>
-          {notes.map((note) => (
-            <NoteRow
-              busy={busy || creating}
-              key={note.id}
-              note={note}
-              onDelete={remove}
-              onEdit={edit}
-            />
-          ))}
-        </EditableList>
-      )}
+      <EditableListScope blocked={busy || creating}>
+        {notes.length > 0 && (
+          <EditableList label={QUEST_NOTES_COPY.heading}>
+            {notes.map((note) => (
+              <NoteRow
+                busy={busy || creating}
+                key={note.id}
+                note={note}
+                onDelete={remove}
+                onEdit={edit}
+              />
+            ))}
+          </EditableList>
+        )}
+      </EditableListScope>
     </section>
   );
 }

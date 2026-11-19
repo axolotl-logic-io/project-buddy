@@ -107,11 +107,8 @@ async function grantVisualAssets(
     throw new AppError("not-found", undefined);
   }
   const ids = visualAssetIds(input.parts);
-  const savedIds = visualAssetIds(snapshot.parts);
-  if (
-    ids.length !== savedIds.length ||
-    ids.some((id) => !savedIds.includes(id))
-  ) {
+  const savedIds = new Set(visualAssetIds(snapshot.parts));
+  if (ids.length !== savedIds.size || ids.some((id) => !savedIds.has(id))) {
     throw new AppError("not-found", undefined);
   }
   if (ids.length > 0) {

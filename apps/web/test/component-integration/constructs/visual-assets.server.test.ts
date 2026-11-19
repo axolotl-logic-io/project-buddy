@@ -4,7 +4,7 @@ import { and, eq } from "drizzle-orm";
 import { describe, expect, test } from "vitest";
 import { z } from "zod";
 import { createChat } from "@/chats/new-chat-store.ts";
-import { DEFAULT_CONSTRUCT_ID } from "@/constructs/index.ts";
+import { DEFAULT_CONSTRUCT_ID, snapshotOf } from "@/constructs/index.ts";
 import { CONSTRUCT_VISUAL } from "@/constructs/visual.ts";
 import { getVisualAsset } from "@/constructs/visual-asset-store.ts";
 import { getDb, inTransaction } from "@/db/client.ts";
@@ -42,6 +42,23 @@ async function setup(): Promise<{
   const assetId = await seedGeneratedArtwork(user.id, construct.id);
   return { user, construct, assetId };
 }
+
+test("stored artwork survives a Postgres read and a construct snapshot", async () => {
+  const { user, construct, assetId } = await setup();
+  const restored = await getOwnConstruct(user.id, construct.id);
+  if (restored === undefined) {
+    throw new Error("The stored construct was lost");
+  }
+  const expected = {
+    ...DEFINITION,
+    visual: {
+      ...DEFINITION.visual,
+      canonical: { kind: "generated", assetId },
+    },
+  };
+  expect(restored.definition).toMatchObject(expected);
+  expect(snapshotOf(restored).definition).toEqual(restored.definition);
+});
 
 // A copy of seller's construct that buyer bought before the Marketplace
 // closed, as buying left it: buyer's own construct with the seller's saved

@@ -10,6 +10,7 @@
 
 import { and, eq, sql } from "drizzle-orm";
 import { checkUserName } from "@/accounts/user-name.ts";
+import type { SessionUser } from "@/auth/session-token.ts";
 import { type Database, getDb, inTransaction } from "@/db/client.ts";
 import { questInvitations } from "@/db/tables/quest-members.ts";
 import { signUpLinks } from "@/db/tables/sign-up-links.ts";
@@ -181,42 +182,58 @@ async function findOrInviteAccount(
   return id;
 }
 
-// Completes sign-up for an invited account, in tx, saving the name the
-// user gave. A name checkUserName refuses saves nothing and answers false.
-// A signed-up account keeps its state and its saved name, and answers true.
+// Completes sign-up for an invited account and returns its session identity.
+// An invalid name leaves the invited account untouched. A signed-up account
+// keeps its name and session epoch.
 async function completeSignUpIn(
   tx: Database,
   id: UserId,
   name: string,
-): Promise<boolean> {
+): Promise<SessionUser | undefined> {
   const [row] = await tx
-    .select({ accountState: users.accountState })
+    .select({
+      accountState: users.accountState,
+      sessionEpoch: users.sessionEpoch,
+    })
     .from(users)
     .where(eq(users.id, id));
   if (row === undefined) {
-    return false;
+    return undefined;
   }
   if (row.accountState !== "invited") {
-    return true;
+    return { id, sessionEpoch: row.sessionEpoch };
   }
   const checked = checkUserName(name);
   if (checked.kind !== "valid") {
-    return false;
+    return undefined;
   }
-  await tx
+  const [saved] = await tx
     .update(users)
     .set({
       accountState: "signed_up",
       name: sql`coalesce(${users.name}, ${checked.name})`,
     })
-    .where(and(eq(users.id, id), eq(users.accountState, "invited")));
-  return true;
+    .where(and(eq(users.id, id), eq(users.accountState, "invited")))
+    .returning({ sessionEpoch: users.sessionEpoch });
+  if (saved !== undefined) {
+    return { id, sessionEpoch: saved.sessionEpoch };
+  }
+  // Another request may have completed sign-up since the read.
+  const [current] = await tx
+    .select({ sessionEpoch: users.sessionEpoch })
+    .from(users)
+    .where(and(eq(users.id, id), eq(users.accountState, "signed_up")));
+  if (current === undefined) {
+    return undefined;
+  }
+  return { id, sessionEpoch: current.sessionEpoch };
 }
 
-// completeSignUpIn, on its own.
-function completeSignUp(id: UserId, name: string): Promise<boolean> {
-  return withAppErrors("complete sign-up", () =>
-    completeSignUpIn(getDb(), id, name),
+async function completeSignUp(id: UserId, name: string): Promise<boolean> {
+  return (
+    (await withAppErrors("complete sign-up", () =>
+      completeSignUpIn(getDb(), id, name),
+    )) !== undefined
   );
 }
 

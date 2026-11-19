@@ -1,11 +1,19 @@
 "use client";
 
-import { type JSX, useCallback, useId, useRef, useState } from "react";
+import {
+  type JSX,
+  useCallback,
+  useId,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
 import {
   AddListItem,
   EditableList,
   EditableListAction,
   EditableListRow,
+  EditableListScope,
 } from "@/components/ui/editable-list.tsx";
 import type { EditorOptions } from "@/components/ui/editable-list-contract.ts";
 import { Alert } from "@/components/ui/form-message.tsx";
@@ -90,6 +98,10 @@ function TextListField({
   const inputRef = useRef<HTMLInputElement>(null);
   const listId = useId();
   const [rows, setRows] = useState(() => rowsFor(value, listId));
+  const rowsRef = useRef(rows);
+  useLayoutEffect(() => {
+    rowsRef.current = rows;
+  }, [rows]);
   const [seen, setSeen] = useState(value);
   const rowCounterRef = useRef(0);
   if (seen !== value) {
@@ -103,6 +115,7 @@ function TextListField({
       if (inputRef.current !== null) {
         inputRef.current.value = encoded;
       }
+      rowsRef.current = next;
       setRows(next);
       setSeen(encoded);
       onChange(name, encoded);
@@ -125,20 +138,20 @@ function TextListField({
   };
   const add = useCallback(
     (text: string): Promise<boolean> => {
-      if (rows.length >= maxItems) {
+      if (rowsRef.current.length >= maxItems) {
         return Promise.resolve(false);
       }
       const id = `${listId}-draft-${rowCounterRef.current}`;
       rowCounterRef.current += 1;
-      commit([{ id, text }, ...rows]);
+      commit([{ id, text }, ...rowsRef.current]);
       return Promise.resolve(true);
     },
-    [commit, rows, maxItems, listId],
+    [commit, maxItems, listId],
   );
   const edit = useCallback(
     (id: string, text: string): Promise<boolean> => {
       commit(
-        rows.map((row) => {
+        rowsRef.current.map((row) => {
           if (row.id === id) {
             return { ...row, text };
           }
@@ -147,25 +160,26 @@ function TextListField({
       );
       return Promise.resolve(true);
     },
-    [commit, rows],
+    [commit],
   );
   const remove = useCallback(
     (id: string): Promise<void> => {
-      if (rows.length > 1) {
-        commit(rows.filter((row) => row.id !== id));
+      if (rowsRef.current.length > 1) {
+        commit(rowsRef.current.filter((row) => row.id !== id));
         queueMicrotask(() => legendRef.current?.focus());
       }
       return Promise.resolve();
     },
-    [commit, rows],
+    [commit],
   );
   const move = useCallback(
     (id: string, before: string | undefined): Promise<boolean> => {
-      const moved = rows.find((row) => row.id === id);
+      const latest = rowsRef.current;
+      const moved = latest.find((row) => row.id === id);
       if (moved === undefined || id === before) {
         return Promise.resolve(false);
       }
-      const rest = rows.filter((row) => row.id !== id);
+      const rest = latest.filter((row) => row.id !== id);
       const index = rest.findIndex((row) => row.id === before);
       if (index < 0) {
         commit([...rest, moved]);
@@ -174,7 +188,7 @@ function TextListField({
       }
       return Promise.resolve(true);
     },
-    [commit, rows],
+    [commit],
   );
   return (
     <fieldset className="flex min-w-0 flex-col gap-3">
@@ -184,24 +198,26 @@ function TextListField({
       <p className="field-hint">{hint}</p>
       <input ref={inputRef} type="hidden" name={name} value={value} />
       {error !== undefined && <Alert>{error}</Alert>}
-      <AddListItem
-        label={TEXT_LIST_COPY.add}
-        editor={editor}
-        disabled={rows.length >= maxItems}
-        onSave={add}
-      />
-      <EditableList label={label} onMove={move}>
-        {rows.map((row) => (
-          <TextRowEditor
-            key={row.id}
-            row={row}
-            editor={editor}
-            removeAllowed={rows.length > 1}
-            edit={edit}
-            remove={remove}
-          />
-        ))}
-      </EditableList>
+      <EditableListScope>
+        <AddListItem
+          label={TEXT_LIST_COPY.add}
+          editor={editor}
+          disabled={rows.length >= maxItems}
+          onSave={add}
+        />
+        <EditableList label={label} onMove={move}>
+          {rows.map((row) => (
+            <TextRowEditor
+              key={row.id}
+              row={row}
+              editor={editor}
+              removeAllowed={rows.length > 1}
+              edit={edit}
+              remove={remove}
+            />
+          ))}
+        </EditableList>
+      </EditableListScope>
     </fieldset>
   );
 }

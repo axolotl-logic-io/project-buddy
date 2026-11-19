@@ -10,9 +10,9 @@
 
 // One step in a quest's conversation, in order.
 type QuestStep =
-  // A message sent through the site's API, so the local construct engine
-  // replies to it as it does in the browser: help, look, exp, cast NAME,
-  // stop, or anything a spell captures.
+  | { readonly kind: "cast"; readonly name: string }
+  | { readonly kind: "stop" }
+  // A message sent to the active spell through the site's API.
   | { readonly kind: "send"; readonly text: string }
   // A chat command the site runs without the construct, such as /add,
   // /done, /tasks or /idea.
@@ -120,7 +120,6 @@ const TYPICAL: ReviewContent = {
       name: "Build a walnut bookshelf",
       why: "The books have been in boxes since the move.",
       steps: [
-        { kind: "send", text: "help" },
         {
           kind: "tasks",
           texts: [
@@ -128,11 +127,11 @@ const TYPICAL: ReviewContent = {
             "Choose between dados and shelf pins",
           ],
         },
-        { kind: "send", text: "cast Workshop log" },
+        { kind: "cast", name: "Workshop log" },
         { kind: "send", text: "Rip the walnut boards to 250 mm" },
         { kind: "send", text: "Sand the sides to 180 grit" },
         { kind: "send", text: "Buy Danish oil" },
-        { kind: "send", text: "stop" },
+        { kind: "stop" },
         { kind: "command", text: "/done 1" },
         {
           kind: "command",
@@ -145,7 +144,6 @@ const TYPICAL: ReviewContent = {
       name: "Read Latin on old maps",
       why: "I keep buying old maps and can't read half of them.",
       steps: [
-        { kind: "send", text: "look" },
         { kind: "command", text: "/add Learn the common map abbreviations" },
         {
           kind: "command",
@@ -183,6 +181,7 @@ const TYPICAL: ReviewContent = {
           kind: "milestone",
           text: "Read the compass rose on the Mercator sheet",
         },
+        { kind: "cast", name: "Margin notes" },
         {
           kind: "milestone-reply",
           message: "I read the whole Mercator legend without the dictionary!",
@@ -190,7 +189,6 @@ const TYPICAL: ReviewContent = {
           milestone: "Read the Mercator legend without a dictionary",
         },
         { kind: "command", text: "/tasks" },
-        { kind: "send", text: "exp" },
       ],
     },
   ],
@@ -376,8 +374,6 @@ const CROWDED_MAIN: ReviewQuest = {
   ),
   why: textOfLength(PROSE, NOTE_MAX),
   steps: [
-    { kind: "send", text: "look" },
-    { kind: "send", text: LONG_MESSAGE },
     { kind: "tasks", texts: CROWDED_TASKS.slice(0, PANEL_TASKS) },
     ...CROWDED_TASKS.slice(PANEL_TASKS).map(
       (text): QuestStep => ({ kind: "command", text: `/add ${text}` }),
@@ -416,6 +412,8 @@ const CROWDED_MAIN: ReviewQuest = {
         ),
       }),
     ),
+    { kind: "cast", name: "Brainstorm" },
+    { kind: "send", text: LONG_MESSAGE },
     {
       kind: "milestone-reply",
       message: LONG_MESSAGE,
@@ -431,8 +429,6 @@ const CROWDED_MAIN: ReviewQuest = {
       reply: MARKDOWN_REPLY,
     },
     { kind: "command", text: "/tasks" },
-    { kind: "send", text: "help" },
-    { kind: "send", text: "exp" },
   ],
 };
 

@@ -10,8 +10,8 @@ export default function QuestLoading(): JSX.Element {
       role="status"
       aria-label={QUEST_COPY.loading}
     >
-      <div className="workspace-content">
-        <LoadingShapes shapes={["line", "cards"]} />
+      <div className="adventure-main">
+        <LoadingShapes shapes={["panel", "cards"]} />
       </div>
     </div>
   );

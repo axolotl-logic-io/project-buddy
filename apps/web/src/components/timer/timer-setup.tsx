@@ -33,20 +33,32 @@ const MINUTE_OPTIONS = TIMER_MINUTES.map((minutes) => (
   </option>
 ));
 
-// The Timer's setup: a work and a break length, each one of the presets,
-// and two ways to begin. Start begins a new schedule now, with work; Join
-// global timer joins the schedule everyone with these durations shares,
-// wherever it is. Both open the schedule's link. It first offers the
-// durations this tab last showed, or 50 and 10 minutes.
-function TimerScheduleSetup({
+// The standalone Timer opens a link. A quest runs the same schedule in place.
+function TimerSetup({
+  clock = currentTimeMs,
+}: {
+  readonly clock?: () => number;
+}): JSX.Element {
+  const router = useRouter();
+  const open = useCallback(
+    (schedule: TimerSchedule): void => {
+      router.push(timerPath(schedule));
+    },
+    [router],
+  );
+  return <TimerSettings onStart={open} onJoinGlobal={open} clock={clock} />;
+}
+
+function TimerSettings({
   clock = currentTimeMs,
   onStart,
-  showGlobal = false,
+  onJoinGlobal,
+  running = false,
 }: {
-  // The current time in milliseconds since the epoch, for Start.
-  readonly clock?: (() => number) | undefined;
+  readonly clock?: () => number;
   readonly onStart: (schedule: TimerSchedule) => void;
-  readonly showGlobal?: boolean;
+  readonly onJoinGlobal?: (schedule: TimerSchedule) => void;
+  readonly running?: boolean;
 }): JSX.Element {
   const remembered = useRememberedDurations();
   const [chosen, setChosen] = useState<TimerDurations | undefined>();
@@ -76,15 +88,15 @@ function TimerScheduleSetup({
     onStart({ ...durations, startMs: clock() });
   }, [durations, clock, onStart]);
   const joinGlobal = useCallback((): void => {
-    onStart({ ...durations, startMs: GLOBAL_START_MS });
-  }, [durations, onStart]);
+    onJoinGlobal?.({ ...durations, startMs: GLOBAL_START_MS });
+  }, [onJoinGlobal, durations]);
 
-  let fieldClass = "grid gap-4";
-  if (showGlobal === true) {
-    fieldClass += " sm:grid-cols-2";
+  let fieldLayout = "grid gap-4";
+  if (onJoinGlobal !== undefined) {
+    fieldLayout += " sm:grid-cols-2";
   }
   const fields = (
-    <div className={fieldClass}>
+    <div className={fieldLayout}>
       <SelectField
         label={TIMER_COPY.workLabel}
         onChange={changeWork}
@@ -101,11 +113,15 @@ function TimerScheduleSetup({
       </SelectField>
     </div>
   );
-  if (showGlobal !== true) {
+  if (onJoinGlobal === undefined) {
+    let label: string = TIMER_COPY.start;
+    if (running === true) {
+      label = TIMER_COPY.startAgain;
+    }
     return (
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-3">
         {fields}
-        <Button onClick={start}>{TIMER_COPY.start}</Button>
+        <Button onClick={start}>{label}</Button>
       </div>
     );
   }
@@ -141,21 +157,4 @@ function TimerScheduleSetup({
   );
 }
 
-function TimerSetup({
-  clock,
-}: {
-  readonly clock?: (() => number) | undefined;
-}): JSX.Element {
-  const router = useRouter();
-  const openTimer = useCallback(
-    (schedule: TimerSchedule): void => {
-      router.push(timerPath(schedule));
-    },
-    [router],
-  );
-  return (
-    <TimerScheduleSetup clock={clock} onStart={openTimer} showGlobal={true} />
-  );
-}
-
-export { TimerScheduleSetup, TimerSetup };
+export { TimerSettings, TimerSetup };

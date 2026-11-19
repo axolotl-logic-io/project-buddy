@@ -19,34 +19,39 @@ const CLOCK_FORMAT: Intl.DateTimeFormatOptions = {
   hour: "2-digit",
   minute: "2-digit",
 };
-const TIME_FORMATS: Readonly<
-  Record<TimeDetail, readonly Intl.DateTimeFormatOptions[]>
-> = {
-  day: [DAY_FORMAT],
-  minute: [DAY_FORMAT, CLOCK_FORMAT],
-};
+const LOCAL_DAY = new Intl.DateTimeFormat("en", DAY_FORMAT);
+const LOCAL_CLOCK = new Intl.DateTimeFormat("en", CLOCK_FORMAT);
+const UTC_DAY = new Intl.DateTimeFormat("en", {
+  ...DAY_FORMAT,
+  timeZone: "UTC",
+});
+const UTC_CLOCK = new Intl.DateTimeFormat("en", {
+  ...CLOCK_FORMAT,
+  timeZone: "UTC",
+});
 
 // Stands for the time in a copy text, such as
 // QUESTS_COPY.created(TIME_SLOT), to mark where CopyWithTime puts the time.
 // A private-use character, which no copy text holds.
 const TIME_SLOT = "\u{E001}";
 
-// The instant as the site shows it, in timeZone, or in the zone of whoever
-// runs this (a browser's own) when timeZone is undefined.
+// The instant in UTC for server rendering or in the browser’s own zone.
 function formatTime(
   dateTime: Date,
   detail: TimeDetail,
-  timeZone: string | undefined,
+  timeZone: "UTC" | undefined,
 ): string {
-  return TIME_FORMATS[detail]
-    .map((format) => {
-      const options: Intl.DateTimeFormatOptions = { ...format };
-      if (timeZone !== undefined) {
-        options.timeZone = timeZone;
-      }
-      return new Intl.DateTimeFormat("en", options).format(dateTime);
-    })
-    .join(", ");
+  let day = LOCAL_DAY;
+  let clock = LOCAL_CLOCK;
+  if (timeZone === "UTC") {
+    day = UTC_DAY;
+    clock = UTC_CLOCK;
+  }
+  const date = day.format(dateTime);
+  if (detail === "day") {
+    return date;
+  }
+  return `${date}, ${clock.format(dateTime)}`;
 }
 
 export type { TimeDetail };

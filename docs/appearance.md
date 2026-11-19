@@ -14,7 +14,7 @@ A solid outline around the chosen tile marks selection; a separate dashed outlin
 
 The same controls work by touch at 320 px, with targets at least 44 px wide and tall. There is no Light, Dark, or System control, and operating system appearance changes do not change the selection.
 
-Selecting a swatch changes the page immediately and saves the selection in this browser's theme cookie. Navigation, reloading, signing out, and failed pages keep it. The inline script in the document head applies the saved choice before the first paint. Existing Light or System cookies resolve to Ivory Vellum; existing Dark cookies resolve to Espresso Leather. Invalid values use Ivory Vellum.
+Selecting a swatch changes the page immediately and saves the selection in this browser's theme cookie. Navigation, reloading, signing out, and failed pages keep it. The server includes the saved appearance in the first HTML response. Pages recovered in the browser restore the appearance from the same cookie. Existing Light or System cookies resolve to Ivory Vellum; existing Dark cookies resolve to Espresso Leather. Invalid values use Ivory Vellum.
 
 The semantic token contract in `apps/web/src/themes/contract.css` selects the palette and texture from `parchment.css`. The internal `light` and `dark` values remain for cookie compatibility; `soot-brass` selects the third palette. Components use semantic roles and do not choose palette colors. Contract and contrast tests cover all three appearances, including header and panel colors.
 

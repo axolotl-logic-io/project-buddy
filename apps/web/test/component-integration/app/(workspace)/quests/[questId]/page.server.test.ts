@@ -8,7 +8,6 @@ import { describe, expect, test } from "vitest";
 import QuestPage from "@/app/(workspace)/quests/[questId]/(overview)/page.tsx";
 import { readQuestConversation } from "@/conversations/start-quest.ts";
 import { CHAT_COPY } from "@/ui/copy/chat.ts";
-import { QUEST_OVERVIEW_COPY } from "@/ui/copy/quest-overview.ts";
 import { expectNotFound } from "../../../../test-database/navigation-test-kit.ts";
 import { twoUsers } from "../../../../test-database/two-users-test-kit.ts";
 
@@ -29,7 +28,7 @@ describe("conversation initialization fallback", () => {
 
     const html = await pageHtml(quest.id);
 
-    expect(html).toContain(QUEST_OVERVIEW_COPY.heading);
+    expect(html).toContain(quest.name);
     expect(html).not.toContain(CHAT_COPY.messageLabel);
     expect(await readQuestConversation(her.id, quest.id)).toBeUndefined();
   });

@@ -42,7 +42,9 @@ import {
   TasksContext,
   useTasksController,
 } from "@/components/tasks/use-tasks.ts";
+import { Button } from "@/components/ui/button.tsx";
 import { Notice } from "@/components/ui/form-message.tsx";
+import type { QuestActionResult } from "@/components/use-quest-action.ts";
 import type { ConstructSnapshot } from "@/constructs/construct.ts";
 import { type DailiesDay, todayHere } from "@/dailies/dailies.ts";
 import { reloadForNewerBuild } from "@/errors/newer-build-reload.ts";
@@ -67,9 +69,10 @@ import {
 import { awaitsReply, TASKS_CARD_PART } from "@/tasks/tasks-message.ts";
 import { CHAT_COPY } from "@/ui/copy/chat.ts";
 import { PANEL_COMMANDS_COPY } from "@/ui/copy/commands.ts";
+import { QUEST_OVERVIEW_COPY } from "@/ui/copy/quest-overview.ts";
 import { QUEST_SIDEBAR_COPY } from "@/ui/copy/quest-sidebar.ts";
 import { QUEST_STATUS_COPY } from "@/ui/copy/quest-status.ts";
-import { SPELL_MODE_COPY } from "@/ui/copy/spells.ts";
+import { SPELL_MODE_COPY, SPELLBOOK_COPY } from "@/ui/copy/spells.ts";
 import {
   CHAT_COMMANDS_COPY,
   TASKS_COPY,
@@ -155,143 +158,32 @@ function newestTasksCard(messages: readonly UIMessage[]): string | undefined {
   )?.id;
 }
 
-// A continuing conversation with streamed replies, commands and workspace sections.
-function ChatView({
+function useConversationCommands({
   chatId,
-  viewer,
-  constructName,
-  construct,
-  initialMessages,
-  stoppedReplyId,
-  authorNames = NO_AUTHOR_NAMES,
-  questId,
-  initialTasks,
   tasksActions,
-  dailiesDays,
-  spellName,
-  panel,
-  panelTitle,
-  initialSection,
-  followOnMount,
-  cast,
+  receiveTasks,
+  addMessage,
+  panelProblem,
+  setPanelProblem,
+  busy,
+  sendMessage,
 }: {
-  cast?: string | undefined;
-  followOnMount?: boolean | undefined;
-  spellName?: string | undefined;
-  panel?: ReactNode;
-  panelTitle?: string | undefined;
-  initialSection?: string | undefined;
-  chatId: ChatId;
-  viewer: UserId;
-  constructName: string;
-  construct?: ConstructSnapshot | undefined;
-  initialMessages: UIMessage[];
-  stoppedReplyId?: string | undefined;
-  authorNames?: ReadonlyMap<string, string>;
-  // The chat's quest and its tasks as the page read it.
-  questId: QuestId;
-  initialTasks?: TasksState | undefined;
-  // The task list's Server Actions, which the page hands over in a quest chat.
-  tasksActions?: TasksActions | undefined;
-  // The Dailies quest's days, in the Dailies quest alone.
-  dailiesDays?: readonly DailiesDay[] | undefined;
-}): JSX.Element {
+  readonly chatId: ChatId;
+  readonly tasksActions: TasksActions | undefined;
+  readonly receiveTasks:
+    | NonNullable<ReturnType<typeof useTasksController>>["receive"]
+    | undefined;
+  readonly addMessage: (message: UIMessage) => void;
+  readonly panelProblem: string | undefined;
+  readonly setPanelProblem: (problem: string | undefined) => void;
+  readonly busy: boolean;
+  readonly sendMessage: ReturnType<typeof useChat>["sendMessage"];
+}): {
+  readonly commands: ChatCommands | undefined;
+  readonly send: (text: string) => Promise<ChatSendResult>;
+} {
   const router = useRouter();
-  const [stopStatus, setStopStatus] = useState("");
-  const [stopping, setStopping] = useState(false);
-  const chat = useChat({
-    id: chatId,
-    messages: initialMessages,
-    transport: CHAT_TRANSPORT,
-    onFinish: ({ isError }: { isError: boolean }): void => {
-      setStopping(false);
-      setStopStatus("");
-      // The SDK finishes failed requests too. Keep their error visible; a
-      // refresh after a signed-out reply would redirect away from it.
-      if (!isError) {
-        router.refresh();
-      }
-    },
-    onError: (error: Error): void => {
-      const errorCase = chatFailureCase(error);
-      if (errorCase === "already-answered" || errorCase === "spell-required") {
-        router.refresh();
-      }
-      if (isFromNewerBuild(error)) {
-        reloadForNewerBuild();
-      }
-    },
-  });
-  // Saved updates from another viewer replace the conversation without
-  // replacing the runtime that owns this viewer's draft.
-  const savedMessagesRef = useRef(initialMessages);
-  useEffect(() => {
-    if (savedMessagesRef.current === initialMessages) {
-      return;
-    }
-    savedMessagesRef.current = initialMessages;
-    if (chat.status === "ready" || chat.status === "error") {
-      chat.setMessages(initialMessages);
-      chat.clearError();
-    }
-  }, [initialMessages, chat.status, chat.setMessages, chat.clearError]);
-  const runtime = useAISDKRuntime(chat);
-  useComposerDraft(runtime, { viewer, chatId, cast });
-  const replying = chat.status === "streaming" || chat.status === "submitted";
-  const lastSaved = initialMessages.at(-1);
-  const replyingElsewhere =
-    lastSaved !== undefined &&
-    awaitsReply(lastSaved) &&
-    stoppedReplyId === undefined &&
-    chat.status === "ready";
-  const shownError = chat.error;
-  const replyStopped =
-    stoppedReplyId !== undefined &&
-    shownError === undefined &&
-    chat.status === "ready" &&
-    chat.messages.at(-1)?.id === stoppedReplyId;
-  const replyFailed = chat.status === "error";
-  // Tasks controls wait while the newest message awaits a reply, keeping
-  // the tasks stable for the reply and any retry. The server checks too.
-  let tasksDisabledNote: string | undefined;
-  if (replying || replyingElsewhere) {
-    tasksDisabledNote = TASKS_PANEL_COPY.busy(constructName);
-  } else if (
-    replyFailed &&
-    shownError !== undefined &&
-    chatFailureCase(shownError) === "not-found"
-  ) {
-    // Retrying can't work for a quest that isn't open to the viewer.
-    tasksDisabledNote = TASKS_PANEL_COPY.notFound;
-  } else if (replyFailed || replyStopped) {
-    tasksDisabledNote = TASKS_PANEL_COPY.unanswered;
-  }
-  const { setMessages } = chat;
-  const addMessage = useCallback(
-    (message: UIMessage): void => {
-      setMessages((messages) => [...messages, message]);
-    },
-    [setMessages],
-  );
-  const observed = useMemo(
-    () => tasksFromConstruct(chat.messages),
-    [chat.messages],
-  );
   const publishStatus = useContext(StatusFeedbackContext);
-  const [panelProblem, setPanelProblem] = useState<string | undefined>();
-  const tasks = useTasksController({
-    questId,
-    actions: tasksActions,
-    chatId,
-    initialState: initialTasks,
-    disabledNote: tasksDisabledNote,
-    newestCardId: newestTasksCard(chat.messages),
-    observed,
-    days: dailiesDays,
-    onMessage: addMessage,
-    onProblem: setPanelProblem,
-  });
-  const receiveTasks = tasks?.receive;
   // Shows what the command's result says, and answers with its outcome.
   const settleCommand = useCallback(
     (result: TasksActionResult): CommandOutcome => {
@@ -349,7 +241,7 @@ function ChatView({
       }
       return settleCommand(result);
     },
-    [chatId, tasksActions, settleCommand],
+    [chatId, tasksActions, settleCommand, setPanelProblem],
   );
   const runCommand = useCallback(
     async (text: string): Promise<string | undefined> =>
@@ -373,8 +265,6 @@ function ChatView({
       panelProblem,
     };
   }, [tasksActions, runCommand, panelProblem]);
-  const { sendMessage } = chat;
-  const busy = replying || replyingElsewhere;
   // A quest panel control's send: a command runs at once, as typed in the
   // composer; any other message goes to the construct.
   const send = useCallback(
@@ -405,11 +295,124 @@ function ChatView({
         return { sent: false, problem: PANEL_COMMANDS_COPY.problems.failed };
       }
     },
-    [tasksActions, execute, busy, sendMessage],
+    [tasksActions, execute, busy, sendMessage, setPanelProblem],
   );
-  const stopSpell = useCallback((): void => {
-    send(PANEL_COMMAND.stop).catch(() => undefined);
-  }, [send]);
+  return { commands, send };
+}
+
+function ActiveSpellConversation({
+  name,
+  destination,
+  busy,
+  onStop,
+  children,
+}: {
+  readonly name: string;
+  readonly destination: "tasks" | "brainstorm";
+  readonly busy: boolean;
+  readonly onStop: () => Promise<void>;
+  readonly children: ReactNode;
+}): JSX.Element {
+  return (
+    <section
+      aria-label={QUEST_OVERVIEW_COPY.conversation}
+      className="quest-active-spell"
+    >
+      <header className="flex flex-wrap items-start justify-between gap-2">
+        <div>
+          <h2 className="section-heading">{name}</h2>
+          <p className="text-muted text-sm">
+            {SPELLBOOK_COPY.collectionDestination(
+              SPELLBOOK_COPY.destinations[destination],
+            )}
+          </p>
+        </div>
+        <Button variant="secondary" onClick={onStop} disabled={busy}>
+          {SPELL_MODE_COPY.stop(name)}
+        </Button>
+      </header>
+      {children}
+    </section>
+  );
+}
+
+// Owns the streamed reply, including reconciliation with saved messages and
+// stopping a reply started here or by another viewer.
+function useConversationReply({
+  chatId,
+  viewer,
+  initialMessages,
+  stoppedReplyId,
+  cast,
+}: {
+  readonly cast?: string | undefined;
+  readonly chatId: ChatId;
+  readonly viewer: UserId;
+  readonly initialMessages: UIMessage[];
+  readonly stoppedReplyId: string | undefined;
+}): {
+  readonly chat: ReturnType<typeof useChat>;
+  readonly runtime: ReturnType<typeof useAISDKRuntime>;
+  readonly replyingElsewhere: boolean;
+  readonly replyStopped: boolean;
+  readonly replyStop: ReplyStop | undefined;
+  readonly retryReply: () => void;
+  readonly stopStatus: string;
+  readonly setStopStatus: (status: string) => void;
+} {
+  const router = useRouter();
+  const [stopStatus, setStopStatus] = useState("");
+  const [stopping, setStopping] = useState(false);
+  const chat = useChat({
+    id: chatId,
+    messages: initialMessages,
+    transport: CHAT_TRANSPORT,
+    onFinish: ({ isError }: { isError: boolean }): void => {
+      setStopping(false);
+      setStopStatus("");
+      // The SDK finishes failed requests too. Keep their error visible; a
+      // refresh after a signed-out reply would redirect away from it.
+      if (!isError) {
+        router.refresh();
+      }
+    },
+    onError: (error: Error): void => {
+      const errorCase = chatFailureCase(error);
+      if (errorCase === "already-answered" || errorCase === "spell-required") {
+        router.refresh();
+      }
+      if (isFromNewerBuild(error)) {
+        reloadForNewerBuild();
+      }
+    },
+  });
+  // Saved updates from another viewer replace the conversation without
+  // replacing the runtime that owns this viewer's draft.
+  const savedMessagesRef = useRef(initialMessages);
+  useEffect(() => {
+    if (savedMessagesRef.current === initialMessages) {
+      return;
+    }
+    savedMessagesRef.current = initialMessages;
+    if (chat.status === "ready" || chat.status === "error") {
+      chat.setMessages(initialMessages);
+      chat.clearError();
+    }
+  }, [initialMessages, chat.status, chat.setMessages, chat.clearError]);
+  const runtime = useAISDKRuntime(chat);
+  useComposerDraft(runtime, { viewer, chatId, cast });
+  const replying = chat.status === "streaming" || chat.status === "submitted";
+  const lastSaved = initialMessages.at(-1);
+  const replyingElsewhere =
+    lastSaved !== undefined &&
+    awaitsReply(lastSaved) &&
+    stoppedReplyId === undefined &&
+    chat.status === "ready";
+  const replyStopped =
+    stoppedReplyId !== undefined &&
+    chat.error === undefined &&
+    chat.status === "ready" &&
+    chat.messages.at(-1)?.id === stoppedReplyId;
   const retryReply = useCallback((): void => {
     chat.regenerate().catch(() => undefined);
   }, [chat]);
@@ -450,6 +453,169 @@ function ChatView({
   if (replying || replyingElsewhere) {
     replyStop = { stopping, onStop: stop };
   }
+  return {
+    chat,
+    runtime,
+    replyingElsewhere,
+    replyStopped,
+    replyStop,
+    retryReply,
+    stopStatus,
+    setStopStatus,
+  };
+}
+
+// Tasks stay stable while a reply runs and while it can still be retried.
+function tasksDisabledNote({
+  constructName,
+  busy,
+  replyStopped,
+  error,
+  failed,
+}: {
+  readonly constructName: string;
+  readonly busy: boolean;
+  readonly replyStopped: boolean;
+  readonly error: Error | undefined;
+  readonly failed: boolean;
+}): string | undefined {
+  let note: string | undefined;
+  if (busy) {
+    note = TASKS_PANEL_COPY.busy(constructName);
+  } else if (
+    failed &&
+    error !== undefined &&
+    chatFailureCase(error) === "not-found"
+  ) {
+    note = TASKS_PANEL_COPY.notFound;
+  } else if (failed || replyStopped) {
+    note = TASKS_PANEL_COPY.unanswered;
+  }
+  return note;
+}
+
+// A continuing conversation with streamed replies, commands and workspace sections.
+function ChatView({
+  chatId,
+  viewer,
+  constructName,
+  construct,
+  initialMessages,
+  stoppedReplyId,
+  authorNames = NO_AUTHOR_NAMES,
+  questId,
+  initialTasks,
+  tasksActions,
+  dailiesDays,
+  spellName,
+  panel,
+  panelTitle,
+  initialSection,
+  stopActiveSpell,
+  spellDestination,
+  cast,
+}: {
+  spellName?: string | undefined;
+  cast?: string | undefined;
+  stopActiveSpell?: (() => Promise<QuestActionResult>) | undefined;
+  spellDestination?: "tasks" | "brainstorm" | undefined;
+  panel?: ReactNode;
+  panelTitle?: string | undefined;
+  initialSection?: string | undefined;
+  chatId: ChatId;
+  viewer: UserId;
+  constructName: string;
+  construct?: ConstructSnapshot | undefined;
+  initialMessages: UIMessage[];
+  stoppedReplyId?: string | undefined;
+  authorNames?: ReadonlyMap<string, string>;
+  // The chat's quest and its tasks as the page read it.
+  questId: QuestId;
+  initialTasks?: TasksState | undefined;
+  // The task list's Server Actions, which the page hands over in a quest chat.
+  tasksActions?: TasksActions | undefined;
+  // The Dailies quest's days, in the Dailies quest alone.
+  dailiesDays?: readonly DailiesDay[] | undefined;
+}): JSX.Element {
+  const {
+    chat,
+    runtime,
+    replyingElsewhere,
+    replyStopped,
+    replyStop,
+    retryReply,
+    stopStatus,
+    setStopStatus,
+  } = useConversationReply({
+    chatId,
+    viewer,
+    initialMessages,
+    stoppedReplyId,
+    cast,
+  });
+  const shownError = chat.error;
+  const busy = replyStop !== undefined;
+  const { setMessages } = chat;
+  const addMessage = useCallback(
+    (message: UIMessage): void => {
+      setMessages((messages) => [...messages, message]);
+    },
+    [setMessages],
+  );
+  const observed = useMemo(
+    () => tasksFromConstruct(chat.messages),
+    [chat.messages],
+  );
+  const [panelProblem, setPanelProblem] = useState<string | undefined>();
+  const tasks = useTasksController({
+    questId,
+    actions: tasksActions,
+    chatId,
+    initialState: initialTasks,
+    disabledNote: tasksDisabledNote({
+      constructName,
+      busy,
+      replyStopped,
+      error: shownError,
+      failed: chat.status === "error",
+    }),
+    newestCardId: newestTasksCard(chat.messages),
+    observed,
+    days: dailiesDays,
+    onMessage: addMessage,
+    onProblem: setPanelProblem,
+  });
+  const { commands, send } = useConversationCommands({
+    chatId,
+    tasksActions,
+    receiveTasks: tasks?.receive,
+    addMessage,
+    panelProblem,
+    setPanelProblem,
+    busy,
+    sendMessage: chat.sendMessage,
+  });
+  const endSpell = useCallback(async (): Promise<void> => {
+    if (stopActiveSpell === undefined) {
+      return;
+    }
+    try {
+      const result = await stopActiveSpell();
+      if (result.kind === "problem") {
+        setStopStatus(result.text);
+        return;
+      }
+      const heading =
+        document.querySelector<HTMLElement>("[data-quest-spells]") ??
+        document.querySelector<HTMLElement>("[data-quest-overview-heading]");
+      heading?.focus();
+    } catch {
+      setStopStatus(CHAT_COPY.stopFailed);
+    }
+  }, [stopActiveSpell, setStopStatus]);
+  const stopSpell = useCallback((): void => {
+    send(PANEL_COMMAND.stop).catch(() => undefined);
+  }, [send]);
   let openingMessageId: string | undefined;
   if (initialMessages[0]?.role === "assistant") {
     openingMessageId = initialMessages[0].id;
@@ -457,7 +623,11 @@ function ChatView({
   let spellStop:
     | { label: string; activeLabel: string; onStop: () => void }
     | undefined;
-  if (spellName !== undefined && replyStop === undefined) {
+  if (
+    stopActiveSpell === undefined &&
+    spellName !== undefined &&
+    replyStop === undefined
+  ) {
     spellStop = {
       label: SPELL_MODE_COPY.stop(spellName),
       activeLabel: SPELL_MODE_COPY.active(spellName),
@@ -473,7 +643,6 @@ function ChatView({
       )}
       <ChatThread
         chatId={chatId}
-        followOnMount={followOnMount}
         error={shownError}
         replyStopped={replyStopped}
         onRetry={retryReply}
@@ -485,9 +654,28 @@ function ChatView({
         stop={replyStop}
         stopStatus={stopStatus}
         spellStop={spellStop}
+        spellOnly={stopActiveSpell !== undefined}
       />
     </>
   );
+  if (
+    stopActiveSpell !== undefined &&
+    spellName !== undefined &&
+    spellDestination !== undefined
+  ) {
+    return (
+      <AssistantRuntimeProvider runtime={runtime}>
+        <ActiveSpellConversation
+          name={spellName}
+          destination={spellDestination}
+          busy={busy}
+          onStop={endSpell}
+        >
+          {conversation}
+        </ActiveSpellConversation>
+      </AssistantRuntimeProvider>
+    );
+  }
   return (
     <AssistantRuntimeProvider runtime={runtime}>
       <TasksContext.Provider value={tasks}>

@@ -14,16 +14,9 @@ import {
 // names a colour: construct-art.css paints each class with the
 // appearance's --construct-* tokens.
 
-const PORTRAIT_BOX = { x: 0, y: 0, size: 256 } as const;
-
-function LumenPortrait({ frame }: DrawingProps): JSX.Element {
-  const id = useId();
+function LumenPortraitBackdrop({ id }: { readonly id: string }): JSX.Element {
   return (
-    <svg
-      className="construct-art"
-      viewBox={frameViewBox(PORTRAIT_BOX, frame)}
-      aria-hidden={true}
-    >
+    <>
       <defs>
         <radialGradient id={`${id}sky`} cx="50%" cy="50%" r="72%">
           <stop offset="0.45" className="st-ground" />
@@ -77,186 +70,199 @@ function LumenPortrait({ frame }: DrawingProps): JSX.Element {
         strokeDasharray="10 4 3 4"
         d="M33.02 68.65A112 112 0 0 1 82.45 25.68 M226.89 75.42A112 112 0 0 1 239.93 124.09 M187.35 222.98A112 112 0 0 1 131.91 239.93 M39.74 196.95A112 112 0 0 1 20.34 158.87"
       />
-      <g className="rune-ring">
-        <circle
-          className="f-none s-ink"
-          cx="128"
-          cy="128"
-          r="96"
-          strokeWidth="19"
-        />
-        <circle
-          className="f-none s-metal"
-          cx="128"
-          cy="128"
-          r="96"
-          strokeWidth="16"
+    </>
+  );
+}
+
+function LumenPortraitRuneRing(): JSX.Element {
+  return (
+    <g className="rune-ring">
+      <circle
+        className="f-none s-ink"
+        cx="128"
+        cy="128"
+        r="96"
+        strokeWidth="19"
+      />
+      <circle
+        className="f-none s-metal"
+        cx="128"
+        cy="128"
+        r="96"
+        strokeWidth="16"
+      />
+      <path
+        className="f-none s-shade"
+        strokeWidth="16"
+        opacity=".55"
+        d="M224 128A96 96 0 0 1 32 128"
+      />
+      <path
+        className="f-none s-light"
+        strokeWidth="2.4"
+        opacity=".9"
+        d="M45 82A97 97 0 0 1 174 43"
+      />
+      <circle
+        className="f-none s-ink fine"
+        cx="128"
+        cy="128"
+        r="91"
+        strokeWidth=".7"
+      />
+      <circle
+        className="f-none s-ink fine"
+        cx="128"
+        cy="128"
+        r="101"
+        strokeWidth=".7"
+      />
+      <g className="f-none s-ink" strokeWidth="1.5">
+        <path
+          transform="rotate(12.86 128 128) translate(128 32) scale(.82)"
+          d="M-2 5V-5L2 -1V5"
         />
         <path
-          className="f-none s-shade"
-          strokeWidth="16"
-          opacity=".55"
-          d="M224 128A96 96 0 0 1 32 128"
+          transform="rotate(25.71 128 128) translate(128 32) scale(.82)"
+          d="M-2 -5V5M-2 -2l3 2 -3 2"
         />
         <path
-          className="f-none s-light"
-          strokeWidth="2.4"
-          opacity=".9"
-          d="M45 82A97 97 0 0 1 174 43"
+          transform="rotate(38.57 128 128) translate(128 32) scale(.82)"
+          d="M-2 -5V5M2 -5V5M-2 -1l4 2"
         />
-        <circle
-          className="f-none s-ink fine"
-          cx="128"
-          cy="128"
-          r="91"
-          strokeWidth=".7"
-        />
-        <circle
-          className="f-none s-ink fine"
-          cx="128"
-          cy="128"
-          r="101"
-          strokeWidth=".7"
-        />
-        <g className="f-none s-ink" strokeWidth="1.5">
-          <path
-            transform="rotate(12.86 128 128) translate(128 32) scale(.82)"
-            d="M-2 5V-5L2 -1V5"
-          />
-          <path
-            transform="rotate(25.71 128 128) translate(128 32) scale(.82)"
-            d="M-2 -5V5M-2 -2l3 2 -3 2"
-          />
-          <path
-            transform="rotate(38.57 128 128) translate(128 32) scale(.82)"
-            d="M-2 -5V5M2 -5V5M-2 -1l4 2"
-          />
-          <path
-            transform="rotate(51.43 128 128) translate(128 32) scale(.82)"
-            d="M0 -5V5M-3 -2l3 3 3 -3"
-          />
-          <path
-            transform="rotate(64.29 128 128) translate(128 32) scale(.82)"
-            d="M-3 -5L3 5M3 -5L-3 5"
-          />
-          <path
-            transform="rotate(77.14 128 128) translate(128 32) scale(.82)"
-            d="M0 -5V5M-3 -5l3 3 3 -3"
-          />
-          <path
-            transform="rotate(102.86 128 128) translate(128 32) scale(.82)"
-            d="M0 -5L-3 0 0 5 3 0Z"
-          />
-          <path
-            transform="rotate(115.71 128 128) translate(128 32) scale(.82)"
-            d="M-3 5V-5l3 4 3 -4V5"
-          />
-          <path
-            transform="rotate(128.57 128 128) translate(128 32) scale(.82)"
-            d="M0 -5V5M-3 0h6"
-          />
-          <path
-            transform="rotate(141.43 128 128) translate(128 32) scale(.82)"
-            d="M-3 -5l3 4 3 -4M0 -1V5"
-          />
-          <path
-            transform="rotate(154.29 128 128) translate(128 32) scale(.82)"
-            d="M0 -5V5M0 -2l3 -3M0 1l3 -3"
-          />
-          <path
-            transform="rotate(167.14 128 128) translate(128 32) scale(.82)"
-            d="M-2 5V-5L2 -1V5"
-          />
-          <path
-            transform="rotate(192.86 128 128) translate(128 32) scale(.82)"
-            d="M-2 -5V5M2 -5V5M-2 -1l4 2"
-          />
-          <path
-            transform="rotate(205.71 128 128) translate(128 32) scale(.82)"
-            d="M0 -5V5M-3 -2l3 3 3 -3"
-          />
-          <path
-            transform="rotate(218.57 128 128) translate(128 32) scale(.82)"
-            d="M-3 -5L3 5M3 -5L-3 5"
-          />
-          <path
-            transform="rotate(231.43 128 128) translate(128 32) scale(.82)"
-            d="M0 -5V5M-3 -5l3 3 3 -3"
-          />
-          <path
-            transform="rotate(244.29 128 128) translate(128 32) scale(.82)"
-            d="M-2 5V-5l4 3 -4 3l4 4"
-          />
-          <path
-            transform="rotate(257.14 128 128) translate(128 32) scale(.82)"
-            d="M0 -5L-3 0 0 5 3 0Z"
-          />
-          <path
-            transform="rotate(282.86 128 128) translate(128 32) scale(.82)"
-            d="M0 -5V5M-3 0h6"
-          />
-          <path
-            transform="rotate(295.71 128 128) translate(128 32) scale(.82)"
-            d="M-3 -5l3 4 3 -4M0 -1V5"
-          />
-          <path
-            transform="rotate(308.57 128 128) translate(128 32) scale(.82)"
-            d="M0 -5V5M0 -2l3 -3M0 1l3 -3"
-          />
-          <path
-            transform="rotate(321.43 128 128) translate(128 32) scale(.82)"
-            d="M-2 5V-5L2 -1V5"
-          />
-          <path
-            transform="rotate(334.29 128 128) translate(128 32) scale(.82)"
-            d="M-2 -5V5M-2 -2l3 2 -3 2"
-          />
-          <path
-            transform="rotate(347.14 128 128) translate(128 32) scale(.82)"
-            d="M-2 -5V5M2 -5V5M-2 -1l4 2"
-          />
-        </g>
         <path
-          className="f-none s-ink fine"
-          strokeWidth=".8"
-          d="M137.85 40.55L138.19 37.57 M157.06 44.94L158.06 42.11 M174.82 53.49L176.41 50.95 M190.23 65.77L192.35 63.65 M202.51 81.18L205.05 79.59 M211.06 98.94L213.89 97.94 M215.45 118.15L218.43 117.81 M215.45 137.85L218.43 138.19 M211.06 157.06L213.89 158.06 M202.51 174.82L205.05 176.41 M190.23 190.23L192.35 192.35 M174.82 202.51L176.41 205.05 M157.06 211.06L158.06 213.89 M137.85 215.45L138.19 218.43 M118.15 215.45L117.81 218.43 M98.94 211.06L97.94 213.89 M81.18 202.51L79.59 205.05 M65.77 190.23L63.65 192.35 M53.49 174.82L50.95 176.41 M44.94 157.06L42.11 158.06 M40.55 137.85L37.57 138.19 M40.55 118.15L37.57 117.81 M44.94 98.94L42.11 97.94 M53.49 81.18L50.95 79.59 M65.77 65.77L63.65 63.65 M81.18 53.49L79.59 50.95 M98.94 44.94L97.94 42.11 M118.15 40.55L117.81 37.57"
+          transform="rotate(51.43 128 128) translate(128 32) scale(.82)"
+          d="M0 -5V5M-3 -2l3 3 3 -3"
         />
-        <g transform="rotate(0 128 128)">
-          <path
-            className="f-accent s-ink"
-            strokeWidth="1.6"
-            d="M128 19L136 32 128 45 120 32Z"
-          />
-          <path
-            className="f-core"
-            d="M128 26.15L131.2 32 128 37.85 124.8 32Z"
-          />
-        </g>
-        <g transform="rotate(90 128 128)">
-          <path
-            className="f-accent s-ink"
-            strokeWidth="1.6"
-            d="M128 22L134.5 32 128 42 121.5 32Z"
-          />
-          <path className="f-core" d="M128 27.5L130.6 32 128 36.5 125.4 32Z" />
-        </g>
-        <g transform="rotate(180 128 128)">
-          <path
-            className="f-accent s-ink"
-            strokeWidth="1.6"
-            d="M128 22L134.5 32 128 42 121.5 32Z"
-          />
-          <path className="f-core" d="M128 27.5L130.6 32 128 36.5 125.4 32Z" />
-        </g>
-        <g transform="rotate(270 128 128)">
-          <path
-            className="f-accent s-ink"
-            strokeWidth="1.6"
-            d="M128 22L134.5 32 128 42 121.5 32Z"
-          />
-          <path className="f-core" d="M128 27.5L130.6 32 128 36.5 125.4 32Z" />
-        </g>
+        <path
+          transform="rotate(64.29 128 128) translate(128 32) scale(.82)"
+          d="M-3 -5L3 5M3 -5L-3 5"
+        />
+        <path
+          transform="rotate(77.14 128 128) translate(128 32) scale(.82)"
+          d="M0 -5V5M-3 -5l3 3 3 -3"
+        />
+        <path
+          transform="rotate(102.86 128 128) translate(128 32) scale(.82)"
+          d="M0 -5L-3 0 0 5 3 0Z"
+        />
+        <path
+          transform="rotate(115.71 128 128) translate(128 32) scale(.82)"
+          d="M-3 5V-5l3 4 3 -4V5"
+        />
+        <path
+          transform="rotate(128.57 128 128) translate(128 32) scale(.82)"
+          d="M0 -5V5M-3 0h6"
+        />
+        <path
+          transform="rotate(141.43 128 128) translate(128 32) scale(.82)"
+          d="M-3 -5l3 4 3 -4M0 -1V5"
+        />
+        <path
+          transform="rotate(154.29 128 128) translate(128 32) scale(.82)"
+          d="M0 -5V5M0 -2l3 -3M0 1l3 -3"
+        />
+        <path
+          transform="rotate(167.14 128 128) translate(128 32) scale(.82)"
+          d="M-2 5V-5L2 -1V5"
+        />
+        <path
+          transform="rotate(192.86 128 128) translate(128 32) scale(.82)"
+          d="M-2 -5V5M2 -5V5M-2 -1l4 2"
+        />
+        <path
+          transform="rotate(205.71 128 128) translate(128 32) scale(.82)"
+          d="M0 -5V5M-3 -2l3 3 3 -3"
+        />
+        <path
+          transform="rotate(218.57 128 128) translate(128 32) scale(.82)"
+          d="M-3 -5L3 5M3 -5L-3 5"
+        />
+        <path
+          transform="rotate(231.43 128 128) translate(128 32) scale(.82)"
+          d="M0 -5V5M-3 -5l3 3 3 -3"
+        />
+        <path
+          transform="rotate(244.29 128 128) translate(128 32) scale(.82)"
+          d="M-2 5V-5l4 3 -4 3l4 4"
+        />
+        <path
+          transform="rotate(257.14 128 128) translate(128 32) scale(.82)"
+          d="M0 -5L-3 0 0 5 3 0Z"
+        />
+        <path
+          transform="rotate(282.86 128 128) translate(128 32) scale(.82)"
+          d="M0 -5V5M-3 0h6"
+        />
+        <path
+          transform="rotate(295.71 128 128) translate(128 32) scale(.82)"
+          d="M-3 -5l3 4 3 -4M0 -1V5"
+        />
+        <path
+          transform="rotate(308.57 128 128) translate(128 32) scale(.82)"
+          d="M0 -5V5M0 -2l3 -3M0 1l3 -3"
+        />
+        <path
+          transform="rotate(321.43 128 128) translate(128 32) scale(.82)"
+          d="M-2 5V-5L2 -1V5"
+        />
+        <path
+          transform="rotate(334.29 128 128) translate(128 32) scale(.82)"
+          d="M-2 -5V5M-2 -2l3 2 -3 2"
+        />
+        <path
+          transform="rotate(347.14 128 128) translate(128 32) scale(.82)"
+          d="M-2 -5V5M2 -5V5M-2 -1l4 2"
+        />
       </g>
+      <path
+        className="f-none s-ink fine"
+        strokeWidth=".8"
+        d="M137.85 40.55L138.19 37.57 M157.06 44.94L158.06 42.11 M174.82 53.49L176.41 50.95 M190.23 65.77L192.35 63.65 M202.51 81.18L205.05 79.59 M211.06 98.94L213.89 97.94 M215.45 118.15L218.43 117.81 M215.45 137.85L218.43 138.19 M211.06 157.06L213.89 158.06 M202.51 174.82L205.05 176.41 M190.23 190.23L192.35 192.35 M174.82 202.51L176.41 205.05 M157.06 211.06L158.06 213.89 M137.85 215.45L138.19 218.43 M118.15 215.45L117.81 218.43 M98.94 211.06L97.94 213.89 M81.18 202.51L79.59 205.05 M65.77 190.23L63.65 192.35 M53.49 174.82L50.95 176.41 M44.94 157.06L42.11 158.06 M40.55 137.85L37.57 138.19 M40.55 118.15L37.57 117.81 M44.94 98.94L42.11 97.94 M53.49 81.18L50.95 79.59 M65.77 65.77L63.65 63.65 M81.18 53.49L79.59 50.95 M98.94 44.94L97.94 42.11 M118.15 40.55L117.81 37.57"
+      />
+      <g transform="rotate(0 128 128)">
+        <path
+          className="f-accent s-ink"
+          strokeWidth="1.6"
+          d="M128 19L136 32 128 45 120 32Z"
+        />
+        <path className="f-core" d="M128 26.15L131.2 32 128 37.85 124.8 32Z" />
+      </g>
+      <g transform="rotate(90 128 128)">
+        <path
+          className="f-accent s-ink"
+          strokeWidth="1.6"
+          d="M128 22L134.5 32 128 42 121.5 32Z"
+        />
+        <path className="f-core" d="M128 27.5L130.6 32 128 36.5 125.4 32Z" />
+      </g>
+      <g transform="rotate(180 128 128)">
+        <path
+          className="f-accent s-ink"
+          strokeWidth="1.6"
+          d="M128 22L134.5 32 128 42 121.5 32Z"
+        />
+        <path className="f-core" d="M128 27.5L130.6 32 128 36.5 125.4 32Z" />
+      </g>
+      <g transform="rotate(270 128 128)">
+        <path
+          className="f-accent s-ink"
+          strokeWidth="1.6"
+          d="M128 22L134.5 32 128 42 121.5 32Z"
+        />
+        <path className="f-core" d="M128 27.5L130.6 32 128 36.5 125.4 32Z" />
+      </g>
+    </g>
+  );
+}
+
+function LumenPortraitGyroscopeAndMote({
+  id,
+}: {
+  readonly id: string;
+}): JSX.Element {
+  return (
+    <>
       <g transform="translate(128 128) rotate(-28)">
         <path
           className="f-none s-ink"
@@ -432,6 +438,23 @@ function LumenPortrait({ frame }: DrawingProps): JSX.Element {
         strokeWidth=".9"
         d="M162.12 49.88 L160.84 52 L162.12 54.12 L160 52.84 L157.88 54.12 L159.16 52 L157.88 49.88 L160 51.16Z"
       />
+    </>
+  );
+}
+
+const PORTRAIT_BOX = { x: 0, y: 0, size: 256 } as const;
+
+function LumenPortrait({ frame }: DrawingProps): JSX.Element {
+  const id = useId();
+  return (
+    <svg
+      className="construct-art"
+      viewBox={frameViewBox(PORTRAIT_BOX, frame)}
+      aria-hidden={true}
+    >
+      <LumenPortraitBackdrop id={id} />
+      <LumenPortraitRuneRing />
+      <LumenPortraitGyroscopeAndMote id={id} />
     </svg>
   );
 }

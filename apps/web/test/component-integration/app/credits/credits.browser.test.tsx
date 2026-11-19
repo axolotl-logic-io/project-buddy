@@ -31,9 +31,6 @@ vi.mock(
 );
 // The rendered controls do not submit Server Actions in this case.
 vi.mock("@/app/login/actions.ts", () => ({ requestSignInLinkAction: vi.fn() }));
-vi.mock("@/themes/save-theme-choice-action.ts", () => ({
-  saveThemeChoiceAction: vi.fn(),
-}));
 
 // Pages whose site panel offers Credits: public pages for a visitor, and a
 // signed-in page.

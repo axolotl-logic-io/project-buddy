@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { JSX } from "react";
-import type { ToolCallPart } from "@/components/chat/tool-parts.tsx";
+import type { ToolCallPart } from "@/components/chat/tool-parts.ts";
 import { Icon } from "@/components/ui/icon.tsx";
 import { RECORD_MILESTONE_OUTPUT } from "@/replies/tools/record-milestone-contract.ts";
 import { MILESTONE_COPY } from "@/ui/copy/milestones.ts";
