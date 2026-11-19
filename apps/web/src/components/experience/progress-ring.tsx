@@ -2,6 +2,7 @@ import type { JSX } from "react";
 import { circleFraction, type Experience } from "@/experience/experience.ts";
 
 const RING_RADIUS = 42;
+const RING_STROKE = 7;
 const RING_LENGTH: number = 2 * Math.PI * RING_RADIUS;
 
 // Visible progress for the header and Profile. Each caller supplies the
@@ -17,7 +18,7 @@ export function ProgressRing({
       <circle
         fill="none"
         stroke="var(--ring-track)"
-        strokeWidth="calc(var(--ring-stroke) * 100)"
+        strokeWidth={RING_STROKE}
         cx="50"
         cy="50"
         r={RING_RADIUS}
@@ -25,7 +26,7 @@ export function ProgressRing({
       <circle
         fill="none"
         stroke="var(--ring-arc)"
-        strokeWidth="calc(var(--ring-stroke) * 100)"
+        strokeWidth={RING_STROKE}
         cx="50"
         cy="50"
         r={RING_RADIUS}

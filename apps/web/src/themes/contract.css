@@ -319,9 +319,9 @@
     --numeral-font: var(--heading-font);
 
     /* A rubricated initial: the first letter of an empty state's or the
-       sign-in page's lede. The default is an ordinary letter. */
+       sign-in page's lede. */
     --initial-font: var(--display-font);
-    --initial-size: 1em;
+    --initial-size: 1.75em;
     --initial-float: none;
     /* The space after the initial. A face whose capitals overhang their
        box, such as a blackletter, needs more. */
@@ -350,13 +350,16 @@
     /* A rule's border style: solid, double, dashed or dotted. */
     --rule-style: solid;
     --rule-width: 1px;
+    /* Border measurements are shared by every appearance. */
+    --line-width: 1px;
+
     /* A framed component's border and an optional inner keyline, drawn
        inside the border with a gap of frame-inset. 0px turns it off. */
     --frame-style: solid;
     --frame-width: var(--line-width);
     --frame-radius: var(--box-radius);
     --frame-inset: 0px;
-    --frame-keyline: 0px;
+    --frame-keyline: 1px;
 
     /* Layers painted over an opaque band's surface (the trail band, the
        site header, the dialog panel). Decoration only; text sits above. */
@@ -465,8 +468,6 @@
     --ring-arc: var(--primary);
     --ring-disc: var(--surface);
     --ring-ink: var(--foreground);
-    /* The ring's stroke as a share of its diameter. */
-    --ring-stroke: 0.1;
   }
 }
 
