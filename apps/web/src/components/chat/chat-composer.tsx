@@ -41,7 +41,9 @@ export function ChatComposer({
   inputRef,
   stop,
   spellStop,
+  spellOnly = false,
 }: {
+  readonly spellOnly?: boolean | undefined;
   readonly inputRef?: RefObject<HTMLTextAreaElement | null>;
   readonly stop?: ReplyStop | undefined;
   readonly spellStop?:
@@ -89,15 +91,11 @@ export function ChatComposer({
       await stop.onStop();
     }
   }, [stop]);
+  const inputId = useId();
   const hintId = useId();
   const menuId = useId();
   const problemId = useId();
   const commands = useComposerCommands();
-  const availableCommands = useContext(ChatCommandsContext);
-  let keyHint: string = CHAT_COPY.keyHint;
-  if (availableCommands !== undefined) {
-    keyHint = CHAT_COPY.commandKeyHint;
-  }
   let describedBy = hintId;
   if (commands.problem !== undefined) {
     describedBy = `${problemId} ${hintId}`;
@@ -107,6 +105,17 @@ export function ChatComposer({
   if (commands.listings.length > 0) {
     menuControls = menuId;
     activeOption = optionId(menuId, commands.active);
+  }
+  const availableCommands = useContext(ChatCommandsContext);
+  let hint: string = CHAT_COPY.keyHint;
+  if (availableCommands !== undefined) {
+    hint = CHAT_COPY.commandKeyHint;
+  }
+  let autocomplete: "list" | undefined = "list";
+  let placeholder: string | undefined;
+  if (spellOnly === true) {
+    autocomplete = undefined;
+    placeholder = CHAT_COPY.spellPlaceholder;
   }
   return (
     <ComposerPrimitive.Root
@@ -129,15 +138,22 @@ export function ChatComposer({
           </Button>
         </div>
       )}
+      {spellOnly === true && (
+        <label htmlFor={inputId} className="field-label">
+          {CHAT_COPY.messageLabel}
+        </label>
+      )}
       <div className="field-box chat-composer-field">
         <ComposerPrimitive.Input
           aria-describedby={describedBy}
           aria-controls={menuControls}
           aria-activedescendant={activeOption}
-          aria-autocomplete="list"
+          aria-autocomplete={autocomplete}
           onKeyDown={commands.keyDown}
           aria-label={CHAT_COPY.messageLabel}
           className="field-box-control"
+          id={inputId}
+          placeholder={placeholder}
           maxRows={MOST_MESSAGE_ROWS}
           minRows={MESSAGE_ROWS}
           name="message"
@@ -172,7 +188,7 @@ export function ChatComposer({
         <Alert id={problemId}>{commands.problem}</Alert>
       )}
       <p className="text-muted text-xs" id={hintId}>
-        {keyHint}
+        {hint}
       </p>
     </ComposerPrimitive.Root>
   );

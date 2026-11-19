@@ -11,6 +11,10 @@ Setup has two actions:
 - **Start** opens a new schedule that begins now, with work.
 - **Join global timer** opens the schedule that starts at the Unix epoch. Everyone who chooses the same lengths joins the same schedule, often partway through a period.
 
+## Quest sidebar
+
+Open the Timer with the right sidebar button in a quest. Select Work for and Break for, then choose Start. The countdown and phase appear in the panel. You can keep working in the quest's sections or close the panel while the schedule continues. The panel uses the same presets, repeating schedule and appearance as the Timer page.
+
 ## Timer links
 
 A running timer's address is its whole schedule:

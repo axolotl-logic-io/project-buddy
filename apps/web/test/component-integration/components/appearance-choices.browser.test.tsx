@@ -1,12 +1,4 @@
-// "use_case_choose_theme" in use-cases/appearance.md, in Chromium and
-// WebKit: what choosing a mode in the real site panel does to this
-// page, at once. appearance-choices-save.browser.test.tsx checks the choice
-// is saved without the Cookie Store API;
-// save-theme-choice-action.server.test.ts that a saved choice survives
-// signing out, and test/app/layout-first-paint.test.tsx that it shows from the
-// next page's first paint. The site's stylesheet comes from
-// vitest.browser-setup.ts; next/font can't run here, so the fonts come from
-// theme-fonts-test-kit.ts.
+// Choosing an appearance applies it immediately in Chromium and WebKit.
 
 import {
   afterEach,
@@ -15,20 +7,15 @@ import {
   describe,
   expect,
   test,
-  vi,
 } from "vitest";
 import { commands, page, userEvent } from "vitest/browser";
 import { render } from "vitest-browser-react";
 import { SignInPanel } from "@/app/login/sign-in-panel.tsx";
 import { AppearanceChoices } from "@/components/appearance-choices.tsx";
 import { SitePanel } from "@/components/site-panel.tsx";
-import type { saveThemeChoiceAction } from "@/themes/save-theme-choice-action.ts";
 import {
   DEFAULT_THEME_ATTRIBUTES,
   MODE_ATTRIBUTE,
-  parseThemeChoiceCookie,
-  THEME_COOKIE_NAME,
-  THEME_PRE_PAINT_SCRIPT,
 } from "@/themes/theme-choice.ts";
 import {
   DEFAULT_THEME_CHOICE,
@@ -58,13 +45,6 @@ import {
   closePanel,
   openPanel,
 } from "./site-panel-test-kit.ts";
-
-// Saving the choice is a round trip to the server, which
-// save-theme-choice-action.server.test.ts covers.
-const action = vi.hoisted(() => ({
-  saveThemeChoiceAction: vi.fn<typeof saveThemeChoiceAction>(),
-}));
-vi.mock("@/themes/save-theme-choice-action.ts", () => action);
 
 // Vitest's own viewport for browser tests, restored after each test.
 const MODE_COUNT = 3;
@@ -180,12 +160,12 @@ function lineCount(element: Element): number {
   );
 }
 
-beforeAll(() => {
+beforeAll(async () => {
+  await commands.serveAppearancePreference();
   installThemeFonts();
 });
 
 beforeEach(async () => {
-  action.saveThemeChoiceAction.mockResolvedValue();
   for (const [name, value] of Object.entries(DEFAULT_THEME_ATTRIBUTES)) {
     document.documentElement.setAttribute(name, value);
   }
@@ -193,10 +173,12 @@ beforeEach(async () => {
 });
 
 afterEach(async () => {
-  vi.restoreAllMocks();
-  vi.clearAllMocks();
   await commands.emulateColorScheme("light");
   await resize(VITEST_VIEWPORT);
+});
+
+afterEach(async () => {
+  await globalThis.cookieStore?.delete("theme");
 });
 
 describe("use_case_choose_theme", () => {
@@ -377,22 +359,6 @@ describe("use_case_choose_theme", () => {
     },
   );
 
-  test.each(["gravy-falls", "ghost-hasslers", "ay-liens"])(
-    "a saved %s choice uses parchment and keeps Dark before paint",
-    (retiredTheme) => {
-      const value = `${retiredTheme}.dark`;
-      vi.spyOn(Document.prototype, "cookie", "get").mockReturnValue(
-        `${THEME_COOKIE_NAME}=${value}`,
-      );
-      const script = document.createElement("script");
-      script.textContent = THEME_PRE_PAINT_SCRIPT;
-      document.head.append(script);
-      script.remove();
-      expect(appliedChoice()).toEqual({ theme: "parchment", mode: "dark" });
-      expect(parseThemeChoiceCookie(value)).toEqual(appliedChoice());
-      expect(appliedColors()).toBe("dark");
-    },
-  );
   test("choosing Espresso Leather applies it at once", async () => {
     await openPanel();
     await choose(THEME_COPY.modeLabel, THEME_COPY.modes.dark);
@@ -412,10 +378,9 @@ describe("use_case_choose_theme", () => {
       await choose(THEME_COPY.modeLabel, THEME_COPY.modes.dark);
       await choose(THEME_COPY.modeLabel, THEME_COPY.modes[mode]);
       expect(appliedChoice().mode).toBe(mode);
-      expect(action.saveThemeChoiceAction).toHaveBeenLastCalledWith({
-        theme: "parchment",
-        mode,
-      });
+      await expect
+        .poll(() => document.cookie.split("; "))
+        .toContain(`theme=parchment.${mode}`);
       expect(appliedColors()).toBe(mode);
       const texture = getComputedStyle(document.body).backgroundImage;
       expect(texture, "the page shows a texture image").toMatch(PAINT_URL);
@@ -427,24 +392,6 @@ describe("use_case_choose_theme", () => {
       await closePanel();
     },
   );
-
-  test.each([
-    { value: "parchment.light", mode: "light" },
-    { value: "parchment.dark", mode: "dark" },
-    { value: "parchment.soot-brass", mode: "soot-brass" },
-    { value: "parchment.system", mode: "light" },
-    { value: "unknown.unknown", mode: "light" },
-  ])("restores $value before paint", ({ value, mode }) => {
-    vi.spyOn(Document.prototype, "cookie", "get").mockReturnValue(
-      `${THEME_COOKIE_NAME}=${value}`,
-    );
-    const script = document.createElement("script");
-    script.textContent = THEME_PRE_PAINT_SCRIPT;
-    document.head.append(script);
-    script.remove();
-    expect(appliedChoice()).toEqual({ theme: "parchment", mode });
-    expect(parseThemeChoiceCookie(value)).toEqual(appliedChoice());
-  });
 
   test("arrow keys choose the next swatch with visible focus", async () => {
     await openPanel();

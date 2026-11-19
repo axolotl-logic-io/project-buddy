@@ -5,6 +5,7 @@ import type { MaterialPixels } from "./components/appearance-material-test-kit.m
 // page. A browser test calls them through `commands` from vitest/browser.
 declare module "vitest/browser" {
   interface BrowserCommands {
+    serveAppearancePreference: () => Promise<void>;
     // Composite pixels inside a material, excluding rounded transparent edges.
     materialPixels: (selector: string) => Promise<MaterialPixels>;
     // Native touch input, in a touch-enabled browser project.

@@ -5,6 +5,7 @@ import { ChatView } from "@/components/chat-view.tsx";
 import type { TasksActions } from "@/components/tasks/use-tasks.ts";
 import type { DailiesDay } from "@/dailies/dailies.ts";
 import type { UserId } from "@/ids.ts";
+import { changeQuestSpellAction } from "@/spells/quest-spell-action.ts";
 import { getSpell } from "@/spells/spell.ts";
 import type { TasksState } from "@/tasks/tasks.ts";
 import {
@@ -37,10 +38,10 @@ function ChatScreen({
   panelTitle,
   initialSection,
   dailiesDays,
-  workspace,
+  spellOnly,
 }: {
+  readonly spellOnly?: boolean | undefined;
   readonly conversation: Chat;
-  readonly workspace?: boolean;
   readonly messages: ChatMessage[];
   readonly stoppedReplyId: string | undefined;
   readonly viewer: UserId;
@@ -52,19 +53,29 @@ function ChatScreen({
   readonly dailiesDays?: readonly DailiesDay[] | undefined;
 }): JSX.Element {
   const { construct } = conversation;
-  let spellName: string | undefined;
-  if (workspace !== true && conversation.spell !== undefined) {
-    spellName =
-      conversation.activeSpell?.name ?? getSpell(conversation.spell).name;
+  let spell = conversation.activeSpell;
+  if (spell === undefined && conversation.spell !== undefined) {
+    spell = getSpell(conversation.spell);
+  }
+  let stopActiveSpell:
+    | (() => ReturnType<typeof changeQuestSpellAction>)
+    | undefined;
+  let destination: "tasks" | "brainstorm" | undefined;
+  if (spellOnly === true) {
+    stopActiveSpell = changeQuestSpellAction.bind(null, {
+      questId: conversation.quest.id,
+    });
+    destination = spell?.definition.destination;
   }
   let tasksActions: TasksActions | undefined;
-  if (workspace !== true) {
+  if (spellOnly !== true) {
     tasksActions = TASKS_ACTIONS;
   }
   return (
     <ChatView
-      spellName={spellName}
-      followOnMount={workspace !== true}
+      stopActiveSpell={stopActiveSpell}
+      spellDestination={destination}
+      spellName={spell?.name}
       panel={panel}
       panelTitle={panelTitle}
       initialSection={initialSection}

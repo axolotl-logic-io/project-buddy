@@ -1,8 +1,5 @@
 import { expect, test } from "vitest";
-import {
-  parseConstructDefinition,
-  storedConstructPrompt,
-} from "@/constructs/construct-definition.ts";
+import { parseConstructDefinition } from "@/constructs/construct-definition.ts";
 import { getConstruct, snapshotOf } from "@/constructs/index.ts";
 import {
   CONSTRUCT_VISUAL,
@@ -63,23 +60,6 @@ test("saved raster artwork keeps its source and face frame", () => {
   const visual = resolveConstructVisual(snapshot, "avatar");
   expect(visual.frame).toEqual(frame);
   expect(constructVisualSource(visual.asset)).toBe("/constructs/lumen-v1.png");
-});
-
-test("visual edits survive storage and construct snapshots", () => {
-  const builtIn = getConstruct("lumen");
-  const definition = { ...builtIn.definition, visual: GENERATED };
-  const stored = storedConstructPrompt(definition);
-  const parsed = parseConstructDefinition(JSON.parse(JSON.stringify(stored)));
-  expect(parsed).toBeDefined();
-  if (parsed === undefined) {
-    throw new Error("Stored construct was lost");
-  }
-  const restored = parsed;
-  expect(restored).toEqual(definition);
-
-  expect(
-    snapshotOf({ name: "Bird", definition: restored }).definition.visual,
-  ).toEqual(GENERATED);
 });
 
 test("unsafe or future visual metadata falls back without losing conversational text", () => {

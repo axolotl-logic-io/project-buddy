@@ -2,10 +2,9 @@ import type { Viewport } from "next";
 import { notFound } from "next/navigation";
 import type { JSX } from "react";
 import { requireUser } from "@/auth/current-user.ts";
-import { getQuest } from "@/quests/store.ts";
-import { QuestOverview } from "./quest-overview.tsx";
+import { questPage } from "./quest-page.tsx";
 
-// Resize for the on-screen keyboard so it leaves the composer visible.
+// The keyboard shrinks the viewport so the spell composer stays reachable.
 export const viewport: Viewport = { interactiveWidget: "resizes-content" };
 
 export default async function QuestPage({
@@ -17,9 +16,9 @@ export default async function QuestPage({
     searchParams,
     requireUser(),
   ]);
-  const quest = await getQuest(user.id, questId);
-  if (quest === undefined) {
+  const page = await questPage(user.id, questId, section);
+  if (page === undefined) {
     notFound();
   }
-  return await QuestOverview({ quest, viewer: user.id, section });
+  return page;
 }

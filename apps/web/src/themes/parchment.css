@@ -18,11 +18,14 @@
     --timer-phase-font: var(--typeface-im-fell-english-italic);
     --timer-numeral-font: var(--typeface-cormorant-garamond);
     --timer-blackletter-font: var(--typeface-unifrakturmaguntia);
-    --timer-phase-size: 2rem;
-    --timer-numeral-size: 7.25rem;
-    --timer-number-scale: max(4.25rem, 26cqi);
-    --timer-hours-scale: 23cqi;
+    --timer-phase-size: clamp(1.25rem, 5vw, 2rem);
+    --timer-number-size: clamp(4.25rem, 14vw, 6rem);
+    --timer-hours-size: clamp(2.25rem, 10vw, 4.75rem);
     --timer-number-leading: 1;
+    --timer-panel-columns: auto minmax(0, 1fr);
+    --timer-panel-align: start;
+    --timer-panel-stage-end: 0px;
+    --timer-panel-next-position: static;
     --timer-next-font: var(--timer-body-font);
     --timer-hourglass-display: block;
     --timer-ring-display: none;
@@ -31,7 +34,6 @@
     --timer-face-ratio: auto;
     --timer-face-height: 35.625rem;
     --timer-stage-padding: 1.5rem 4rem;
-    --timer-panel-tail: 0;
     --timer-face-padding: 2.5rem 3.4375rem;
     --timer-readout-align: start;
     --timer-phase-position: static;
@@ -218,7 +220,6 @@
       color-mix(in srgb, var(--shadow) 20%, transparent);
     --control-radius: 0.625rem;
     --box-radius: 1rem;
-    --line-width: 2px;
     --control-shadow: 0 2px 0
       color-mix(in oklab, var(--shadow) 22%, transparent);
     --raised-shadow:
@@ -261,8 +262,6 @@
       --timer-face-height: 32.5rem;
       --timer-face-padding: 2.5rem 1.5rem;
       --timer-readout-align: center;
-      --timer-phase-size: 1.5625rem;
-      --timer-numeral-size: 4.25rem;
       --timer-phase-gap: 0.3125rem;
       --timer-next-margin: 1.125rem;
       --timer-next-padding: 0.75rem;
@@ -282,6 +281,10 @@
 
   [data-mode="soot-brass"],
   [data-mode="dark"] {
+    --timer-panel-columns: 1fr;
+    --timer-panel-align: center;
+    --timer-panel-stage-end: 1.5rem;
+    --timer-panel-next-position: absolute;
     --timer-hourglass-display: none;
     --timer-ring-display: block;
     --timer-face-columns: 1fr;
@@ -292,14 +295,9 @@
     --timer-face-padding: 0;
     --timer-readout-align: center;
     --timer-phase-position: absolute;
-    --timer-phase-size: 1.75rem;
-    --timer-numeral-size: 6rem;
-    --timer-number-scale: 26cqi;
-    --timer-hours-scale: 16cqi;
     --timer-number-leading: 1.1;
     --timer-next-font: var(--heading-font);
     --timer-phase-gap: 0;
-    --timer-panel-tail: 3rem;
     --timer-next-position: absolute;
     --timer-next-offset: calc(100% + 1.25rem);
     --timer-next-margin: 0;
@@ -311,7 +309,6 @@
     --body-font: var(--typeface-source-serif-4);
     --control-radius: 2px;
     --box-radius: 3px;
-    --line-width: 1px;
 
     --timer-marker-active: var(--foreground);
     --timer-phase-font: var(--heading-font);
@@ -331,7 +328,6 @@
     --label-tracking: 0.06em;
     --numeral-font: var(--typeface-source-serif-4);
     --initial-font: var(--typeface-cormorant-garamond);
-    --initial-size: 1.6em;
     --initial-float: none;
     --rubric: rgb(226 196 132);
     --ornament-ink: rgb(170 145 98);
@@ -340,12 +336,9 @@
     --frame-ink: var(--line);
     --scrim: color-mix(in oklab, var(--shadow) 62%, transparent);
     --rule-style: solid;
-    --rule-width: 1px;
     --frame-style: solid;
-    --frame-width: 1px;
     --frame-radius: 3px;
     --frame-inset: 3px;
-    --frame-keyline: 1px;
     --header-decoration: linear-gradient(
       to bottom,
       color-mix(in oklab, var(--header-gold) 6%, transparent),
@@ -365,7 +358,6 @@
     --ring-arc: var(--primary);
     --ring-disc: var(--surface);
     --ring-ink: var(--foreground);
-    --ring-stroke: 0.09;
     --orn-corner-size: 1.5rem;
     --orn-corner-panel-size: 1.5rem;
     --orn-corner-dialog-size: 1.5rem;
@@ -386,11 +378,9 @@
     --body-font: var(--typeface-source-serif-4);
     --control-radius: 3px;
     --box-radius: 4px;
-    --line-width: 2px;
 
     --timer-marker-active: var(--foreground);
     --timer-phase-font: var(--timer-blackletter-font);
-    --timer-phase-size: 2rem;
     --timer-radius: 162px;
     --timer-stroke: 12px;
     --timer-guide-outer: 186px;
@@ -408,7 +398,6 @@
     --label-tracking: 0.08em;
     --numeral-font: var(--typeface-cormorant-garamond);
     --initial-font: var(--typeface-unifrakturmaguntia);
-    --initial-size: 1.75em;
     --initial-float: none;
     --rubric: rgb(246 152 104);
     --ornament-ink: var(--line);
@@ -417,12 +406,9 @@
     --frame-ink: var(--line);
     --scrim: color-mix(in oklab, var(--shadow) 62%, transparent);
     --rule-style: solid;
-    --rule-width: 1px;
     --frame-style: solid;
-    --frame-width: 1px;
     --frame-radius: 0.25rem;
     --frame-inset: 0.25rem;
-    --frame-keyline: 1px;
     --header-decoration: none;
     --trail-decoration: linear-gradient(
       to bottom,
@@ -438,7 +424,6 @@
     --ring-arc: var(--primary);
     --ring-disc: var(--surface);
     --ring-ink: var(--foreground);
-    --ring-stroke: 0.1;
     --orn-corner-size: 1.25rem;
     --orn-corner-panel-size: var(--orn-corner-size);
     --orn-corner-dialog-size: var(--orn-corner-size);
@@ -460,7 +445,6 @@
   [data-mode="light"] {
     --control-radius: 3px;
     --box-radius: 3px;
-    --line-width: 1px;
 
     --label-font: var(--heading-font);
     --label-ink: var(--rubric);
@@ -469,7 +453,6 @@
     --label-tracking: 0.08em;
     --numeral-font: var(--typeface-cormorant-garamond);
     --initial-font: var(--typeface-im-fell-english);
-    --initial-size: 1.75em;
     --initial-float: none;
     --rubric: rgb(150 50 32);
     --ornament-ink: var(--line);
@@ -478,12 +461,9 @@
     --frame-ink: var(--line);
     --scrim: color-mix(in oklab, var(--shadow) 42%, transparent);
     --rule-style: solid;
-    --rule-width: 1px;
     --frame-style: solid;
-    --frame-width: 1px;
     --frame-radius: 2px;
     --frame-inset: 3px;
-    --frame-keyline: 1px;
     --header-decoration: linear-gradient(
       to top,
       transparent 0 4px,
@@ -496,7 +476,6 @@
     --ring-arc: var(--primary);
     --ring-disc: var(--surface);
     --ring-ink: var(--foreground);
-    --ring-stroke: 0.09;
     --orn-corner-size: 1.125rem;
     --orn-corner-panel-size: var(--orn-corner-size);
     --orn-corner-dialog-size: 1.25rem;

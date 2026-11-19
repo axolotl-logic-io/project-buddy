@@ -19,7 +19,8 @@ These docs describe Project Buddy: its scope and operating practices. GitHub iss
 - [Dailies](dailies.md): Start Day and its Undo, recurring tasks, streaks and the day grid.
 - [Quest tasks](quest-tasks.md): a quest's tasks of remaining work, the construct's `change_tasks` tool, and the Tasks section.
 - [Quest ideas](quest-ideas.md): saved possibilities and moving an idea into Tasks.
-- [Progress timeline](progress-timeline.md): the milestones the construct records in a quest's conversation, and how the user edits them.
+- [Quest overview](quest-overview.md): Next task, quest sections, spell conversations, and the Timer panel.
+- [Progress timeline](progress-timeline.md): recording, editing, and deleting milestones.
 - [Profile visiting days](profile.md): distinct days signed in, the UTC boundary and tracking start.
 - [Experience](experience.md): ability points, experience and circles, and what gains and takes back points.
 - [Quick Notes](quick-notes.md): saving a short note to a quest from the site panel or directly from the quest's Quick Notes bucket.

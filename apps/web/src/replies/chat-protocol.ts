@@ -23,7 +23,8 @@ const USER_MESSAGE = z.object({
   role: z.literal("user"),
   parts: z
     .array(z.object({ type: z.literal("text"), text: z.string().min(1) }))
-    .min(1),
+    .min(1)
+    .refine((parts) => parts.some(({ text }) => text.trim() !== "")),
 });
 
 const CHAT_REQUEST_BODY = z.object({ id: z.string(), message: USER_MESSAGE });

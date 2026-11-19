@@ -66,7 +66,9 @@ function useNow(
 // the same phase; the shared name and countdown provide its accessible text.
 function TimerFace({
   phase,
+  upcoming,
 }: {
+  readonly upcoming?: number | undefined;
   readonly phase: Extract<TimerPhase, { kind: "work" | "break" }>;
 }): JSX.Element {
   const giltId = useId();
@@ -77,6 +79,9 @@ function TimerFace({
   let next = TIMER_COPY.next("break");
   if (phase.kind === "break") {
     next = TIMER_COPY.next("work");
+  }
+  if (upcoming !== undefined) {
+    next = TIMER_COPY.nextWithMinutes(next, upcoming);
   }
   return (
     <div className="timer-face">
@@ -142,8 +147,10 @@ function TimerFace({
 function TimerDisplay({
   schedule,
   clock = currentTimeMs,
+  showNextDuration = false,
 }: {
   readonly schedule: TimerSchedule;
+  readonly showNextDuration?: boolean;
   // The current time in milliseconds since the epoch.
   readonly clock?: () => number;
 }): JSX.Element {
@@ -161,10 +168,17 @@ function TimerDisplay({
   if (phase?.kind === "not-started") {
     return <InvalidTimer />;
   }
+  let upcoming: number | undefined;
+  if (showNextDuration === true && phase !== undefined) {
+    upcoming = breakMinutes;
+    if (phase.kind === "break") {
+      upcoming = workMinutes;
+    }
+  }
   return (
     <section aria-label={TIMER_COPY.displayLabel} className="timer-stage">
       {phase === undefined && <div aria-hidden="true" className="timer-face" />}
-      {phase !== undefined && <TimerFace phase={phase} />}
+      {phase !== undefined && <TimerFace phase={phase} upcoming={upcoming} />}
       <p className="sr-only" role="status">
         {phase !== undefined && TIMER_COPY.phaseStarted(phase.kind)}
       </p>

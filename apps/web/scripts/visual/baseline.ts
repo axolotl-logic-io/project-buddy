@@ -485,9 +485,9 @@ async function baseline(args: readonly string[]): Promise<boolean> {
   const out = resolve(options.out);
   mkdirSync(out, { recursive: true });
   const site = await openSite(options.site, SITE_LOG);
-  const browser = await chromium.launch();
   try {
     const accounts = await signInReviewAccounts(site.origin, options.email);
+    await using browser = await chromium.launch();
     const run: Run = {
       browser,
       origin: site.origin,
@@ -522,9 +522,7 @@ async function baseline(args: readonly string[]): Promise<boolean> {
     writeFileSync(join(out, "summary.md"), baselineSummary(results));
     return report(results, out);
   } finally {
-    await browser.close();
-    await site.stop();
-    await closeAppDatabase();
+    await Promise.all([site.stop(), closeAppDatabase()]);
   }
 }
 

@@ -93,7 +93,7 @@ describe("use_case_open_quest", () => {
   test("opens on an overview with section links and no conversation entry point", async () => {
     await render(await questPage());
     await expect
-      .element(page.getByRole("heading", { name: QUEST_OVERVIEW_COPY.heading }))
+      .element(page.getByRole("heading", { name: FOX_QUEST.name }))
       .toBeVisible();
     await expect
       .element(page.getByRole("heading", { name: QUEST_SIDEBAR_COPY.nextTask }))
@@ -331,11 +331,11 @@ describe("use_case_timer_quest_panel", () => {
           )
           .toBeVisible();
         const nextPhase = panel
-          .getByText(TIMER_COPY.next("break"))
+          .getByText(TIMER_COPY.nextWithMinutes(TIMER_COPY.next("break"), 10))
           .element()
           .getBoundingClientRect();
         const reset = panel
-          .getByRole("button", { name: TIMER_COPY.changeSchedule })
+          .getByRole("button", { name: TIMER_COPY.startAgain })
           .element()
           .getBoundingClientRect();
         expect(nextPhase.bottom).toBeLessThanOrEqual(reset.top);
@@ -346,9 +346,7 @@ describe("use_case_timer_quest_panel", () => {
           .getByRole("button", { name: TIMER_COPY.panel.collapse })
           .click();
         await expect
-          .element(
-            page.getByRole("heading", { name: QUEST_OVERVIEW_COPY.heading }),
-          )
+          .element(page.getByRole("heading", { name: FOX_QUEST.name }))
           .toBeVisible();
       });
     }

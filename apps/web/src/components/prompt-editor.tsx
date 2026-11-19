@@ -10,9 +10,15 @@ import {
   useId,
   useRef,
   useState,
+  useSyncExternalStore,
 } from "react";
 import { z } from "zod";
-import { keepLocalDraft, readLocalDraft } from "@/components/local-draft.ts";
+import {
+  keepLocalDraft,
+  parseLocalDraft,
+  readLocalDraftSnapshot,
+  subscribeToLocalDraft,
+} from "@/components/local-draft.ts";
 import { Button } from "@/components/ui/button.tsx";
 import {
   SelectField,
@@ -54,9 +60,6 @@ interface PromptDraft {
   readonly texts: Readonly<Record<string, string>>;
 }
 
-// What the editor last did that the user should know.
-type Notice = "none" | "restored";
-
 function sameDraft(one: PromptDraft, other: PromptDraft): boolean {
   return (
     one.name === other.name &&
@@ -81,11 +84,181 @@ function restoredDraft(
   return { name: kept.name, texts };
 }
 
-// What the status line says after each.
-const NOTICE_TEXTS: Readonly<Record<Notice, string>> = {
-  none: "",
-  restored: PROMPT_COPY.restored,
-};
+function emptyDraftSnapshot(): null {
+  return null;
+}
+
+function usePromptDraft(
+  key: string,
+  saved: PromptDraft,
+  revision: string,
+): {
+  readonly draft: PromptDraft;
+  readonly restored: boolean;
+  readonly change: (next: PromptDraft) => void;
+} {
+  const subscribe = useCallback(
+    (changed: () => void): (() => void) => subscribeToLocalDraft(key, changed),
+    [key],
+  );
+  const getSnapshot = useCallback(
+    (): string | null => readLocalDraftSnapshot(key),
+    [key],
+  );
+  const snapshot = useSyncExternalStore(
+    subscribe,
+    getSnapshot,
+    emptyDraftSnapshot,
+  );
+  const kept = parseLocalDraft(snapshot, KEPT_DRAFT);
+  const [edited, setEdited] = useState<PromptDraft | undefined>(undefined);
+  let recovered: PromptDraft | undefined;
+  if (kept?.basedOn === revision) {
+    const candidate = restoredDraft(kept, saved);
+    if (!sameDraft(candidate, saved)) {
+      recovered = candidate;
+    }
+  }
+  const stale = kept !== undefined && recovered === undefined;
+  useEffect(() => {
+    if (stale && getSnapshot() === snapshot) {
+      keepLocalDraft(key, undefined);
+    }
+  }, [key, getSnapshot, snapshot, stale]);
+
+  function change(next: PromptDraft): void {
+    setEdited(next);
+    if (sameDraft(next, saved)) {
+      keepLocalDraft(key, undefined);
+      return;
+    }
+    keepLocalDraft(key, { basedOn: revision, ...next });
+  }
+  return {
+    draft: edited ?? recovered ?? saved,
+    restored: edited === undefined && recovered !== undefined,
+    change,
+  };
+}
+
+function PromptSections({
+  id,
+  heading,
+  sections,
+  selectedField,
+  draft,
+  errors,
+  onSelect,
+  onTextChange,
+  onListChange,
+}: {
+  readonly id: string;
+  readonly heading: string;
+  readonly sections: readonly PromptEditorText[];
+  readonly selectedField: string;
+  readonly draft: PromptDraft;
+  readonly errors: Readonly<Record<string, string>>;
+  readonly onSelect: (event: MouseEvent<HTMLButtonElement>) => void;
+  readonly onTextChange: (
+    event: ChangeEvent<HTMLTextAreaElement | HTMLSelectElement>,
+  ) => void;
+  readonly onListChange: (name: string, value: string) => void;
+}): JSX.Element {
+  return (
+    <section
+      className="panel prompt-editor-replies"
+      aria-labelledby={`${id}-heading`}
+    >
+      <h2
+        id={`${id}-heading`}
+        className="section-heading prompt-editor-heading"
+      >
+        {heading}
+      </h2>
+      <nav className="prompt-editor-nav" aria-label={PROMPT_COPY.sections}>
+        {sections.map(({ name: field, label }) => {
+          const { [field]: error } = errors;
+          return (
+            <Button
+              key={field}
+              variant="quiet"
+              aria-pressed={selectedField === field}
+              aria-controls={`${id}-${field}`}
+              value={field}
+              onClick={onSelect}
+            >
+              {label}
+              {error !== undefined && (
+                <span className="text-danger">{PROMPT_COPY.sectionError}</span>
+              )}
+            </Button>
+          );
+        })}
+      </nav>
+      {sections.map(
+        ({ name: field, label, help, maxLength, choices, list }) => {
+          const { [field]: text = "" } = draft.texts;
+          const { [field]: error } = errors;
+          let control = (
+            <TextAreaField
+              className="min-h-40 font-mono text-sm"
+              error={error}
+              hint={help}
+              key={field}
+              label={label}
+              maxLength={maxLength}
+              name={field}
+              onChange={onTextChange}
+              value={text}
+            />
+          );
+          if (choices !== undefined) {
+            control = (
+              <SelectField
+                error={error}
+                hint={help}
+                label={label}
+                name={field}
+                onChange={onTextChange}
+                value={text}
+              >
+                {choices.map((choice) => (
+                  <option key={choice.value} value={choice.value}>
+                    {choice.label}
+                  </option>
+                ))}
+              </SelectField>
+            );
+          }
+          if (list !== undefined) {
+            control = (
+              <TextListField
+                name={field}
+                label={label}
+                hint={help}
+                value={text}
+                maxLength={list.maxLength}
+                maxItems={list.maxItems}
+                error={error}
+                onChange={onListChange}
+              />
+            );
+          }
+          return (
+            <div
+              className="prompt-editor-field"
+              key={field}
+              id={`${id}-${field}`}
+              hidden={selectedField !== field}
+            >
+              {control}
+            </div>
+          );
+        },
+      )}
+    </section>
+  );
+}
 
 // Saves an own spell’s name and text fields. Drafts survive navigation in
 // this browser until Save or Cancel; a newer savedAt invalidates an older draft.
@@ -106,10 +279,7 @@ function PromptEditor({
   onSubmitCapture,
   saving = false,
   disabled = false,
-  onDraftChange,
 }: {
-  // Told the draft whenever it changes, by typing, recovery or discard.
-  readonly onDraftChange?: (draft: PromptDraft) => void;
   readonly onSubmitCapture?: (event: SubmitEvent<HTMLFormElement>) => void;
   readonly saveLabel?: string;
   readonly saveHint?: string | undefined;
@@ -149,56 +319,27 @@ function PromptEditor({
     }
     setFocusField(undefined);
   }, [focusField]);
-  const draftKey = `prompt:${viewer}:${kind}:${promptId}`;
-  const [saved] = useState<PromptDraft>(() => ({
-    name,
-    texts: Object.fromEntries(
-      texts.map(({ name: field, text }) => [field, text]),
-    ),
+  const [{ draftKey, revision, saved }] = useState(() => ({
+    draftKey: `prompt:${viewer}:${kind}:${promptId}`,
+    revision: savedAt,
+    saved: {
+      name,
+      texts: Object.fromEntries(
+        texts.map(({ name: field, text }) => [field, text]),
+      ),
+    } satisfies PromptDraft,
   }));
-  const [draft, setDraft] = useState(saved);
-  useEffect(() => {
-    onDraftChange?.(draft);
-  }, [onDraftChange, draft]);
-  const [notice, setNotice] = useState<Notice>("none");
+  const { draft, restored, change } = usePromptDraft(draftKey, saved, revision);
   const [nameRefused, setNameRefused] = useState<boolean>(false);
   const [textErrors, setTextErrors] = useState<
     Readonly<Record<string, string>>
   >({});
   const nameRef = useRef<HTMLInputElement>(null);
 
-  // Shows next, and keeps it in this browser unless it is the saved prompt.
-  const change = useCallback(
-    (next: PromptDraft): void => {
-      setDraft(next);
-      if (sameDraft(next, saved)) {
-        keepLocalDraft(draftKey, undefined);
-        return;
-      }
-      keepLocalDraft(draftKey, { basedOn: savedAt, ...next });
-    },
-    [draftKey, saved, savedAt],
-  );
-
-  useEffect(() => {
-    const kept = readLocalDraft(draftKey, KEPT_DRAFT);
-    if (kept === undefined) {
-      return;
-    }
-    const restored = restoredDraft(kept, saved);
-    if (kept.basedOn !== savedAt || sameDraft(restored, saved)) {
-      keepLocalDraft(draftKey, undefined);
-      return;
-    }
-    setDraft(restored);
-    setNotice("restored");
-  }, [draftKey, saved, savedAt]);
-
   const changeName = useCallback(
     (event: ChangeEvent<HTMLInputElement>): void => {
       change({ ...draft, name: event.target.value });
       setNameRefused(false);
-      setNotice("none");
     },
     [change, draft],
   );
@@ -206,7 +347,6 @@ function PromptEditor({
     (field: string, value: string): void => {
       setTextErrors({});
       change({ ...draft, texts: { ...draft.texts, [field]: value } });
-      setNotice("none");
     },
     [change, draft],
   );
@@ -215,7 +355,6 @@ function PromptEditor({
       const { name: field, value } = event.target;
       setTextErrors({});
       change({ ...draft, texts: { ...draft.texts, [field]: value } });
-      setNotice("none");
     },
     [change, draft],
   );
@@ -223,7 +362,6 @@ function PromptEditor({
     change(saved);
     setTextErrors({});
     setNameRefused(false);
-    setNotice("none");
     nameRef.current?.focus();
   }, [change, saved]);
   // A name of only spaces stops the form before its action runs.
@@ -315,100 +453,17 @@ function PromptEditor({
             );
           })}
       </div>
-      <section
-        className="panel prompt-editor-replies"
-        aria-labelledby={`${sectionsId}-heading`}
-      >
-        <h2
-          id={`${sectionsId}-heading`}
-          className="section-heading prompt-editor-heading"
-        >
-          {heading}
-        </h2>
-        <nav className="prompt-editor-nav" aria-label={PROMPT_COPY.sections}>
-          {sections.map(({ name: field, label }) => {
-            const { [field]: error } = textErrors;
-            return (
-              <Button
-                key={field}
-                variant="quiet"
-                aria-pressed={selectedField === field}
-                aria-controls={`${sectionsId}-${field}`}
-                value={field}
-                onClick={selectField}
-              >
-                {label}
-                {error !== undefined && (
-                  <span className="text-danger">
-                    {PROMPT_COPY.sectionError}
-                  </span>
-                )}
-              </Button>
-            );
-          })}
-        </nav>
-        {sections.map(
-          ({ name: field, label, help, maxLength, choices, list }) => {
-            const { [field]: text = "" } = draft.texts;
-            const { [field]: error } = textErrors;
-            let control = (
-              <TextAreaField
-                className="min-h-40 font-mono text-sm"
-                error={error}
-                hint={help}
-                key={field}
-                label={label}
-                maxLength={maxLength}
-                name={field}
-                onChange={changeText}
-                value={text}
-              />
-            );
-            if (choices !== undefined) {
-              control = (
-                <SelectField
-                  error={error}
-                  hint={help}
-                  label={label}
-                  name={field}
-                  onChange={changeText}
-                  value={text}
-                >
-                  {choices.map((choice) => (
-                    <option key={choice.value} value={choice.value}>
-                      {choice.label}
-                    </option>
-                  ))}
-                </SelectField>
-              );
-            }
-            if (list !== undefined) {
-              control = (
-                <TextListField
-                  name={field}
-                  label={label}
-                  hint={help}
-                  value={text}
-                  maxLength={list.maxLength}
-                  maxItems={list.maxItems}
-                  error={error}
-                  onChange={changeList}
-                />
-              );
-            }
-            return (
-              <div
-                className="prompt-editor-field"
-                key={field}
-                id={`${sectionsId}-${field}`}
-                hidden={selectedField !== field}
-              >
-                {control}
-              </div>
-            );
-          },
-        )}
-      </section>
+      <PromptSections
+        id={sectionsId}
+        heading={heading}
+        sections={sections}
+        selectedField={selectedField}
+        draft={draft}
+        errors={textErrors}
+        onSelect={selectField}
+        onTextChange={changeText}
+        onListChange={changeList}
+      />
       <div className="prompt-editor-actions">
         {saveHint !== undefined && (
           <p className="prompt-editor-save-hint" id={saveHintId}>
@@ -425,7 +480,7 @@ function PromptEditor({
           {saveLabel}
         </Button>
         <div className="flex flex-wrap items-center gap-3">
-          <FormStatus>{NOTICE_TEXTS[notice]}</FormStatus>
+          <FormStatus>{restored === true && PROMPT_COPY.restored}</FormStatus>
         </div>
       </div>
       {changed && (

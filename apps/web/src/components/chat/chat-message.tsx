@@ -10,7 +10,7 @@ import {
 import { type JSX, type ReactNode, useCallback } from "react";
 import { ChatPart } from "@/components/chat/chat-parts.tsx";
 import { ImageAttachment } from "@/components/chat/image-attachment.tsx";
-import { placementOf } from "@/components/chat/tool-parts.tsx";
+import { placementOf } from "@/components/chat/tool-parts.ts";
 import { WorkingDots } from "@/components/chat/working-dots.tsx";
 import { TextRun } from "@/components/chat/working-note.tsx";
 import {

@@ -315,9 +315,10 @@ export async function saveTasksMessage(
   owner: UserId,
   chatId: ChatId,
   message: UIMessage,
+  db: Database = getDb(),
 ): Promise<boolean> {
   const saved = await withAppErrors("saveTasksMessage", () =>
-    getDb()
+    db
       .insert(messages)
       .select(
         new QueryBuilder()

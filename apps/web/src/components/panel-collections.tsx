@@ -42,12 +42,14 @@ function PanelCollections({
   );
   const spells = sections.find((section) => section.id === "spells");
   const [bucket, setBucket] = useState(
-    buckets.find((section) => section.id === initialSection)?.id ??
+    () =>
+      buckets.find((section) => section.id === initialSection)?.id ??
       buckets[0]?.id ??
       "",
   );
   const [action, setAction] = useState(
-    actions.find((section) => section.id === initialSection)?.id ??
+    () =>
+      actions.find((section) => section.id === initialSection)?.id ??
       actions[0]?.id ??
       "",
   );

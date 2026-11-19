@@ -39,10 +39,12 @@ function ConversationPanel({
   title,
   initialSection,
   labels = QUEST_SIDEBAR_COPY,
+  icon,
 }: {
   readonly children?: ReactNode;
   readonly panel: ReactNode;
   readonly title: string;
+  readonly icon?: Parameters<typeof Icon>[0]["name"];
   readonly initialSection?: string | undefined;
   readonly labels?: {
     readonly label: string;
@@ -125,7 +127,12 @@ function ConversationPanel({
       >
         <aside className="quest-sidebar" aria-label={labels.label}>
           <div className="quest-panel-heading">
-            <h2 className="font-heading text-lg">{title}</h2>
+            <h2 className="flex items-center gap-2 font-heading text-lg">
+              {icon !== undefined && (
+                <Icon name={icon} className="text-primary" />
+              )}
+              {title}
+            </h2>
             <Button
               variant="quiet"
               className="panel-toggle panel-edge-tab quest-sidebar-collapse"

@@ -12,12 +12,23 @@ import {
 } from "react";
 import { Button } from "@/components/ui/button.tsx";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog.tsx";
+import {
+  AddListItem,
+  EditableListScope,
+} from "@/components/ui/editable-list.tsx";
+import type { EditorOptions } from "@/components/ui/editable-list-contract.ts";
 import { Alert } from "@/components/ui/form-message.tsx";
 import { Icon } from "@/components/ui/icon.tsx";
 import { useQuestAction } from "@/components/use-quest-action.ts";
-import type { MilestoneId } from "@/ids.ts";
-import { MILESTONE_TEXT_MAX_LENGTH } from "@/milestones/milestone.ts";
-import { changeMilestoneAction } from "@/milestones/milestone-actions.ts";
+import type { MilestoneId, QuestId } from "@/ids.ts";
+import {
+  MILESTONE_TEXT,
+  MILESTONE_TEXT_MAX_LENGTH,
+} from "@/milestones/milestone.ts";
+import {
+  addMilestoneAction,
+  changeMilestoneAction,
+} from "@/milestones/milestone-actions.ts";
 import { PROGRESS_TIMELINE_COPY } from "@/ui/copy/milestones.ts";
 
 // The editor keeps refused text on screen.
@@ -121,7 +132,7 @@ function DeleteMilestone({
 // A milestone's text, with the buttons that edit or
 // delete it, or, while she edits it, the form that changes its text. When
 // the form closes, keyboard focus goes back to the Edit button.
-export function MilestoneControls({
+function MilestoneControls({
   id,
   text,
 }: {
@@ -165,3 +176,46 @@ export function MilestoneControls({
     </>
   );
 }
+
+function checkMilestone(text: string): { text: string } | { problem: string } {
+  const parsed = MILESTONE_TEXT.safeParse(text);
+  if (parsed.success) {
+    return { text: parsed.data };
+  }
+  if (text.trim() === "") {
+    return { problem: PROGRESS_TIMELINE_COPY.needsText };
+  }
+  return { problem: PROGRESS_TIMELINE_COPY.tooLong(MILESTONE_TEXT_MAX_LENGTH) };
+}
+
+const ADD_MILESTONE_EDITOR: EditorOptions = {
+  label: PROGRESS_TIMELINE_COPY.textLabel,
+  save: PROGRESS_TIMELINE_COPY.add,
+  cancel: PROGRESS_TIMELINE_COPY.cancel,
+  placeholder: PROGRESS_TIMELINE_COPY.textLabel,
+  maxLength: MILESTONE_TEXT_MAX_LENGTH,
+  validate: checkMilestone,
+};
+
+function AddMilestone({ questId }: { readonly questId: QuestId }): JSX.Element {
+  const { run, busy, problem } = useQuestAction(addMilestoneAction);
+  const add = useCallback(
+    async (text: string): Promise<boolean> => run({ questId, text }),
+    [questId, run],
+  );
+  return (
+    <div className="flex flex-col items-start gap-2">
+      <EditableListScope blocked={busy}>
+        <AddListItem
+          label={PROGRESS_TIMELINE_COPY.add}
+          editor={ADD_MILESTONE_EDITOR}
+          disabled={busy}
+          onSave={add}
+        />
+      </EditableListScope>
+      {problem !== undefined && <Alert>{problem}</Alert>}
+    </div>
+  );
+}
+
+export { AddMilestone, MilestoneControls };

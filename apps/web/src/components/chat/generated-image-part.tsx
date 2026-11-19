@@ -1,6 +1,6 @@
 import Image from "next/image";
 import type { JSX } from "react";
-import type { ToolCallPart } from "@/components/chat/tool-parts.tsx";
+import type { ToolCallPart } from "@/components/chat/tool-parts.ts";
 import {
   GENERATE_IMAGE_OUTPUT,
   generatedImageUrl,

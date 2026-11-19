@@ -296,8 +296,10 @@ async function signIn(
   account: ReviewAccount,
   sessionSecret: string,
 ): Promise<SignedIn> {
-  const { SESSION_COOKIE_NAME } = await import("@/auth/session-token.ts");
-  const value = await reviewSession(account, sessionSecret);
+  const [{ SESSION_COOKIE_NAME }, value] = await Promise.all([
+    import("@/auth/session-token.ts"),
+    reviewSession(account, sessionSecret),
+  ]);
   if (value === undefined) {
     throw new Error(
       `${account.email} doesn't exist. Run mise run review-data first.`,
@@ -314,12 +316,12 @@ async function signIn(
       `The site at ${origin} didn't sign ${account.email} in: it must use this worktree's development database and SESSION_SECRET.`,
     );
   }
-  const quests = NAMED_ITEMS.parse(
-    await getJson(origin, "/api/v1/quests", cookie),
-  );
-  const spells = NAMED_ITEMS.parse(
-    await getJson(origin, "/api/v1/spells", cookie),
-  );
+  const [questData, spellData] = await Promise.all([
+    getJson(origin, "/api/v1/quests", cookie),
+    getJson(origin, "/api/v1/spells", cookie),
+  ]);
+  const quests = NAMED_ITEMS.parse(questData);
+  const spells = NAMED_ITEMS.parse(spellData);
   return {
     email: account.email,
     cookie: { name: SESSION_COOKIE_NAME, value },

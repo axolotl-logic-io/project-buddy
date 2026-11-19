@@ -33,9 +33,9 @@ export function ChatThread({
   stop,
   stopStatus = "",
   spellStop,
-  followOnMount = true,
+  spellOnly,
 }: {
-  followOnMount?: boolean | undefined;
+  spellOnly?: boolean | undefined;
   construct: ConstructSnapshot;
   chatId: ChatId;
   openingMessageId?: string | undefined;
@@ -53,7 +53,7 @@ export function ChatThread({
       }
     | undefined;
 }): JSX.Element {
-  const scrollRef = useChatScroll(followOnMount);
+  const scrollRef = useChatScroll(spellOnly);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const retry = useCallback((): void => {
     onRetry?.();
@@ -92,7 +92,12 @@ export function ChatThread({
         )}
         <ThreadPrimitive.ViewportFooter className="chat-composer-dock">
           {stopStatus !== "" && <Notice role="status">{stopStatus}</Notice>}
-          <ChatComposer inputRef={inputRef} stop={stop} spellStop={spellStop} />
+          <ChatComposer
+            inputRef={inputRef}
+            stop={stop}
+            spellStop={spellStop}
+            spellOnly={spellOnly}
+          />
         </ThreadPrimitive.ViewportFooter>
       </ThreadPrimitive.Viewport>
     </ThreadPrimitive.Root>

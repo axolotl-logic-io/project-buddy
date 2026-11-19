@@ -1,9 +1,11 @@
 import type { Metadata, Viewport } from "next";
+import { cookies } from "next/headers";
 import type { JSX } from "react";
 import { SignedInHeader } from "@/components/signed-in-header.tsx";
 import {
-  DEFAULT_THEME_ATTRIBUTES,
-  THEME_PRE_PAINT_SCRIPT,
+  parseThemeChoiceCookie,
+  THEME_COOKIE_NAME,
+  themeAttributes,
 } from "@/themes/theme-choice.ts";
 import { THEME_FONT_VARIABLES } from "@/themes/theme-fonts.ts";
 import { SITE_COPY } from "@/ui/copy/site.ts";
@@ -42,27 +44,19 @@ export const viewport: Viewport = {
 // page renders per request, and waits for the session lookup.
 export const instant = false;
 
-// Every page renders per request, because the header (the @header slot)
-// reads who is signed in. The HTML still carries the default theme,
-// and the pre-paint script applies the visitor's saved theme before the
-// first paint. suppressHydrationWarning,
-// on <html> alone, lets that choice stand when React hydrates. The not-found
-// page of an address the site doesn't have gets no @header slot, so it
-// reads the session for the header itself, as every other page does.
-export default function RootLayout({
+// The first HTML includes the browser's appearance and the session header.
+export default async function RootLayout({
   children,
   header,
-}: LayoutProps<"/">): JSX.Element {
+}: LayoutProps<"/">): Promise<JSX.Element> {
+  const saved = (await cookies()).get(THEME_COOKIE_NAME)?.value;
+  const appearance = themeAttributes(parseThemeChoiceCookie(saved));
   return (
     <html
-      {...DEFAULT_THEME_ATTRIBUTES}
+      {...appearance}
       className={`${THEME_FONT_VARIABLES} h-full antialiased`}
       lang="en"
-      suppressHydrationWarning={true}
     >
-      <head>
-        <script>{THEME_PRE_PAINT_SCRIPT}</script>
-      </head>
       <body className="flex min-h-full flex-col">
         {header ?? <SignedInHeader />}
         <main className="flex flex-1 flex-col">{children}</main>

@@ -4,13 +4,13 @@
 // its milestones read as not found, and nothing is written to either. Callers
 // pass text that MILESTONE_TEXT accepts.
 
-import { and, desc, eq, sql } from "drizzle-orm";
+import { and, desc, eq, exists, type SQL, sql } from "drizzle-orm";
 import { QueryBuilder } from "drizzle-orm/pg-core";
 import { z } from "zod";
 import { milestoneOpenTo, opensQuest } from "@/accounts/owner-scope.ts";
 import { getDb } from "@/db/client.ts";
 import { milestones } from "@/db/tables/milestones.ts";
-import { chats } from "@/db/tables/quests-and-chats.ts";
+import { chats, quests } from "@/db/tables/quests-and-chats.ts";
 import { withAppErrors } from "@/errors/to-app-error.ts";
 import {
   CHAT_ID,
@@ -22,10 +22,10 @@ import {
 } from "@/ids.ts";
 import type { Milestone } from "@/milestones/milestone.ts";
 
-// Where a new milestone comes from: a chat in the quest.
+// A new milestone belongs to a quest and can come from one of its chats.
 interface MilestoneSource {
   readonly questId: QuestId;
-  readonly chatId: ChatId;
+  readonly chatId?: ChatId;
 }
 
 const MILESTONE_COLUMNS: Pick<
@@ -59,15 +59,23 @@ function toMilestones(rows: readonly unknown[]): Milestone[] {
   });
 }
 
-// Records a milestone with text, dated now, in the owner's quest, from
-// one of its chats. Undefined, with nothing saved, unless the quest is the
-// owner's and the chat is in it.
+// Records a milestone in an accessible quest, with an optional source chat.
+// A supplied chat must belong to that quest.
 async function recordMilestone(
   owner: UserId,
   { questId, chatId }: MilestoneSource,
   text: string,
 ): Promise<Milestone | undefined> {
   const qb = new QueryBuilder();
+  let source: SQL | undefined;
+  if (chatId !== undefined) {
+    source = exists(
+      qb
+        .select({ id: chats.id })
+        .from(chats)
+        .where(and(eq(chats.id, chatId), eq(chats.questId, quests.id))),
+    );
+  }
   const [recorded] = await withAppErrors("recordMilestone", async () =>
     toMilestones(
       await getDb()
@@ -76,18 +84,14 @@ async function recordMilestone(
           qb
             .select({
               id: sql`gen_random_uuid()`.as("id"),
-              questId: sql`${chats.questId}`.as("quest_id"),
-              chatId: sql`${chats.id}`.as("chat_id"),
+              questId: sql`${quests.id}`.as("quest_id"),
+              chatId: sql`${chatId ?? null}::uuid`.as("chat_id"),
               text: sql`${text}::text`.as("text"),
               recordedAt: sql`now()`.as("recorded_at"),
             })
-            .from(chats)
+            .from(quests)
             .where(
-              and(
-                eq(chats.id, chatId),
-                eq(chats.questId, questId),
-                opensQuest(owner, questId),
-              ),
+              and(eq(quests.id, questId), opensQuest(owner, questId), source),
             ),
         )
         .returning(MILESTONE_COLUMNS),
@@ -123,13 +127,16 @@ async function editMilestone(
   owner: UserId,
   id: MilestoneId,
   text: string,
+  questId?: QuestId,
 ): Promise<boolean> {
   const edited = await withAppErrors("editMilestone", async () =>
     toMilestones(
       await getDb()
         .update(milestones)
         .set({ text })
-        .where(and(eq(milestones.id, id), milestoneOpenTo(owner)))
+        .where(
+          and(eq(milestones.id, id), milestoneOpenTo(owner), inQuest(questId)),
+        )
         .returning(MILESTONE_COLUMNS),
     ),
   );
@@ -138,12 +145,27 @@ async function editMilestone(
 
 // Deletes the owner's milestone. Deleting one that is gone, or another
 // user's, changes nothing.
-async function deleteMilestone(owner: UserId, id: MilestoneId): Promise<void> {
+async function deleteMilestone(
+  owner: UserId,
+  id: MilestoneId,
+  questId?: QuestId,
+): Promise<void> {
   await withAppErrors("deleteMilestone", () =>
     getDb()
       .delete(milestones)
-      .where(and(eq(milestones.id, id), milestoneOpenTo(owner))),
+      .where(
+        and(eq(milestones.id, id), milestoneOpenTo(owner), inQuest(questId)),
+      ),
   );
+}
+
+function inQuest(
+  questId: QuestId | undefined,
+): ReturnType<typeof eq> | undefined {
+  if (questId !== undefined) {
+    return eq(milestones.questId, questId);
+  }
+  return undefined;
 }
 
 export { deleteMilestone, editMilestone, listMilestones, recordMilestone };

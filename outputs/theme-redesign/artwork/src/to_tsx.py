@@ -104,12 +104,46 @@ def view_box(svg: ET.Element) -> tuple[str, str, str]:
     return x, y, width
 
 
+def drawing_body(svg: ET.Element, function: str, prefix: str) -> tuple[str, str]:
+    """Turn named layers into components, keeping SVG paint order and shape hierarchy."""
+    body = []
+    layers: dict[str, list[ET.Element]] = {}
+    layer = None
+    for child in svg:
+        if child.tag is ET.Comment:
+            marker = (child.text or "").strip()
+            if marker.startswith("layer: "):
+                label = marker.removeprefix("layer: ")
+                layer = layers.setdefault(f"{function}{label}", [])
+        elif layer is None:
+            body.extend(jsx(child, prefix, 3))
+        else:
+            layer.append(child)
+
+    components = []
+    for name, shapes in layers.items():
+        markup = "\n".join(line for shape in shapes for line in jsx(shape, prefix, 3))
+        uses_id = "${id}" in markup
+        props = "{ id }: { readonly id: string }" if uses_id else ""
+        passed = " id={id}" if uses_id else ""
+        if len(shapes) != 1:
+            markup = f"    <>\n{markup}\n    </>"
+        components.append(
+            f"function {name}({props}): JSX.Element {{\n"
+            f"  return (\n{markup}\n  );\n}}\n\n"
+        )
+        body.append(f"      <{name}{passed} />")
+    return "".join(components), "\n".join(body)
+
+
 def component(file: str, function: str, box: str, prefix: str) -> str:
-    svg = ET.parse(ART / file).getroot()
+    parser = ET.XMLParser(target=ET.TreeBuilder(insert_comments=True))
+    svg = ET.parse(ART / file, parser=parser).getroot()
     x, y, size = view_box(svg)
-    body = [line for child in svg for line in jsx(child, prefix, 3)]
+    layers, body = drawing_body(svg, function, prefix)
     return (
-        f"const {box} = {{ x: {x}, y: {y}, size: {size} }} as const;\n\n"
+        layers
+        + f"const {box} = {{ x: {x}, y: {y}, size: {size} }} as const;\n\n"
         f"function {function}({{ frame }}: DrawingProps): JSX.Element {{\n"
         "  const id = useId();\n"
         "  return (\n"
@@ -117,7 +151,7 @@ def component(file: str, function: str, box: str, prefix: str) -> str:
         '      className="construct-art"\n'
         f"      viewBox={{frameViewBox({box}, frame)}}\n"
         "      aria-hidden={true}\n"
-        "    >\n" + "\n".join(body) + "\n"
+        "    >\n" + body + "\n"
         "    </svg>\n"
         "  );\n"
         "}\n"

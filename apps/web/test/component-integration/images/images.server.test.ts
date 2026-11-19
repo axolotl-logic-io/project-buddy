@@ -76,6 +76,7 @@ describe("saved conversation image access", () => {
     const id = await seedImage(chat.id);
     await signIn(her);
 
+    await setSpell(her.id, { chatId: chat.id, spell: "tasks" });
     const withImage = await post(chat.id, [imagePart(id)]);
 
     expect(withImage.status).toBe(HTTP_STATUS.badRequest);

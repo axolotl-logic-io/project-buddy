@@ -13,6 +13,7 @@ import {
   useEffect,
   useEffectEvent,
   useId,
+  useLayoutEffect,
   useRef,
   useState,
 } from "react";
@@ -21,6 +22,83 @@ import type { EditorOptions } from "@/components/ui/editable-list-contract.ts";
 import { Alert } from "@/components/ui/form-message.tsx";
 import { Icon } from "@/components/ui/icon.tsx";
 import { EDITABLE_LIST_COPY } from "@/ui/copy/editable-list.ts";
+
+interface SaveJob {
+  readonly save: () => Promise<boolean>;
+  readonly finish: (saved: boolean) => void;
+  readonly fail: (error: unknown) => void;
+}
+
+interface SaveQueue {
+  readonly enqueue: (save: SaveJob["save"]) => Promise<boolean>;
+  readonly setBlocked: (blocked: boolean) => void;
+  readonly cancelWaiting: () => void;
+}
+
+function createSaveQueue(): SaveQueue {
+  const waiting: SaveJob[] = [];
+  let blocked = false;
+  let running = false;
+
+  function drain(): void {
+    if (running || blocked) {
+      return;
+    }
+    const next = waiting.shift();
+    if (next === undefined) {
+      return;
+    }
+    running = true;
+    Promise.resolve()
+      .then(next.save)
+      .then(next.finish, next.fail)
+      .finally(() => {
+        running = false;
+        drain();
+      });
+  }
+
+  return {
+    enqueue(save: SaveJob["save"]): Promise<boolean> {
+      return new Promise<boolean>((finish, fail) => {
+        waiting.push({ save, finish, fail });
+        drain();
+      });
+    },
+    setBlocked(value: boolean): void {
+      blocked = value;
+      drain();
+    },
+    cancelWaiting(): void {
+      for (const job of waiting.splice(0)) {
+        job.finish(false);
+      }
+    },
+  };
+}
+
+const SaveQueueContext = createContext<SaveQueue | undefined>(undefined);
+
+// Add and row editors in the same list share one ordered stream of saves.
+// Other list actions can temporarily block that stream.
+function EditableListScope({
+  blocked = false,
+  children,
+}: {
+  readonly blocked?: boolean;
+  readonly children: ReactNode;
+}): JSX.Element {
+  const [queue] = useState(createSaveQueue);
+  useLayoutEffect(() => {
+    queue.setBlocked(blocked);
+  }, [blocked, queue]);
+  useEffect(() => queue.cancelWaiting, [queue]);
+  return (
+    <SaveQueueContext.Provider value={queue}>
+      {children}
+    </SaveQueueContext.Provider>
+  );
+}
 
 interface SortContext {
   readonly dragging: string | undefined;
@@ -191,7 +269,11 @@ function TextEditor({
   const savingRef = useRef<Promise<boolean> | undefined>(undefined);
   const resubmittingRef = useRef<boolean>(false);
   const clickedAwayRef = useRef<boolean>(false);
-  const dismissRequestedRef = useRef<boolean>(false);
+  const queue = useContext(SaveQueueContext);
+  const saveRef = useRef(onSave);
+  useLayoutEffect(() => {
+    saveRef.current = onSave;
+  }, [onSave]);
   const inputId = useId();
   const problemId = useId();
   const [text, setText] = useState(initial);
@@ -216,7 +298,7 @@ function TextEditor({
       if (savingRef.current !== undefined) {
         return savingRef.current;
       }
-      if (disabled) {
+      if (disabled && !dismiss) {
         return Promise.resolve(false);
       }
       if (dismiss && text.trim() === initial.trim()) {
@@ -231,8 +313,11 @@ function TextEditor({
       const { text: savedText } = checked;
       async function persist(): Promise<boolean> {
         try {
-          if (!(await onSave(savedText))) {
+          if (formRef.current === null || !(await saveRef.current(savedText))) {
             return false;
+          }
+          if (formRef.current === null) {
+            return true;
           }
           if (dismiss || clickedAwayRef.current) {
             onDismiss();
@@ -243,15 +328,16 @@ function TextEditor({
         } catch {
           setProblem(EDITABLE_LIST_COPY.failed);
           return false;
-        } finally {
-          savingRef.current = undefined;
         }
       }
-      const pending = Promise.resolve().then(persist);
-      savingRef.current = pending;
-      return pending;
+      const pending =
+        queue?.enqueue(persist) ?? Promise.resolve().then(persist);
+      savingRef.current = pending.finally(() => {
+        savingRef.current = undefined;
+      });
+      return savingRef.current;
     },
-    [disabled, editor, initial, onCancel, onDismiss, onSave, text],
+    [disabled, editor, initial, onCancel, onDismiss, queue, text],
   );
   const submitParent = useEffectEvent((event: SubmitEvent): void => {
     if (resubmittingRef.current) {
@@ -280,8 +366,12 @@ function TextEditor({
       .catch(() => setProblem(EDITABLE_LIST_COPY.failed));
   });
   useEffect(() => {
-    const parent = formRef.current?.closest("form");
-    if (parent === undefined || parent === null) {
+    const fieldset = formRef.current;
+    if (fieldset === null) {
+      return;
+    }
+    const parent = fieldset.closest("form");
+    if (parent === null) {
       return;
     }
     function submitOuter(event: SubmitEvent): void {
@@ -311,10 +401,6 @@ function TextEditor({
   );
   const dismissOnClick = useEffectEvent((): void => {
     clickedAwayRef.current = true;
-    if (disabled) {
-      dismissRequestedRef.current = true;
-      return;
-    }
     save(true).catch(() => setProblem(EDITABLE_LIST_COPY.failed));
   });
   useEffect(() => {
@@ -338,12 +424,6 @@ function TextEditor({
       document.removeEventListener("click", dismiss);
     };
   }, []);
-  useEffect(() => {
-    if (!disabled && dismissRequestedRef.current) {
-      dismissRequestedRef.current = false;
-      save(true).catch(() => setProblem(EDITABLE_LIST_COPY.failed));
-    }
-  }, [disabled, save]);
   useEffect(() => {
     // A newly selected row can be disabled while the previous row saves.
     if (!(disabled || clickedAwayRef.current)) {
@@ -658,4 +738,10 @@ function EditableListAction({
   );
 }
 
-export { AddListItem, EditableList, EditableListAction, EditableListRow };
+export {
+  AddListItem,
+  EditableList,
+  EditableListAction,
+  EditableListRow,
+  EditableListScope,
+};

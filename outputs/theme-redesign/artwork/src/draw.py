@@ -132,7 +132,7 @@ def tilted_ring(rx, ry, rot, half) -> str:
 
 def lumen() -> str:
     rng = random.Random(7)
-    b = []
+    b = ["<!-- layer: Backdrop -->\n"]
     b.append(
         "<defs>\n"
         '<radialGradient id="lumen-sky" cx="50%" cy="50%" r="72%">'
@@ -176,6 +176,7 @@ def lumen() -> str:
         f'stroke-dasharray="10 4 3 4" d="{" ".join(trails)}"/>\n'
     )
 
+    b.append("<!-- layer: RuneRing -->\n")
     # The ring of runes: a brass band with incised runes and four jewels.
     b.append(
         '<g class="rune-ring">\n'
@@ -224,6 +225,7 @@ def lumen() -> str:
         )
     b.append("".join(jewels) + "\n</g>\n")
 
+    b.append("<!-- layer: GyroscopeAndMote -->\n")
     # Gyroscope rings, far halves behind the light.
     gyros = ((78, 25, -28), (78, 25, 36))
     for rx, ry, rot in gyros:
@@ -401,7 +403,7 @@ def quill(nib, tip, rng: random.Random) -> str:
 
 def vellum() -> str:
     rng = random.Random(11)
-    b = []
+    b = ["<!-- layer: MapBackdrop -->\n"]
     b.append(
         "<defs>\n"
         '<radialGradient id="vellum-sheet" cx="50%" cy="46%" r="74%">'
@@ -447,6 +449,7 @@ def vellum() -> str:
         '<ellipse class="f-ground-ink" cx="128" cy="214" rx="42" ry="4.5" opacity=".35"/>\n'
     )
 
+    b.append("<!-- layer: Torso -->\n")
     # Legs and feet.
     b.append(
         '<g class="legs">'
@@ -495,6 +498,7 @@ def vellum() -> str:
         '<rect class="f-none s-ink" stroke-width="1" x="125" y="167.5" width="6" height="5.5"/>\n'
     )
 
+    b.append("<!-- layer: ArmsAndTools -->\n")
     # The rolled map, held at Vellum's left (the viewer's right).
     b.append(
         '<g transform="rotate(-62 178 150)">'
@@ -549,6 +553,7 @@ def vellum() -> str:
         '<g class="f-ink"><circle cx="168" cy="155" r="1.6"/><circle cx="172" cy="155" r="1.6"/></g>\n'
     )
 
+    b.append("<!-- layer: Head -->\n")
     # Neck, then the head: a brass dome with a finial, ear cogs, lens eyes
     # under calm half-lids, and a small smile.
     b.append(

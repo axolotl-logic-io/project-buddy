@@ -6,7 +6,7 @@ import type { MessageRuntimeState } from "@assistant-ui/react";
 import {
   makesNoteOfTextBefore,
   type PlacedPart,
-} from "@/components/chat/tool-parts.tsx";
+} from "@/components/chat/tool-parts.ts";
 
 // What isWorkingNote reads of a message.
 interface NoteMessage {
