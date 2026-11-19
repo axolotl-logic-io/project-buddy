@@ -13,7 +13,7 @@ declare module "vitest/browser" {
     // Native upward wheel input over the rendered list.
     wheelUp: () => Promise<void>;
     // Emulates the system preference for reduced motion.
-    reduceMotion: () => Promise<void>;
+    reduceMotion: (enabled?: boolean) => Promise<void>;
     // Switches the system color scheme the page sees, as
     // prefers-color-scheme reports it.
     emulateColorScheme: (colorScheme: "light" | "dark") => Promise<void>;

@@ -24,5 +24,6 @@
 - **Prerequisites:** a signed-in user.
 - **Steps:**
   - They look at the right end of the site header's bar.
+  - They complete a task and see the experience it earned.
   - They follow the ring.
-- **Outcome:** a ring holding their circle's number fills as their experience nears the next circle, empty at the circle's start. Its name says their circle and its title and how much more experience the next circle needs. Following it opens Profile at its Experience card. It updates as the page refreshes after they do something. It shares the header's one row on a phone and never scrolls the page sideways.
+- **Outcome:** a ring holding their circle's number fills as their experience nears the next circle, empty at the circle's start. Its name says their circle and its title and how much more experience the next circle needs. Following it opens Profile at its Experience card. It updates as the page refreshes after they do something. An increase briefly shows the amount earned below the header, such as "+3 experience". The message slides into place, or appears still when reduced motion is on. The ring shares the header's one row on a phone and never scrolls the page sideways.
