@@ -377,7 +377,7 @@
     @apply rounded-control underline decoration-(length:--line-width) decoration-line underline-offset-4 hover:text-primary hover:decoration-primary;
   }
 
-  :is(.circle-progress, .profile-ring) > svg {
+  :is(.circle-progress-ring, .profile-ring) > svg {
     @apply absolute inset-0 size-full;
   }
 
@@ -865,15 +865,29 @@
     --ring-disc: var(--hud-ink);
     --ring-track: var(--hud-line);
     --ring-arc: var(--hud-gold);
-    --ring-stroke: 0.12;
-    @apply relative grid shrink-0 place-items-center rounded-full;
+    @apply grid shrink-0 justify-items-center rounded-control;
+  }
+
+  .circle-progress-ring {
+    @apply relative grid place-items-center;
     inline-size: var(--target-size);
     block-size: var(--target-size);
   }
 
   .circle-progress-number {
     font-family: var(--numeral-font);
-    @apply relative font-semibold text-sm tabular-nums;
+    @apply relative font-semibold text-sm leading-none;
+  }
+
+  .circle-progress-title {
+    @apply text-xs leading-none;
+  }
+
+  :is(.circle-progress-number, .profile-ring-number) {
+    font-variant-numeric: lining-nums tabular-nums;
+    @supports (text-box: trim-both cap alphabetic) {
+      text-box: trim-both cap alphabetic;
+    }
   }
 
   /* Profile's head: a gilded card with the user's circle in a large ring
@@ -892,18 +906,19 @@
   }
 
   .profile-ring {
-    @apply relative grid size-28 shrink-0 content-center justify-items-center sm:size-33;
+    @apply relative grid size-28 shrink-0 place-items-center sm:size-33;
     color: var(--ring-ink);
   }
 
   .profile-ring-label {
-    @apply relative font-extrabold text-xs uppercase tracking-widest;
+    @apply absolute font-extrabold text-xs uppercase tracking-widest;
+    inset-block-start: 20%;
     color: var(--label-ink);
   }
 
   .profile-ring-number {
     font-family: var(--numeral-font);
-    @apply relative font-bold text-5xl tabular-nums leading-none;
+    @apply relative font-bold text-5xl leading-none;
   }
 
   .profile-name {
@@ -1664,14 +1679,14 @@
     inset-inline: 0;
     inset-block-end: calc(100% + --spacing(1));
     font-family: var(--timer-phase-font);
-    font-size: min(var(--timer-phase-size), 10.5cqi);
+    font-size: var(--timer-phase-size);
     font-weight: 400;
     line-height: 1.3;
   }
 
   .timer-countdown {
     font-family: var(--timer-numeral-font);
-    font-size: min(var(--timer-numeral-size), var(--timer-number-scale));
+    font-size: var(--timer-number-size);
     font-weight: 500;
     font-variant-numeric: lining-nums tabular-nums;
     letter-spacing: -0.05em;
@@ -1679,7 +1694,7 @@
   }
 
   .timer-countdown[data-hours="true"] {
-    font-size: min(var(--timer-numeral-size), var(--timer-hours-scale));
+    font-size: var(--timer-hours-size);
   }
 
   .timer-next {
@@ -2384,9 +2399,9 @@
     --timer-face-padding: 0;
     --timer-face-columns: var(--timer-panel-columns);
     --timer-readout-align: var(--timer-panel-align);
-    --timer-phase-size: var(--timer-panel-phase-size);
-    --timer-number-scale: var(--timer-panel-number-scale);
-    --timer-hours-scale: var(--timer-panel-hours-scale);
+    --timer-phase-size: 1.25rem;
+    --timer-number-size: 2.5rem;
+    --timer-hours-size: 2rem;
     --timer-next-position: var(--timer-panel-next-position);
     --timer-next-margin: 0;
     --timer-next-padding: 0;
