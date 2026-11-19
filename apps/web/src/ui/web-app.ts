@@ -12,7 +12,7 @@ const APP_COLORS = {
   darkBackground: "rgb(36, 24, 17)",
 } as const;
 
-// The icons in public/icons/: the header's gold compass on its ink brown,
+// The icons in public/icons/: a gold hourglass inside a gear on its ink brown,
 // rendered from app-icon.svg there. Each
 // keeps its picture inside the middle 80%, so the large one serves as a
 // maskable icon too.
