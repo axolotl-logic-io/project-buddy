@@ -883,6 +883,48 @@
     @apply text-xs leading-none;
   }
 
+  /* Keep the gain below the trail even when the ring has scrolled away. */
+  .experience-feedback {
+    inset-block-start: calc(
+      max(0px, var(--panel-top)) +
+      var(--panel-tab-height) +
+      --spacing(3)
+    );
+    inset-inline: var(--header-gutter);
+    @apply pointer-events-none fixed z-30 flex justify-end;
+  }
+
+  .experience-feedback > .notice {
+    background: var(--hud-ink);
+    border-color: var(--hud-gold);
+    color: var(--hud-paper);
+    @apply px-3 py-2 font-semibold text-sm shadow-raised;
+  }
+
+  @media (width >= --theme(--breakpoint-lg)) {
+    html:has(.quest-sidebar-frame[open]) .experience-feedback {
+      inset-inline-end: calc(var(--quest-panel-width) + var(--header-gutter));
+    }
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .experience-feedback > .notice {
+      animation: experience-arrival 360ms ease-out;
+    }
+  }
+
+  @keyframes experience-arrival {
+    from {
+      opacity: 0;
+      transform: translateY(--spacing(2)) scale(0.95);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
   :is(.circle-progress-number, .profile-ring-number) {
     font-variant-numeric: lining-nums tabular-nums;
     @supports (text-box: trim-both cap alphabetic) {

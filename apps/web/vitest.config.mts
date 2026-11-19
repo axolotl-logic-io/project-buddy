@@ -49,8 +49,15 @@ async function emulateColorScheme(
   await context.page.emulateMedia({ colorScheme });
 }
 
-async function reduceMotion(context: BrowserCommandContext): Promise<void> {
-  await context.page.emulateMedia({ reducedMotion: "reduce" });
+async function reduceMotion(
+  context: BrowserCommandContext,
+  enabled = true,
+): Promise<void> {
+  let reducedMotion: "reduce" | "no-preference" = "reduce";
+  if (!enabled) {
+    reducedMotion = "no-preference";
+  }
+  await context.page.emulateMedia({ reducedMotion });
 }
 
 // Real touch input for a locator supplied by a browser test.
