@@ -19,6 +19,7 @@ export const CHAT_COPY = {
   messageLabel: "Message",
   send: "Send",
   keyHint: "Enter sends · Shift+Enter adds a line",
+  spellPlaceholder: "Write a message",
   commandKeyHint: "Enter sends · Shift+Enter adds a line · / commands",
   // The last message's reply stopped before it was saved, such as after a
   // failure, and nothing is replying to it now.

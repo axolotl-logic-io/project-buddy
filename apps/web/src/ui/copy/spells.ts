@@ -56,7 +56,8 @@ const SPELLBOOK_COPY = {
   castLabel: "Cast",
   castNamed: (name: string): string => `Cast ${name}`,
   choose: "Choose a spell",
-  command: (name: string): string => `Cast with: cast ${name}`,
+  castFromQuest: "Cast this spell from Spells & status in a quest.",
+  unavailable: "This spell is no longer available.",
   saved: "Saved.",
   builtIn: "Built-in spells are read-only. Make a copy to customize one.",
 

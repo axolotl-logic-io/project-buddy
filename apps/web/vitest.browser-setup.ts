@@ -51,6 +51,9 @@ vi.mock("@/ideas/idea-actions.ts", () => ({
 }));
 
 vi.mock("@/milestones/milestone-actions.ts", () => ({
+  addMilestoneAction: vi.fn(() => {
+    throw new Error("Mock milestone creation in this test");
+  }),
   changeMilestoneAction: vi.fn(() => {
     throw new Error("Mock the milestone action in this test");
   }),
@@ -96,6 +99,7 @@ keepRunnerPageStill();
 
 beforeEach(({ onTestFailed }) => {
   localStorage.clear();
+  sessionStorage.clear();
   onTestFailed(({ task }) => {
     for (const error of task.result?.errors ?? []) {
       withMessageInStack(error);

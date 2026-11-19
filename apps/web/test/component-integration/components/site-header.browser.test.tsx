@@ -37,7 +37,6 @@ import {
   TrailBand,
 } from "@/components/site-header.tsx";
 import { SitePanel } from "@/components/site-panel.tsx";
-import type { saveThemeChoiceAction } from "@/themes/save-theme-choice-action.ts";
 import { THEME_IDS } from "@/themes/themes.ts";
 import { CREDITS_COPY } from "@/ui/copy/credits.ts";
 import { EXPERIENCE_COPY } from "@/ui/copy/experience.ts";
@@ -84,13 +83,6 @@ vi.mock(
   "@/auth/current-user.ts",
   () => import("../auth/current-user-test-kit.ts"),
 );
-
-// Saving a theme choice is a round trip to the server, which
-// save-theme-choice-action.server.test.ts covers.
-const action = vi.hoisted(() => ({
-  saveThemeChoiceAction: vi.fn<typeof saveThemeChoiceAction>(),
-}));
-vi.mock("@/themes/save-theme-choice-action.ts", () => action);
 
 // The height of a button, as --target-size sets it in
 // src/app/page-roles.css.
@@ -180,7 +172,6 @@ beforeEach(() => {
 });
 
 afterEach(async () => {
-  action.saveThemeChoiceAction.mockReset();
   await setViewport(LAPTOP_VIEWPORT);
 });
 
@@ -301,13 +292,30 @@ describe("use_case_experience_ring", () => {
         ),
       });
       await expect.element(ring).toHaveAttribute("href", "/profile#experience");
-      await expect.element(ring).toHaveTextContent(String(circle));
+      const number = ring.getByText(String(circle), { exact: true });
+      const displayedTitle = ring.getByText(title, { exact: true });
+      await expect.element(number).toBeVisible();
+      await expect.element(displayedTitle).toBeVisible();
       expect(
         1 - filledFraction(ring.element(), "The header's ring"),
       ).toBeCloseTo(
         (nextCircleStart - experience) / (nextCircleStart - circleStart),
       );
       const ringBox = ring.element().getBoundingClientRect();
+      const graphic = ring.element().querySelector("svg");
+      expect(graphic).not.toBeNull();
+      expect(
+        displayedTitle.element().getBoundingClientRect().top,
+      ).toBeGreaterThanOrEqual(
+        graphic?.getBoundingClientRect().bottom ?? Number.POSITIVE_INFINITY,
+      );
+      expect(
+        Number.parseFloat(
+          getComputedStyle(
+            graphic?.querySelector("circle[stroke]") ?? ring.element(),
+          ).strokeWidth,
+        ),
+      ).toBeGreaterThan(1);
       const titleBox = page
         .getByRole("link", { name: SITE_COPY.name })
         .element()

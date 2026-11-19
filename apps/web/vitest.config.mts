@@ -8,6 +8,7 @@ import {
 } from "vitest/config";
 import type { BrowserCommandContext } from "vitest/node";
 import { materialPixels } from "./test/component-integration/components/appearance-material-test-kit.mts";
+import { serveAppearancePreference } from "./test/component-integration/components/appearance-preference-test-kit.mts";
 import { prebundledBrowserDeps } from "./vitest.browser-deps.mts";
 import { playwrightProvider } from "./vitest.browser-provider.mts";
 import { servedSyntaxCheck } from "./vitest.browser-syntax.mts";
@@ -153,6 +154,7 @@ function contextBrowserProject(
           wheelUp,
           tap,
           materialPixels,
+          serveAppearancePreference,
         },
       },
     },
@@ -232,6 +234,7 @@ export default defineConfig({
               wheelUp,
               tap,
               materialPixels,
+              serveAppearancePreference,
             },
           },
         },

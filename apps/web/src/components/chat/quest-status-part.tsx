@@ -6,7 +6,7 @@ import {
   answerQuestStatusAction,
   readQuestStatusApprovalAction,
 } from "@/app/(workspace)/quests/status-actions.ts";
-import type { ToolCallPart } from "@/components/chat/tool-parts.tsx";
+import type { ToolCallPart } from "@/components/chat/tool-parts.ts";
 import { UndoStatusChange } from "@/components/quest-status-controls.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { Alert, FormStatus } from "@/components/ui/form-message.tsx";

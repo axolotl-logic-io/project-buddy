@@ -51,6 +51,14 @@ const ICON_PATHS = {
   // A page with a folded corner and two lines, for a Quick Note.
   note: { stroke: "M3.5 2h6l3 3v9h-9zM9.5 2v3h3M5.5 8.5h5M5.5 11h3.5" },
   // A plus sign, for making something new.
+  hourglass: {
+    stroke:
+      "M4 2h8M4 14h8M5 2v2c0 2 3 3 3 4s-3 2-3 4v2m6-12v2c0 2-3 3-3 4s3 2 3 4v2",
+  },
+  people: {
+    stroke:
+      "M2 14v-2a3 3 0 0 1 3-3h2a3 3 0 0 1 3 3v2M8.5 5.5a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0ZM11 3a2.5 2.5 0 0 1 0 5m0 1a3 3 0 0 1 3 3v2",
+  },
   plus: { stroke: "M8 3v10M3 8h10" },
   // A bin, for deleting something.
   trash: { stroke: "M2.5 4h11M6 4V2.5h4V4M4 4l.75 9.5h6.5L12 4" },

@@ -11,6 +11,7 @@ import {
   EditableList,
   EditableListAction,
   EditableListRow,
+  EditableListScope,
 } from "@/components/ui/editable-list.tsx";
 import type { EditorOptions } from "@/components/ui/editable-list-contract.ts";
 import { Alert, FormStatus } from "@/components/ui/form-message.tsx";
@@ -328,59 +329,61 @@ function TaskRows(): JSX.Element | null {
   const done = doneTasks(tasks.state.tasks);
   return (
     <div className="tasks bucket-desk bucket-tasks">
-      <div className="bucket-toolbar" data-empty={open.length === 0}>
-        {open.length === 0 && (
-          <div className="bucket-empty-copy">
-            <Icon name="checklist" />
-            <p className="bucket-empty-heading">{TASKS_COPY.emptyHeading}</p>
-            <p>{TASKS_COPY.empty}</p>
-          </div>
-        )}
-        {open.length > 0 && (
-          <p className="bucket-summary">
-            {TASKS_COPY.openSummary(open.length)}
-          </p>
-        )}
-        <AddListItem
-          label={TASKS_COPY.addPlaceholder}
-          editor={ADD_EDITOR}
-          disabled={disabled}
-          onSave={add}
-        />
-      </div>
-      <EditableList label={TASKS_COPY.tasksLabel} onMove={reorder}>
-        {open.map((task, index) => (
-          <TaskRow
-            key={task.number}
-            tasks={tasks}
-            task={task}
-            first={index === 0}
-            last={index === open.length - 1}
+      <EditableListScope blocked={disabled}>
+        <div className="bucket-toolbar" data-empty={open.length === 0}>
+          {open.length === 0 && (
+            <div className="bucket-empty-copy">
+              <Icon name="checklist" />
+              <p className="bucket-empty-heading">{TASKS_COPY.emptyHeading}</p>
+              <p>{TASKS_COPY.empty}</p>
+            </div>
+          )}
+          {open.length > 0 && (
+            <p className="bucket-summary">
+              {TASKS_COPY.openSummary(open.length)}
+            </p>
+          )}
+          <AddListItem
+            label={TASKS_COPY.addPlaceholder}
+            editor={ADD_EDITOR}
             disabled={disabled}
-            dailies={days !== undefined}
-            chain={chainOf.get(task.number)}
+            onSave={add}
           />
-        ))}
-      </EditableList>
-      {done.length > 0 && (
-        <details className="tasks-done">
-          <summary>{TASKS_COPY.done(done.length)}</summary>
-          <EditableList label={TASKS_COPY.done(done.length)}>
-            {done.map((task) => (
-              <TaskRow
-                key={task.number}
-                tasks={tasks}
-                task={task}
-                first={true}
-                last={true}
-                disabled={disabled}
-                dailies={days !== undefined}
-                chain={chainOf.get(task.number)}
-              />
-            ))}
-          </EditableList>
-        </details>
-      )}
+        </div>
+        <EditableList label={TASKS_COPY.tasksLabel} onMove={reorder}>
+          {open.map((task, index) => (
+            <TaskRow
+              key={task.number}
+              tasks={tasks}
+              task={task}
+              first={index === 0}
+              last={index === open.length - 1}
+              disabled={disabled}
+              dailies={days !== undefined}
+              chain={chainOf.get(task.number)}
+            />
+          ))}
+        </EditableList>
+        {done.length > 0 && (
+          <details className="tasks-done">
+            <summary>{TASKS_COPY.done(done.length)}</summary>
+            <EditableList label={TASKS_COPY.done(done.length)}>
+              {done.map((task) => (
+                <TaskRow
+                  key={task.number}
+                  tasks={tasks}
+                  task={task}
+                  first={true}
+                  last={true}
+                  disabled={disabled}
+                  dailies={days !== undefined}
+                  chain={chainOf.get(task.number)}
+                />
+              ))}
+            </EditableList>
+          </details>
+        )}
+      </EditableListScope>
       {tasks.disabledNote !== undefined && (
         <p className="text-muted text-sm">{tasks.disabledNote}</p>
       )}

@@ -238,6 +238,38 @@ describe.each(THEME_IDS)("the %s theme", (themeId: ThemeId) => {
     });
   });
 
+  test("keeps text sizes and border widths consistent across appearances", () => {
+    const sizes = THEME_MODES.map((mode) => {
+      applyTheme(themeId, mode);
+      return [
+        ...[
+          SITE_TITLE,
+          WIDE_SITE_TITLE,
+          PAGE_HEADING,
+          PHONE_PAGE_HEADING,
+          SECTION_HEADING,
+          HEADER_TITLE,
+          CARD_TITLE,
+          "conversation-text-size",
+          "initial-size",
+          "timer-phase-size",
+          "timer-number-size",
+          "timer-hours-size",
+        ].map(size),
+        ...[
+          "line-width",
+          "action-line-width",
+          "frame-width",
+          "frame-keyline",
+          "rule-width",
+        ].map(tokenValue),
+      ];
+    });
+    for (const appearance of sizes) {
+      expect(appearance).toEqual(sizes[0]);
+    }
+  });
+
   test("gives each appearance a palette of its own", () => {
     const palettes = THEME_MODES.map((mode) => {
       applyTheme(themeId, mode);

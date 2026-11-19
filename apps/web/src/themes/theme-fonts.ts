@@ -5,9 +5,8 @@
 // after the typeface rather than a theme, and a theme's CSS file points its
 // font tokens at the variables it uses. A browser downloads a font only once
 // the page uses it. next/font preloads no font (`preload: false`, checked by
-// theme-fonts.test.ts), since its preloads go in the HTML every visitor
-// shares; the proxy sends preload hints for the saved theme's fonts instead,
-// using theme-font-urls.ts.
+// theme-fonts.test.ts). The proxy sends preload hints for the saved
+// appearance using theme-font-urls.ts.
 import localFont from "next/font/local";
 
 const sourceSerif = localFont({

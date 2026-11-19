@@ -10,6 +10,7 @@
 // it. A new id also keeps a late reply or a browser draft from refilling
 // the new conversation.
 
+import type { UIMessage } from "ai";
 import { and, desc, eq, inArray, isNotNull, isNull } from "drizzle-orm";
 import { z } from "zod";
 import {
@@ -19,6 +20,7 @@ import {
   parkedChatOwnedBy,
   questOwnedBy,
 } from "@/accounts/owner-scope.ts";
+import { saveTasksMessage } from "@/chats/store.ts";
 import { moveConversationAssets } from "@/constructs/visual-asset-store.ts";
 import {
   DAY_TASK,
@@ -63,6 +65,7 @@ interface DayStartOptions {
   readonly localDate: LocalDate;
   readonly clearTasks: boolean;
   readonly clearIdeas: boolean;
+  readonly closingNote?: UIMessage;
 }
 
 // The owner's continuing conversation id in their active Dailies, locked
@@ -130,6 +133,12 @@ function startDay(
       const previous = await lockConversation(owner, id, db);
       const questId = QUEST_ID.safeParse(previous?.questId).data;
       if (previous === undefined || questId === undefined) {
+        return;
+      }
+      if (
+        options.closingNote !== undefined &&
+        !(await saveTasksMessage(owner, id, options.closingNote, db))
+      ) {
         return;
       }
       const tasks = await startTasksDay(owner, questId, db, options.clearTasks);

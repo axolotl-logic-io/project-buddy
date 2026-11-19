@@ -13,9 +13,12 @@ import { STORED_PROMPT_KIND_LIST } from "../../prompts/prompt.ts";
 import { users } from "./users.ts";
 
 // Retain historical activity rows until a separate cleanup release.
-const KIND_LITERALS = sql.raw(
-  STORED_PROMPT_KIND_LIST.map((kind) => `'${kind}'`).join(", "),
-);
+const KIND_LITERALS = sql
+  .join(
+    STORED_PROMPT_KIND_LIST.map((kind) => sql`${kind}`),
+    sql`, `,
+  )
+  .inlineParams();
 
 export const ownPrompts = pgTable(
   "own_prompts",

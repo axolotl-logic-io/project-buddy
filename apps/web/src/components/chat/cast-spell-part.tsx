@@ -1,5 +1,5 @@
 import type { JSX } from "react";
-import type { ToolCallPart } from "@/components/chat/tool-parts.tsx";
+import type { ToolCallPart } from "@/components/chat/tool-parts.ts";
 import { Icon } from "@/components/ui/icon.tsx";
 import { CAST_SPELL_OUTPUT } from "@/spells/cast-spell-contract.ts";
 import { CAST_SPELL_COPY } from "@/ui/copy/chat.ts";

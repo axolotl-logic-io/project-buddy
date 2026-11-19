@@ -26,6 +26,7 @@ import {
 import { QUEST_NAME } from "@/quests/quest-name.ts";
 import { getQuest } from "@/quests/store.ts";
 import { currentSpell, setSpell } from "@/spells/spell-store.ts";
+import { commandNoteMessage } from "@/tasks/tasks-message.ts";
 import { changeTasks, readTasks } from "@/tasks/tasks-store.ts";
 import { messageIdFixture } from "../../support/id-fixtures.ts";
 import { PNG_BASE64 } from "../../support/images/image-fixtures.ts";
@@ -76,6 +77,25 @@ async function dailiesChat(
   }
   return started.chat;
 }
+
+test("a rejected day record leaves the conversation and its messages intact", async () => {
+  const user = await testUser();
+  const chat = await dailiesChat(user);
+  const before = await listMessages(user.id, chat.id);
+  await expect(
+    startDay(user.id, chat.id, {
+      ...KEEP,
+      localDate: "2026-13-01",
+      closingNote: commandNoteMessage(messageIdFixture(), {
+        command: "/start-day",
+        note: "A new day",
+      }),
+    }),
+  ).rejects.toBeDefined();
+
+  expect(await listMessages(user.id, chat.id)).toEqual(before);
+  expect(await getChat(user.id, chat.id)).toMatchObject({ id: chat.id });
+});
 
 describe("Start Day", () => {
   test("use_case_start_day", async () => {

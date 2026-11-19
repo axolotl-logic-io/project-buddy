@@ -146,7 +146,7 @@ describe("use_case_view_progress_timeline", () => {
     const { chat } = await signedInChat();
 
     expect(await pageHtml(chat.quest.id)).toContain(
-      PROGRESS_TIMELINE_COPY.none,
+      PROGRESS_TIMELINE_COPY.empty,
     );
   });
 });

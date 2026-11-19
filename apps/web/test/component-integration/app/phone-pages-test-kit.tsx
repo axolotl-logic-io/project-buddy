@@ -169,7 +169,7 @@ const projectsPage = workspacePage(
 
 // A quest's page, as its owner sees it.
 function projectPageFor(
-  section = "",
+  section = "overview",
   dailies = false,
 ): () => Promise<JSX.Element> {
   return workspacePage(
@@ -286,9 +286,20 @@ const PHONE_PAGES: readonly PhonePage[] = [
   },
   { name: "a project", path: QUEST_PATH, render: projectPage },
   {
+    name: "a project with the Timer drawer open",
+    path: QUEST_PATH,
+    render: projectPage,
+    open: async (): Promise<void> => {
+      await page.getByRole("button", { name: TIMER_COPY.panel.expand }).click();
+      await page
+        .getByRole("button", { name: TIMER_COPY.start, exact: true })
+        .click();
+    },
+  },
+  {
     name: "the Dailies quest, with Start Day",
     path: QUEST_PATH,
-    render: projectPageFor("", true),
+    render: projectPageFor("overview", true),
     open: async (): Promise<void> => {
       await vi.waitFor(() =>
         page

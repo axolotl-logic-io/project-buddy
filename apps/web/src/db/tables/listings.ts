@@ -16,9 +16,12 @@ import { ownPrompts } from "./own-prompts.ts";
 import { users } from "./users.ts";
 
 // The kinds a listing may be: every kind of prompt as stored, as SQL literals.
-const KIND_LITERALS = sql.raw(
-  STORED_PROMPT_KIND_LIST.map((kind) => `'${kind}'`).join(", "),
-);
+const KIND_LITERALS = sql
+  .join(
+    STORED_PROMPT_KIND_LIST.map((kind) => sql`${kind}`),
+    sql`, `,
+  )
+  .inlineParams();
 
 export const listings = pgTable(
   "listings",

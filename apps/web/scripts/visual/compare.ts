@@ -270,9 +270,9 @@ async function compare(args: readonly string[]): Promise<boolean> {
   freshFolder(join(out, SITE_FOLDER));
   freshFolder(join(out, MOCKUP_FOLDER));
   const site = await openSite(options.site, join(out, "site.log"));
-  const browser = await chromium.launch();
   try {
     const accounts = await signInReviewAccounts(site.origin, options.email);
+    await using browser = await chromium.launch();
     const shooting: Shooting = {
       browser,
       origin: site.origin,
@@ -304,9 +304,7 @@ async function compare(args: readonly string[]): Promise<boolean> {
     );
     return report(summary, out);
   } finally {
-    await browser.close();
-    await site.stop();
-    await closeAppDatabase();
+    await Promise.all([site.stop(), closeAppDatabase()]);
   }
 }
 

@@ -7,7 +7,7 @@ import type {
 import Image from "next/image";
 import type { JSX } from "react";
 import { TasksDataPart } from "@/components/chat/tasks-change-part.tsx";
-import { TOOL_PARTS } from "@/components/chat/tool-parts.tsx";
+import { TOOL_PARTS } from "@/components/chat/tool-parts.ts";
 import { Markdown } from "@/components/markdown.tsx";
 import { Icon } from "@/components/ui/icon.tsx";
 import { IMAGE_COPY } from "@/ui/copy/images.ts";
@@ -63,7 +63,8 @@ export function ChatPart({
           </p>
         );
       }
-      return toolPart.render(part);
+      const { component: ToolComponent } = toolPart;
+      return <ToolComponent part={part} />;
     }
     case "image":
       return (

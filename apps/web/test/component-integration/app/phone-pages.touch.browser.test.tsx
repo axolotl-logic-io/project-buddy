@@ -20,9 +20,9 @@ import type { readCurrentQuest } from "@/quests/current-quest-store.ts";
 import type { getQuest, listQuests } from "@/quests/store.ts";
 import { listRetiredDefinitions } from "@/retirement/retirement-store.ts";
 import { THEME_IDS, type ThemeId } from "@/themes/themes.ts";
-import { QUEST_SIDEBAR_COPY } from "@/ui/copy/quest-sidebar.ts";
 import { QUEST_STATUS_COPY } from "@/ui/copy/quest-status.ts";
 import { RETIREMENT_COPY } from "@/ui/copy/retirement.ts";
+import { TIMER_COPY } from "@/ui/copy/timer.ts";
 
 import { loadCodeHighlighting } from "../components/code-highlighting-test-kit.ts";
 import {
@@ -134,9 +134,6 @@ vi.mock("@/app/(workspace)/settings/actions.ts", () => ({
   signOutAction: vi.fn(),
   signOutEverywhereAction: vi.fn(),
 }));
-vi.mock("@/themes/save-theme-choice-action.ts", () => ({
-  saveThemeChoiceAction: vi.fn(),
-}));
 
 // A touch screen's pointer, which the browser-touch quest's pages have.
 const COARSE_POINTER = "(pointer: coarse)";
@@ -163,7 +160,7 @@ const TAB_ROW_NAVIGATIONS: readonly string[] = [];
 // wrap so that every one shows in its narrow width.
 const WRAPPING_TAB_LISTS: readonly string[] = [
   QUEST_STATUS_COPY.tabs,
-  QUEST_SIDEBAR_COPY.label,
+  TIMER_COPY.heading,
 ];
 
 function tabRows(): Element[] {

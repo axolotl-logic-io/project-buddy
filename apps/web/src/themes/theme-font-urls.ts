@@ -1,9 +1,7 @@
 // Where the production build serves each theme's font files, for the proxy's
-// preload hints (src/proxy.ts). next/font preloads no font (every localFont
-// call in theme-fonts.ts has `preload: false`), because its preloads go in
-// the HTML every visitor shares and so could only name the default theme's
-// fonts. Instead the proxy reads the theme cookie and sends a `Link` header
-// naming the saved theme's fonts, and the HTML stays the same for everyone.
+// preload hints (src/proxy.ts). next/font leaves preloading off for each
+// self-hosted font. The proxy reads the appearance cookie and sends a Link
+// header so the browser starts loading the appropriate fonts with the page.
 //
 // The proxy imports this module, so it is plain runtime code: no Vite, no
 // import.meta.glob, no filesystem.
@@ -19,16 +17,6 @@
 // fails if this map drifts from the build's `@font-face` URLs, and prints
 // each difference; `npm run test:e2e` runs it on the build it tests.
 //
-// Rejected (2026-10-14, issue #124):
-// (a) reading the `.next` manifests at runtime: next/font's manifest lists
-//     only preloaded fonts, which is none, and it would tie the proxy to
-//     build internals and the filesystem;
-// (b) keeping next/font's own preload: it preloads in the shared HTML, so
-//     every visitor would also get the default theme's fonts;
-// (c) preloading every theme's fonts: most visitors would download fonts
-//     their theme never shows;
-// (d) choosing preloads in the pre-paint script: ruled out by the maintainer;
-// (e) cookies() in the layout: the pages would lose their prerendered shells.
 import type { ThemeId } from "@/themes/themes.ts";
 
 // Each typeface's font file, keyed by the variable theme-fonts.ts sets,

@@ -3,6 +3,7 @@
 import { Dialog } from "radix-ui";
 import {
   type JSX,
+  type ReactNode,
   type SubmitEvent,
   useCallback,
   useRef,
@@ -79,11 +80,13 @@ function StartDay({
   chatId,
   lastStartedAt,
   undoable,
+  children,
 }: {
   readonly questId: QuestId;
   readonly chatId: ChatId | undefined;
   readonly lastStartedAt: Date | undefined;
   readonly undoable: boolean;
+  readonly children?: ReactNode;
 }): JSX.Element {
   const [open, setOpen] = useState(false);
   const startRef = useRef<HTMLButtonElement>(null);
@@ -171,6 +174,7 @@ function StartDay({
           </p>
         </div>
       )}
+      {children}
       <FormStatus>{status}</FormStatus>
       {open === false && problem !== undefined && <Alert>{problem}</Alert>}
     </div>

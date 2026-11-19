@@ -115,9 +115,6 @@ const LONG_QUEST_NAME = "One layer up: interface, associativity explorer";
 const REPLY_END = "bpy.ops.mesh.bevel(offset=0.1)";
 // Three replies fill a laptop's screen several times over.
 const EXCHANGES = 3;
-// The height of the band of the conversation one screen down that
-// lineOneScreenDown finds, in CSS px: wider than the pinned header's fade.
-const ONE_SCREEN_DOWN_BAND = 64;
 
 // The user’s question and the construct's Markdown reply, EXCHANGES times.
 function longChat(): ChatMessage[] {
@@ -159,77 +156,6 @@ function topmostAtCentre(element: Element): boolean {
     box.top + box.height / 2,
   );
   return topmost !== null && element.contains(topmost);
-}
-
-// How far, in CSS px, lineOneScreenDown moves the page at a time when the
-// part it finds starts too close to the top of the window.
-const SCROLL_STEP = 32;
-// How many steps it tries each way.
-const SCROLL_TRIES = 8;
-// The offsets from one screen down that it tries, in order: none, then a
-// step down, a step up, two steps down, and so on.
-const SCROLL_OFFSETS: readonly number[] = [
-  0,
-  ...Array.from(
-    { length: SCROLL_TRIES },
-    (_, index) => (index + 1) * SCROLL_STEP,
-  ).flatMap((distance) => [distance, -distance]),
-];
-// The share of the window's height the pinned header and its fade take at
-// most: a quarter.
-const HEADER_SHARE = 4;
-
-// The smallest text block whose centre is near the window's middle.
-// Image fallback glyphs can remain in the DOM underneath a loaded portrait.
-// A large parent may cross that band while its centre is behind the composer.
-function smallestAcrossMiddle(conversation: Element): Element | undefined {
-  const middle = window.innerHeight / 2;
-  const [smallest] = [
-    ...conversation.querySelectorAll(
-      "p, li, pre, blockquote, h1, h2, h3, h4, h5, h6",
-    ),
-  ]
-    .filter((element) => {
-      const { top, bottom } = element.getBoundingClientRect();
-      return (
-        bottom > top &&
-        (top + bottom) / 2 >= middle - ONE_SCREEN_DOWN_BAND / 2 &&
-        (top + bottom) / 2 <= middle + ONE_SCREEN_DOWN_BAND / 2
-      );
-    })
-    .toSorted(
-      (one, other) =>
-        one.getBoundingClientRect().height -
-        other.getBoundingClientRect().height,
-    );
-  return smallest;
-}
-
-// Scrolls the page so a point about one screen into the conversation sits
-// in the window's middle, below anything pinned at the top, and returns the
-// smallest part of the conversation drawn across the band around that
-// middle: where a header that has lost its pinned place would draw its fade
-// into the conversation. The part must start below the top quarter of the
-// window, where the pinned header and its fade are drawn; when the part
-// found starts higher, such as a whole message around a gap between its
-// paragraphs, the page moves a step at a time, each way, until one does.
-function lineOneScreenDown(conversation: Element): Element {
-  const clearOfHeader = window.innerHeight / HEADER_SHARE;
-  // Journal sections can precede the messages. Measure from the conversation
-  // so a large first message's centre does not land behind the composer.
-  const conversationTop =
-    conversation.getBoundingClientRect().top + window.scrollY;
-  for (const offset of SCROLL_OFFSETS) {
-    window.scrollTo(0, conversationTop + window.innerHeight / 2 + offset);
-    const smallest = smallestAcrossMiddle(conversation);
-    if (
-      smallest !== undefined &&
-      smallest.getBoundingClientRect().top >= clearOfHeader
-    ) {
-      return smallest;
-    }
-  }
-  throw new Error("Nothing of the conversation is one screen down");
 }
 
 beforeEach(() => {
@@ -324,7 +250,7 @@ describe("use_case_breadcrumbs_in_long_chat", () => {
 });
 
 describe("the pinned quest title", () => {
-  test("stays on screen at the end and leaves a tap one screen down reaching the conversation", async () => {
+  test("stays on screen while scrolling the spell transcript and leaves its messages reachable", async () => {
     await page.viewport(LAPTOP_VIEWPORT.width, LAPTOP_VIEWPORT.height);
     await render(await chatPage());
     const title = page.getByRole("heading", { level: 1 });
@@ -337,10 +263,17 @@ describe("the pinned quest title", () => {
 
     await scrollToBottom();
     await expect.element(title).toBeInViewport();
-    const line = lineOneScreenDown(conversation.element());
-    expect(topmostAtCentre(line), "a tap one screen down reaches it").toBe(
-      true,
-    );
+    const transcript = conversation.element();
+    expect(transcript.scrollHeight).toBeGreaterThan(transcript.clientHeight);
+    transcript.scrollTop = 0;
+    const message = conversation
+      .getByText("Show the saved example", { exact: true })
+      .last()
+      .element();
+    message.scrollIntoView({ block: "center" });
+    expect(transcript.scrollTop).toBeGreaterThan(0);
+    await expect.element(title).toBeInViewport();
+    expect(topmostAtCentre(message), "a tap reaches the message").toBe(true);
   });
 });
 

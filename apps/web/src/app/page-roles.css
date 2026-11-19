@@ -377,7 +377,7 @@
     @apply rounded-control underline decoration-(length:--line-width) decoration-line underline-offset-4 hover:text-primary hover:decoration-primary;
   }
 
-  :is(.circle-progress, .profile-ring) > svg {
+  :is(.circle-progress-ring, .profile-ring) > svg {
     @apply absolute inset-0 size-full;
   }
 
@@ -865,15 +865,29 @@
     --ring-disc: var(--hud-ink);
     --ring-track: var(--hud-line);
     --ring-arc: var(--hud-gold);
-    --ring-stroke: 0.12;
-    @apply relative grid shrink-0 place-items-center rounded-full;
+    @apply grid shrink-0 justify-items-center rounded-control;
+  }
+
+  .circle-progress-ring {
+    @apply relative grid place-items-center;
     inline-size: var(--target-size);
     block-size: var(--target-size);
   }
 
   .circle-progress-number {
     font-family: var(--numeral-font);
-    @apply relative font-semibold text-sm tabular-nums;
+    @apply relative font-semibold text-sm leading-none;
+  }
+
+  .circle-progress-title {
+    @apply text-xs leading-none;
+  }
+
+  :is(.circle-progress-number, .profile-ring-number) {
+    font-variant-numeric: lining-nums tabular-nums;
+    @supports (text-box: trim-both cap alphabetic) {
+      text-box: trim-both cap alphabetic;
+    }
   }
 
   /* Profile's head: a gilded card with the user's circle in a large ring
@@ -892,18 +906,19 @@
   }
 
   .profile-ring {
-    @apply relative grid size-28 shrink-0 content-center justify-items-center sm:size-33;
+    @apply relative grid size-28 shrink-0 place-items-center sm:size-33;
     color: var(--ring-ink);
   }
 
   .profile-ring-label {
-    @apply relative font-extrabold text-xs uppercase tracking-widest;
+    @apply absolute font-extrabold text-xs uppercase tracking-widest;
+    inset-block-start: 20%;
     color: var(--label-ink);
   }
 
   .profile-ring-number {
     font-family: var(--numeral-font);
-    @apply relative font-bold text-5xl tabular-nums leading-none;
+    @apply relative font-bold text-5xl leading-none;
   }
 
   .profile-name {
@@ -1108,6 +1123,16 @@
   .trail-band:has(.header-panel-control > .quest-sidebar-expand)
     .trail-content {
     margin-inline-end: calc(var(--panel-tab-width) + var(--header-gutter));
+  }
+
+  @media (width < 32rem) {
+    .trail-content:has(.quest-title) {
+      @apply gap-0;
+    }
+
+    .trail-content:has(.quest-title) .trail-heading {
+      @apply block truncate text-base;
+    }
   }
 
   /* Docked panels cover the row's ends, not its breadcrumb actions. */
@@ -1538,16 +1563,6 @@
     container-type: inline-size;
   }
 
-  .quest-timer .timer-stage {
-    padding-block: 0 var(--timer-panel-tail);
-  }
-
-  .quest-timer .timer-face {
-    grid-template-columns: minmax(0, 1fr);
-    min-block-size: 0;
-    padding: 0;
-  }
-
   .timer-ring {
     display: var(--timer-ring-display);
     position: absolute;
@@ -1654,11 +1669,6 @@
     text-align: var(--timer-readout-align);
   }
 
-  .quest-timer .timer-readout {
-    align-items: center;
-    text-align: center;
-  }
-
   .timer-value {
     position: relative;
   }
@@ -1669,14 +1679,14 @@
     inset-inline: 0;
     inset-block-end: calc(100% + --spacing(1));
     font-family: var(--timer-phase-font);
-    font-size: min(var(--timer-phase-size), 10.5cqi);
+    font-size: var(--timer-phase-size);
     font-weight: 400;
     line-height: 1.3;
   }
 
   .timer-countdown {
     font-family: var(--timer-numeral-font);
-    font-size: min(var(--timer-numeral-size), var(--timer-number-scale));
+    font-size: var(--timer-number-size);
     font-weight: 500;
     font-variant-numeric: lining-nums tabular-nums;
     letter-spacing: -0.05em;
@@ -1684,7 +1694,7 @@
   }
 
   .timer-countdown[data-hours="true"] {
-    font-size: min(var(--timer-numeral-size), var(--timer-hours-scale));
+    font-size: var(--timer-hours-size);
   }
 
   .timer-next {
@@ -1789,7 +1799,7 @@
     }
   }
 
-  .page-column:has(.timer-stage) {
+  .page-column:has(.workspace-content > .timer-stage) {
     max-inline-size: 49rem;
   }
 
@@ -2267,6 +2277,165 @@
     @apply wrap-anywhere border-line/40 border-b pb-2 text-muted text-sm;
   }
 
+  .quest-overview {
+    @apply gap-5;
+  }
+
+  .quest-overview-hero,
+  .quest-section-body,
+  .quest-active-spell {
+    @apply rounded-box border border-line/70 bg-surface p-4 sm:p-6;
+    background-image: var(--frame-decoration);
+  }
+
+  .quest-overview-hero {
+    @apply relative border-line shadow-raised;
+  }
+
+  .quest-overview-hero::after {
+    content: "";
+    position: absolute;
+    inset: var(--frame-inset);
+    border: var(--frame-keyline) solid
+      color-mix(in srgb, var(--frame-ink) 45%, transparent);
+    border-radius: inherit;
+    pointer-events: none;
+  }
+
+  .quest-overview-heading {
+    @apply flex items-start justify-between gap-3;
+  }
+
+  .quest-overview-heading .construct-avatar {
+    inline-size: clamp(--spacing(10), 6vw, --spacing(16));
+    block-size: auto;
+    aspect-ratio: 1;
+    @apply shrink-0;
+  }
+
+  .quest-overview-title {
+    @apply wrap-anywhere font-heading text-page-heading-phone leading-tight font-semibold sm:text-page-heading;
+  }
+
+  .quest-overview-meta {
+    @apply mb-2 flex flex-wrap items-center gap-2 text-muted text-sm;
+  }
+
+  .quest-status-mark {
+    @apply inline-flex items-center gap-2 rounded-action border border-line/60 bg-secondary-surface px-2 py-0.5 text-foreground;
+  }
+
+  .quest-status-mark::before {
+    content: "";
+    inline-size: --spacing(1);
+    block-size: --spacing(1);
+    rotate: 45deg;
+    background: var(--primary);
+  }
+
+  .quest-overview-summary {
+    @apply mt-2 max-w-prose wrap-anywhere whitespace-pre-line text-muted;
+  }
+
+  .quest-overview-feature {
+    @apply mt-4 flex flex-col items-start gap-2 border-line/60 border-t pt-3;
+    align-self: stretch;
+  }
+
+  .quest-overview-label {
+    font-family: var(--label-font);
+    color: var(--label-ink);
+    font-variant-caps: var(--label-caps);
+    letter-spacing: var(--label-tracking);
+    text-transform: var(--label-case);
+    @apply text-sm font-semibold;
+  }
+
+  .quest-next-task-row {
+    @apply flex w-full flex-wrap items-center justify-between gap-2;
+  }
+
+  .quest-overview-links {
+    @apply mt-2 grid gap-2 sm:grid-cols-2;
+  }
+
+  .quest-overview-link {
+    min-block-size: var(--target-size);
+    @apply grid h-full grid-cols-[auto_minmax(0,1fr)_auto] items-start gap-2 rounded-box border border-line/60 bg-surface p-3 hover:border-line hover:bg-secondary-surface;
+  }
+
+  .quest-overview-link .icon {
+    @apply mt-1 text-primary;
+  }
+
+  .quest-section-body,
+  .quest-active-spell {
+    @apply flex min-w-0 flex-col gap-4;
+  }
+
+  .quest-active-spell .chat-thread {
+    @apply min-h-0;
+  }
+
+  .quest-active-spell .chat-composer-dock {
+    position: static;
+    @apply bg-none p-0;
+  }
+
+  .quest-active-spell .chat-composer-dock::before {
+    display: none;
+  }
+
+  .quest-active-spell .chat-transcript {
+    max-block-size: 24rem;
+    overflow-y: auto;
+  }
+
+  .quest-timer {
+    @apply grid min-w-0 gap-3 pt-3;
+    --timer-stage-padding: 0;
+    --timer-face-height: auto;
+    --timer-face-width: min(100%, 15rem);
+    --timer-face-padding: 0;
+    --timer-face-columns: var(--timer-panel-columns);
+    --timer-readout-align: var(--timer-panel-align);
+    --timer-phase-size: 1.25rem;
+    --timer-number-size: 2.5rem;
+    --timer-hours-size: 2rem;
+    --timer-next-position: var(--timer-panel-next-position);
+    --timer-next-margin: 0;
+    --timer-next-padding: 0;
+    --timer-next-rule: none;
+  }
+
+  .quest-timer .timer-face {
+    gap: 0;
+  }
+
+  .quest-timer .timer-stage {
+    padding-block-end: var(--timer-panel-stage-end);
+  }
+
+  .quest-timer .timer-next {
+    inset-inline: 0;
+    inset-block-start: 100%;
+    margin-block-start: --spacing(2);
+    text-align: var(--timer-panel-align);
+  }
+
+  .quest-timer .timer-ring {
+    grid-area: 1 / 1;
+  }
+
+  .quest-timer .timer-readout {
+    max-inline-size: 100%;
+  }
+
+  .quest-timer .timer-hourglass {
+    inline-size: --spacing(14);
+    margin-inline-end: --spacing(2);
+  }
+
   /* The quest sidebar docks to the viewport edge. On phones it becomes a
      modal drawer, keeping the conversation in place behind it. */
   .page-column.page-frame-quest {
@@ -2305,10 +2474,6 @@
     margin-inline: calc(-1 * var(--header-gutter));
     padding-inline-start: var(--header-gutter);
     @apply sticky top-0 z-10 flex items-center justify-between border-line/40 border-b bg-sidebar-surface;
-  }
-
-  .quest-overview-link {
-    min-block-size: var(--target-size);
   }
 
   .quest-sidebar .workspace-rail {

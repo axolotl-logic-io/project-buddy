@@ -7,6 +7,7 @@ import {
   EditableList,
   EditableListAction,
   EditableListRow,
+  EditableListScope,
 } from "@/components/ui/editable-list.tsx";
 import type { EditorOptions } from "@/components/ui/editable-list-contract.ts";
 import { Alert, FormStatus } from "@/components/ui/form-message.tsx";
@@ -146,29 +147,31 @@ function QuestIdeas({
       {embedded !== true && <p className="text-muted">{IDEAS_COPY.intro}</p>}
       <FormStatus>{status}</FormStatus>
       {problem !== undefined && <Alert>{problem}</Alert>}
-      <div className="bucket-toolbar" data-empty={ideas.length === 0}>
-        {ideas.length === 0 && (
-          <div className="bucket-empty-copy">
-            <Icon name="sparkle" />
-            <p className="bucket-empty-heading">{IDEAS_COPY.emptyHeading}</p>
-            <p>{IDEAS_COPY.empty}</p>
-          </div>
-        )}
-        {ideas.length > 0 && (
-          <p className="bucket-summary">{IDEAS_COPY.summary(ideas.length)}</p>
-        )}
-        <AddListItem
-          label={IDEAS_COPY.add}
-          editor={ADD_EDITOR}
-          disabled={busy}
-          onSave={add}
-        />
-      </div>
-      <EditableList label={IDEAS_COPY.heading} onMove={reorder}>
-        {ideas.map((idea) => (
-          <IdeaRow key={idea.id} idea={idea} busy={busy} run={run} />
-        ))}
-      </EditableList>
+      <EditableListScope blocked={busy}>
+        <div className="bucket-toolbar" data-empty={ideas.length === 0}>
+          {ideas.length === 0 && (
+            <div className="bucket-empty-copy">
+              <Icon name="sparkle" />
+              <p className="bucket-empty-heading">{IDEAS_COPY.emptyHeading}</p>
+              <p>{IDEAS_COPY.empty}</p>
+            </div>
+          )}
+          {ideas.length > 0 && (
+            <p className="bucket-summary">{IDEAS_COPY.summary(ideas.length)}</p>
+          )}
+          <AddListItem
+            label={IDEAS_COPY.add}
+            editor={ADD_EDITOR}
+            disabled={busy}
+            onSave={add}
+          />
+        </div>
+        <EditableList label={IDEAS_COPY.heading} onMove={reorder}>
+          {ideas.map((idea) => (
+            <IdeaRow key={idea.id} idea={idea} busy={busy} run={run} />
+          ))}
+        </EditableList>
+      </EditableListScope>
     </section>
   );
 }

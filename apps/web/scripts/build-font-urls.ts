@@ -80,8 +80,9 @@ function typefaceDrift(
   if (families.length === 0) {
     return [`--${typeface} is set nowhere in the built CSS`];
   }
+  const familyNames = new Set(families);
   const built = faces
-    .filter(({ family }) => families.includes(family))
+    .filter(({ family }) => familyNames.has(family))
     .flatMap(({ urls }) => urls);
   if (built.includes(url)) {
     return [];
@@ -97,13 +98,13 @@ function buildFontUrlDrift(sheets: readonly BuiltSheet[]): readonly string[] {
   if (faces.length === 0) {
     return ["The built CSS has no @font-face rules: run `npm run build` first"];
   }
-  const mapped = Object.values(TYPEFACE_FONT_URLS);
+  const mapped = new Set(Object.values(TYPEFACE_FONT_URLS));
   const unmapped = [
     ...new Set(
       faces.flatMap(({ urls }) => urls).filter((url) => WOFF2.test(url)),
     ),
   ]
-    .filter((url) => !mapped.includes(url))
+    .filter((url) => !mapped.has(url))
     .map((url) => `${url} is a built @font-face file the map lacks`);
   return [
     ...Object.entries(TYPEFACE_FONT_URLS).flatMap((entry) =>

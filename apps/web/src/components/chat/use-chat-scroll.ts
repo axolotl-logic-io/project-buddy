@@ -3,12 +3,53 @@
 import { useAui } from "@assistant-ui/react";
 import { type RefObject, useLayoutEffect, useRef } from "react";
 
+// The inline spell follows its own transcript while the reader is at its end.
+function followTranscript(
+  root: HTMLDivElement,
+  runtime: ReturnType<typeof useAui>,
+): () => void {
+  const transcript = root.querySelector<HTMLOListElement>(".chat-transcript");
+  if (transcript === null) {
+    return (): void => undefined;
+  }
+  let following = true;
+  function trackPosition(): void {
+    if (transcript !== null) {
+      following =
+        transcript.scrollHeight -
+          transcript.scrollTop -
+          transcript.clientHeight <=
+        1;
+    }
+  }
+  function follow(): void {
+    if (following && transcript !== null) {
+      transcript.scrollTop = transcript.scrollHeight;
+    }
+  }
+  const observer = new MutationObserver(follow);
+  observer.observe(transcript, {
+    childList: true,
+    subtree: true,
+    characterData: true,
+  });
+  transcript.addEventListener("scroll", trackPosition, { passive: true });
+  const unsubscribe = runtime.on("composer.send", () => {
+    following = true;
+    follow();
+  });
+  follow();
+  return (): void => {
+    unsubscribe();
+    observer.disconnect();
+    transcript.removeEventListener("scroll", trackPosition);
+  };
+}
+
 // Page scrolling belongs here: assistant-ui's viewport follows only its own
 // scroll container, whereas this chat shares the document with its header.
 // All moves are instant, including for users who request reduced motion.
-function useChatScroll(
-  followOnMount: boolean,
-): RefObject<HTMLDivElement | null> {
+function useChatScroll(inline = false): RefObject<HTMLDivElement | null> {
   const rootRef = useRef<HTMLDivElement>(null);
   const runtime = useAui();
 
@@ -17,7 +58,10 @@ function useChatScroll(
     if (element === null) {
       return;
     }
-    let following = followOnMount;
+    if (inline) {
+      return followTranscript(element, runtime);
+    }
+    let following = true;
     let lastY = window.scrollY;
     const viewport = window.visualViewport;
     let lastHeight = window.innerHeight;
@@ -240,7 +284,7 @@ function useChatScroll(
       viewport?.removeEventListener("resize", onResize);
       viewport?.removeEventListener("scroll", onResize);
     };
-  }, [runtime, followOnMount]);
+  }, [runtime, inline]);
 
   return rootRef;
 }

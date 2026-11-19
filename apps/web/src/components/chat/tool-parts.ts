@@ -1,7 +1,5 @@
-"use client";
-
 import type { EnrichedPartState, PartState } from "@assistant-ui/react";
-import type { JSX } from "react";
+import type { ComponentType } from "react";
 import { CastSpellPart } from "@/components/chat/cast-spell-part.tsx";
 import { GeneratedImagePart } from "@/components/chat/generated-image-part.tsx";
 import { MilestonePart } from "@/components/chat/milestone-part.tsx";
@@ -37,7 +35,7 @@ type ToolPart = Placement & {
   // A call that is running or has answered. The part component parses
   // `part.result` with the contract's output schema, and renders null for a
   // call the chat should not show. It never sees a failed call.
-  readonly render: (part: ToolCallPart) => JSX.Element | null;
+  readonly component: ComponentType<{ readonly part: ToolCallPart }>;
   // The line the chat shows instead when the call failed.
   readonly failure: string;
 };
@@ -59,9 +57,7 @@ const TOOL_PARTS: ReadonlyMap<string, ToolPart> = new Map([
   [
     QUEST_STATUS_TOOL,
     {
-      render: (part: ToolCallPart): JSX.Element => (
-        <QuestStatusPart part={part} />
-      ),
+      component: QuestStatusPart,
       failure: TOOL_FAILURES_COPY.questStatus,
       placement: "inline",
       textBefore: "prose",
@@ -70,9 +66,7 @@ const TOOL_PARTS: ReadonlyMap<string, ToolPart> = new Map([
   [
     GENERATE_IMAGE_TOOL,
     {
-      render: (part: ToolCallPart): JSX.Element => (
-        <GeneratedImagePart part={part} />
-      ),
+      component: GeneratedImagePart,
       failure: GENERATION_COPY.failed,
       placement: "inline",
       textBefore: "prose",
@@ -81,9 +75,7 @@ const TOOL_PARTS: ReadonlyMap<string, ToolPart> = new Map([
   [
     CHANGE_TASKS_TOOL,
     {
-      render: (part: ToolCallPart): JSX.Element | null => (
-        <TasksChangeToolPart part={part} />
-      ),
+      component: TasksChangeToolPart,
       failure: TOOL_FAILURES_COPY.changeTasks,
       placement: "inline",
       textBefore: "prose",
@@ -92,9 +84,7 @@ const TOOL_PARTS: ReadonlyMap<string, ToolPart> = new Map([
   [
     RECORD_MILESTONE_TOOL,
     {
-      render: (part: ToolCallPart): JSX.Element => (
-        <MilestonePart part={part} />
-      ),
+      component: MilestonePart,
       failure: TOOL_FAILURES_COPY.recordMilestone,
       placement: "inline",
       textBefore: "prose",
@@ -103,9 +93,7 @@ const TOOL_PARTS: ReadonlyMap<string, ToolPart> = new Map([
   [
     CAST_SPELL_TOOL,
     {
-      render: (part: ToolCallPart): JSX.Element | null => (
-        <CastSpellPart part={part} />
-      ),
+      component: CastSpellPart,
       failure: TOOL_FAILURES_COPY.castSpell,
       placement: "inline",
       // A cast loads instructions, as a lookup does, often before a search.
