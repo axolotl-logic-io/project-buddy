@@ -113,8 +113,9 @@ function AccountLinks(): JSX.Element {
 const VISITOR_PANEL: JSX.Element = <SitePanel links={null} />;
 
 // The site's header, set as a game's HUD: an ink bar with a gold rim. The
-// brand, a compass medallion and the site's name, leads back to Quests. On a
-// phone the medallion alone shows, and the name stays its accessible name.
+// brand, an hourglass inside a gear and the site's name, leads back to
+// Quests. On a phone the medallion alone shows, and the name stays its
+// accessible name.
 // A signed-in user's progress ring ends the bar. The site and quest panel
 // expand buttons bookend the breadcrumb row below it. The bar scrolls
 // away while the breadcrumb row and its panel controls stay pinned.
@@ -132,7 +133,7 @@ function SiteHeader({
       <HeaderSize />
       <Link className="header-title hud-title" href={HOME_PATH}>
         <span className="hud-medallion">
-          <Icon name="compass" />
+          <Icon name="brand" />
         </span>
         <span className="hud-name">{SITE_COPY.name}</span>
       </Link>
