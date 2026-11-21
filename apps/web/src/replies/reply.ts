@@ -22,7 +22,7 @@ import { after } from "next/server";
 import type { Chat } from "@/chats/chat-rows.ts";
 import type { ChatMessage } from "@/chats/message-author.ts";
 import { getChat } from "@/chats/store.ts";
-import type { ConstructSnapshot } from "@/constructs/index.ts";
+import type { Construct } from "@/constructs/index.ts";
 import { type AppErrorCase, appErrorResponse } from "@/errors/app-error.ts";
 import { logReplySteps } from "@/errors/error-log.ts";
 import { toAppError } from "@/errors/to-app-error.ts";
@@ -206,7 +206,7 @@ async function writeReply(
 // The response ends once the reply is saved.
 async function streamAndSaveReply(
   { actingUser, chat }: AccessibleChat,
-  construct: ConstructSnapshot,
+  construct: Construct,
   history: ChatMessage[],
   answered: ChatRequest["message"],
 ): Promise<Response> {

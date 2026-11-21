@@ -46,7 +46,7 @@ The docked composer starts at two lines and grows with the message. The active s
 
 ## Message authors
 
-Each user message records its author, the user who sent it, in the nullable column `messages.user_id`. A message with no author recorded belongs to the quest's owner, and the construct's messages never have one.
+Each user message records its author, the user who sent it, in `messages.user_id`. The `messages_user_has_author` check requires an author on every user message. The construct's messages never have one.
 
 An author's name is the name they asked the construct to call them. In the conversation, a user message that someone other than the viewer wrote shows its author's name, or their email address if they have no name, where the viewer's own messages show "You". The author in a message's metadata holds the email address only for an author with no name, so a named author's address never reaches anyone's browser. The name comes before the message, so a screen reader reads it first, and a long name wraps on a phone.
 
@@ -82,7 +82,7 @@ Unsent message text is kept in this browser per viewer and conversation until se
 
 Where the trail band shows the construct's portrait, it opens the saved character's profile, with full artwork and public personality copy. The portrait keeps a full touch target without making the band taller.
 
-Construct messages show a circular portrait beside the construct's name. User messages have no portrait. Reply text keeps the conversation's full width on narrow phones. Artwork uses the conversation's saved construct snapshot, so renaming or editing a source construct does not change existing conversations. Missing or unavailable artwork shows initials; names and compatibility ids never select built-in artwork.
+Construct messages show a circular portrait beside the construct's name. User messages have no portrait. Reply text keeps the conversation's full width on narrow phones. Artwork comes from the conversation's built-in construct. Missing or unavailable artwork shows initials; names and compatibility ids never select built-in artwork.
 
 The first saved message shows a larger illustration when it is a construct opening. It appears once in the conversation, including after reopening or saved-message refreshes. A conversation starting with a user message receives no invented opening. Rendering never requests new artwork or calls a model. The shared visual primitives handle artwork and fallback behavior.
 

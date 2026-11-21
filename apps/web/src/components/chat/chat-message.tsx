@@ -16,7 +16,7 @@ import {
   ConstructAvatar,
   ConstructIllustration,
 } from "@/components/constructs/construct-visual.tsx";
-import type { ConstructSnapshot } from "@/constructs/construct.ts";
+import type { Construct } from "@/constructs/construct.ts";
 import { resolveConstructVisual } from "@/constructs/visual.ts";
 import { CHAT_COPY } from "@/ui/copy/chat.ts";
 
@@ -87,7 +87,7 @@ function ChatMessage({
   authorName,
 }: {
   role: Role;
-  construct: ConstructSnapshot;
+  construct: Construct;
   opening: boolean;
   progressAllowed: boolean;
   authorName?: string | undefined;

@@ -1,5 +1,5 @@
 import { z } from "zod";
-import type { ConstructSnapshot } from "@/constructs/construct.ts";
+import type { Construct } from "@/constructs/construct.ts";
 
 // Built-in artwork is live SVG that the appearance colours.
 const ARTWORK = z.enum(["vellum", "lumen"]);
@@ -15,11 +15,6 @@ const VISUAL_FRAME = z.object({
 });
 const VISUAL_ROLE = z.enum(["avatar", "portrait", "opening", "working"]);
 const DESCRIPTION_MAX = 4000;
-const DESCRIPTION_LINE_BREAK = /\r\n?/gu;
-
-function normalizeVisualDescription(description: string): string {
-  return description.replace(DESCRIPTION_LINE_BREAK, "\n").trim();
-}
 const CONSTRUCT_VISUAL = z.object({
   version: z.literal(1),
   description: z.string().trim().min(1).max(DESCRIPTION_MAX),
@@ -49,9 +44,8 @@ interface ResolvedConstructVisual {
 }
 const WORD_BREAK = /\s+/u;
 
-// Deliberately accepts no construct id. Legacy own constructs can carry a built-in id.
 function resolveConstructVisual(
-  construct: ConstructSnapshot,
+  construct: Construct,
   role: VisualRole,
 ): ResolvedConstructVisual {
   const { visual } = construct.definition;
@@ -75,10 +69,4 @@ function resolveConstructVisual(
 }
 
 export type { Artwork, ConstructVisual, VisualAsset, VisualFrame, VisualRole };
-export {
-  ARTWORK,
-  CONSTRUCT_VISUAL,
-  normalizeVisualDescription,
-  resolveConstructVisual,
-  VISUAL_ROLE,
-};
+export { ARTWORK, CONSTRUCT_VISUAL, resolveConstructVisual, VISUAL_ROLE };

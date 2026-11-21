@@ -1,6 +1,6 @@
 import { generateId, streamText } from "ai";
 import type { NewMessage } from "@/chats/chat-rows.ts";
-import type { ConstructSnapshot } from "@/constructs/index.ts";
+import type { Construct } from "@/constructs/index.ts";
 import { toAppError } from "@/errors/to-app-error.ts";
 import { MESSAGE_ID } from "@/ids.ts";
 import { OPENING_REQUEST } from "@/replies/chat-kickoff.ts";
@@ -15,7 +15,7 @@ import {
 const OPENING_TIMEOUT_MS = 30_000;
 
 interface ChatOpeningRequest {
-  readonly construct: ConstructSnapshot;
+  readonly construct: Construct;
   readonly context: () => Promise<Omit<ReplyPromptContext, "construct">>;
 }
 

@@ -1,7 +1,7 @@
 import type { SystemModelMessage } from "ai";
 import { readUserName } from "@/accounts/users-store.ts";
 import type { Chat } from "@/chats/chat-rows.ts";
-import type { ConstructSnapshot } from "@/constructs/index.ts";
+import type { Construct } from "@/constructs/index.ts";
 import type { ChatId, QuestId, UserId } from "@/ids.ts";
 import type { Milestone } from "@/milestones/milestone.ts";
 import { listMilestones } from "@/milestones/milestone-store.ts";
@@ -32,13 +32,13 @@ import { readTasks } from "@/tasks/tasks-store.ts";
 interface ReplyPromptRequest {
   readonly actingUser: UserId;
   readonly chat: Chat;
-  readonly construct: ConstructSnapshot;
+  readonly construct: Construct;
   readonly severalAuthors?: boolean | undefined;
 }
 
 interface ReplyPromptContext {
   readonly quest: PromptQuest;
-  readonly construct: ConstructSnapshot;
+  readonly construct: Construct;
   readonly spell?: SpellId | undefined;
   readonly activeSpell?: SpellSnapshot | undefined;
   readonly userName: string | undefined;

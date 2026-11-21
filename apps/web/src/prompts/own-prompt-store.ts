@@ -1,4 +1,4 @@
-// Shared ownership, cloning and transaction behavior for saved definitions. The parts column is a legacy storage detail.
+// Ownership, cloning and transactions for a user's own spells.
 
 import { and, asc, eq, isNull, type SQL, sql } from "drizzle-orm";
 import { ownPromptOwnedBy } from "@/accounts/owner-scope.ts";
@@ -24,7 +24,6 @@ interface DefinitionStore<Definition> {
 
 interface OwnPrompt<Definition> extends NamedDefinition<Definition> {
   readonly id: OwnPromptId;
-  readonly clonedFrom: string | undefined;
   readonly createdAt: Date;
   readonly updatedAt: Date;
 }
@@ -99,7 +98,6 @@ function toPrompts<Definition>(
         id,
         name: row.name,
         definition: parts,
-        clonedFrom: row.clonedFrom ?? undefined,
         createdAt: row.createdAt,
         updatedAt: row.updatedAt,
       },
@@ -107,20 +105,12 @@ function toPrompts<Definition>(
   });
 }
 
-function ownedOfKind(owner: UserId, kind: "spell"): SQL | undefined {
-  return and(
-    ownPromptOwnedBy(owner),
-    eq(ownPrompts.kind, kind),
-    isNull(ownPrompts.retiredAt),
-  );
+function ownedLive(owner: UserId): SQL | undefined {
+  return and(ownPromptOwnedBy(owner), isNull(ownPrompts.retiredAt));
 }
 
-function ownedPrompt(
-  owner: UserId,
-  kind: "spell",
-  id: OwnPromptId,
-): SQL | undefined {
-  return and(eq(ownPrompts.id, id), ownedOfKind(owner, kind));
+function ownedPrompt(owner: UserId, id: OwnPromptId): SQL | undefined {
+  return and(eq(ownPrompts.id, id), ownedLive(owner));
 }
 
 function listOwnPrompts<Definition>(
@@ -133,7 +123,7 @@ function listOwnPrompts<Definition>(
       await getDb()
         .select()
         .from(ownPrompts)
-        .where(ownedOfKind(owner, store.kind))
+        .where(ownedLive(owner))
         .orderBy(asc(ownPrompts.createdAt), asc(ownPrompts.id)),
     ),
   );
@@ -154,7 +144,7 @@ async function getOwnPrompt<Definition>(
       await getDb()
         .select()
         .from(ownPrompts)
-        .where(ownedPrompt(owner, store.kind, promptId)),
+        .where(ownedPrompt(owner, promptId)),
     ),
   );
   return prompt;
@@ -174,7 +164,6 @@ async function createOwnPrompt<Definition>(
           .insert(ownPrompts)
           .values({
             userId: owner,
-            kind: store.kind,
             name: prompt.name,
             parts:
               store.encodeDefinition?.(prompt.definition) ?? prompt.definition,
@@ -224,11 +213,9 @@ async function cloneOwnPrompt<Definition>(
           .insert(ownPrompts)
           .values({
             userId: owner,
-            kind: store.kind,
             name,
             parts:
               store.encodeDefinition?.(source.definition) ?? source.definition,
-            clonedFrom: sourceId.toLowerCase(),
           })
           .returning(),
       );
@@ -261,7 +248,7 @@ async function updateOwnPrompt<Definition>(
         await tx
           .update(ownPrompts)
           .set({ name: edit.name, parts: storedEdit, updatedAt: sql`now()` })
-          .where(ownedPrompt(owner, store.kind, promptId))
+          .where(ownedPrompt(owner, promptId))
           .returning(),
       );
 

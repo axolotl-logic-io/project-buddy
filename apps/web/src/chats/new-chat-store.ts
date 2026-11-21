@@ -8,8 +8,7 @@ import {
   type NewMessage,
   toChats,
 } from "@/chats/chat-rows.ts";
-import { storedConstructPrompt } from "@/constructs/construct-definition.ts";
-import type { ConstructId, ConstructSnapshot } from "@/constructs/index.ts";
+import type { Construct } from "@/constructs/index.ts";
 import { inTransaction, type Transaction } from "@/db/client.ts";
 import { chats, messages, quests } from "@/db/tables/quests-and-chats.ts";
 import { AppError } from "@/errors/app-error.ts";
@@ -17,18 +16,13 @@ import { withAppErrors } from "@/errors/to-app-error.ts";
 import { type ChatId, parseChatId, parseQuestId, type UserId } from "@/ids.ts";
 import type { QuestName } from "@/quests/quest-name.ts";
 
-// The construct a new chat keeps: the snapshot of its name and parts, and the
-// id saved beside it, which is the built-in construct's or, for a construct of
-// the user's own, the default construct's, for the build that reads only ids.
-type NewChatConstruct = ConstructSnapshot & { readonly id: ConstructId };
+// The built-in construct a new chat is with.
+type NewChatConstruct = Construct;
 
 // The chat a new chat is: its quest and its construct.
 interface NewChat {
   readonly quest: ChatQuest;
   readonly construct: NewChatConstruct;
-  // Whether it is its place's one continuing conversation
-  // (src/conversations/); a legacy conversation otherwise.
-  readonly continuing?: boolean;
 }
 
 // A new id, made here rather than by the database, so a batch can insert a
@@ -66,54 +60,21 @@ function chatColumns(
     spell: sql`null::text`.as("spell"),
     spellSnapshot: sql`null::jsonb`.as("spell_snapshot"),
     spellStartedAt: sql`null::timestamptz`.as("spell_started_at"),
-    constructName: sql`${chat.construct.name}::text`.as("construct_name"),
-    constructParts:
-      sql`${JSON.stringify(storedConstructPrompt(chat.construct.definition))}::jsonb`.as(
-        "construct_parts",
-      ),
-    name: sql`null::text`.as("name"),
-    renamedByHand: sql`false`.as("renamed_by_hand"),
     createdAt: sql`now()`.as("created_at"),
     userId: sql`null::uuid`.as("user_id"),
-    continuing: sql`${chat.continuing === true}::boolean`.as("continuing"),
+    continuing: sql`true`.as("continuing"),
   };
 }
 
-// The select that yields the new chat's row, with this id, in its quest
-// when that is the owner's, and nothing otherwise.
+// The select that yields the new chat's row, its quest's continuing
+// conversation with this id, in its quest when that is the owner's, and
+// nothing otherwise.
 export function newChatRow(owner: UserId, chat: NewChat, id: ChatId): SQL {
   return new QueryBuilder()
     .select(chatColumns(chat, id))
     .from(quests)
     .where(and(eq(quests.id, chat.quest.id), questOpenTo(owner)))
     .getSQL();
-}
-
-export function createChat(owner: UserId, chat: NewChat): Promise<Chat> {
-  return withAppErrors("createChat", () =>
-    inTransaction(async (tx) => {
-      const conversation = await tx
-        .insert(chats)
-        .select(
-          newChatRow(
-            owner,
-            { ...chat, continuing: true },
-            randomId(parseChatId),
-          ),
-        )
-        .onConflictDoNothing()
-        .returning();
-      let created = conversation;
-      if (conversation.length === 0) {
-        created = await tx
-          .insert(chats)
-          .select(newChatRow(owner, chat, randomId(parseChatId)))
-          .returning();
-      }
-      const result = insertedChat(created, chat.quest);
-      return result;
-    }),
-  );
 }
 
 export function createQuestWithChat(
@@ -155,8 +116,6 @@ export function createQuestWithChat(
         questId,
         continuing: true,
         constructId: chat.construct.id,
-        constructName: chat.construct.name,
-        constructParts: storedConstructPrompt(chat.construct.definition),
       })
       .returning();
     if (chat.context !== undefined && chat.context !== "") {

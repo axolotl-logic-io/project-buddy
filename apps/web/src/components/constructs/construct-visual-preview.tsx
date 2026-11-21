@@ -1,6 +1,6 @@
 import type { JSX } from "react";
 import { ConstructIllustration } from "@/components/constructs/construct-visual.tsx";
-import type { ConstructSnapshot } from "@/constructs/construct.ts";
+import type { Construct } from "@/constructs/construct.ts";
 import { VISUAL_ROLE } from "@/constructs/visual.ts";
 import { VISUAL_COPY } from "@/ui/copy/construct-visuals.ts";
 
@@ -9,7 +9,7 @@ import { VISUAL_COPY } from "@/ui/copy/construct-visuals.ts";
 function ConstructVisualPreview({
   construct,
 }: {
-  readonly construct: ConstructSnapshot;
+  readonly construct: Construct;
 }): JSX.Element {
   return (
     <div className="grid min-w-0 grid-cols-2 gap-4 sm:grid-cols-4">

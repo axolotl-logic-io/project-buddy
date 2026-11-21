@@ -13,10 +13,6 @@ const stores = vi.hoisted(() => ({
 }));
 vi.mock("@/quests/store.ts", () => stores);
 vi.mock("@/conversations/start-quest.ts", () => stores);
-vi.mock(
-  "../../support/test-database/historical-construct-test-kit.ts",
-  () => stores,
-);
 vi.mock("@/retirement/retirement-store.ts", () => stores);
 
 const USER = parseUserId("00000000-0000-4000-8000-000000000001");
@@ -168,8 +164,10 @@ describe("header navigation hierarchy", () => {
     expect(await headerBreadcrumbs(MEMBER, ["missing"])).toEqual([]);
   });
 
-  test("historical custom constructs have no trail, and built-ins remain named", async () => {
-    expect(await headerBreadcrumbs(MEMBER, ["constructs", "own"])).toEqual([]);
+  test("only a built-in construct has a trail, which names it", async () => {
+    expect(await headerBreadcrumbs(MEMBER, ["constructs", "unknown"])).toEqual(
+      [],
+    );
     expect(
       (await headerBreadcrumbs(MEMBER, ["constructs", "lumen"])).at(-1)?.label,
     ).toBe("Lumen");

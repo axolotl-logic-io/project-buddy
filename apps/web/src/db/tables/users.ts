@@ -13,8 +13,7 @@ import {
 // lower-cased; see src/accounts/users-store.ts), so each address has one
 // account however it was typed. A session carries the epoch it was signed
 // in at, and only sessions at the current epoch are signed in, so raising
-// it signs the user out everywhere. hidden_extras is inert retained storage
-// that nothing reads or writes.
+// it signs the user out everywhere.
 // The name is what the user asked the construct to call them, stored
 // trimmed (src/accounts/user-name.ts); null when they have none.
 // account_state is "invited" for an account a quest invitation created,
@@ -27,9 +26,7 @@ export const users = pgTable(
     id: uuid("id").primaryKey().defaultRandom(),
     email: text("email").notNull().unique(),
     sessionEpoch: integer("session_epoch").notNull().default(0),
-    hiddenExtras: text("hidden_extras").array().notNull().default(sql`'{}'`),
     name: text("name"),
-    interviewConstructId: text("interview_construct_id"),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),

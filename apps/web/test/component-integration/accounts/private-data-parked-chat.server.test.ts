@@ -1,6 +1,6 @@
-// use_case_private_data for a standalone chat, a conversation in no quest
-// that an older build made: it stays in storage, but is not found for
-// anyone, its owner included, through the stores or the chat route.
+// use_case_private_data for a chat that Start Day parked outside its quest
+// for Undo: it is not found for anyone, its owner included, through the
+// stores or the chat route.
 
 import { describe, expect, test } from "vitest";
 import { getChat, listMessages } from "@/chats/store.ts";
@@ -12,19 +12,19 @@ import { testUser } from "../../support/test-database/user-test-kit.ts";
 import { sendChatMessage } from "../test-database/chat-test-kit.ts";
 import { signIn } from "../test-database/session-test-kit.ts";
 
-// A standalone chat of owner's, as an older build saved it.
-async function standaloneChat(owner: UserId): Promise<ChatId> {
+// A chat of owner's, parked as Start Day parks one.
+async function parkedChat(owner: UserId): Promise<ChatId> {
   const [row] = await getDb()
     .insert(chats)
-    .values({ userId: owner, continuing: true, constructId: "vellum" })
+    .values({ userId: owner, continuing: false, constructId: "vellum" })
     .returning({ id: chats.id });
   return CHAT_ID.parse(row?.id);
 }
 
 describe("use_case_private_data", () => {
-  test("a standalone chat is not found, even for its owner", async () => {
+  test("a parked chat is not found, even for its owner", async () => {
     const her = await testUser();
-    const id = await standaloneChat(her.id);
+    const id = await parkedChat(her.id);
     await signIn(her);
 
     expect(await getChat(her.id, id)).toBeUndefined();

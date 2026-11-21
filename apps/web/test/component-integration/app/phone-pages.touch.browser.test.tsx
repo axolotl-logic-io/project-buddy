@@ -21,7 +21,6 @@ import type { getQuest, listQuests } from "@/quests/store.ts";
 import { listRetiredDefinitions } from "@/retirement/retirement-store.ts";
 import { THEME_IDS, type ThemeId } from "@/themes/themes.ts";
 import { QUEST_STATUS_COPY } from "@/ui/copy/quest-status.ts";
-import { RETIREMENT_COPY } from "@/ui/copy/retirement.ts";
 import { TIMER_COPY } from "@/ui/copy/timer.ts";
 
 import { loadCodeHighlighting } from "../components/code-highlighting-test-kit.ts";
@@ -175,9 +174,6 @@ function tabRows(): Element[] {
     ...TAB_ROW_NAVIGATIONS.flatMap((name) =>
       page.getByRole("navigation", { name, exact: true }).elements(),
     ),
-    ...page
-      .getByRole("group", { name: RETIREMENT_COPY.kindFilter, exact: true })
-      .elements(),
   ];
 }
 

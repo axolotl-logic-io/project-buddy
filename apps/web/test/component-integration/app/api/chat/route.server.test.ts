@@ -6,7 +6,7 @@ import { spellResponse } from "@/spells/spell-response.ts";
 
 import { describe, expect, test, vi } from "vitest";
 import { getChat, listMessages } from "@/chats/store.ts";
-import { getConstruct, snapshotOf } from "@/constructs/index.ts";
+import { getConstruct } from "@/constructs/index.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
 import { setSpell } from "@/spells/spell-store.ts";
 import { afterTasksDone } from "../../../test-database/after-test-kit.ts";
@@ -65,7 +65,7 @@ test("use_case_construct_voice_consistent", async () => {
   const { user, chat } = await userWithChat("lumen");
   await sendToEnd(user, chat, "look");
   const reopened = await getChat(user.id, chat.id);
-  expect(reopened?.construct).toEqual(snapshotOf(getConstruct("lumen")));
+  expect(reopened?.construct).toEqual(getConstruct("lumen"));
   await sendToEnd(user, chat, "look");
   const replies = (await savedConversation(user, chat)).filter(
     ({ role }) => role === "assistant",

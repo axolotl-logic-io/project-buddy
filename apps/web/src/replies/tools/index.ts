@@ -98,8 +98,7 @@ type ChatToolCalls = Pick<
 > & { readonly steps: PromiseLike<ChatToolStep[]> };
 
 // Streams model calls with settings and the tools of reply's chat. Each tool
-// that declares a context gets the acting user, the chat, its quest and its
-// construct.
+// that declares a context gets the acting user, the chat and its quest.
 function streamChatToolCalls(
   { actingUser, chat, answeredId }: ChatToolsReply,
   settings: ChatToolCallSettings,
@@ -108,7 +107,6 @@ function streamChatToolCalls(
     actingUser,
     chatId: chat.id,
     questId: chat.quest.id,
-    construct: chat.construct,
     answeredId,
   };
   return streamText({

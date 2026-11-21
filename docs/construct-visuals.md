@@ -12,7 +12,7 @@ The built-in `description` values are the user-supplied texts, stored verbatim i
 
 ## Shared primitives
 
-`ConstructAvatar` and `ConstructIllustration` in `apps/web/src/components/constructs/construct-visual.tsx` render a conversation's construct snapshot. Both expose the construct name as the accessible image name. Set `decorative` beside an already visible name. A construct without artwork shows initials. The primitives have no animation, status announcement or interactive behavior.
+`ConstructAvatar` and `ConstructIllustration` in `apps/web/src/components/constructs/construct-visual.tsx` render a conversation's built-in construct. Both expose the construct name as the accessible image name. Set `decorative` beside an already visible name. A construct without artwork shows initials. The primitives have no animation, status announcement or interactive behavior.
 
 The artwork is inline SVG painted with the active appearance's `--construct-*` tokens. The avatar role uses a simpler drawing for 32 and 40 pixels, and the other roles use the full drawing. A stored frame sets the SVG's `viewBox`.
 

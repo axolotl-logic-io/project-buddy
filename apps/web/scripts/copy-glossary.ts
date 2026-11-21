@@ -52,18 +52,6 @@ const WRITER_TERMS: readonly WriterTerm[] = [
       "A construct or spell supplied with the website. People can copy built-in spells, but cannot change supplied originals or copy constructs. The supplied spells are Tasks and Brainstorm.",
   },
   {
-    term: "Historical own construct",
-    heading: "Historical own construct",
-    aliases: [
-      "own construct",
-      "own constructs",
-      "custom construct",
-      "custom constructs",
-    ],
-    definition:
-      "A private construct made by an older build. Its stored record and conversation snapshots remain, but creating, copying and editing custom constructs is no longer available.",
-  },
-  {
     term: "Forget",
     heading: "Forget, forgotten spells, restore, delete forever",
     aliases: ["forget", "forgotten", "forgetting"],
@@ -617,7 +605,7 @@ const WRITER_TERMS: readonly WriterTerm[] = [
     heading: "Owner",
     aliases: ["owner", "owners"],
     definition:
-      "The person who created a quest. They cannot be removed from it. A person also owns their own spells and historical construct records; sharing a quest does not share those originals. The site owner means the person running the website.",
+      "The person who created a quest. They cannot be removed from it. A person also owns their own spells; sharing a quest does not share those originals. The site owner means the person running the website.",
   },
   {
     term: "Sign-up link",

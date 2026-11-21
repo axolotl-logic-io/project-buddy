@@ -22,9 +22,8 @@
 // users is how many other accounts follow a schedule, a count that names no
 // one and reaches no quest (src/timer/presence-store.ts).
 //
-// A conversation keeps a snapshot of its construct and its active spell, so
-// a member sees the snapshot of an own construct or spell used in the
-// quest, never the definition itself.
+// A conversation keeps a snapshot of its active spell, so a member sees the
+// snapshot of an own spell used in the quest, never the definition itself.
 //
 // Each predicate is SQL for a where clause or a join, on the table it names.
 import { and, eq, exists, inArray, type SQL, sql } from "drizzle-orm";
@@ -106,8 +105,8 @@ function questPendingFor(invitee: UserId): SQL {
   );
 }
 
-// A `chats` row open to user: a chat in a quest open to them. A standalone
-// chat that an older build made is open to no one.
+// A `chats` row open to user: a chat in a quest open to them. A chat that
+// Start Day parked is open to no one.
 function chatOpenTo(user: UserId): SQL {
   return inArray(chats.questId, openQuestIds(user));
 }

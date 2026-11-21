@@ -96,7 +96,6 @@ describe("Tasks tool contract", () => {
           toolCallId: "tasks",
           messages: [],
           context: {
-            construct: chat.construct,
             answeredId: newMessageId(),
             actingUser: user.id,
             chatId: chat.id,
@@ -127,7 +126,6 @@ describe("Tasks tool contract", () => {
           toolCallId: "tasks",
           messages: [],
           context: {
-            construct: chat.construct,
             answeredId: newMessageId(),
             actingUser: user.id,
             chatId: chat.id,

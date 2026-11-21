@@ -18,7 +18,6 @@ import { spellDestinationLabel } from "@/spells/spell-destination.ts";
 
 const RETIRED_ROW = z.object({
   id: OWN_PROMPT_ID,
-  kind: z.literal("spell"),
   name: z.string(),
   retiredAt: z.date(),
 });
@@ -38,18 +37,11 @@ async function listRetiredDefinitions(
     getDb()
       .select({
         id: ownPrompts.id,
-        kind: ownPrompts.kind,
         name: ownPrompts.name,
         retiredAt: ownPrompts.retiredAt,
       })
       .from(ownPrompts)
-      .where(
-        and(
-          ownPromptOwnedBy(owner),
-          eq(ownPrompts.kind, "spell"),
-          isNotNull(ownPrompts.retiredAt),
-        ),
-      )
+      .where(and(ownPromptOwnedBy(owner), isNotNull(ownPrompts.retiredAt)))
       .orderBy(desc(ownPrompts.retiredAt), desc(ownPrompts.id)),
   );
   return rows.flatMap((row) => {
@@ -93,7 +85,6 @@ async function getRetiredDefinition(
       .where(
         and(
           ownPromptOwnedBy(owner),
-          eq(ownPrompts.kind, "spell"),
           eq(ownPrompts.id, promptId),
           isNotNull(ownPrompts.retiredAt),
         ),
@@ -111,12 +102,8 @@ async function getRetiredDefinition(
 }
 
 // A repeat retirement preserves its first retirement date. A foreign id,
-// a built-in id, or an id of another kind never changes a definition.
-async function retireDefinition(
-  owner: UserId,
-  kind: "spell",
-  id: string,
-): Promise<boolean> {
+// or a built-in id never changes a definition.
+async function retireDefinition(owner: UserId, id: string): Promise<boolean> {
   const promptId = parseOwnPromptId(id);
   if (promptId === undefined) {
     return false;
@@ -128,9 +115,7 @@ async function retireDefinition(
       .where(
         and(
           ownPromptOwnedBy(owner),
-          eq(ownPrompts.kind, "spell"),
           eq(ownPrompts.id, promptId),
-          eq(ownPrompts.kind, kind),
           isNull(ownPrompts.retiredAt),
         ),
       )
@@ -151,7 +136,6 @@ async function restoreDefinition(owner: UserId, id: string): Promise<boolean> {
       .where(
         and(
           ownPromptOwnedBy(owner),
-          eq(ownPrompts.kind, "spell"),
           eq(ownPrompts.id, promptId),
           isNotNull(ownPrompts.retiredAt),
         ),
@@ -177,7 +161,6 @@ async function deleteRetiredDefinition(
       .where(
         and(
           ownPromptOwnedBy(owner),
-          eq(ownPrompts.kind, "spell"),
           eq(ownPrompts.id, promptId),
           isNotNull(ownPrompts.retiredAt),
         ),

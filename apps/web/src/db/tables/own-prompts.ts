@@ -1,6 +1,4 @@
-import { sql } from "drizzle-orm";
 import {
-  check,
   index,
   jsonb,
   pgTable,
@@ -9,17 +7,9 @@ import {
   uuid,
 } from "drizzle-orm/pg-core";
 // Relative imports: drizzle-kit loads this file without the @/ alias.
-import { STORED_PROMPT_KIND_LIST } from "../../prompts/prompt.ts";
 import { users } from "./users.ts";
 
-// Retain historical activity rows until a separate cleanup release.
-const KIND_LITERALS = sql
-  .join(
-    STORED_PROMPT_KIND_LIST.map((kind) => sql`${kind}`),
-    sql`, `,
-  )
-  .inlineParams();
-
+// A user's own spells.
 export const ownPrompts = pgTable(
   "own_prompts",
   {
@@ -27,11 +17,8 @@ export const ownPrompts = pgTable(
     userId: uuid("user_id")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
-    kind: text("kind").notNull().default("construct"),
     name: text("name").notNull(),
     parts: jsonb("parts").notNull(),
-    clonedFrom: text("cloned_from"),
-    boughtFrom: uuid("bought_from"),
     retiredAt: timestamp("retired_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
@@ -40,8 +27,5 @@ export const ownPrompts = pgTable(
       .notNull()
       .defaultNow(),
   },
-  (table) => [
-    index("own_prompts_user_id_idx").on(table.userId),
-    check("own_prompts_kind_known", sql`${table.kind} in (${KIND_LITERALS})`),
-  ],
+  (table) => [index("own_prompts_user_id_idx").on(table.userId)],
 );

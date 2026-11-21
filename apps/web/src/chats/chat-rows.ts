@@ -1,7 +1,6 @@
 // Rows of the chats and messages tables, as the chat stores read and write
-// them. Reads check what the columns cannot: a chat's construct. Every
-// chat the site reads is a quest's conversation; a standalone chat that an
-// older build made reads as not found.
+// them. Every chat the site reads is a quest's conversation; a chat that
+// Start Day parked outside its quest reads as not found.
 
 import type { UIMessage } from "ai";
 import {
@@ -15,14 +14,10 @@ import {
   sql,
 } from "drizzle-orm";
 import { chatOpenTo, messageOpenTo } from "@/accounts/owner-scope.ts";
-import { parseConstructDefinition } from "@/constructs/construct-definition.ts";
 import {
-  type ConstructId,
-  type ConstructSnapshot,
-  DEFAULT_CONSTRUCT_ID,
+  type Construct,
   getConstruct,
   isConstructId,
-  snapshotOf,
 } from "@/constructs/index.ts";
 import { chats, messages, quests } from "@/db/tables/quests-and-chats.ts";
 import {
@@ -52,8 +47,8 @@ interface Chat {
   readonly spellStartedAt?: string | undefined;
   // The quest the chat is the conversation of.
   readonly quest: ChatQuest;
-  // The construct as it was when the chat started.
-  readonly construct: ConstructSnapshot;
+  // The built-in construct the chat is with.
+  readonly construct: Construct;
   readonly createdAt: Date;
 }
 
@@ -66,35 +61,16 @@ type ChatRowWithQuest = ChatRow & {
 // A message to save as it is, with an id from the AI SDK.
 type NewMessage = UIMessage & { readonly id: MessageId };
 
-// A stored construct id that no construct file has any more, because the construct
-// was retired, reads as the default construct, so its chats keep working.
-function toConstructId(stored: string): ConstructId {
-  if (isConstructId(stored)) {
-    return stored;
+// A chat's construct: the built-in construct its id names. The
+// chats_construct_id_known check keeps every stored id a construct's.
+function toConstruct({ constructId }: Pick<ChatRow, "constructId">): Construct {
+  if (!isConstructId(constructId)) {
+    throw new Error(`Unknown construct id: ${constructId}`);
   }
-  return DEFAULT_CONSTRUCT_ID;
+  return getConstruct(constructId);
 }
 
-// The columns a chat's construct is read from.
-type ConstructColumns = "constructId" | "constructName" | "constructParts";
-
-// A chat's construct: its snapshot or, for a chat saved before snapshots, whose
-// snapshot columns are null, the built-in construct of its id. A snapshot whose
-// parts are not every part, which only a hand-edited row could hold, reads
-// the same way.
-function toConstruct({
-  constructId,
-  constructName,
-  constructParts,
-}: Pick<ChatRow, ConstructColumns>): ConstructSnapshot {
-  const parts = parseConstructDefinition(constructParts);
-  if (constructName !== null && parts !== undefined) {
-    return { name: constructName, definition: parts };
-  }
-  return snapshotOf(getConstruct(toConstructId(constructId)));
-}
-
-// A chat's quest, or undefined for a standalone chat, or for a quest id
+// A chat's quest, or undefined for a parked chat, or for a quest id
 // that is not a UUID or has no quest's name, which the foreign key forbids.
 function toQuest({
   questId,
@@ -124,7 +100,9 @@ function toChats(rows: readonly ChatRowWithQuest[]): Chat[] {
       {
         id,
         spell: SPELL_ID.optional().parse(row.spell ?? undefined),
-        activeSpell: SPELL_SNAPSHOT.safeParse(row.spellSnapshot).data,
+        activeSpell: SPELL_SNAPSHOT.optional().parse(
+          row.spellSnapshot ?? undefined,
+        ),
         spellStartedAt: row.spellStartedAt ?? undefined,
         quest,
         construct: toConstruct(row),
@@ -135,7 +113,7 @@ function toChats(rows: readonly ChatRowWithQuest[]): Chat[] {
 }
 
 // The columns a chat is read from and its quest's name, which a left join
-// of quests on chats.quest_id gives, null in a standalone chat. The join
+// of quests on chats.quest_id gives, null in a parked chat. The join
 // only reads the quest's columns;
 // chatOpenTo is what keeps a chat open to its reader.
 function chatWithQuestColumns(): {
@@ -190,8 +168,7 @@ type MessageColumns = {
 
 // A message's row for insert … select, saved now or at createdAt, with no
 // reply being made to it unless replyStartedAt says when one started, and
-// written by author, or with no author recorded, which reads as the chat's
-// owner.
+// written by author. A user message needs one; the construct's has none.
 function messageColumns(
   chatId: ChatId,
   message: UIMessage,
