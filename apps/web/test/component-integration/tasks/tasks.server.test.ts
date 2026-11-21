@@ -1,7 +1,7 @@
 import { CHAT_COMMANDS_COPY } from "@/ui/copy/tasks.ts";
 // A quest's tasks in the test database with the local construct engine: the
 // construct's change_tasks through POST /api/chat, the user's changes from the
-// quest's page and from an adventure, the composer's commands, undo, the tasks
+// quest's page and from a conversation, the composer's commands, undo, the tasks
 // in the construct's prompt, who may change it, and the next task Today
 // shows. How the tasks looks is the browser tests'.
 
@@ -82,7 +82,7 @@ function command(chatId: ChatId, text: string): Promise<TasksActionResult> {
 }
 
 describe("Tasks tool contract", () => {
-  test("the construct lays it out with change_tasks, and the adventure keeps the change", async () => {
+  test("the construct lays it out with change_tasks, and the conversation keeps the change", async () => {
     const { user, chat } = await signedInChat();
     const output = await Promise.resolve(
       changeTasksTool.execute?.(
@@ -194,7 +194,7 @@ describe("a quest's tasks, changed without the construct", () => {
     });
     expect(again).toMatchObject({ kind: "failed", reason: "already-undone" });
     expect((await readTasksState(user.id, chat.quest.id))?.undone).toEqual([1]);
-    // Changes made outside an adventure leave its messages alone.
+    // Changes made outside a conversation leave its messages alone.
     expect(await listMessages(user.id, chat.id)).toEqual([]);
   });
 
@@ -231,7 +231,7 @@ describe("a quest's tasks, changed without the construct", () => {
     expect(await constructPrompt(chat.id)).toContain(BLOCK_OUT);
   });
 
-  test("commands change the tasks, show it and undo, saving each to the adventure with no reply", async () => {
+  test("commands change the tasks, show it and undo, saving each to the conversation with no reply", async () => {
     const { user, chat } = await signedInChat();
     await laidOut(chat.quest.id);
 
@@ -260,7 +260,7 @@ describe("a quest's tasks, changed without the construct", () => {
     expect(await readStoppedReply(user.id, chat.id)).toBeUndefined();
   });
 
-  test("the construct reads a person's tasks change in the adventure as a note", async () => {
+  test("the construct reads a person's tasks change in the conversation as a note", async () => {
     const { user, chat } = await signedInChat();
     await laidOut(chat.quest.id);
     await command(chat.id, "/done 1");
@@ -393,7 +393,7 @@ describe("a quest's tasks, changed without the construct", () => {
 });
 
 describe("tasks command behavior", () => {
-  test("after a failed reply, tasks changes in the adventure wait, so the message can still be sent again", async () => {
+  test("after a failed reply, tasks changes in the conversation wait, so the message can still be sent again", async () => {
     const { user, chat } = await signedInChat();
     await laidOut(chat.quest.id);
     const unanswered = question("An interrupted message");
@@ -429,7 +429,7 @@ describe("tasks command behavior", () => {
     ]);
 
     // The quest's page still changes the tasks; once a reply answers, the
-    // adventure does too.
+    // conversation does too.
     expect(
       await changeTasksAction({
         questId: chat.quest.id,
@@ -442,7 +442,7 @@ describe("tasks command behavior", () => {
     });
   });
 
-  test("while a reply is being made, here or elsewhere, a person's tasks change in the adventure waits", async () => {
+  test("while a reply is being made, here or elsewhere, a person's tasks change in the conversation waits", async () => {
     const { user, chat } = await signedInChat();
     await laidOut(chat.quest.id);
     // Saving the message claims its reply, as the route does before it

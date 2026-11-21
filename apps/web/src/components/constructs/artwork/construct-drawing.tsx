@@ -3,11 +3,11 @@ import type { DrawingProps } from "@/components/constructs/artwork/frame-view-bo
 import {
   LumenAvatar,
   LumenPortrait,
-} from "@/components/constructs/artwork/lumen-v2.tsx";
+} from "@/components/constructs/artwork/lumen.tsx";
 import {
   VellumAvatar,
   VellumPortrait,
-} from "@/components/constructs/artwork/vellum-v2.tsx";
+} from "@/components/constructs/artwork/vellum.tsx";
 import {
   DRAWN_ARTWORK,
   type DrawnArtwork,

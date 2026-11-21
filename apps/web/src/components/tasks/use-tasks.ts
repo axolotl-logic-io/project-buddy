@@ -23,7 +23,7 @@ import type {
 import { tasksOperationCommand } from "@/tasks/tasks-commands.ts";
 import { TASKS_COPY, tasksLineText } from "@/ui/copy/tasks.ts";
 
-// The command that takes back the user's last tasks change in an adventure.
+// The command that takes back the user's last tasks change in a conversation.
 const UNDO_COMMAND = "/undo";
 
 // The Server Actions that change the tasks (src/tasks/tasks-actions.ts). A
@@ -58,25 +58,25 @@ interface TasksController {
   // True while a change is being saved.
   readonly pending: boolean;
   readonly feedback: TasksFeedback | undefined;
-  // The id of the adventure's newest tasks card message, the one that shows
-  // the live tasks; undefined outside an adventure or without one.
+  // The id of the conversation's newest tasks card message, the one that shows
+  // the live tasks; undefined outside a conversation or without one.
   readonly newestCardId?: string | undefined;
   // The days of the Dailies quest, oldest first, for its recurring tasks
   // and their streaks; undefined in any other quest.
   readonly days?: readonly DailiesDay[] | undefined;
-  // Makes a change from the Tasks panel: in an adventure, by sending its
+  // Makes a change from the Tasks panel: in a conversation, by sending its
   // command, which the conversation records.
   readonly change: (operations: readonly TasksOperation[]) => Promise<boolean>;
   readonly undo: (version: number) => Promise<void>;
-  // Undoes the panel's last change: in an adventure, by sending /undo.
+  // Undoes the panel's last change: in a conversation, by sending /undo.
   readonly undoLast: (version: number) => Promise<void>;
   // Takes a newer tasks from elsewhere, such as the construct's change or an
   // action's answer; an older one is ignored.
   readonly receive: (state: TasksState) => void;
 }
 
-// What the controller needs: the quest, the adventure, if any, the tasks as
-// the page read it, what the controls answer with in an adventure, and why
+// What the controller needs: the quest, the conversation, if any, the tasks as
+// the page read it, what the controls answer with in a conversation, and why
 // they are off, if they are.
 interface TasksControllerOptions {
   readonly questId: QuestId;
@@ -85,12 +85,12 @@ interface TasksControllerOptions {
   readonly initialState: TasksState | undefined;
   readonly disabledNote?: string | undefined;
   readonly newestCardId?: string | undefined;
-  // The newest tasks a construct's change in the adventure showed, which the
+  // The newest tasks a construct's change in the conversation showed, which the
   // controller takes when it is newer than its own.
   readonly observed?: Pick<TasksState, "version" | "tasks"> | undefined;
   // The Dailies quest's days, given in the Dailies quest alone.
   readonly days?: readonly DailiesDay[] | undefined;
-  // Shows the message a command sent from the panel saved in the adventure.
+  // Shows the message a command sent from the panel saved in the conversation.
   readonly onMessage?: ((message: ChatMessage) => void) | undefined;
   // Says why a command sent from the panel did nothing, where the composer
   // says it for a typed one.

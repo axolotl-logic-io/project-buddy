@@ -8,7 +8,7 @@ No shape names a colour. Each carries f-* (fill) and s-* (stroke) classes
 that construct-art.css maps to the --construct-* paint roles. Elements with
 the class "fine" are detail that drops out at small sizes.
 
-Run from anywhere:  python3 outputs/theme-redesign/artwork/src/draw.py
+Run from anywhere:  python3 apps/web/design/artwork/src/draw.py
 """
 
 from __future__ import annotations

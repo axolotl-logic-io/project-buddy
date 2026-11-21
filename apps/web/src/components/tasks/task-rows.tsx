@@ -292,7 +292,7 @@ function TaskRows(): JSX.Element | null {
       if (tasks === undefined) {
         return false;
       }
-      // As /add does, which the panel sends in an adventure.
+      // As /add does, which the panel sends in a conversation.
       return await tasks.change([{ op: "add", text }]);
     },
     [tasks],

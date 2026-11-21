@@ -312,7 +312,7 @@ describe("quest status proposal contract", () => {
       decision: "outdated",
     });
   });
-  test("only the requesting owner can read or answer a card; a mismatched adventure cannot propose", async () => {
+  test("only the requesting owner can read or answer a card; a mismatched conversation cannot propose", async () => {
     const team = await formerMemberQuest();
     const outsider = await testUser();
     const approval = required(

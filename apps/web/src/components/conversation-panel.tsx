@@ -115,8 +115,8 @@ function ConversationPanel({
     expandControl = createPortal(expandButton, headerControl);
   }
   return (
-    <div className="adventure-layout" data-sidebar-open={expanded ?? "auto"}>
-      <div className="adventure-main">{children}</div>
+    <div className="conversation-layout" data-sidebar-open={expanded ?? "auto"}>
+      <div className="conversation-main">{children}</div>
       {expandControl}
       <dialog
         id={panelId}
