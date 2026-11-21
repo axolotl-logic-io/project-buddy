@@ -1,6 +1,6 @@
 import { z } from "zod";
 import {
-  SPELL_DEFINITION,
+  defaultSpellDefinition,
   type SpellDefinition,
 } from "@/spells/spell-definition.ts";
 
@@ -14,18 +14,14 @@ interface Spell {
 }
 const SPELLS: Readonly<Record<SpellId, Spell>> = {
   tasks: {
-    definition: SPELL_DEFINITION.parse({
-      destination: "tasks",
-    }),
+    definition: defaultSpellDefinition("tasks"),
     id: "tasks",
     name: "Tasks",
     description:
       "Save subsequent messages as open tasks until you stop the spell.",
   },
   brainstorm: {
-    definition: SPELL_DEFINITION.parse({
-      destination: "brainstorm",
-    }),
+    definition: defaultSpellDefinition("brainstorm"),
     id: "brainstorm",
     name: "Brainstorm",
     description: "Save subsequent messages in Ideas until you stop the spell.",

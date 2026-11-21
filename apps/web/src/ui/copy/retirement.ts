@@ -17,10 +17,7 @@ const RETIREMENT_COPY = {
     "Permanently deleted. Existing conversations keep their saved settings.",
   search: "Find something forgotten",
   searchPlaceholder: "Search by name…",
-  kindFilter: "Filter by kind",
-  allKinds: "All kinds",
-  kinds: { spell: "Spells" },
-  kind: { spell: "Spell" },
+  kind: "Spell",
   count: (count: number): string => `${count} forgotten`,
   separator: " · ",
   sort: "Most recently forgotten first",
@@ -33,8 +30,8 @@ const RETIREMENT_COPY = {
   delete: "Delete forever",
   deleteLabel: (name: string): string => `Delete ${name} forever`,
   deleteTitle: (name: string): string => `Delete “${name}” forever?`,
-  deleteDescription: (kind: "spell"): string =>
-    `This permanently removes your forgotten ${kind} and its saved settings. You cannot undo this or restore it afterward. Existing conversations keep their saved settings.`,
+  deleteDescription:
+    "This permanently removes your forgotten spell and its saved settings. You cannot undo this or restore it afterward. Existing conversations keep their saved settings.",
   keep: "Keep forgotten",
   instructions: "Saved settings",
   fields: {

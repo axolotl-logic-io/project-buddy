@@ -71,7 +71,7 @@ function ForgottenSpellList({
                 </Link>
               </h2>
               <p className="text-muted text-sm">
-                {RETIREMENT_COPY.kind[definition.kind]}
+                {RETIREMENT_COPY.kind}
                 {RETIREMENT_COPY.separator}
                 {RETIREMENT_COPY.dateLabel}{" "}
                 <LocalTime dateTime={definition.retiredAt} detail="day" />

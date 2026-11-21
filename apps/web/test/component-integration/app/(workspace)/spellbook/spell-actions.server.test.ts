@@ -63,7 +63,6 @@ test("spell create, copy and save actions open the surviving spell editors", asy
   expect(copy).toMatchObject({
     name: "Quiet ideas (copy)",
     definition: saved?.definition,
-    clonedFrom: created.id,
   });
   const other = await testUser();
   await signIn(other);

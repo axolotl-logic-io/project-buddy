@@ -179,30 +179,6 @@ const COPY_BRIEFS = new Map<string, string>([
     "Beside a list whose entries the person can move into a different order. Report a failure to save the new order of a list and suggest retrying.",
   ],
   [
-    "GENERATION_COPY.failed",
-    "In image messages kept from an older version of the site. The site no longer creates images. Report failure to generate or save an image; suggest retrying later.",
-  ],
-  [
-    "GENERATION_COPY.outOfGold",
-    "In image messages kept from an older version of the site. The site no longer creates images. State that image generation is unavailable. This is a message kept from an older version of the site; do not mention balances.",
-  ],
-  [
-    "GENERATION_COPY.pending",
-    "In image messages kept from an older version of the site. The site no longer creates images. Explain that interrupted image generation does not restart automatically; check the conversation before requesting again.",
-  ],
-  [
-    "GENERATION_COPY.quotaUsedUp",
-    "In image messages kept from an older version of the site. The site no longer creates images. State that image generation is unavailable. This is a message kept from an older version of the site; do not mention quotas.",
-  ],
-  [
-    "GENERATION_COPY.unavailable",
-    "In image messages kept from an older version of the site. The site no longer creates images. Explain that creating an image is unavailable because the person running the site has not set up the image service. This message is kept from an older version of the site.",
-  ],
-  [
-    "GENERATION_COPY.working",
-    "In image messages kept from an older version of the site. The site no longer creates images. Image-generation progress message with an approximate two-minute wait; message kept from an older version of the site.",
-  ],
-  [
     "EXPERIENCE_COPY.circle",
     "On Profile's Experience card and Abilities, and in the construct's reply to the exp command in a quest conversation, which show the person's experience, circle and points in each ability. Name the person's circle and the title it gives them.",
   ],

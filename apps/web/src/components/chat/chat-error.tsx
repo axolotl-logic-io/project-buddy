@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button.tsx";
 import { Alert } from "@/components/ui/form-message.tsx";
 import { userMessage } from "@/errors/app-error.ts";
 import { chatFailureCase } from "@/replies/chat-protocol.ts";
-import { IMAGE_COPY } from "@/ui/copy/images.ts";
+import { CHAT_COPY } from "@/ui/copy/chat.ts";
 import { PROBLEMS_COPY } from "@/ui/copy/problems.ts";
 
 // Why the last request or reply failed, in the user's terms, with a link to
@@ -29,7 +29,7 @@ export function ChatError({
         errorCase !== "not-found" &&
         onRetry !== undefined && (
           <Button onClick={onRetry} variant="secondary">
-            {IMAGE_COPY.retry}
+            {CHAT_COPY.retry}
           </Button>
         )}
       {errorCase === "signed-out" && (

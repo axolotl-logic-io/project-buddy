@@ -10,7 +10,7 @@ A milestone is one short line in the past tense about something the user finishe
 
 The quest's Progress section lists its milestones, newest first. Each entry shows the day it was recorded and its text. The user can edit an entry's text or delete the entry. An edit keeps the entry's day. When the edit form closes, keyboard focus returns to the entry's Edit button.
 
-A milestone's text is one line of at most 200 characters (`MILESTONE_TEXT` in `src/milestones/milestone.ts`). The page and server both check it.
+A milestone's text is one line of at most 200 characters. The page and server both check it.
 
 ## Day grid
 
@@ -18,4 +18,4 @@ In the Dailies quest, Day grid on the overview shows recurring history; Progress
 
 ## Storage
 
-The `milestones` table (`src/db/tables/milestones.ts`) holds one row per milestone, with its quest, the conversation it was recorded in, if that still exists, its text and when it was recorded. A milestone is open to its quest's owner and members, through `milestoneOpenTo` in `src/accounts/owner-scope.ts`, and is deleted with its quest; it outlives the conversation it was recorded in. `src/milestones/milestone-store.ts` is the only module that reads or writes the table.
+A milestone belongs to its quest and records the conversation it was recorded in, if that still exists. It is open to its quest's owner and members and is deleted with its quest. It outlives the conversation it was recorded in.

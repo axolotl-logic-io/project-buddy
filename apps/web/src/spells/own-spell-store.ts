@@ -14,7 +14,6 @@ import {
   SPELL_DEFINITION,
   SPELL_NAME_MAX,
   type SpellDefinition,
-  type SpellDefinitionInput,
   type SpellSnapshot,
 } from "@/spells/spell-definition.ts";
 
@@ -45,7 +44,7 @@ function getOwnSpell(owner: UserId, id: string): Promise<OwnSpell | undefined> {
 }
 function createSpell(
   owner: UserId,
-  spell: NamedDefinition<SpellDefinitionInput>,
+  spell: NamedDefinition<SpellDefinition>,
 ): Promise<OwnSpell> {
   return createOwnPrompt(STORE, owner, {
     name: spell.name,
@@ -58,7 +57,7 @@ function cloneSpell(owner: UserId, id: string): Promise<OwnSpell | undefined> {
 function updateSpell(
   owner: UserId,
   id: string,
-  spell: NamedDefinition<SpellDefinitionInput>,
+  spell: NamedDefinition<SpellDefinition>,
 ): Promise<OwnSpell | undefined> {
   return updateOwnPrompt(STORE, owner, id, {
     name: spell.name,

@@ -14,7 +14,6 @@ import {
   randomId,
 } from "@/chats/new-chat-store.ts";
 import { getChat, noReplyAwaited } from "@/chats/store.ts";
-import { grantVisualAssets } from "@/constructs/visual-asset-store.ts";
 import { getDb, inTransaction } from "@/db/client.ts";
 import { chats, messages } from "@/db/tables/quests-and-chats.ts";
 import { withAppErrors } from "@/errors/to-app-error.ts";
@@ -80,24 +79,12 @@ async function findOrCreateConversation(
     inTransaction(async (db) => {
       const inserted = await db
         .insert(chats)
-        .select(
-          newChatRow(
-            owner,
-            { quest, construct: start.construct, continuing: true },
-            id,
-          ),
-        )
+        .select(newChatRow(owner, { quest, construct: start.construct }, id))
         .onConflictDoNothing()
         .returning({ id: chats.id });
       if (inserted.length === 0) {
         return false;
       }
-      await grantVisualAssets(
-        owner,
-        db,
-        { kind: "adventure", id },
-        { parts: start.construct.definition },
-      );
       return true;
     }),
   );

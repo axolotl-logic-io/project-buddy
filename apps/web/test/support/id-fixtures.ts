@@ -57,8 +57,8 @@ const milestoneIdFixture: IdFixture<MilestoneId> = idFixture(
   parseMilestoneId,
 );
 
-const userConstructIdFixture: IdFixture<OwnPromptId> = idFixture(
-  "userConstructIdFixture",
+const ownSpellIdFixture: IdFixture<OwnPromptId> = idFixture(
+  "spellIdFixture",
   parseOwnPromptId,
 );
 
@@ -66,7 +66,7 @@ export {
   chatIdFixture,
   messageIdFixture,
   milestoneIdFixture,
+  ownSpellIdFixture,
   questIdFixture,
-  userConstructIdFixture,
   userIdFixture,
 };

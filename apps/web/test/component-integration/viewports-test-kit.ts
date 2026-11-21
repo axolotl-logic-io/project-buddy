@@ -18,7 +18,7 @@ const LAPTOP_VIEWPORT: ViewportSize = { width: 1280, height: 720 };
 const PHONE_VIEWPORT: ViewportSize = { width: 390, height: 844 };
 
 // An iPhone 15's screen, the phone the compact header ruling
-// (`header-links-slot`, #17) is set on.
+// (`header-links-slot`) is set on.
 const IPHONE_15_VIEWPORT: ViewportSize = { width: 393, height: 852 };
 
 // The narrowest screen the site supports: WCAG 1.4.10 (Reflow) asks a page

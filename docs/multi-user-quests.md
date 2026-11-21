@@ -42,7 +42,7 @@ The same rules hold for commands such as `/complete`, direct controls, construct
 
 The site has no quest deletion today. When it gains one, deletion must use the owner-only predicate `questOwnedBy`, never `questOpenTo`.
 
-Membership opens only that quest. It gives no access to another member's own spells, historical construct records or other quests. A conversation keeps the construct snapshot saved when it started, and an active spell keeps its cast snapshot, so members see those snapshots and never the private definitions.
+Membership opens only that quest. It gives no access to another member's own spells or other quests. An active spell keeps its cast snapshot, so members see that snapshot and never the private definition.
 
 ## Accounts created by invitations
 
@@ -64,7 +64,7 @@ For example, Morgan invites `sam@example.com`, who has no account. The site crea
 
 The Quests page lists pending invitations in a **Pending** tab after Active, Completed and Abandoned. Each row shows the quest's name, who invited the user and when. Nothing else of the quest is visible before acceptance.
 
-Each row offers **Accept** and **Decline**. On a phone they sit on their own line beneath the quest's name, so the name keeps its width. Accepting joins only that quest; the status line names the tab it now appears in, such as Active, and links to it. Declining deletes the invitation without opening the quest. Other invitations stay in Pending either way.
+Each row offers **Accept** and **Decline**. Accepting joins only that quest; the status line names the tab it now appears in, such as Active, and links to it. Declining deletes the invitation without opening the quest. Other invitations stay in Pending either way.
 
 An invitation withdrawn, or answered in another tab, meanwhile fails with a short alert. Its row leaves the list, and the tab's count drops, without a reload. The Pending tab's accessible name includes the count, such as "Pending, 2 invitations". The tab list is named "Quests", since Pending is not a status.
 
@@ -121,7 +121,7 @@ If a reply to the removed member's message is still running, removal stops it an
 
 ## Concurrent work
 
-Members use the mechanisms that already keep one user's tabs consistent:
+Members use the same mechanisms that keep one user's tabs consistent:
 
 - **Messages and replies:** a viewer who sees a running reply waits to send and can Stop it. Reply claims prevent duplicate replies to the same message. Distinct messages sent from stale tabs can be answered concurrently; each saved reply appears immediately after the message it answers.
 - **Tasks:** every change saves a numbered version, so two changes made at once are both kept, one after the other. Undo undoes a specific tasks change, whoever made it.
@@ -135,17 +135,3 @@ Members use the mechanisms that already keep one user's tabs consistent:
 - **Current quest:** Quests offers the most recently active Active quest open to the user, whether they own it or are a member.
 - **Quick Notes:** the Quick Note dialog offers every Active quest open to the user.
 - **Status approval cards:** a card saves who asked for it, and anyone in the quest can confirm or decline it.
-
-## Storage and compatibility
-
-Migration `0067_multi_user_quests.sql` is additive:
-
-- `users.account_state`, defaulting to `signed_up`, with a check that allows `invited` and `signed_up`.
-- `quest_members`, one row per accepted member and quest.
-- `quest_invitations`, one row per pending invitee and quest, with the acceptance link's token hash and expiry.
-
-The previous build neither reads nor writes these, and every account it creates is signed up by default. If production rolls back to it, members temporarily lose access until the new build is live again; no data is lost.
-
-## Tests
-
-Real-database server tests cover owner, member, pending invitee, removed member and unrelated user access through every quest store. They also cover invitations, how pending invitees are shown, the invitation limit, the email's text, both acceptance paths, a reopened link, member powers, removal, the shared marker's data and the migration. Browser tests cover the Members section and Pending, including keyboard use, the Remove and Leave questions at phone and tablet widths, and phone widths of 320 and 390 px in both appearance modes.

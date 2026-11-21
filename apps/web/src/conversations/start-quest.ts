@@ -8,7 +8,7 @@ import {
 import { saveTasksMessage } from "@/chats/store.ts";
 import { PANEL_COMMAND } from "@/commands/panel-commands.ts";
 import {
-  type ConstructSnapshot,
+  type Construct,
   DEFAULT_CONSTRUCT_ID,
   getConstruct,
 } from "@/constructs/index.ts";
@@ -60,7 +60,7 @@ function openingFor(
   {
     construct,
   }: {
-    readonly construct: ConstructSnapshot;
+    readonly construct: Construct;
   },
 ): ReturnType<typeof chatOpening> {
   return chatOpening({

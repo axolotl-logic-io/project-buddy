@@ -4,7 +4,7 @@ This glossary records the domain language of Project Buddy: the words that users
 
 ## Core model
 
-Constructs run a local command engine inspired by multi-user dungeons (MUDs). The app makes no requests to AI model companies. Conversations keep their construct snapshots; this engine does not interpret their prose as instructions. References to model context below describe the retained harness protocol.
+Constructs run a local command engine inspired by multi-user dungeons (MUDs). The app makes no requests to AI model companies. Each conversation stores the id of its built-in construct. References to model context below describe the retained harness protocol.
 
 Two concepts shape every conversation: the construct is who the user works with, and the active spell is the persistent mode. Tasks saves subsequent messages as agreed tasks; Brainstorm saves them in Ideas. Stopping the spell returns to ordinary Chat. Spellbook holds built-in and own spells.
 
@@ -39,10 +39,6 @@ A heading in the built-in constructs' stored prompt text. It is not an editable 
 ### Built-in construct or spell
 
 A construct or one of the two fixed spells that ships with the site.
-
-### Historical own construct
-
-A private construct created by an older build. Custom construct creation, copying, editing and retirement are no longer available. Stored rows and artwork remain intact; existing conversations keep their saved construct snapshots.
 
 ### Forget, forgotten spells, restore, delete forever
 
@@ -90,17 +86,15 @@ Shared instructions every conversation receives, including the role and rules fo
 
 ### Construct
 
-A named presence with a Visual description and artwork. Each conversation has exactly one construct, chosen when it starts and kept for its whole life; there is no switching constructs within it. The site ships built-in constructs assigned by premade quests. Historical custom snapshots continue to work. A construct writes the replies, calls the tools and casts the spells in a conversation.
-
-The local engine does not interpret a construct’s historical voice or habits text.
+A named presence with a Visual description and artwork. Each conversation has exactly one construct, chosen when it starts and kept for its whole life; there is no switching constructs within it. The site ships built-in constructs assigned by premade quests. A construct writes the replies, calls the tools and casts the spells in a conversation.
 
 - **UI:** "Construct".
 
 ### Construct code names
 
-Use **construct** in code, stored kinds and configuration. Historical own constructs and current own spells share the `own_prompts` table. Conversations store `construct_id`, `construct_name` and `construct_parts`. Constructs always use the local command engine.
+Use **construct** in code, stored kinds and configuration. Own spells live in the `own_prompts` table. Conversations store only `construct_id`, which must name a built-in construct. Constructs always use the local command engine.
 
-Spell browser drafts keep their existing keys. Historical construct rows and conversation snapshots keep their text.
+Spell browser drafts keep their existing keys.
 
 The product name remains **Project Buddy**.
 
@@ -169,12 +163,6 @@ The construct’s first message in a new quest conversation, generated from the 
 The quest Quests offers to pick up again, in its Continue card above Start a quest: the Active quest open to the user, their own or one they are a member of, whose conversation was most recently active, by its newest message, or by when it started if it has none, with its [next task](#next-task). Continue opens its overview. With no Active quest there is none. Showing it makes no model call.
 
 - **UI:** "Current quest", "Continue".
-
-### Conversation image
-
-An image saved in a message of a conversation. It belongs to that conversation and is open to the quest's owner and members. The composer accepts text only, so the user adds no new images.
-
-- **UI:** "Image".
 
 ### Author
 
@@ -332,7 +320,7 @@ A reserved message such as `/exp` that the local construct answers with its comm
 
 ### Command note
 
-A record of a command and the change it made. Earlier conversations stored these beneath the command.
+A record of a command and the change it made.
 
 ## Experience
 
@@ -418,7 +406,7 @@ When a [client](#client) acts through a connection, the connection’s user is t
 
 The user something belongs to. A quest's owner is the user who made it. The quest is open to its owner and its [members](#member), and no one can remove the owner from it. The site can't delete a quest yet; when it can, only the owner will.
 
-Ownership and access are distinct: own spells and historical construct records belong to individual users, and membership in a quest never opens them. Something the acting user cannot access reads as not found.
+Ownership and access are distinct: own spells belong to individual users, and membership in a quest never opens them. Something the acting user cannot access reads as not found.
 
 - **UI:** "Owner" for a quest's owner.
 
@@ -543,21 +531,8 @@ The `login` command starts browser-based authorization for a command utility to 
 
 ## Retained storage names
 
-Some code and storage names outlast the features or words they were made for. Use the current terms in copy, prompts, docs and new code.
+Some code and storage names outlast the words they were made for. Use the current terms in copy, prompts, docs and new code.
 
-### Chat, adventure
+### Chat
 
-`chat` and `chats` in code and storage, and `adventure` in a few code names such as `AdventureCharacterHeader` and the `adventure` visual destination kind, mean a quest's [conversation](#conversation). In product copy, use "spell conversation".
-
-### Generated image
-
-An image a construct once saved as a tool result in a conversation. Constructs don't generate images now; the `image_generations` table and `/api/generated-images/GENERATION_ID` deliver the saved ones to the quest's owner and members.
-
-### Gold, batteries, listings and purchases
-
-The site has no balance, charges or purchases. The `gold_balances`, `gold_ledger`, `battery_purchases`, `battery_cash_events`, `listings` and `purchases` tables, and the `bought_from` column of `own_prompts`, keep their past rows in storage only.
-
-### Other inert storage
-
-Standalone chats, `chats` rows with a `user_id` and no quest that an older build made, are open to no one. The `manual_sections` table, the `users.interview_construct_id` and `users.hidden_extras` columns, and the quests' `check_in_frequency` and `last_check_in_at` columns stay in storage, unread by the site. The site sends nothing on its own.
-
+`chat` and `chats` in code and storage mean a quest's [conversation](#conversation). In product copy, use "conversation", or "spell conversation" when a spell is on.

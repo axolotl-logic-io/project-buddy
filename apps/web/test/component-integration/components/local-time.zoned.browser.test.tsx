@@ -192,7 +192,7 @@ describe("use_case_view_quests", () => {
   });
 });
 
-// Times are set in the body face with tabular figures (#843), so the
+// Times are set in the body face with tabular figures, so the
 // placeholder may differ from the local time by a word's width, such as
 // "AM" and "PM": a few pixels, never the room of a character more.
 test("hydrating a time keeps about its reserved width, in the body face", async () => {

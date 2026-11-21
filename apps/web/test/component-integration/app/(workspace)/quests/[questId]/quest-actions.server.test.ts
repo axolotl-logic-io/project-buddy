@@ -158,13 +158,15 @@ test("Dailies Start Day and Undo save records and restore collections without ch
   });
   await changeIdeaAction({ op: "add", questId, text: "Try mint" });
   const oldMessages = await listMessages(her.id, chat.id);
+  // Start Day accepts only a date near today.
+  const today = new Date().toISOString().slice(0, 10);
 
   expect(
     await changeDayAction({
       op: "start",
       questId,
       chatId: chat.id,
-      localDate: "2026-11-18",
+      localDate: today,
       clearTasks: true,
       clearIdeas: true,
     }),
@@ -174,7 +176,7 @@ test("Dailies Start Day and Undo save records and restore collections without ch
     throw new Error("Start Day did not open the day's workspace");
   }
   expect(await readDailiesRecord(her.id, questId)).toMatchObject({
-    days: [{ date: "2026-11-18" }],
+    days: [{ date: today }],
     undoable: true,
   });
   expect(await listIdeas(her.id, questId)).toEqual([]);

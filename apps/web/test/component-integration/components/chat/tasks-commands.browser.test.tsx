@@ -1,6 +1,6 @@
 import { QUEST_SIDEBAR_COPY } from "@/ui/copy/quest-sidebar.ts";
 import { QUEST_STATUS_COPY } from "@/ui/copy/quest-status.ts";
-// The quest's tasks in an adventure, in Chromium and WebKit: "/" in the
+// The quest's tasks in a conversation, in Chromium and WebKit: "/" in the
 // composer lists the built-in commands, and the construct's while it runs; a
 // tasks command runs without the construct and shows its change in the
 // conversation; the Tasks panel changes the tasks from beside it; and the
@@ -103,7 +103,7 @@ async function openChat(initialMessages: UIMessage[] = []): Promise<void> {
         <ChatView
           chatId={CHAT_ID}
           viewer={userIdFixture()}
-          constructName={getConstruct("vellum").name}
+          construct={getConstruct("vellum")}
           initialMessages={initialMessages}
           questId={QUEST_ID}
           initialTasks={TASKS}
@@ -114,7 +114,7 @@ async function openChat(initialMessages: UIMessage[] = []): Promise<void> {
   );
 }
 
-// A quest adventure whose last message has no reply, with the Tasks panel
+// A quest conversation whose last message has no reply, with the Tasks panel
 // open at a phone's width: its reply stopped, or, without stoppedReplyId,
 // is being made elsewhere.
 async function openAwaitingChat(stoppedReplyId?: string): Promise<void> {
@@ -125,7 +125,7 @@ async function openAwaitingChat(stoppedReplyId?: string): Promise<void> {
       <ChatView
         chatId={CHAT_ID}
         viewer={userIdFixture()}
-        constructName={getConstruct("vellum").name}
+        construct={getConstruct("vellum")}
         initialMessages={[
           {
             id: "m1",
@@ -593,9 +593,7 @@ describe("tasks controls alongside the conversation", () => {
 });
 
 test("saved Tasks cards point to the side menu without inline form controls", async () => {
-  await openChat([
-    tasksCardMessage("legacy-tasks-card", { command: "/tasks" }),
-  ]);
+  await openChat([tasksCardMessage("saved-tasks-card", { command: "/tasks" })]);
   await page.getByRole("button", { name: QUEST_SIDEBAR_COPY.expand }).click();
   await expect
     .element(page.getByText(TASKS_CHANGE_COPY.sideMenu))

@@ -1,7 +1,7 @@
 import type { JSX } from "react";
 import { currentUser } from "@/auth/current-user.ts";
 import type { Breadcrumb } from "@/components/breadcrumb.ts";
-import { AdventureCharacterHeader } from "@/components/constructs/adventure-character-header.tsx";
+import { ConstructHeader } from "@/components/constructs/construct-header.tsx";
 import {
   headerBreadcrumbs,
   publicBreadcrumbs,
@@ -21,10 +21,7 @@ function ConstructTrailTools({
 }): JSX.Element {
   return (
     <div className="construct-trail-tools">
-      <AdventureCharacterHeader
-        construct={conversation.construct}
-        destination={{ kind: "adventure", id: conversation.id }}
-      />
+      <ConstructHeader construct={conversation.construct} />
     </div>
   );
 }

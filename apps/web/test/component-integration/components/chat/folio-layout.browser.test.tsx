@@ -74,7 +74,6 @@ describe("Shared-card reading layout", () => {
             questId={questIdFixture()}
             chatId={chatIdFixture()}
             viewer={userIdFixture()}
-            constructName="Lumen"
             construct={getConstruct("lumen")}
             initialMessages={MESSAGES}
             stoppedReplyId="next"
