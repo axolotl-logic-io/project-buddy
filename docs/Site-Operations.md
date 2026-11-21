@@ -70,8 +70,3 @@ Any failed check names the request and the unmet expectation, and the command ex
 - Turbopack builds fail when `node_modules` is a symlink. Replace it with a real directory from `npm ci`.
 - Docker Desktop's credential helper can hang while pulling test-database images. Use a credential-free `DOCKER_CONFIG`.
 
-## Saved conversation images
-
-Image bytes are stored privately in Postgres, behind `src/images/store.ts` in the web app. No storage credentials or public bucket are needed. Database backups therefore contain images as well as messages. [Saved images](images.md) describes access and deletion.
-
-Use the worktree-local `.env.test` for tests. Image tests exercise real local storage and delivery. Never run these tests against the shared database.

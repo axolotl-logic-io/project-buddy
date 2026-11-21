@@ -309,13 +309,6 @@ const WRITER_TERMS: readonly WriterTerm[] = [
       "The Active quest offered in the Continue card on the Quests page, based on the most recently used conversation the person can access.",
   },
   {
-    term: "Conversation image",
-    heading: "Conversation image",
-    aliases: ["conversation image", "attached image", "image attached"],
-    definition:
-      "A picture already saved in a conversation message. People who can open the quest can view it. New messages now accept text only.",
-  },
-  {
     term: "Author",
     heading: "Author",
     aliases: ["author", "authors"],
@@ -750,36 +743,10 @@ const WRITER_TERMS: readonly WriterTerm[] = [
   },
   {
     term: "Chat",
-    heading: "Chat, adventure",
-    aliases: ["Chat", "adventure"],
+    heading: "Chat",
+    aliases: ["Chat"],
     definition:
-      "Ordinary conversation when no spell is turned on. Older code sometimes uses chat or adventure to mean a quest's conversation. Use conversation in writing for the site.",
-  },
-  {
-    term: "Generated image",
-    heading: "Generated image",
-    aliases: [
-      "generated image",
-      "generated images",
-      "generating",
-      "image generation",
-    ],
-    definition:
-      "A picture created and saved by an older version of the site. The current site does not create new pictures, but people with access to a quest can still view its saved pictures.",
-  },
-  {
-    term: "Gold, batteries, listings and purchases",
-    heading: "Gold, batteries, listings and purchases",
-    aliases: ["gold", "batteries", "listings", "purchases", "balances"],
-    definition:
-      "Names left over from an older version. The current site has no money balance, charges or purchases. Do not describe these as available features.",
-  },
-  {
-    term: "Other inert storage",
-    heading: "Other inert storage",
-    aliases: ["other inert storage"],
-    definition:
-      "Old saved information the current site no longer uses. It is not a feature the writer needs to describe to site users.",
+      "Ordinary conversation when no spell is turned on. Code uses chat to mean a quest's conversation. Use conversation in writing for the site.",
   },
   {
     term: "Timer",

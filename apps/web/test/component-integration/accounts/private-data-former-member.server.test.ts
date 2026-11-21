@@ -30,8 +30,6 @@ describe("use_case_private_data", () => {
       conversation: quest.chat.id,
       chat: quest.chat.id,
       messages: EXCHANGE_MESSAGES,
-      image: "image/png",
-      generation: quest.generationId,
     });
     expect(await writesBy(quest.owner, quest)).toEqual(ALL_TAKEN);
     expect(await seenBy(quest.owner, quest)).toMatchObject({

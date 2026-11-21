@@ -25,7 +25,6 @@ These docs describe Project Buddy: its scope and operating practices. GitHub iss
 - [Experience](experience.md): ability points, experience and circles, and what gains and takes back points.
 - [Quick Notes](quick-notes.md): saving a short note to a quest from the site panel or directly from the quest's Quick Notes bucket.
 - [Spellbook’s Forgotten tab](retirement.md): retiring, restoring, and permanently deleting own spells.
-- [Saved images](images.md): conversation images, owner access and deletion.
 - [Construct visuals](construct-visuals.md): shared artwork, metadata, rendering primitives and asset ownership.
 - [Place icons](place-icons.md): the shared Lucide mapping, sizing and attribution.
 - [Installed app](notifications.md): installing on a phone's Home Screen.
