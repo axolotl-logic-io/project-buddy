@@ -1,8 +1,8 @@
 import { describe, expect, test } from "vitest";
 
 // src/ holds only what the site runs: tests and the code only they use live
-// in test/<level>/, under the path their subject has (#474). So no test file
-// sits in src/, or anywhere else outside the ISTQB level folders (#541).
+// in test/<level>/, under the path their subject has. So no test file
+// sits in src/, or anywhere else outside the ISTQB level folders.
 const TEST_FILES = Object.keys(
   import.meta.glob([
     "/**/*.{test,spec}.{ts,tsx,mts,sh}",

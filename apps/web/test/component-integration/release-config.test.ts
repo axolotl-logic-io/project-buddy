@@ -34,7 +34,7 @@ const integration = parseWorkflow(integrationWorkflow);
 const PUSH_COMMIT = /^\$\{\{ github\.sha \}\}$/u;
 const CANCELLED_CHECK = /failure\|cancelled|= cancelled/u;
 // A Vercel CLI command that looks up the token's user, which answers "User
-// not found" with the workflows' token (#151, #239), run as a command rather
+// not found" with the workflows' token, run as a command rather
 // than named in a message.
 const USER_LOOKUP_COMMAND =
   /(?:^\s*|npx\s+)vercel\s+(?:promote|inspect|rollback|whoami|ls)\b/mu;
@@ -113,10 +113,10 @@ describe("release configuration", () => {
   });
 });
 
-// The failure report must run however a release stops (issue #149).
+// The failure report must run however a release stops.
 describe("release failure reports", () => {
   // A step past its own limit fails while the job still runs, so the
-  // failure report runs too (issue #149).
+  // failure report runs too.
   test("long release steps time out before the job does", () => {
     const releaseJob = at(release, "jobs", "release");
     if (!isMapping(releaseJob)) {
@@ -166,7 +166,7 @@ describe("release failure reports", () => {
 });
 
 // Vercel's CLI answers "User not found" to `promote` with the workflows'
-// token, so the release goes live through the REST API (#239).
+// token, so the release goes live through the REST API.
 describe("going live", () => {
   test("no workflow runs a Vercel CLI command that looks up the user", () => {
     for (const workflow of [releaseWorkflow, integrationWorkflow]) {
@@ -187,7 +187,7 @@ describe("going live", () => {
   });
 
   // After Migrate, the old build serves the new schema until Go live
-  // succeeds, so its failure names the deployment to promote (#239).
+  // succeeds, so its failure names the deployment to promote.
   test("a Go live failure names the deployment to promote", () => {
     const report = stepOf(release, "release", "name", "Report the failure");
     const { branch = "" } =

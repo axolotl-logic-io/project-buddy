@@ -2,19 +2,9 @@
 
 How users use Project Buddy, described from the user's side of the screen. Tests are derived from these cases.
 
-Playwright e2e tests in `test/system/` cover only the auth workflows. The auth workflows are sign-up, sign-in, sign-out, the sign-in limits, and the signed-out access gate. Every other case is tested in Vitest:
+Playwright e2e tests in `test/system/` cover only the auth workflows: sign-up, sign-in, sign-out, the sign-in limits, and the signed-out access gate. Every other case is tested in Vitest, as `apps/web/AGENTS.md` describes: a server test for a case that needs a real server or database, and a browser-mode component integration or feature-entrypoint test (`*.browser.test.tsx`) for a case that needs only the UI.
 
-- A case that needs a real server or database gets a server test against the local test database supplied in `.env.test`, pinned to the orchestrator's lane or configured manually. It calls the Server Action, route handler or store with real users and sessions. A server test is a `test/component-integration/**/*.server.test.ts` file, run by `npm run test:server`, which needs Docker; it makes its users, data and sessions with the kit in `test/support/test-database/` (see `apps/web/AGENTS.md`).
-- A case that needs only the UI gets a browser-mode component integration or feature-entrypoint test in `test/` (`*.browser.test.tsx`, run in Chromium and WebKit). It need not cover a whole application flow.
-
-`test/component-integration/use-cases/use-cases.test.ts` enforces this rule against the auth cases listed in `auth-cases.ts`: an e2e test that names any other case fails it.
-
-The use case guard checks that:
-
-- Each slug is unique and titles a test or group of tests in an e2e file, a `test/**/*.test.tsx` file or a `test/component-integration/**/*.server.test.ts` file.
-- Each slug named in the cases or e2e files, and each slug title in Vitest, is a known case. Only titles are checked in Vitest files.
-- Every e2e test belongs to an auth case in `auth-cases.ts`, and each auth case exists.
-- Every area file appears in the Areas index, and every relative link in the cases leads to an existing file and heading.
+`test/component-integration/use-cases/use-cases.test.ts` guards this rule and the use cases themselves: slugs are unique and known, each titles a test, only the auth cases listed in `auth-cases.ts` have e2e tests, every area file is in the Areas index, and every relative link in the cases leads to an existing file and heading.
 
 A case written before its test is listed in `test/component-integration/use-cases/pending-cases.ts` with the lane that will write the test. Once a real test names the case, that lane removes the entry.
 
@@ -36,7 +26,7 @@ A case written before its test is listed in `test/component-integration/use-case
 - **Steps** is the interaction, in order, from the user's point of view.
 - **Outcome** is what is true when the case ends. It names things the user can see or do on the site, so that a test can check each one.
 - **Next** lists cases the user might go on to, each with a hint about why the user would.
-- The use cases describe the current product contract. Describe only currently available user workflows. Keep feature history, migration details and internal tool contracts outside this directory.
+- The use cases describe the current product contract: Describe only currently available user workflows. Keep feature history, migration details and internal tool contracts outside this directory.
 - Update cases in the relevant area files and their tests in the PR that changes the behaviour. Connect related cases through Prerequisites or Next, updating the other area's case when a back-link is needed.
 
 ## Local construct tests

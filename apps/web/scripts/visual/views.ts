@@ -1,5 +1,5 @@
 // The views the visual comparison (compare.ts) screenshots and the baseline
-// (baseline.ts) measures: every critical view of the theme redesign, and the
+// (baseline.ts) measures: every critical view of the site, and the
 // states it must show, in the review accounts `mise run review-data` makes.
 // This is the one list both tools read; add a view here and both pick it up.
 //

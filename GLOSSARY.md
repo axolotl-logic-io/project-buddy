@@ -332,7 +332,7 @@ A reserved message such as `/exp` that the local construct answers with its comm
 
 ### Command note
 
-A record of a command and the change it made. Earlier conversations stored these beneath the command.
+A record of a command and the change it made.
 
 ## Experience
 

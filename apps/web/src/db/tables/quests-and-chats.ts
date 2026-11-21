@@ -17,9 +17,8 @@ import { users } from "./users.ts";
 // A quest belongs to its owner and is open to them and its accepted members
 // (quest_members, src/accounts/owner-scope.ts), with its conversation,
 // messages and Tasks. A standalone chat belongs to its user.
-// check_in_frequency and last_check_in_at are inert: they held the removed
-// automatic check-ins' schedule (#903) and stay until a held cleanup drops
-// them, once no live build reads them.
+// check_in_frequency and last_check_in_at are inert: nothing reads or writes
+// them, and they stay until a cleanup drops them once no live build reads them.
 export const quests = pgTable(
   "quests",
   {
@@ -61,8 +60,8 @@ export const quests = pgTable(
 // quest's one conversation (src/conversations/). The partial unique indexes
 // allow at most one continuing chat per quest and per user, so starting one
 // is an atomic get-or-create. A chat that isn't continuing is
-// a legacy adventure, which the site no longer reads: they stay until a
-// later release, after this one is live, deletes them (#898).
+// inert: the site doesn't read it, and a later release deletes it once no
+// live build reads it.
 // construct_name and construct_parts are the construct's snapshot, and
 // construct_id the built-in construct's id, or the default construct's for a
 // construct of the user's own, so builds that read only ids keep working.
@@ -71,9 +70,9 @@ export const quests = pgTable(
 // snapshot columns and reads as its built-in construct: the id is text so
 // constructs can be added without a migration, and the chat store narrows it
 // when reading, so an id no construct has reads as the default construct.
-// name and renamed_by_hand are a legacy adventure's name, which nothing
-// writes any more. They stay for now: dropping them needs a later release,
-// after a build that neither reads nor writes them is live.
+// name and renamed_by_hand are inert: nothing reads or writes them, and
+// dropping them needs a release after a build that neither reads nor writes
+// them is live.
 export const chats = pgTable(
   "chats",
   {
