@@ -9,7 +9,6 @@ import {
 } from "@assistant-ui/react";
 import { type JSX, type ReactNode, useCallback } from "react";
 import { ChatPart } from "@/components/chat/chat-parts.tsx";
-import { ImageAttachment } from "@/components/chat/image-attachment.tsx";
 import { placementOf } from "@/components/chat/tool-parts.ts";
 import { WorkingDots } from "@/components/chat/working-dots.tsx";
 import { TextRun } from "@/components/chat/working-note.tsx";
@@ -41,10 +40,6 @@ const MESSAGE_LOOKS: Readonly<Record<Role, string>> = {
   assistant: "chat-message chat-message-construct",
   system: "chat-message",
 };
-
-function renderImageAttachment(): JSX.Element {
-  return <ImageAttachment />;
-}
 
 // Who wrote the message: the construct, its author when someone else wrote it,
 // or "You".
@@ -165,9 +160,6 @@ function ChatMessage({
           </div>
         )}
         <div className="chat-message-body">
-          <MessagePrimitive.Attachments>
-            {renderImageAttachment}
-          </MessagePrimitive.Attachments>
           {progress === "thinking" && (
             <p className="flex items-center gap-2 text-muted text-sm">
               <WorkingDots />

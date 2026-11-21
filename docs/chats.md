@@ -40,7 +40,7 @@ A quest's conversation starts below the site header's trail band, without a sepa
 
 Each user message and its following construct reply share one card. The user message has a slightly translucent tinted surface that lets the page texture show through, with the author's name above the text. The reply continues directly below it, inside the same side borders, with the construct's name and portrait above its prose. An opening or an unanswered user message has its own complete card; consecutive construct messages continue the same reply card. Consecutive user messages remain separate cards, with the reply joining the latest one.
 
-User messages and replies have the same inset within the reading width. Long names wrap, and saved images, Markdown, command notes and tool results keep their order. The opening illustration and snapshot artwork remain available. Tasks changes use a restrained side rule. Errors retain the shared alert treatment; a stopped reply keeps its explanation and Retry action without a panel frame.
+User messages and replies have the same inset within the reading width. Long names wrap, and Markdown, command notes and tool results keep their order. The opening illustration and snapshot artwork remain available. Tasks changes use a restrained side rule. Errors retain the shared alert treatment; a stopped reply keeps its explanation and Retry action without a panel frame.
 
 The docked composer starts at two lines and grows with the message. The active spell and Stop appear above the conversation. Send and Stop reply keep the shared button styles and 44 px targets.
 
@@ -72,9 +72,9 @@ Upward wheel, touch movement or document navigation keys suspend following befor
 
 Input that starts after a keyboard resize invalidates that resize's pending reading position restoration. Input still awaiting its document scroll also prevents restoration, including when it arrives before the resize. Focus blocks automatic resumption independently: it does not invalidate the reading position or bypass the resize scroll guard. Resizing alone never grants permission to follow. All controller movements are instant. While reading, ordinary content layout and anchoring belong to the browser; the controller restores the document position only for keyboard and viewport changes without newer navigation.
 
-## Images and drafts
+## Drafts
 
-The composer accepts text only. Images already saved in a conversation stay visible in their messages. See [Saved images](images.md).
+The composer accepts text only.
 
 Unsent message text is kept in this browser per viewer and conversation until sent. It survives leaving and reopening the conversation. Draft text does not follow the user to another device, and anyone with access to this browser's storage can read it. Clear the composer to discard it on a shared device. Browser storage may be blocked or cleared.
 

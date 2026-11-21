@@ -23,17 +23,12 @@ import type { Chat } from "@/chats/chat-rows.ts";
 import type { ChatMessage } from "@/chats/message-author.ts";
 import { getChat } from "@/chats/store.ts";
 import type { ConstructSnapshot } from "@/constructs/index.ts";
-import {
-  AppError,
-  type AppErrorCase,
-  appErrorResponse,
-} from "@/errors/app-error.ts";
+import { type AppErrorCase, appErrorResponse } from "@/errors/app-error.ts";
 import { logReplySteps } from "@/errors/error-log.ts";
 import { toAppError } from "@/errors/to-app-error.ts";
 import { experienceReply } from "@/experience/experience-reply.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
 import type { MessageId, UserId } from "@/ids.ts";
-import { hydrateImages } from "@/images/store.ts";
 import {
   ANSWER_NOW_NOTE,
   endsWithoutText,
@@ -242,13 +237,10 @@ async function streamAndSaveReply(
       }),
       failed: false,
     };
-    const messages = await convertToModelMessages(
-      await hydrateImages(actingUser, chat.id, named.messages),
-      {
-        tools: chatTools(),
-        convertDataPart: tasksPartForModel,
-      },
-    );
+    const messages = await convertToModelMessages(named.messages, {
+      tools: chatTools(),
+      convertDataPart: tasksPartForModel,
+    });
     const stream = createUIMessageStream({
       originalMessages: history,
       // The stream reports each error chunk's text back here as a new Error,
@@ -407,9 +399,6 @@ async function replyToChat(
   } catch (error) {
     if (claimedIn !== undefined) {
       await releaseClaim(actingUser, claimedIn, message.id);
-    }
-    if (error instanceof AppError && error.errorCase === "invalid-image") {
-      return appErrorResponse("invalid-image", HTTP_STATUS.badRequest);
     }
     const { errorCase } = toAppError(error, "reply to chat");
     return appErrorResponse(errorCase, HTTP_STATUS.internalServerError);

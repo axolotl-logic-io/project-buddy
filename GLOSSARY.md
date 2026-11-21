@@ -170,12 +170,6 @@ The quest Quests offers to pick up again, in its Continue card above Start a que
 
 - **UI:** "Current quest", "Continue".
 
-### Conversation image
-
-An image saved in a message of a conversation. It belongs to that conversation and is open to the quest's owner and members. The composer accepts text only, so the user adds no new images.
-
-- **UI:** "Image".
-
 ### Author
 
 The user who wrote a user message. Authorship belongs to the message and does not change with the person viewing or continuing the conversation, or when its author leaves or is removed from the quest. For planned API access, a message submitted through a [connection](#connection) still has that connection’s user as its author; the backend separately records the submitting connection without changing the conversation UI.
@@ -543,21 +537,8 @@ The `login` command starts browser-based authorization for a command utility to 
 
 ## Retained storage names
 
-Some code and storage names outlast the features or words they were made for. Use the current terms in copy, prompts, docs and new code.
+Some code and storage names outlast the words they were made for. Use the current terms in copy, prompts, docs and new code.
 
-### Chat, adventure
+### Chat
 
-`chat` and `chats` in code and storage, and `adventure` in a few code names such as `AdventureCharacterHeader` and the `adventure` visual destination kind, mean a quest's [conversation](#conversation). In product copy, use "spell conversation".
-
-### Generated image
-
-An image a construct once saved as a tool result in a conversation. Constructs don't generate images now; the `image_generations` table and `/api/generated-images/GENERATION_ID` deliver the saved ones to the quest's owner and members.
-
-### Gold, batteries, listings and purchases
-
-The site has no balance, charges or purchases. The `gold_balances`, `gold_ledger`, `battery_purchases`, `battery_cash_events`, `listings` and `purchases` tables, and the `bought_from` column of `own_prompts`, keep their past rows in storage only.
-
-### Other inert storage
-
-Standalone chats, `chats` rows with a `user_id` and no quest that an older build made, are open to no one. The `manual_sections` table, the `users.interview_construct_id` and `users.hidden_extras` columns, and the quests' `check_in_frequency` and `last_check_in_at` columns stay in storage, unread by the site. The site sends nothing on its own.
-
+`chat` and `chats` in code and storage mean a quest's [conversation](#conversation). In product copy, use "conversation", or "spell conversation" when a spell is on.

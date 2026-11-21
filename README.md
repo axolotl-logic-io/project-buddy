@@ -191,10 +191,6 @@ Project Buddy installs on a phone's Home Screen from the browser: Chrome on Andr
 
 See [installed app](docs/notifications.md) for Home Screen installation.
 
-## Saved images
-
-The composer accepts text only. Images already saved in a conversation stay readable by the quest's owner. See [saved images](docs/images.md) and [image storage](docs/Site-Operations.md#saved-conversation-images).
-
 ## Export copy for a writer
 
 From `apps/web/`, run `npm run copy:export -- copy.csv`. Import the resulting UTF-8 CSV into Google Sheets. The same command writes `copy-definitions.csv` beside it, to import as a separate sheet. An optional second path selects the definitions file: `npm run copy:export -- copy.csv copy-definitions.csv`.
