@@ -35,7 +35,7 @@ const MOST_MESSAGE_ROWS = 12;
 // reply ends and Stop goes, focus on it moves to the message box. While the
 // message has focus, the whole box shows it, Send included. inputRef, if
 // given, holds the message box, so the thread can move focus to it. In an
-// adventure with commands (chat-commands.ts), typing "/" lists them above the
+// conversation with commands (chat-commands.ts), typing "/" lists them above the
 // box, and a command runs at once instead of going to the construct.
 export function ChatComposer({
   inputRef,

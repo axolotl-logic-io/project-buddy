@@ -17,8 +17,8 @@ interface ToolOptions {
   readonly help: boolean;
 }
 
-// The theme redesign brief's widths. apps/web/AGENTS.md asks for 320 px as
-// the phone width; pass --widths 1280,360,320 to include it.
+// apps/web/AGENTS.md asks for 320 px as the phone width; pass
+// --widths 1280,360,320 to include it.
 const DEFAULT_WIDTHS = "1280,360";
 const WIDTH = /^[1-9]\d{2,3}$/u;
 const MODES: readonly string[] = THEME_MODES;

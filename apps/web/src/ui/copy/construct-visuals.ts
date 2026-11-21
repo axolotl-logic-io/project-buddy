@@ -10,7 +10,6 @@ const VISUAL_COPY = {
     opening: "Opening",
     working: "Working",
   },
-  roleStates: { pending: "Pending", generated: "Generated", failed: "Failed" },
 };
 
 export { VISUAL_COPY };

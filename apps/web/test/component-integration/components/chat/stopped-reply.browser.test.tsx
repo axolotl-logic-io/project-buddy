@@ -12,9 +12,9 @@ import { render } from "vitest-browser-react";
 import type { ChatMessage } from "@/chats/message-author.ts";
 import { ChatScreen } from "@/components/chat-screen.tsx";
 import { ChatView } from "@/components/chat-view.tsx";
+import { getConstruct } from "@/constructs/index.ts";
 import { stopReplyAction } from "@/replies/stop-reply-action.ts";
 import { CHAT_COPY } from "@/ui/copy/chat.ts";
-import { IMAGE_COPY } from "@/ui/copy/images.ts";
 import {
   chatIdFixture,
   questIdFixture,
@@ -96,7 +96,7 @@ describe("use_case_reply_fails", () => {
       <ChatView
         questId={questIdFixture()}
         viewer={userIdFixture()}
-        constructName="Vellum"
+        construct={getConstruct("vellum")}
         chatId={chatIdFixture()}
         initialMessages={[STOPPED]}
         stoppedReplyId={STOPPED.id}
@@ -105,7 +105,7 @@ describe("use_case_reply_fails", () => {
 
     const notice = page.getByText(CHAT_COPY.replyStopped("Vellum"));
     await expect.element(notice).toBeVisible();
-    await page.getByRole("button", { name: IMAGE_COPY.retry }).click();
+    await page.getByRole("button", { name: CHAT_COPY.retry }).click();
 
     await expect.element(page.getByText(REPLY)).toBeVisible();
     await expect
@@ -166,7 +166,7 @@ describe("use_case_reply_fails", () => {
       <ChatView
         questId={questIdFixture()}
         viewer={userIdFixture()}
-        constructName="Vellum"
+        construct={getConstruct("vellum")}
         chatId={chatIdFixture()}
         initialMessages={[STOPPED]}
         stoppedReplyId={undefined}
@@ -183,7 +183,7 @@ describe("use_case_reply_fails", () => {
       page.getByText(CHAT_COPY.replyStopped("Vellum")).elements(),
     ).toHaveLength(0);
     expect(
-      page.getByRole("button", { name: IMAGE_COPY.retry }).elements(),
+      page.getByRole("button", { name: CHAT_COPY.retry }).elements(),
     ).toHaveLength(0);
   });
 });
@@ -218,13 +218,13 @@ describe("use_case_stop_reply", () => {
         <ChatView
           questId={questIdFixture()}
           viewer={userIdFixture()}
-          constructName="Vellum"
+          construct={getConstruct("vellum")}
           chatId={chatId}
           initialMessages={[STOPPED]}
           stoppedReplyId={STOPPED.id}
         />,
       );
-      await page.getByRole("button", { name: IMAGE_COPY.retry }).click();
+      await page.getByRole("button", { name: CHAT_COPY.retry }).click();
       await expect.element(page.getByText(REPLY)).toBeVisible();
       await expect
         .element(page.getByRole("button", { name: CHAT_COPY.stop }))

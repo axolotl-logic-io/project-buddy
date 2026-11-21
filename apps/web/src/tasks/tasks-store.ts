@@ -66,7 +66,7 @@ interface TasksChange {
 // undo itself, or everything it did was changed or removed since.
 type TasksUndoFailure = "already-undone" | "no-such-change" | "nothing-to-undo";
 
-// Why a person's change in an adventure saved nothing: the adventure's
+// Why a person's change in a conversation saved nothing: the conversation's
 // newest message awaits a reply, as while one runs, or after one failed or
 // stopped. A tasks message after it would end the conversation that reply,
 // a retry or "send again" answers (src/chats/store.ts, chatAwaitsReply).

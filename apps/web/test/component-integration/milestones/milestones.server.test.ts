@@ -64,7 +64,6 @@ describe("milestone tool contract", () => {
           toolCallId: "milestone",
           messages: [],
           context: {
-            construct: chat.construct,
             answeredId: newMessageId(),
             actingUser: user.id,
             chatId: chat.id,

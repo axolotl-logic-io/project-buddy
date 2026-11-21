@@ -163,8 +163,7 @@ export async function getChat(
 // The messages of the owner's chat, oldest first, as the model reads them:
 // with the instructions of every spell the construct cast in them, which the
 // construct follows in later replies. Each user message has its author: the
-// user who sent it or, for a message saved with no author, the chat's
-// owner, who is its quest's user. None if
+// user who sent it. None if
 // the chat is another user's. A stored message whose role or parts are
 // invalid is left out and logged. With newest, only that many of the newest
 // messages, still oldest first. Only a reply reads these; people read
@@ -182,7 +181,7 @@ export async function listMessagesForModel(
     readonly since?: string | undefined;
   } = {},
 ): Promise<ChatMessage[]> {
-  // The joins only read the author's columns; messageOpenTo is what keeps
+  // The join only reads the author's columns; messageOpenTo is what keeps
   // a message open to the owner.
   const rows = await withAppErrors("listMessages", () =>
     db
@@ -195,17 +194,9 @@ export async function listMessagesForModel(
         authorEmail: users.email,
       })
       .from(messages)
-      .innerJoin(chats, eq(chats.id, messages.chatId))
-      .leftJoin(quests, eq(quests.id, chats.questId))
       .leftJoin(
         users,
-        and(
-          eq(messages.role, "user"),
-          eq(
-            users.id,
-            sql`coalesce(${messages.userId}, ${chats.userId}, ${quests.userId})`,
-          ),
-        ),
+        and(eq(messages.role, "user"), eq(users.id, messages.userId)),
       )
       .where(
         and(

@@ -85,7 +85,6 @@ function ChatScreen({
       cast={conversation.spellStartedAt}
       initialMessages={messages}
       stoppedReplyId={stoppedReplyId}
-      constructName={construct.name}
       construct={construct}
       authorNames={otherAuthorNames(messages, viewer)}
       questId={conversation.quest.id}

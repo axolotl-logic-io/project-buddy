@@ -411,50 +411,6 @@
   }
 }
 
-@layer components {
-  /* An image in the chat, 18rem tall and as wide as its shape makes it
-     (its width and height attributes until it loads, so the box never
-     collapses), within the column. It starts where the text does rather
-     than floating in a wider box. */
-  .chat-image {
-    max-inline-size: 100%;
-    inline-size: auto;
-    block-size: 18rem;
-    align-self: flex-start;
-    object-fit: contain;
-  }
-
-  /* An unsent image's thumbnail is always 5rem tall, even from a small
-     image, so every draft reads as one row of previews. */
-}
-
-@layer components {
-  .generated-image-link {
-    display: block;
-    align-self: flex-start;
-    max-inline-size: 100%;
-    min-block-size: var(--target-size);
-  }
-
-  /* A generated image that fills its card's width:
-     a sunken slot, square until the image arrives (its width and height
-     attributes), then the image's own shape, so a wide image is never
-     letterboxed. The chat keeps .chat-image's 18rem height. */
-  .generated-image-fill {
-    align-self: stretch;
-    overflow: hidden;
-    border: var(--line-width) solid var(--line);
-    border-radius: var(--box-radius);
-    background-color: var(--field);
-  }
-
-  .chat-image-fill {
-    display: block;
-    inline-size: 100%;
-    block-size: auto;
-  }
-}
-
 @layer chat {
   .chat-opening {
     inline-size: min(100%, 14rem);
@@ -467,13 +423,11 @@
   }
 
   @media (prefers-reduced-motion: no-preference) {
-    .chat-presence[data-active="true"][data-artwork="lumen-v1"],
-    .chat-presence[data-active="true"][data-artwork="lumen-v2"] {
+    .chat-presence[data-active="true"][data-artwork="lumen"] {
       animation: construct-glow 2s ease-in-out infinite;
     }
 
-    .chat-presence[data-active="true"][data-artwork="vellum-v1"],
-    .chat-presence[data-active="true"][data-artwork="vellum-v2"] {
+    .chat-presence[data-active="true"][data-artwork="vellum"] {
       animation: construct-working 2s ease-in-out infinite;
     }
   }

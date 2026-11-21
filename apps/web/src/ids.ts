@@ -32,16 +32,6 @@ const CHAT_ID = z
   .regex(CANONICAL_UUID)
   .toLowerCase()
   .brand<"ChatId">();
-const IMAGE_ID = z
-  .string()
-  .regex(CANONICAL_UUID)
-  .toLowerCase()
-  .brand<"ImageId">();
-type ImageId = z.infer<typeof IMAGE_ID>;
-function parseImageId(value: string): ImageId | undefined {
-  return IMAGE_ID.safeParse(value).data;
-}
-
 const MILESTONE_ID = z
   .string()
   .regex(CANONICAL_UUID)
@@ -118,7 +108,6 @@ export {
   MILESTONE_ID,
   OWN_PROMPT_ID,
   parseChatId,
-  parseImageId,
   parseMessageId,
   parseMilestoneId,
   parseOwnPromptId,

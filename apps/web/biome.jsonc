@@ -7,7 +7,7 @@
   "files": {
     "ignoreUnknown": true,
     // drizzle/meta is rewritten by drizzle-kit on every generate.
-    "includes": ["**", "!AGENTS.md", "!drizzle/meta"]
+    "includes": ["**", "!AGENTS.md", "!drizzle/meta", "!design"]
   },
   "overrides": [
     // Subprocess fixtures use the platform's environment variable names.

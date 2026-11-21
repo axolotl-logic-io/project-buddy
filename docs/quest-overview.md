@@ -10,4 +10,4 @@ Cast a built-in or own spell from Spells & status. The spell conversation opens 
 
 ## Timer
 
-The Timer docks to the right edge on wide screens. Use the sidebar button to collapse or reopen it. On phones the button opens the Timer in a modal drawer. Work for and Break for use the presets from the [Timer](timer.md). Start begins a work period in place. The schedule continues while the sidebar is closed or as you move between sections of the same quest.
+The quest page has a Timer panel with the presets and schedule of the [Timer](timer.md#quest-sidebar). The schedule continues while the panel is closed or as you move between sections of the same quest.

@@ -21,7 +21,6 @@ import {
   questOwnedBy,
 } from "@/accounts/owner-scope.ts";
 import { saveTasksMessage } from "@/chats/store.ts";
-import { moveConversationAssets } from "@/constructs/visual-asset-store.ts";
 import {
   DAY_TASK,
   type DailiesDay,
@@ -175,7 +174,6 @@ function startDay(
         continuing: false,
         createdAt: new Date(),
       });
-      await moveConversationAssets(owner, db, id, nextId);
       await db
         .update(chats)
         .set({
@@ -311,7 +309,6 @@ function undoStartDay(owner: UserId, id: ChatId): Promise<ChatId | undefined> {
             isNull(chats.questId),
           ),
         );
-      await moveConversationAssets(owner, db, id, parkedId);
       await db.delete(chats).where(and(eq(chats.id, id), chatOpenTo(owner)));
       await db
         .update(chats)

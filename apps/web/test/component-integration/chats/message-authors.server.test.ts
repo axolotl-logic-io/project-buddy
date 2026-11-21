@@ -1,8 +1,7 @@
 import { setSpell } from "@/spells/spell-store.ts";
 // Regression coverage for saved message authors.
-// test database: a chat records who wrote each user message, reads a message
-// saved with no author as the chat owner's, and, once more than one person
-// has written in it, sends each user turn to the construct with its author's
+// test database: a chat records who wrote each user message, and, once more
+// than one person has written in it, sends each user turn to the construct with its author's
 // name. A chat only its owner writes in sends exactly what it sent before.
 // Another person's messages, saved while quests could be shared, are
 // written through the test kit.
@@ -10,7 +9,7 @@ import { setSpell } from "@/spells/spell-store.ts";
 // and the chat screen in message-authors.browser.test.tsx.
 
 import { convertToModelMessages } from "ai";
-import { and, eq } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { describe, expect, test } from "vitest";
 import { saveUserName, type User } from "@/accounts/users-store.ts";
 import type { Chat } from "@/chats/chat-rows.ts";
@@ -63,15 +62,6 @@ async function savedAuthorIds(chat: {
   return rows.map(({ userId }) => userId);
 }
 
-// Forgets the author of every message in the chat, as on messages saved
-// before authors were recorded.
-async function forgetAuthors(chat: { readonly id: ChatId }): Promise<void> {
-  await getDb()
-    .update(messages)
-    .set({ userId: null })
-    .where(and(eq(messages.chatId, chat.id), eq(messages.role, "user")));
-}
-
 // The owner, named Sam, with a chat in a new quest, and Alex, another
 // user with no name.
 async function samAndAlex(): Promise<{
@@ -104,21 +94,6 @@ describe("saved message authors", () => {
     expect(await authorsIn(sam, chat)).toStrictEqual([
       { id: alex.id, name: undefined, email: alex.email },
       undefined,
-      { id: sam.id, name: "Sam" },
-      undefined,
-    ]);
-  });
-
-  test("a message saved with no author is the chat owner's", async () => {
-    const sam = await testUser();
-    await saveUserName(sam.id, "Sam");
-    const data = testData(sam);
-    const projectChat = await data.chat(await data.quest());
-    const hello: Exchange = { message: "Hello", reply: REPLY };
-    await data.exchanges(projectChat, [hello]);
-    await forgetAuthors(projectChat);
-
-    expect(await authorsIn(sam, projectChat)).toStrictEqual([
       { id: sam.id, name: "Sam" },
       undefined,
     ]);

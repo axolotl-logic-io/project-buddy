@@ -14,13 +14,7 @@ From the repository root:
 node apps/instruction-counter/src/cli.ts path/to/file
 ```
 
-Or use mise (the input path is relative to the app directory):
-
-```bash
-mise //apps/instruction-counter:count /absolute/path/to/file
-```
-
-From the app directory, `npm run --silent count -- /absolute/path/to/file` also works. Use the direct Node command or npm's silent option when consuming stdout; npm otherwise prints its own script banner.
+Or run `mise //apps/instruction-counter:count /absolute/path/to/file`. The mise task runs in the app directory, so a relative path resolves from there. When you consume stdout, use the direct Node command or `npm run --silent count`, because npm otherwise prints its own script banner.
 
 The file's contents are sent to the model provider. Only inspect files you intend to disclose to that provider; do not pass secrets or `.env*` files.
 
@@ -42,9 +36,9 @@ A successful invocation emits exactly one compact JSON object followed by a newl
 - Content-bearing lines contain substantive prose or code, excluding blank and syntax-only lines. The judge decides what is substantive. A trailing line terminator does not create an extra physical line.
 - `filename` is the absolute path of the input. Successful output contains only this field and the three totals—no findings, quotes, line numbers or model metadata.
 
-Internally, the judge marks statements with source line ranges and identifies content-bearing line numbers. The wrapper validates the schema, statement-range bounds and nonblankness, and content-line uniqueness, bounds and nonblankness, then derives totals from the arrays. Those details are not emitted. The model does not have to transcribe exact quotes: normalizing Markdown while copying a quote caused valid analyses to be rejected. Range validation does not verify that a statement's meaning matches the cited lines. Semantic classification remains a model judgment and can vary between runs.
+Internally, the judge marks statements with source line ranges and identifies content-bearing line numbers. The wrapper validates the schema, statement-range bounds and nonblankness, and content-line uniqueness, bounds and nonblankness, then derives totals from the arrays. Those details are not emitted. The judge does not transcribe quotes. Range validation does not verify that a statement's meaning matches the cited lines. Semantic classification remains a model judgment and can vary between runs.
 
-The input may use any extension. V1 accepts UTF-8 text (including an optional BOM); NUL-containing or invalid UTF-8 files are skipped with exit status 0 and one JSON line:
+The input may use any extension. The counter accepts UTF-8 text (including an optional BOM); NUL-containing or invalid UTF-8 files are skipped with exit status 0 and one JSON line:
 
 ```json
 {"filename":"/absolute/path/to/file","status":"skipped","reason":"binary"}
@@ -63,13 +57,11 @@ If the interactive pi session works but the counter reports a missing API key, c
 ## Tests
 
 ```bash
-npm run check --workspace apps/instruction-counter
-# or
 mise //apps/instruction-counter:check
 ```
 
-The tests are system tests in `test/system/`: each runs the CLI against a fake pi executable and makes no live model calls. They cover process arguments, single-line output, source-range validation, counts, binary skips, line endings and failure handling. They test the wrapper contract, not the model's semantic accuracy.
+The tests in `test/system/` run the CLI against a fake pi executable and make no live model calls. They test the wrapper contract, not the model's semantic accuracy.
 
 ## Design
 
-Considered a pi SDK session and a one-shot pi CLI process. The CLI process keeps this small tool independent of the SDK's session lifecycle and reuses the installed pi authentication. The report module owns validation and derived counts; the judge module owns model selection, prompt and request framing; the CLI owns filesystem and process access.
+The counter runs a one-shot pi CLI process, not a pi SDK session. That keeps this small tool independent of the SDK's session lifecycle and reuses the installed pi authentication. The report module owns validation and derived counts; the judge module owns model selection, prompt and request framing; the CLI owns filesystem and process access.

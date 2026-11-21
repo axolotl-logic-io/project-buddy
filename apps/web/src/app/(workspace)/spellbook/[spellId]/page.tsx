@@ -72,7 +72,7 @@ async function SpellPage({
   const spell = await getOwnSpell(user.id, spellId);
   if (spell === undefined) {
     const retired = await getRetiredDefinition(user.id, spellId);
-    if (retired?.kind === "spell") {
+    if (retired !== undefined) {
       return ForgottenSpellDetail({ definition: retired });
     }
     notFound();

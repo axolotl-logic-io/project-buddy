@@ -20,7 +20,7 @@ import {
 } from "@/spells/own-spell-store.ts";
 import { changeQuestSpellAction } from "@/spells/quest-spell-action.ts";
 import {
-  SPELL_DEFINITION,
+  defaultSpellDefinition,
   SPELL_REPLY_MAX,
 } from "@/spells/spell-definition.ts";
 import { EDITABLE_LIST_COPY } from "@/ui/copy/editable-list.ts";
@@ -60,10 +60,7 @@ vi.mock("@/app/(workspace)/spellbook/actions.ts", () => ({
 const OWN: OwnSpell = {
   id: OWN_PROMPT_ID.parse("92115283-1234-4123-8123-123456789abc"),
   name: "Sketch ideas",
-  definition: SPELL_DEFINITION.parse({
-    destination: "brainstorm",
-  }),
-  clonedFrom: "brainstorm",
+  definition: defaultSpellDefinition("brainstorm"),
   createdAt: new Date("2026-11-01T00:00:00Z"),
   updatedAt: new Date("2026-11-01T00:00:00Z"),
 };

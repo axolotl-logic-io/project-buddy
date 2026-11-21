@@ -1,5 +1,5 @@
 // What a construct tool may know about the reply it runs in: whose chat it is,
-// the chat, its quest, its construct, and the user message the
+// the chat, its quest, and the user message the
 // reply answers. A tool reads and
 // writes only the acting user's data. A tool that needs it declares
 // `contextSchema: CHAT_TOOL_CONTEXT` and reads `context` from its execute
@@ -7,14 +7,12 @@
 // provider.
 
 import { z } from "zod";
-import { CONSTRUCT_DEFINITION } from "@/constructs/construct-definition.ts";
 import { CHAT_ID, MESSAGE_ID, QUEST_ID, USER_ID } from "@/ids.ts";
 
 const CHAT_TOOL_CONTEXT = z.object({
   actingUser: USER_ID,
   chatId: CHAT_ID,
   questId: QUEST_ID,
-  construct: z.object({ name: z.string(), definition: CONSTRUCT_DEFINITION }),
   answeredId: MESSAGE_ID,
 });
 

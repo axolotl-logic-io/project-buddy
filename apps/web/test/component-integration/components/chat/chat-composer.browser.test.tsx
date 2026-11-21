@@ -65,7 +65,7 @@ async function openChat(
       chatId={chatId}
       viewer={viewer}
       initialMessages={[]}
-      constructName={getConstruct("lumen").name}
+      construct={getConstruct("lumen")}
     />,
   );
   return { unmount: (): Promise<void> => screen.unmount() };
@@ -80,7 +80,7 @@ describe("use_case_send_message", () => {
         chatId={chatIdFixture()}
         viewer={userIdFixture()}
         initialMessages={[]}
-        constructName={getConstruct("lumen").name}
+        construct={getConstruct("lumen")}
       />,
     );
     const box = page.getByRole("textbox", { name: CHAT_COPY.messageLabel });
@@ -142,24 +142,6 @@ describe("use_case_send_message", () => {
   });
 });
 
-test("restores legacy draft text without offering image uploads", async () => {
-  const chatId = chatIdFixture();
-  const viewer = userIdFixture();
-  const key = `draft:chat:${viewer}:${chatId}`;
-  localStorage.setItem(
-    key,
-    JSON.stringify({ text: "Unsent text", images: true }),
-  );
-  await openChat(chatId, viewer);
-  await expect.element(page.getByRole("alert")).not.toBeInTheDocument();
-  await expect
-    .element(page.getByRole("textbox", { name: CHAT_COPY.messageLabel }))
-    .toHaveValue("Unsent text");
-  expect(JSON.parse(localStorage.getItem(key) ?? "{}")).toEqual({
-    text: "Unsent text",
-    images: true,
-  });
-});
 test("blocked browser storage leaves the composer usable", async () => {
   const get = vi.spyOn(Storage.prototype, "getItem").mockImplementation(() => {
     throw new Error("blocked");

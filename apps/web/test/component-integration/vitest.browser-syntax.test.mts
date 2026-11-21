@@ -17,8 +17,7 @@ const MODULE_URL = "/src/served-module.js";
 const MODULE_FILE = `${ROOT}${MODULE_URL}`;
 const SOURCE = "export const before = 1;\nexport const after = 2;\n";
 // What a broken transform serves in its place: a return statement at the
-// module's top level, as in #386's "Illegal return statement", on line 2,
-// column 1.
+// module's top level ("Illegal return statement", on line 2, column 1).
 const BEFORE_LINE = "export const before = 1;";
 const BROKEN_LINE = "return before;";
 const AFTER_LINE = "export const after = 2;";

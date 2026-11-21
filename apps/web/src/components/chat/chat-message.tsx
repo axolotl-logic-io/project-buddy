@@ -9,7 +9,6 @@ import {
 } from "@assistant-ui/react";
 import { type JSX, type ReactNode, useCallback } from "react";
 import { ChatPart } from "@/components/chat/chat-parts.tsx";
-import { ImageAttachment } from "@/components/chat/image-attachment.tsx";
 import { placementOf } from "@/components/chat/tool-parts.ts";
 import { WorkingDots } from "@/components/chat/working-dots.tsx";
 import { TextRun } from "@/components/chat/working-note.tsx";
@@ -17,11 +16,8 @@ import {
   ConstructAvatar,
   ConstructIllustration,
 } from "@/components/constructs/construct-visual.tsx";
-import type { ConstructSnapshot } from "@/constructs/construct.ts";
-import {
-  resolveConstructVisual,
-  type VisualDestination,
-} from "@/constructs/visual.ts";
+import type { Construct } from "@/constructs/construct.ts";
+import { resolveConstructVisual } from "@/constructs/visual.ts";
 import { CHAT_COPY } from "@/ui/copy/chat.ts";
 
 type Role = MessageRuntimeState["role"];
@@ -44,10 +40,6 @@ const MESSAGE_LOOKS: Readonly<Record<Role, string>> = {
   assistant: "chat-message chat-message-construct",
   system: "chat-message",
 };
-
-function renderImageAttachment(): JSX.Element {
-  return <ImageAttachment />;
-}
 
 // Who wrote the message: the construct, its author when someone else wrote it,
 // or "You".
@@ -90,14 +82,12 @@ function showsUnderMessage(part: EnrichedPartState): boolean {
 function ChatMessage({
   role,
   construct,
-  destination,
   opening,
   progressAllowed,
   authorName,
 }: {
   role: Role;
-  construct: ConstructSnapshot;
-  destination: VisualDestination;
+  construct: Construct;
   opening: boolean;
   progressAllowed: boolean;
   authorName?: string | undefined;
@@ -112,10 +102,7 @@ function ChatMessage({
   }
   const constructName = construct.name;
   const { asset } = resolveConstructVisual(construct, "avatar");
-  let artwork: string | undefined;
-  if (asset?.kind === "built-in") {
-    ({ artwork } = asset);
-  }
+  const artwork = asset?.artwork;
   const renderBodyPart = useCallback(
     ({ part, children }: BodyRenderInfo): ReactNode => {
       if (part.type === "group-text-run") {
@@ -150,7 +137,6 @@ function ChatMessage({
             >
               <ConstructAvatar
                 construct={construct}
-                destination={destination}
                 size={32}
                 decorative={true}
               />
@@ -170,18 +156,10 @@ function ChatMessage({
         </p>
         {role === "assistant" && opening && (
           <div className="chat-opening">
-            <ConstructIllustration
-              construct={construct}
-              destination={destination}
-              visualRole="opening"
-              displayWidth={224}
-            />
+            <ConstructIllustration construct={construct} visualRole="opening" />
           </div>
         )}
         <div className="chat-message-body">
-          <MessagePrimitive.Attachments>
-            {renderImageAttachment}
-          </MessagePrimitive.Attachments>
           {progress === "thinking" && (
             <p className="flex items-center gap-2 text-muted text-sm">
               <WorkingDots />

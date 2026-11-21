@@ -239,7 +239,6 @@ describe("quest status proposal contract", () => {
           toolCallId: "status",
           messages: [],
           context: {
-            construct: chat.construct,
             answeredId: newMessageId(),
             actingUser: user.id,
             chatId: chat.id,
@@ -312,7 +311,7 @@ describe("quest status proposal contract", () => {
       decision: "outdated",
     });
   });
-  test("only the requesting owner can read or answer a card; a mismatched adventure cannot propose", async () => {
+  test("only the requesting owner can read or answer a card; a mismatched conversation cannot propose", async () => {
     const team = await formerMemberQuest();
     const outsider = await testUser();
     const approval = required(

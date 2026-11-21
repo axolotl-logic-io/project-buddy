@@ -56,7 +56,7 @@ const E2E_SPEC = /^\/test\/system\/(?:[^/]+\/)*[^/]+\.spec\.ts$/u;
 // Why an e2e test may name only an auth case.
 const AUTH_ONLY_RULE =
   "e2e-auth-only: an e2e test names only an auth case (use-cases/auth-cases.ts); test any other case in Vitest";
-// The auth workflows' cases, as issue #351 lists them: a second copy of
+// The auth workflows' cases: a second copy of
 // AUTH_CASES on purpose, so widening the e2e tests' scope takes two edits.
 const AUTH_WORKFLOW_CASES: readonly string[] = [
   "use_case_sign_up",

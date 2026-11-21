@@ -85,18 +85,11 @@ test("Forgotten spells lists spells without a kind filter", async () => {
     inWorkspace(<ForgottenSpellList definitions={RETIRED_DEFINITIONS} />),
   );
   expect(page.getByRole("listitem").elements()).toHaveLength(
-    RETIRED_DEFINITIONS.filter((definition) => definition.kind === "spell")
-      .length,
+    RETIRED_DEFINITIONS.length,
   );
   await expect
     .element(page.getByText(RETIRED_SPELL.name, { exact: true }))
     .toBeVisible();
-  await expect
-    .element(page.getByRole("button", { name: RETIREMENT_COPY.allKinds }))
-    .not.toBeInTheDocument();
-  await expect
-    .element(page.getByRole("group", { name: RETIREMENT_COPY.kindFilter }))
-    .not.toBeInTheDocument();
 });
 
 test("Delete forever names the definition, supports cancellation, and submits only after confirmation", async () => {
@@ -123,9 +116,7 @@ test("Delete forever names the definition, supports cancellation, and submits on
   await expect.element(trigger).toHaveFocus();
   await trigger.click();
   await expect
-    .element(
-      dialog.getByText(RETIREMENT_COPY.deleteDescription(RETIRED_SPELL.kind)),
-    )
+    .element(dialog.getByText(RETIREMENT_COPY.deleteDescription))
     .toBeVisible();
   const deleteForever = dialog.getByRole("button", {
     name: RETIREMENT_COPY.delete,

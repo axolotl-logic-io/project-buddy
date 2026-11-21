@@ -25,7 +25,6 @@ const replyRuns = pgTable(
       .references(() => users.id, { onDelete: "cascade" }),
     cancelRequested: boolean("cancel_requested").notNull().default(false),
     status: text("status").notNull().default("active"),
-    accountingComplete: boolean("accounting_complete").notNull().default(false),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),

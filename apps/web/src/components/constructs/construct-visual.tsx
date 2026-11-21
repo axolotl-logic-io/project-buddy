@@ -1,64 +1,24 @@
 "use client";
 
-import Image from "next/image";
-import type { CSSProperties, JSX, SyntheticEvent } from "react";
+import type { JSX } from "react";
 import { constructDrawing } from "@/components/constructs/artwork/construct-drawing.tsx";
 import type {
   ConstructAvatarProps,
   ConstructIllustrationProps,
 } from "@/components/constructs/construct-visual-props.ts";
-import {
-  constructVisualSource,
-  resolveConstructVisual,
-} from "@/constructs/visual.ts";
-import { visualImageLoader } from "@/constructs/visual-delivery.ts";
-
-const PERCENT = 100;
-const CENTER = 50;
-
-function hideFailedImage(event: SyntheticEvent<HTMLImageElement>): void {
-  event.currentTarget.hidden = true;
-}
+import { resolveConstructVisual } from "@/constructs/visual.ts";
 
 function ConstructIllustration({
   construct,
   visualRole,
   decorative,
-  destination,
-  displayWidth = 264,
 }: ConstructIllustrationProps): JSX.Element {
   const visual = resolveConstructVisual(construct, visualRole);
-  const src = constructVisualSource(visual.asset, destination);
   let label: string | undefined = construct.name;
   if (decorative === true) {
     label = undefined;
   }
-  // Drawn built-ins render inline, in the appearance's colours; image
-  // assets load from their file.
-  let image = constructDrawing(visual.asset, visualRole, visual.frame);
-  if (image === undefined && src !== undefined) {
-    const { x, y, size } = visual.frame;
-    const style: CSSProperties = {
-      width: `${PERCENT / size}%`,
-      maxWidth: "none",
-      height: `${PERCENT / size}%`,
-      left: `${CENTER - (x * PERCENT) / size}%`,
-      top: `${CENTER - (y * PERCENT) / size}%`,
-    };
-    image = (
-      <Image
-        alt=""
-        src={src}
-        width={1024}
-        height={1024}
-        style={style}
-        loader={visualImageLoader}
-        sizes={`${Math.ceil(displayWidth / size)}px`}
-        key={src}
-        onError={hideFailedImage}
-      />
-    );
-  }
+  const image = constructDrawing(visual.asset, visualRole, visual.frame);
   return (
     <span
       className="construct-visual"
@@ -77,15 +37,12 @@ function ConstructAvatar({
   construct,
   size = 40,
   decorative,
-  destination,
 }: ConstructAvatarProps): JSX.Element {
   return (
     <span className="construct-avatar" data-avatar-size={size}>
       <ConstructIllustration
         construct={construct}
-        destination={destination}
         visualRole="avatar"
-        displayWidth={size}
         decorative={decorative}
       />
     </span>

@@ -19,7 +19,7 @@
 //
 // Ornament roles in contract.css provide neutral defaults for display type,
 // labels, rules, frames, masked decoration and progress rings. The artwork
-// masks are generated from the SVG symbols in the redesign sources.
+// masks are generated from the SVG symbols in apps/web/design/themes/.
 //
 // Colours. A theme sets each one for light, soot-brass and dark, and
 // contract.css picks the fixed appearance. Each "on-" colour

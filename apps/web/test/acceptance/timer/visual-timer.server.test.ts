@@ -1,4 +1,4 @@
-// Feature: Visual work and break timer (#987). One test for each of the
+// Feature: Visual work and break timer. One test for each of the
 // issue's scenarios that the server decides, against the test database.
 // visual-timer.browser.test.tsx has the ones the browser shows.
 import { describe, expect, test, vi } from "vitest";

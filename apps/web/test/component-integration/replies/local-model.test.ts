@@ -5,7 +5,6 @@ import {
   DEFAULT_CONSTRUCT_ID,
   getConstruct,
   listConstructs,
-  snapshotOf,
 } from "@/constructs/index.ts";
 import { localConstructModel } from "@/replies/local-model.ts";
 import { replyModel } from "@/replies/model.ts";
@@ -104,9 +103,8 @@ test.each(["look", "/LOOK"])(
       system: renderReplyInstructions({
         userName: "Sam",
         construct: {
-          ...snapshotOf(getConstruct(DEFAULT_CONSTRUCT_ID)),
+          ...getConstruct(DEFAULT_CONSTRUCT_ID),
           definition: {
-            prompt: "Private personality instructions.",
             visual: { version: 1, description },
           },
         },
@@ -120,13 +118,12 @@ test.each(["look", "/LOOK"])(
       prompt,
     });
     expect(result.text).toContain(description);
-    expect(result.text).not.toContain("Private personality instructions");
     expect(result.text).not.toContain("Private starting context");
     expect(result.toolCalls).toHaveLength(0);
   },
 );
 
-test("look explains when a legacy construct has no visual description", async () => {
+test("look explains when the instructions give no visual description", async () => {
   const result = await generateText({
     model: localConstructModel(),
     prompt: "look",
@@ -152,7 +149,7 @@ test("constructs share command guidance", async () => {
         system: renderReplyInstructions({
           userName: "Sam",
           quest: { name: "Test quest", tasks: EMPTY_TASKS, milestones: [] },
-          construct: snapshotOf(construct),
+          construct,
         }),
         prompt: "help",
       });

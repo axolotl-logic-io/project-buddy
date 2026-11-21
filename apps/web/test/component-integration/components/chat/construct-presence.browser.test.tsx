@@ -7,9 +7,8 @@ import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { page } from "vitest/browser";
 import { render } from "vitest-browser-react";
 import { ChatView } from "@/components/chat-view.tsx";
-import type { ConstructSnapshot } from "@/constructs/construct.ts";
+import type { Construct } from "@/constructs/construct.ts";
 import { getConstruct } from "@/constructs/index.ts";
-import { VISUAL_WIDTH } from "@/constructs/visual-delivery.ts";
 import { CHAT_COPY } from "@/ui/copy/chat.ts";
 import {
   chatIdFixture,
@@ -26,7 +25,7 @@ const VIEWER = userIdFixture();
 const OPENING: UIMessage = {
   id: "opening",
   role: "assistant",
-  parts: [{ type: "text", text: "Welcome to this adventure." }],
+  parts: [{ type: "text", text: "Welcome to this conversation." }],
 };
 const QUESTION: UIMessage = {
   id: "question",
@@ -39,15 +38,7 @@ const ANSWER: UIMessage = {
   parts: [{ type: "text", text: "Take one small step." }],
 };
 const HISTORY: UIMessage[] = [OPENING, QUESTION, ANSWER];
-const LEGACY: ConstructSnapshot = {
-  name: "Lumen",
-  definition: { prompt: "An own construct, renamed." },
-};
-const OWN: ConstructSnapshot = {
-  name: "Paper Bird",
-  definition: { prompt: "An own construct." },
-};
-const CONSTRUCT_NAME = /Lumen|Vellum|Paper Bird/u;
+const CONSTRUCT_NAME = /Lumen|Vellum/u;
 const LAPTOP_WIDTH = 1280;
 const LAPTOP_HEIGHT = 900;
 const AVATAR_SIZE = 24;
@@ -55,7 +46,7 @@ const PHONE_WIDTH = 320;
 const PHONE_HEIGHT = 700;
 
 function view(
-  construct: ConstructSnapshot,
+  construct: Construct,
   messages: UIMessage[] = HISTORY,
 ): React.JSX.Element {
   return (
@@ -63,7 +54,6 @@ function view(
       questId={questIdFixture()}
       viewer={VIEWER}
       chatId={ADVENTURE_ID}
-      constructName={construct.name}
       construct={construct}
       initialMessages={messages}
     />
@@ -116,14 +106,14 @@ describe("use_case_construct_presence", () => {
       const construct = getConstruct(id);
       const screen = await render(view(construct));
       await expect
-        .element(page.getByText("Welcome to this adventure."))
+        .element(page.getByText("Welcome to this conversation."))
         .toBeVisible();
       expect(
         page.getByRole("img", { name: construct.name }).elements(),
       ).toHaveLength(1);
       const art = opening();
       expect(art.closest("li")?.textContent).toContain(
-        "Welcome to this adventure.",
+        "Welcome to this conversation.",
       );
       expect(art.getBoundingClientRect().width).toBeGreaterThan(AVATAR_SIZE);
       const portrait = portraitFor("Take one small step.");
@@ -236,60 +226,7 @@ describe("use_case_construct_presence", () => {
     }
   }
 
-  for (const construct of [OWN, LEGACY]) {
-    test(`${construct.name} without snapshot art uses initials without borrowing built-in identity`, async () => {
-      await render(view(construct));
-      expect(opening().textContent).toBe(
-        construct.name
-          .split(" ")
-          .map((word) => word[0])
-          .join(""),
-      );
-      expect(
-        portraitFor("Take one small step.").querySelector("img, svg"),
-      ).toBeNull();
-    });
-  }
-
-  test("generated snapshot artwork uses this adventure destination", async () => {
-    const assetId = "fd6f3060-f92a-447f-af44-a0fef80582a9";
-    const construct: ConstructSnapshot = {
-      name: "Paper Bird",
-      definition: {
-        prompt: "Hello",
-        visual: {
-          version: 1,
-          description: "A folded paper bird",
-          canonical: { kind: "generated", assetId },
-        },
-      },
-    };
-    await render(view(construct));
-    const portrait = portraitFor("Take one small step.");
-    const portraitSource = new URL(
-      portrait.querySelector("img")?.getAttribute("src") ?? "",
-      location.href,
-    );
-    const openingSource = new URL(
-      opening().querySelector("img")?.getAttribute("src") ?? "",
-      location.href,
-    );
-    const destination = `/api/constructs/visuals/adventure/${ADVENTURE_ID}/${assetId}`;
-    expect(portraitSource.origin).toBe(location.origin);
-    expect(portraitSource.pathname).toBe(destination);
-    expect(
-      VISUAL_WIDTH.safeParse(Number(portraitSource.searchParams.get("width")))
-        .success,
-    ).toBe(true);
-    expect(openingSource.origin).toBe(location.origin);
-    expect(openingSource.pathname).toBe(destination);
-    expect(
-      VISUAL_WIDTH.safeParse(Number(openingSource.searchParams.get("width")))
-        .success,
-    ).toBe(true);
-  });
-
-  test("legacy history starting with a user never treats a later reply as an opening", async () => {
+  test("a history starting with a user message never treats a later reply as an opening", async () => {
     await render(view(getConstruct("lumen"), [QUESTION, ANSWER]));
     expect(page.getByRole("img").elements()).toHaveLength(0);
     expect(

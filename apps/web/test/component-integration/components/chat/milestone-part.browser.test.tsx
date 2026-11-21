@@ -39,7 +39,7 @@ async function renderSavedChat(
     <ChatView
       questId={questIdFixture()}
       viewer={userIdFixture()}
-      constructName={getConstruct("vellum").name}
+      construct={getConstruct("vellum")}
       chatId={chatIdFixture()}
       initialMessages={[
         {

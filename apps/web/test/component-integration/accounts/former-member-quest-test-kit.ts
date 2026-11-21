@@ -1,7 +1,5 @@
-// Current-schema fixture for owner isolation after shared quest storage is gone.
-// The real historical membership/invitation transition is exercised in
-// db/retired-storage-migration.server.test.ts. Here the former member has
-// no membership rows, as after cleanup, and every store must still deny them.
+// A fixture for owner isolation: the former member has no membership rows,
+// and every store must still deny them.
 
 import type { User } from "@/accounts/users-store.ts";
 import type { Chat } from "@/chats/chat-rows.ts";
@@ -11,9 +9,6 @@ import {
   startQuestConversation,
 } from "@/conversations/start-quest.ts";
 import type { MilestoneId } from "@/ids.ts";
-import type { GenerationId } from "@/images/generation-contract.ts";
-import { getGeneratedImage } from "@/images/generation-store.ts";
-import { getImage } from "@/images/store.ts";
 import {
   deleteMilestone,
   editMilestone,
@@ -22,10 +17,6 @@ import {
 } from "@/milestones/milestone-store.ts";
 import { getQuest, listQuests, type Quest } from "@/quests/store.ts";
 import { currentSpell, setSpell } from "@/spells/spell-store.ts";
-import {
-  seedGeneratedImage,
-  seedImage,
-} from "../../support/test-database/artwork-test-kit.ts";
 import { testData } from "../../support/test-database/data-test-kit.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
 import { newMessageId, question } from "../test-database/chat-test-kit.ts";
@@ -40,15 +31,11 @@ interface FormerMemberQuest {
   readonly member: User;
   readonly quest: Quest;
   readonly chat: Chat;
-  // The id of an image in the chat.
-  readonly imageId: string;
-  readonly generationId: GenerationId;
   readonly milestoneId: MilestoneId;
 }
 
-// A new quest of a new owner's, with a chat holding a message and an image,
-// an active spell, a memory of two versions, a milestone and a
-// generated image; and a second user with no access to it.
+// A new quest of a new owner's, with a chat holding a message, an active
+// spell and a milestone; and a second user with no access to it.
 async function formerMemberQuest(): Promise<FormerMemberQuest> {
   const [owner, member] = await Promise.all([testUser(), testUser()]);
   const data = testData(owner);
@@ -58,7 +45,6 @@ async function formerMemberQuest(): Promise<FormerMemberQuest> {
   await data.exchanges(chat, [
     { message: "Hello", reply: [{ type: "text", text: "Hi" }] },
   ]);
-  const image = await seedImage(chat.id);
   const milestone = await recordMilestone(
     owner.id,
     { questId: quest.id, chatId: chat.id },
@@ -67,14 +53,11 @@ async function formerMemberQuest(): Promise<FormerMemberQuest> {
   if (milestone === undefined) {
     throw new Error("The milestone was not recorded");
   }
-  const generationId = await seedGeneratedImage(owner.id, chat.id);
   return {
     owner,
     member,
     quest,
     chat,
-    imageId: image,
-    generationId,
     milestoneId: milestone.id,
   };
 }
@@ -92,8 +75,6 @@ async function seenBy(
     conversation,
     openedChat,
     messages,
-    image,
-    generation,
     spell,
 
     milestones,
@@ -103,8 +84,6 @@ async function seenBy(
     readQuestConversation(user.id, quest.id),
     getChat(user.id, chat.id),
     listMessages(user.id, chat.id),
-    getImage(user.id, fixture.imageId),
-    getGeneratedImage(user.id, fixture.generationId),
     currentSpell(user.id, chat),
 
     listMilestones(user.id, quest.id),
@@ -115,8 +94,6 @@ async function seenBy(
     conversation: conversation?.id,
     chat: openedChat?.id,
     messages: messages.length,
-    image: image?.mediaType,
-    generation: generation?.id,
     spell,
 
     milestones: milestones.map(({ text }) => text),
@@ -131,8 +108,6 @@ const NOTHING: Record<string, unknown> = {
   conversation: undefined,
   chat: undefined,
   messages: 0,
-  image: undefined,
-  generation: undefined,
   spell: undefined,
 
   milestones: [],

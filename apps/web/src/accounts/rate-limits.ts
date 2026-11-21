@@ -60,10 +60,7 @@ const ADDRESS_KEY_LABEL = "project-buddy rate-limit address\n";
 // The length of an address's HMAC in a key: SHA-256 in hexadecimal.
 const ADDRESS_HMAC_LENGTH = 64;
 
-// Each limit's keys start with its own prefix. Rows of an older format,
-// "address:" followed by the address itself, are no longer counted and are
-// deleted once their windows have passed, as are rows of the removed
-// Marketplace limits ("listing-change:" and "purchase:").
+// Each limit's keys start with its own prefix.
 const ADDRESS_PREFIX = "address:";
 const ADDRESS_AND_CLIENT_PREFIX = "address-client:";
 const CLIENT_PREFIX = "client:";
