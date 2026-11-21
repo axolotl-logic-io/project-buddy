@@ -19,7 +19,6 @@ interface ConstructView {
   readonly name: string;
   readonly description: string | null;
   readonly builtIn: boolean;
-  readonly clonedFrom: string | null;
 }
 
 function builtInConstructView(construct: Construct): ConstructView {
@@ -28,7 +27,6 @@ function builtInConstructView(construct: Construct): ConstructView {
     name: construct.name,
     description: construct.description,
     builtIn: true,
-    clonedFrom: null,
   };
 }
 

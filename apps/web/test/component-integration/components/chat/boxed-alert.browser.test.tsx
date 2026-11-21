@@ -4,7 +4,7 @@ import { render } from "vitest-browser-react";
 import { ChatError } from "@/components/chat/chat-error.tsx";
 import { TextField } from "@/components/ui/field.tsx";
 import { Alert } from "@/components/ui/form-message.tsx";
-import { IMAGE_COPY } from "@/ui/copy/images.ts";
+import { CHAT_COPY } from "@/ui/copy/chat.ts";
 import { applyTheme } from "../../themes/theme-test-kit.ts";
 import { NARROWEST_VIEWPORT, setViewport } from "../../viewports-test-kit.ts";
 
@@ -40,7 +40,7 @@ for (const mode of ["light", "dark"]) {
       const inline = getComputedStyle(alerts.nth(2).element());
       expect(Number.parseFloat(inline.borderTopWidth)).toBe(0);
       expect(Number.parseFloat(inline.paddingTop)).toBe(0);
-      await page.getByRole("button", { name: IMAGE_COPY.retry }).click();
+      await page.getByRole("button", { name: CHAT_COPY.retry }).click();
       expect(retry).toHaveBeenCalledOnce();
       await expect.element(alerts.nth(0)).toBeVisible();
     });

@@ -10,23 +10,19 @@ import { and, eq } from "drizzle-orm";
 import { questOwnedBy } from "@/accounts/owner-scope.ts";
 import type { User } from "@/accounts/users-store.ts";
 import type { Chat } from "@/chats/chat-rows.ts";
-import { createChat } from "@/chats/new-chat-store.ts";
 import { saveMessage, saveReply } from "@/chats/store.ts";
 import {
   type ConstructId,
   DEFAULT_CONSTRUCT_ID,
   getConstruct,
 } from "@/constructs/index.ts";
+import { findOrCreateConversation } from "@/conversations/conversation-store.ts";
 import { getDb } from "@/db/client.ts";
 import { messages, quests } from "@/db/tables/quests-and-chats.ts";
 import type { ChatId, UserId } from "@/ids.ts";
 import { QUEST_NAME } from "@/quests/quest-name.ts";
 import { createQuest, type Quest } from "@/quests/store.ts";
 import { messageIdFixture } from "../id-fixtures.ts";
-import {
-  createConstruct,
-  type OwnConstruct,
-} from "./historical-construct-test-kit.ts";
 
 const NAME_SUFFIX_LENGTH = 8;
 
@@ -45,11 +41,9 @@ interface TestData {
   // A new quest, named name, or a unique name when name is missing.
   // Supply createdAt when a test needs a fixed chronological order.
   readonly quest: (name?: string, createdAt?: Date) => Promise<Quest>;
-  // A new chat in quest, in the voice of constructId or the default construct.
+  // The quest's conversation, made with constructId or the default
+  // construct when the quest has none yet.
   readonly chat: (quest: Quest, constructId?: ConstructId) => Promise<Chat>;
-  // A new construct of the user's own, cloned from the default construct with its
-  // voice edited, so it has no prepared opening and writes its own.
-  readonly editedConstruct: () => Promise<OwnConstruct>;
   // Makes the chat, a quest chat, its quest's interview chat.
   // Saves the exchanges in the chat, one after another, so they keep their
   // order.
@@ -57,18 +51,6 @@ interface TestData {
     chat: { readonly id: ChatId },
     exchanges: readonly Exchange[],
   ) => Promise<void>;
-}
-
-// The owner's clone of the default construct, with its voice edited.
-function testEditedConstruct(owner: UserId): Promise<OwnConstruct> {
-  const source = getConstruct(DEFAULT_CONSTRUCT_ID);
-  return createConstruct(owner, {
-    name: `${source.name} (historical)`,
-    definition: {
-      ...source.definition,
-      prompt: `${source.definition.prompt}\n\nEdited.`,
-    },
-  });
 }
 
 // Removes what the test added to the manual index.
@@ -110,29 +92,34 @@ async function saveExchanges(
 }
 
 // A quest of the owner's named name, made at createdAt when it is given.
-// A name the site would refuse now, such as one longer than the limit, is
-// saved as quests named before the limit kept theirs.
 async function testQuest(
   owner: UserId,
   name: string,
   createdAt: Date | undefined,
 ): Promise<Quest> {
-  const checked = QUEST_NAME.safeParse(name);
-  const allowed = checked.success && checked.data === name;
-  let created = QUEST_NAME.parse(`Test project ${uniqueSuffix()}`);
-  if (checked.success) {
-    created = checked.data;
-  }
-  const quest = await createQuest(owner, created);
-  if (allowed && createdAt === undefined) {
+  const quest = await createQuest(owner, QUEST_NAME.parse(name));
+  if (createdAt === undefined) {
     return quest;
   }
-  const saved = { name, createdAt: createdAt ?? quest.createdAt };
   await getDb()
     .update(quests)
-    .set(saved)
+    .set({ createdAt })
     .where(and(eq(quests.id, quest.id), questOwnedBy(owner)));
-  return { ...quest, ...saved };
+  return { ...quest, createdAt };
+}
+
+async function testChat(
+  owner: UserId,
+  quest: Quest,
+  constructId: ConstructId,
+): Promise<Chat> {
+  const found = await findOrCreateConversation(owner, quest, {
+    construct: getConstruct(constructId),
+  });
+  if (found === undefined) {
+    throw new Error("No such quest to chat in");
+  }
+  return found.conversation;
 }
 
 // The data of user, a test user from testUser.
@@ -145,9 +132,7 @@ function testData(user: User): TestData {
     chat: (
       quest: Quest,
       constructId: ConstructId = DEFAULT_CONSTRUCT_ID,
-    ): Promise<Chat> =>
-      createChat(user.id, { quest, construct: getConstruct(constructId) }),
-    editedConstruct: (): Promise<OwnConstruct> => testEditedConstruct(user.id),
+    ): Promise<Chat> => testChat(user.id, quest, constructId),
     exchanges: (
       chat: { readonly id: ChatId },
       exchanges: readonly Exchange[],

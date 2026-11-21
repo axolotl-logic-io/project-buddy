@@ -6,7 +6,7 @@
 // A quest belongs to its owner, the user who made it, and is open to its
 // owner and its accepted members (quest_members). Everything reached
 // through a quest is open to everyone the quest is open to: its
-// conversation, the conversation's messages, images, spell results and
+// conversation, the conversation's messages, spell results and
 // reply runs, its Tasks, Ideas, milestones and Quick Notes, and the quest's
 // members and pending invitations, which any of them may see, add to or
 // remove. The owner is never a member row, so no one can remove them. The
@@ -18,22 +18,17 @@
 // quest to its invitee but the quest's name, the inviter's name and the
 // invitation itself, which the invitee alone may accept or decline.
 //
-// Own prompts (constructs and spells) and image generation claims belong to
-// their user alone. So does a timer presence report; the one read across
+// Own prompts (constructs and spells) belong to their user alone. So does a timer presence report; the one read across
 // users is how many other accounts follow a schedule, a count that names no
 // one and reaches no quest (src/timer/presence-store.ts).
 //
-// A conversation keeps a snapshot of its construct and its active spell, so
-// a member sees the snapshot of an own construct or spell used in the
-// quest, never the definition itself.
+// A conversation keeps a snapshot of its active spell, so a member sees the
+// snapshot of an own spell used in the quest, never the definition itself.
 //
 // Each predicate is SQL for a where clause or a join, on the table it names.
 import { and, eq, exists, inArray, type SQL, sql } from "drizzle-orm";
 import { QueryBuilder } from "drizzle-orm/pg-core";
-import { constructGenerations } from "@/db/tables/construct-visuals.ts";
 import { dailiesDays } from "@/db/tables/dailies-days.ts";
-import { imageGenerations } from "@/db/tables/image-generations.ts";
-import { images } from "@/db/tables/images.ts";
 import { milestones } from "@/db/tables/milestones.ts";
 import { ownPrompts } from "@/db/tables/own-prompts.ts";
 import { questIdeas } from "@/db/tables/quest-ideas.ts";
@@ -110,8 +105,8 @@ function questPendingFor(invitee: UserId): SQL {
   );
 }
 
-// A `chats` row open to user: a chat in a quest open to them. A standalone
-// chat that an older build made is open to no one.
+// A `chats` row open to user: a chat in a quest open to them. A chat that
+// Start Day parked is open to no one.
 function chatOpenTo(user: UserId): SQL {
   return inArray(chats.questId, openQuestIds(user));
 }
@@ -131,11 +126,6 @@ function messageOpenTo(user: UserId): SQL {
 
 function spellResultOpenTo(user: UserId): SQL {
   return inArray(spellMessageResults.chatId, openChatIds(user));
-}
-
-// An `images` row of a chat open to user.
-function imageOpenTo(user: UserId): SQL {
-  return inArray(images.chatId, openChatIds(user));
 }
 
 // A `milestones` row of a quest open to user.
@@ -191,17 +181,6 @@ function ownPromptOwnedBy(owner: UserId): SQL {
   return eq(ownPrompts.userId, owner);
 }
 
-// An `image_generations` row that owner claimed, whose cost is owner's.
-function constructGenerationOwnedBy(owner: UserId): SQL {
-  return eq(constructGenerations.userId, owner);
-}
-
-// An `image_generations` row of a chat open to user, whose image they may
-// see, whoever claimed it.
-function generationOpenTo(user: UserId): SQL {
-  return inArray(imageGenerations.chatId, openChatIds(user));
-}
-
 function replyRunOpenTo(user: UserId): SQL {
   return inArray(
     replyRuns.chatId,
@@ -228,11 +207,8 @@ function replyRunOwnedBy(user: UserId): SQL {
 
 export {
   chatOpenTo,
-  constructGenerationOwnedBy,
   dailiesDayOwnedBy,
-  generationOpenTo,
   ideaOpenTo,
-  imageOpenTo,
   messageOpenTo,
   milestoneOpenTo,
   noteOpenTo,

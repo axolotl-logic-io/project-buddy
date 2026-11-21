@@ -3,7 +3,7 @@
 // vitest.config.mts). At 320 and 390 CSS px wide nothing scrolls sideways
 // (1.4.10, Reflow), and every visible control is at least 24×24 CSS px
 // (2.5.8, Target Size (Minimum)). A row of tabs stays one row, and scrolls
-// sideways inside itself if it must (#845). Each page is checked in every theme,
+// sideways inside itself if it must. Each page is checked in every theme,
 // because each theme sets its own spacing and fonts, which move the sizes.
 // The pages are rendered from fixed data, in their layouts and the site's
 // frame (phone-pages-test-kit.tsx), with the site's stylesheet
@@ -21,7 +21,6 @@ import type { getQuest, listQuests } from "@/quests/store.ts";
 import { listRetiredDefinitions } from "@/retirement/retirement-store.ts";
 import { THEME_IDS, type ThemeId } from "@/themes/themes.ts";
 import { QUEST_STATUS_COPY } from "@/ui/copy/quest-status.ts";
-import { RETIREMENT_COPY } from "@/ui/copy/retirement.ts";
 import { TIMER_COPY } from "@/ui/copy/timer.ts";
 
 import { loadCodeHighlighting } from "../components/code-highlighting-test-kit.ts";
@@ -175,9 +174,6 @@ function tabRows(): Element[] {
     ...TAB_ROW_NAVIGATIONS.flatMap((name) =>
       page.getByRole("navigation", { name, exact: true }).elements(),
     ),
-    ...page
-      .getByRole("group", { name: RETIREMENT_COPY.kindFilter, exact: true })
-      .elements(),
   ];
 }
 

@@ -157,7 +157,7 @@ async function fieldBoxFocus(): Promise<
       viewer={userIdFixture()}
       chatId={chatIdFixture()}
       initialMessages={[]}
-      constructName={getConstruct("lumen").name}
+      construct={getConstruct("lumen")}
     />,
   );
   const control = page.getByRole("textbox", { name: CHAT_COPY.messageLabel });

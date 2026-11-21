@@ -4,7 +4,7 @@ These docs describe Project Buddy: its scope and operating practices. GitHub iss
 
 ## Product
 
-- [Button system](button-system.md): Letterpress action roles, color vocabulary and control inventory.
+- [Button system](button-system.md): Letterpress action roles, color vocabulary and usage rules.
 
 - [Appearance](appearance.md): the three textured swatches and browser preferences.
 
@@ -25,7 +25,6 @@ These docs describe Project Buddy: its scope and operating practices. GitHub iss
 - [Experience](experience.md): ability points, experience and circles, and what gains and takes back points.
 - [Quick Notes](quick-notes.md): saving a short note to a quest from the site panel or directly from the quest's Quick Notes bucket.
 - [Spellbook’s Forgotten tab](retirement.md): retiring, restoring, and permanently deleting own spells.
-- [Saved images](images.md): conversation images, owner access and deletion.
 - [Construct visuals](construct-visuals.md): shared artwork, metadata, rendering primitives and asset ownership.
 - [Place icons](place-icons.md): the shared Lucide mapping, sizing and attribution.
 - [Installed app](notifications.md): installing on a phone's Home Screen.
@@ -33,8 +32,6 @@ These docs describe Project Buddy: its scope and operating practices. GitHub iss
 - [Multi-user quests](multi-user-quests.md): shared quest permissions, accounts created by invitations and acceptance through the Pending tab or invitation links.
 
 ## Practices
-
-- [CLI and API proposal](cli-api-proposal.md): planned commands, JSONL output, shared data access and implementation slices.
 
 - [Project practices](project-practices.md): the design, type, lint, test and secrets rules for every app and tool.
 - [Docs style guide](docs-style-guide.md): how to write these docs.

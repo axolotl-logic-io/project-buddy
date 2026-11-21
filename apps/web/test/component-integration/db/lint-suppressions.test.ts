@@ -34,10 +34,9 @@ function suppressions(): { path: string; rule: string; reason: string }[] {
   );
 }
 
-// monthly_spend's key was the only use of drizzle's primaryKey, and its
-// noDeprecatedImports suppression the only one; both went with the table.
-// A new composite key uses the { columns } overload, and its suppression
-// must name https://github.com/biomejs/biome/issues/7636.
+// A composite key uses the { columns } overload, and its
+// noDeprecatedImports suppression must name
+// https://github.com/biomejs/biome/issues/7636.
 describe("lint suppressions", () => {
   test("no source declares a key with drizzle's PrimaryKeyBuilder", () => {
     expect(

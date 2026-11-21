@@ -4,7 +4,6 @@ import { getChat, listMessages } from "@/chats/store.ts";
 import { getConstruct } from "@/constructs/index.ts";
 import { findConversation } from "@/conversations/conversation-store.ts";
 import { startDailies } from "@/conversations/dailies.ts";
-import { dayDate } from "@/dailies/dailies.ts";
 import { changeDayAction } from "@/dailies/day-actions.ts";
 import { readDailiesRecord } from "@/dailies/day-store.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
@@ -159,8 +158,8 @@ test("Dailies Start Day and Undo save records and restore collections without ch
   });
   await changeIdeaAction({ op: "add", questId, text: "Try mint" });
   const oldMessages = await listMessages(her.id, chat.id);
-  // Today on the server's clock, which the action accepts as the day's date.
-  const today = dayDate(undefined, new Date());
+  // Start Day accepts only a date near today.
+  const today = new Date().toISOString().slice(0, 10);
 
   expect(
     await changeDayAction({

@@ -35,9 +35,8 @@ test("a transaction reads its own writes, commits, and rolls back on failure", a
   expect(saved?.name).toBe("Committed");
 });
 
-// Hosted Neon's HTTP driver had no transactions, so a transaction on the
-// app's database failed in production alone. Every database now uses one
-// driver; this keeps getDb() itself able to run one.
+// Hosted Neon's HTTP driver has no transactions, so every database uses one
+// driver; this keeps getDb() itself able to run a transaction.
 test("the app's database runs a transaction that reads its own writes and rolls back", async () => {
   const user = await testUser();
   const failure = new Error("Cancel this change");

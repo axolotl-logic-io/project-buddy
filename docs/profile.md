@@ -10,10 +10,10 @@ A visible page entry, navigation or return to a tab qualifies, including with an
 
 ## Tracking start
 
-Tracking begins with the user's first qualifying visit after release. No earlier dates are inferred from account creation, quests, Tasks, messages or Dailies. The card says **Tracked since YYYY-MM-DD · Days use UTC. Earlier days are not included.** Before the first successful report, it shows zero and explains that tracking starts with the first signed-in visit. A successful new-date report refreshes the page to show the saved total. A failed report can retry at the next qualifying event; it creates no invented count.
+Tracking begins with the user's first qualifying visit. No earlier dates are inferred from account creation, quests, Tasks, messages or Dailies. Before the first successful report, the card shows zero and explains that tracking starts with the first signed-in visit. A successful new-date report refreshes the page to show the saved total. A failed report can retry at the next qualifying event; it creates no invented count.
 
 ## Recording and storage
 
-`apps/web/src/visits/signed-in-visits.tsx` mounts only for the authenticated account in the site header. It reports visible visits through `recordVisitAction`, which checks the session again and derives both the account and server date itself. No client-supplied account or date is accepted. Account and session reads remain read-only. Client date suppression reduces traffic; database uniqueness enforces correctness across devices.
+The browser reports visible visits to a Server Action. The action checks the session again and derives both the account and the date on the server; it accepts neither from the client. The client skips repeat reports for a date it already sent, which only reduces traffic. A unique account and date constraint in the database makes concurrent reports from several devices idempotent.
 
-`signed-in-days-store.ts` alone reads and writes `signed_in_days`. A unique account/date index makes concurrent reports idempotent. The owner-scoped read returns a count and the earliest recorded date. Rows survive sign-out and deployments and are removed with the account. Quest membership grants no access to another account's visiting dates. The generated migration adds only this table, its foreign key and its unique index, so the preceding live build remains compatible.
+Account and session reads never record a visit. Rows survive sign-out and deployments and are removed with the account. Quest membership grants no access to another account's visiting dates.

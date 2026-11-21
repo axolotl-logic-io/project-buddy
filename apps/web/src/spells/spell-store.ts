@@ -5,7 +5,6 @@ import { chats } from "@/db/tables/quests-and-chats.ts";
 import { withAppErrors } from "@/errors/to-app-error.ts";
 import type { ChatId, UserId } from "@/ids.ts";
 import { findSpell } from "@/spells/own-spell-store.ts";
-import { getSpell, SPELL_ID } from "@/spells/spell.ts";
 import {
   SPELL_SNAPSHOT,
   type SpellReference,
@@ -26,15 +25,7 @@ async function readActiveSpell(
   if (row?.spell === null || row === undefined) {
     return undefined;
   }
-  const snapshot = SPELL_SNAPSHOT.safeParse(row.snapshot);
-  if (snapshot.success) {
-    return snapshot.data;
-  }
-  const builtin = SPELL_ID.safeParse(row.spell);
-  if (builtin.success) {
-    return getSpell(builtin.data);
-  }
-  return undefined;
+  return SPELL_SNAPSHOT.parse(row.snapshot);
 }
 
 async function currentSpell(

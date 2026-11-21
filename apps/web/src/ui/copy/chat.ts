@@ -3,6 +3,7 @@
 
 export const CHAT_COPY = {
   stop: "Stop reply",
+  retry: "Retry reply",
   stopping: "Stop requested. Waiting for the server…",
   stopFailed:
     "The server could not confirm Stop. The reply may still be running. Try again or reload.",

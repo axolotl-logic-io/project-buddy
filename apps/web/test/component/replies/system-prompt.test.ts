@@ -5,11 +5,7 @@
 // shared, cached part, one line each, with {{name}} as the user's name.
 
 import { describe, expect, test } from "vitest";
-import {
-  DEFAULT_CONSTRUCT_ID,
-  getConstruct,
-  snapshotOf,
-} from "@/constructs/index.ts";
+import { DEFAULT_CONSTRUCT_ID, getConstruct } from "@/constructs/index.ts";
 import { SEVERAL_AUTHORS_RULES } from "@/replies/global-prompt.ts";
 import {
   type ReplyPromptContext,
@@ -19,7 +15,7 @@ import { EMPTY_TASKS } from "@/tasks/tasks.ts";
 
 const CONTEXT: ReplyPromptContext = {
   quest: { name: "Birdhouse", tasks: EMPTY_TASKS, milestones: [] },
-  construct: snapshotOf(getConstruct(DEFAULT_CONSTRUCT_ID)),
+  construct: getConstruct(DEFAULT_CONSTRUCT_ID),
   userName: "Sam",
 };
 

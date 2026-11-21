@@ -3,8 +3,7 @@
 // at least one character and at most QUEST_NAME_MAX_LENGTH. Its length is
 // counted in UTF-16 code units, as an input's maxLength counts, so the
 // browser and the server agree; an emoji takes 2 or more. A QuestName
-// has passed it, so only a checked name starts a quest. Names saved before
-// the limit may be longer; they are kept and shown as they are.
+// has passed it, so only a checked name starts or renames a quest.
 import { z } from "zod";
 
 // Long enough for any name a user would call a quest, short enough that

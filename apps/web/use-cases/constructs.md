@@ -1,6 +1,6 @@
 # Constructs
 
-Premade quests assign built-in Vellum or Lumen. Built-in detail pages remain read-only. Custom construct operations are removed; historical records and conversation snapshots remain intact.
+Premade quests assign built-in Vellum or Lumen. Built-in detail pages remain read-only.
 
 ## use_case_view_character_profile
 

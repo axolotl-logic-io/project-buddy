@@ -6,13 +6,13 @@ Review whether this app behaves as documented. Verify the results of users' acti
 
 Read the repository's `AGENTS.md` instructions, `docs/project-practices.md`, `docs/docs-style-guide.md`, `apps/web/AGENTS.md` and `GLOSSARY.md`. Start with `apps/web/use-cases/README.md` and inspect every use case file under `apps/web/use-cases/`, including files omitted from the index. Read `docs/README.md` and its linked product documents.
 
-Build an inventory using each use case's slug and documentation path. Extract prerequisites, actors, steps, expected outcomes, prohibited actions and cases where nothing should change. Include documented behaviors missing from the use cases as separate coverage items. Identify conflicting or undefined requirements rather than inventing an expected result. Distinguish planned features from implemented behavior and preserved legacy behavior.
+Build an inventory using each use case's slug and documentation path. Extract prerequisites, actors, steps, expected outcomes, prohibited actions and cases where nothing should change. Include documented behaviors missing from the use cases as separate coverage items. Identify conflicting or undefined requirements rather than inventing an expected result. Distinguish planned features from implemented behavior.
 
 Assess every item. Do not substitute representative workflows for complete documented coverage. For a case with several outcomes or branches, track which were verified and which remain unassessed.
 
 ## Verification
 
-Exercise the documented paths through the app in both Light and Dark mode, at widths of 360 px (phone), 768 px (tablet) and 1920 px (desktop). Where a path's interface changes between widths, verify its outcomes at each width. Verify:
+Exercise the documented paths through the app in each of the site's three appearances, at widths of 360 px (phone), 768 px (tablet) and 1920 px (desktop). Where a path's interface changes between widths, verify its outcomes at each width. Verify:
 
 - Successful actions produce the expected result and persist after reloading or reopening.
 - Invalid input and disallowed actions are rejected without unintended changes.
@@ -23,7 +23,7 @@ Exercise the documented paths through the app in both Light and Dark mode, at wi
 - Local construct commands and replies, spell selection and casting, tool effects and Tasks updates fulfill the applicable use cases. Check saved effects as well as the visible reply.
 - Documented compatibility behavior remains intact where it can be assessed in the available environment.
 
-Use code inspection and existing automated tests to supplement direct checks, especially for failures or concurrency that cannot be safely reproduced through the UI. Follow the repository's test commands and boundaries. A test title establishes traceability, not verification of every outcome. Record the environment, revision, accounts or roles used, widths and appearance modes, and checks actually run without exposing credentials or private data.
+Use code inspection and existing automated tests to supplement direct checks, especially for failures or concurrency that cannot be safely reproduced through the UI. Follow the repository's test commands and boundaries. A test title establishes traceability, not verification of every outcome. Record the environment, revision, accounts or roles used, widths and appearances, and checks actually run without exposing credentials or private data.
 
 ## Test data
 

@@ -13,7 +13,7 @@ import {
 } from "@/app/(workspace)/quests/actions.ts";
 import type { ChatQuest } from "@/chats/chat-rows.ts";
 import { listMessages } from "@/chats/store.ts";
-import { getConstruct } from "@/constructs/index.ts";
+import { getConstruct, listConstructs } from "@/constructs/index.ts";
 import type { Conversation } from "@/conversations/conversation-store.ts";
 import { readQuestConversation } from "@/conversations/start-quest.ts";
 import {
@@ -24,7 +24,6 @@ import { QUEST_NAME_MAX_LENGTH } from "@/quests/quest-name.ts";
 import { listQuests } from "@/quests/store.ts";
 import { QUESTS_COPY } from "@/ui/copy/quests.ts";
 import { testData } from "../../../../support/test-database/data-test-kit.ts";
-import { cloneConstruct } from "../../../../support/test-database/historical-construct-test-kit.ts";
 import { testUser } from "../../../../support/test-database/user-test-kit.ts";
 import { formOf, messageText } from "../../../test-database/chat-test-kit.ts";
 import { expectRedirect } from "../../../test-database/navigation-test-kit.ts";
@@ -184,17 +183,18 @@ describe("use_case_new_quest_with_construct", () => {
     async (id) => {
       const user = await testUser();
       await signIn(user);
-      const own = await cloneConstruct(user.id, "lumen");
-      if (own === undefined) {
-        throw new Error("Lumen could not be cloned");
+      const assigned = getConstruct(premade(id).constructId);
+      const other = listConstructs().find(
+        (construct) => construct.id !== assigned.id,
+      );
+      if (other === undefined) {
+        throw new Error("No other construct");
       }
       const conversation = await startQuest(
         user,
-        startForm(id, { constructId: own.id }),
+        startForm(id, { constructId: other.id }),
       );
-      const assigned = getConstruct(premade(id).constructId);
-      expect(conversation.construct.name).toBe(assigned.name);
-      expect(conversation.construct.definition).toEqual(assigned.definition);
+      expect(conversation.construct).toEqual(assigned);
     },
   );
 });

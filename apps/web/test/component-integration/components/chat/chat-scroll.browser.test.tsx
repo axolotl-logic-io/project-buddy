@@ -7,6 +7,7 @@ import { afterEach, describe, expect, onTestFinished, test, vi } from "vitest";
 import { commands, page, userEvent } from "vitest/browser";
 import { render } from "vitest-browser-react";
 import { ChatView } from "@/components/chat-view.tsx";
+import { getConstruct } from "@/constructs/index.ts";
 import { CHAT_COPY } from "@/ui/copy/chat.ts";
 import {
   chatIdFixture,
@@ -47,7 +48,7 @@ async function openChat(initialMessages: UIMessage[] = HISTORY): Promise<void> {
       questId={questIdFixture()}
       viewer={userIdFixture()}
       chatId={chatIdFixture()}
-      constructName="Vellum"
+      construct={getConstruct("vellum")}
       initialMessages={initialMessages}
     />,
   );
@@ -240,7 +241,7 @@ describe("use_case_follow_latest_messages", () => {
     });
   }
 
-  test("upward input on a short adventure does not disable later following", async () => {
+  test("upward input on a short conversation does not disable later following", async () => {
     await openChat([]);
     await layoutSettled();
     expect(window.scrollY).toBe(0);

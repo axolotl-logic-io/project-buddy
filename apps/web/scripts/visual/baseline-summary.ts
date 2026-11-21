@@ -347,7 +347,7 @@ function problemLines(results: BaselineResults): string[] {
 
 function baselineSummary(results: BaselineResults): string {
   const lines = [
-    "# Baseline before the theme redesign",
+    "# Visual baseline",
     "",
     `Taken ${results.takenAt} from ${results.site}, at commit ${results.commit}, as ${results.email} or signed out. The results are in \`baseline.json\`; \`mise run visual-baseline\` takes them again.`,
     "",

@@ -533,6 +533,27 @@
       "when": 1795033484144,
       "tag": "0075_quest_starting_context",
       "breakpoints": true
+    },
+    {
+      "idx": 76,
+      "version": "7",
+      "when": 1795285253177,
+      "tag": "0076_drop_generated_artwork",
+      "breakpoints": true
+    },
+    {
+      "idx": 77,
+      "version": "7",
+      "when": 1795286519648,
+      "tag": "0077_drop_images_and_unused_tables",
+      "breakpoints": true
+    },
+    {
+      "idx": 78,
+      "version": "7",
+      "when": 1795287595321,
+      "tag": "0078_drop_legacy_columns_and_data",
+      "breakpoints": true
     }
   ]
 }

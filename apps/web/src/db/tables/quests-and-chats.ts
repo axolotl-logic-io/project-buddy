@@ -12,14 +12,19 @@ import {
   uuid,
 } from "drizzle-orm/pg-core";
 // Relative imports: drizzle-kit loads this file without the @/ alias.
+import { CONSTRUCT_IDS } from "../../constructs/construct.ts";
 import { users } from "./users.ts";
+
+const CONSTRUCT_ID_LITERALS = sql
+  .join(
+    CONSTRUCT_IDS.map((id) => sql`${id}`),
+    sql`, `,
+  )
+  .inlineParams();
 
 // A quest belongs to its owner and is open to them and its accepted members
 // (quest_members, src/accounts/owner-scope.ts), with its conversation,
-// messages and Tasks. A standalone chat belongs to its user.
-// check_in_frequency and last_check_in_at are inert: they held the removed
-// automatic check-ins' schedule (#903) and stay until a held cleanup drops
-// them, once no live build reads them.
+// messages and Tasks.
 export const quests = pgTable(
   "quests",
   {
@@ -34,8 +39,6 @@ export const quests = pgTable(
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),
-    checkInFrequency: text("check_in_frequency").notNull().default("off"),
-    lastCheckInAt: timestamp("last_check_in_at", { withTimezone: true }),
     dailies: boolean("dailies").notNull().default(false),
   },
   (table) => [
@@ -48,32 +51,18 @@ export const quests = pgTable(
       sql`${table.status} in ('active', 'completed', 'abandoned')`,
     ),
     check("quests_status_revision_valid", sql`${table.statusRevision} >= 0`),
-    check(
-      "quests_check_in_frequency_valid",
-      sql`${table.checkInFrequency} in ('off', 'daily', 'few-times-a-week', 'weekly')`,
-    ),
   ],
 );
 
 // A chat is a conversation: exactly one of quest_id and user_id is set.
-// The site makes and reads only quests' chats; a chat with user_id, a
-// standalone chat an older build made, is inert. A continuing chat is its
-// quest's one conversation (src/conversations/). The partial unique indexes
-// allow at most one continuing chat per quest and per user, so starting one
-// is an atomic get-or-create. A chat that isn't continuing is
-// a legacy adventure, which the site no longer reads: they stay until a
-// later release, after this one is live, deletes them (#898).
-// construct_name and construct_parts are the construct's snapshot, and
-// construct_id the built-in construct's id, or the default construct's for a
-// construct of the user's own, so builds that read only ids keep working.
-// The construct is chosen when the chat starts and kept as it was then, so
-// editing the construct later leaves the chat as it is. A chat saved before the snapshot has null
-// snapshot columns and reads as its built-in construct: the id is text so
-// constructs can be added without a migration, and the chat store narrows it
-// when reading, so an id no construct has reads as the default construct.
-// name and renamed_by_hand are a legacy adventure's name, which nothing
-// writes any more. They stay for now: dropping them needs a later release,
-// after a build that neither reads nor writes them is live.
+// A chat with quest_id is its quest's conversation. A chat with user_id is
+// one that Start Day parked outside its Dailies quest for Undo
+// (src/dailies/day-store.ts); no one can open it. A continuing chat is its
+// quest's one conversation (src/conversations/), and the partial unique
+// index allows at most one per quest, so starting one is an atomic
+// get-or-create. Only a parked chat isn't continuing. construct_id names the
+// built-in construct (src/constructs/) the chat is with, which the
+// chats_construct_id_known check keeps to the known ids.
 export const chats = pgTable(
   "chats",
   {
@@ -88,10 +77,6 @@ export const chats = pgTable(
       withTimezone: true,
       mode: "string",
     }),
-    constructName: text("construct_name"),
-    constructParts: jsonb("construct_parts"),
-    name: text("name"),
-    renamedByHand: boolean("renamed_by_hand").notNull().default(false),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),
@@ -111,9 +96,10 @@ export const chats = pgTable(
     uniqueIndex("chats_continuing_quest_idx")
       .on(table.questId)
       .where(sql`${table.continuing} and ${table.questId} is not null`),
-    uniqueIndex("chats_continuing_user_idx")
-      .on(table.userId)
-      .where(sql`${table.continuing} and ${table.userId} is not null`),
+    check(
+      "chats_construct_id_known",
+      sql`${table.constructId} in (${CONSTRUCT_ID_LITERALS})`,
+    ),
     check(
       "chats_one_owner",
       sql`num_nonnulls(${table.questId}, ${table.userId}) = 1`,
@@ -126,9 +112,9 @@ export const chats = pgTable(
 // message whose reply a request is making: set when the request saves or
 // claims the message, and cleared when the reply fails; null for a message
 // no reply is being made to (src/chats/store.ts, claimReply). user_id is
-// the author of a user message: the user who sent it. Null means the chat's
-// owner, as on every message saved before authors were recorded, and on the
-// construct's messages, which have no author (src/chats/message-author.ts).
+// the author of a user message: the user who sent it, which the
+// messages_user_has_author check requires. It is null on the construct's
+// messages, which have no author (src/chats/message-author.ts).
 export const messages = pgTable(
   "messages",
   {
@@ -149,5 +135,9 @@ export const messages = pgTable(
   (table) => [
     index("messages_chat_id_idx").on(table.chatId),
     index("messages_user_id_idx").on(table.userId),
+    check(
+      "messages_user_has_author",
+      sql`${table.role} <> 'user' or ${table.userId} is not null`,
+    ),
   ],
 );
