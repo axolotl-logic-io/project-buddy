@@ -70,6 +70,7 @@ export const TIMER_COPY = {
   // The count of others in the trail band.
   others: (others: number): string => `${othersHere(others)} here`,
   othersUnavailable: "Unknown others",
+  timerOnlyLink: "Show only the timer",
   copyLink: "Copy link",
   // What Copy link reads for a moment after a copy.
   copiedLabel: "Copied",
