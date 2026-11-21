@@ -11,14 +11,14 @@ Start Day (`startDay` in `apps/web/src/dailies/day-store.ts`) does all of this i
 1. It records how the last day ended: each recurring task, and whether it was done.
 2. It reopens the done recurring tasks as one tasks change, so the change has its own Tasks version. One-off tasks stay done or open.
 3. If the user chose to, it removes every task, every Idea, or both.
-4. It sets the old conversation aside and opens an empty conversation with the same construct, without a model request. The old conversation's artwork moves to the new conversation ([Construct visuals](construct-visuals.md)).
+4. It sets the old conversation aside and opens an empty conversation with the same construct, without a model request.
 5. It records the new day, dated with the browser's calendar date when the user confirmed.
 
 The server takes the browser's date only when it is within two days of the server's own UTC date (`dayDate` in `apps/web/src/dailies/dailies.ts`). Otherwise, it uses the server's date.
 
 ## Undo Start Day
 
-Until anyone sends a message in the new day's conversation, the day controls offer **Undo Start Day** (`undoStartDay`). It brings back the conversation from before, with its messages, active spell and artwork. It undoes the Start Day tasks change and puts back the removed Ideas. A task added since stays, because the undo keeps later changes ([Quest tasks](quest-tasks.md#operations)). The day's record is deleted, and the day before is going again.
+Until anyone sends a message in the new day's conversation, the day controls offer **Undo Start Day** (`undoStartDay`). It brings back the conversation from before, with its messages and active spell. It undoes the Start Day tasks change and puts back the removed Ideas. A task added since stays, because the undo keeps later changes ([Quest tasks](quest-tasks.md#operations)). The day's record is deleted, and the day before is going again.
 
 To make Undo possible, Start Day doesn't delete the old conversation. It parks it: the conversation leaves the quest and belongs to the user alone, so no page opens it. The next Start Day deletes the parked conversation. Until then, a milestone recorded in it still links to it.
 

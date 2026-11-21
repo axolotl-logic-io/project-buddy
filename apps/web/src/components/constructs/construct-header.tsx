@@ -9,7 +9,6 @@ import {
 import { Button } from "@/components/ui/button.tsx";
 import { Icon } from "@/components/ui/icon.tsx";
 import type { ConstructSnapshot } from "@/constructs/construct.ts";
-import type { VisualDestination } from "@/constructs/visual.ts";
 import {
   CONSTRUCT_DISCOVERY_COPY,
   constructPersonality,
@@ -18,14 +17,12 @@ import {
 interface ConstructHeaderProps {
   /** The conversation's saved identity, including its visual metadata. */
   readonly construct: ConstructSnapshot;
-  readonly destination?: VisualDestination | undefined;
   /** The surrounding conversation heading already names the construct. */
   readonly compact?: boolean;
 }
 
 function ConstructHeader({
   construct,
-  destination,
   compact,
 }: ConstructHeaderProps): JSX.Element {
   const personality = constructPersonality(construct);
@@ -37,12 +34,7 @@ function ConstructHeader({
           className="character-header-control"
           type="button"
         >
-          <ConstructAvatar
-            destination={destination}
-            construct={construct}
-            decorative={true}
-            size={32}
-          />
+          <ConstructAvatar construct={construct} decorative={true} size={32} />
           {compact !== true && <span>{construct.name}</span>}
         </button>
       </Dialog.Trigger>
@@ -67,7 +59,6 @@ function ConstructHeader({
           </div>
           <div className="character-profile-art">
             <ConstructIllustration
-              destination={destination}
               construct={construct}
               decorative={true}
               visualRole="portrait"

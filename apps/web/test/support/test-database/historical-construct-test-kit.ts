@@ -11,7 +11,6 @@ import {
   getConstruct,
   isConstructId,
 } from "@/constructs/index.ts";
-import { grantVisualAssets } from "@/constructs/visual-asset-store.ts";
 import { getDb, inTransaction } from "@/db/client.ts";
 import { ownPrompts } from "@/db/tables/own-prompts.ts";
 import { OWN_PROMPT_ID, type UserId } from "@/ids.ts";
@@ -50,12 +49,6 @@ function createConstruct(
     if (row === undefined) {
       throw new Error("No historical construct");
     }
-    await grantVisualAssets(
-      owner,
-      tx,
-      { kind: "construct", id: row.id },
-      { parts: input.definition },
-    );
     return fromRow(row);
   });
 }

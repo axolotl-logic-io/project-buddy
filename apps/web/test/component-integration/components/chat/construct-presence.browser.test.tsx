@@ -9,7 +9,6 @@ import { render } from "vitest-browser-react";
 import { ChatView } from "@/components/chat-view.tsx";
 import type { ConstructSnapshot } from "@/constructs/construct.ts";
 import { getConstruct } from "@/constructs/index.ts";
-import { VISUAL_WIDTH } from "@/constructs/visual-delivery.ts";
 import { CHAT_COPY } from "@/ui/copy/chat.ts";
 import {
   chatIdFixture,
@@ -250,44 +249,6 @@ describe("use_case_construct_presence", () => {
       ).toBeNull();
     });
   }
-
-  test("generated snapshot artwork uses this conversation destination", async () => {
-    const assetId = "fd6f3060-f92a-447f-af44-a0fef80582a9";
-    const construct: ConstructSnapshot = {
-      name: "Paper Bird",
-      definition: {
-        prompt: "Hello",
-        visual: {
-          version: 1,
-          description: "A folded paper bird",
-          canonical: { kind: "generated", assetId },
-        },
-      },
-    };
-    await render(view(construct));
-    const portrait = portraitFor("Take one small step.");
-    const portraitSource = new URL(
-      portrait.querySelector("img")?.getAttribute("src") ?? "",
-      location.href,
-    );
-    const openingSource = new URL(
-      opening().querySelector("img")?.getAttribute("src") ?? "",
-      location.href,
-    );
-    const destination = `/api/constructs/visuals/adventure/${ADVENTURE_ID}/${assetId}`;
-    expect(portraitSource.origin).toBe(location.origin);
-    expect(portraitSource.pathname).toBe(destination);
-    expect(
-      VISUAL_WIDTH.safeParse(Number(portraitSource.searchParams.get("width")))
-        .success,
-    ).toBe(true);
-    expect(openingSource.origin).toBe(location.origin);
-    expect(openingSource.pathname).toBe(destination);
-    expect(
-      VISUAL_WIDTH.safeParse(Number(openingSource.searchParams.get("width")))
-        .success,
-    ).toBe(true);
-  });
 
   test("legacy history starting with a user never treats a later reply as an opening", async () => {
     await render(view(getConstruct("lumen"), [QUESTION, ANSWER]));

@@ -14,7 +14,6 @@ import {
   randomId,
 } from "@/chats/new-chat-store.ts";
 import { getChat, noReplyAwaited } from "@/chats/store.ts";
-import { grantVisualAssets } from "@/constructs/visual-asset-store.ts";
 import { getDb, inTransaction } from "@/db/client.ts";
 import { chats, messages } from "@/db/tables/quests-and-chats.ts";
 import { withAppErrors } from "@/errors/to-app-error.ts";
@@ -92,12 +91,6 @@ async function findOrCreateConversation(
       if (inserted.length === 0) {
         return false;
       }
-      await grantVisualAssets(
-        owner,
-        db,
-        { kind: "adventure", id },
-        { parts: start.construct.definition },
-      );
       return true;
     }),
   );

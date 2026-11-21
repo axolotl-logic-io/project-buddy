@@ -10,7 +10,6 @@ import {
 } from "@/chats/chat-rows.ts";
 import { storedConstructPrompt } from "@/constructs/construct-definition.ts";
 import type { ConstructId, ConstructSnapshot } from "@/constructs/index.ts";
-import { grantVisualAssets } from "@/constructs/visual-asset-store.ts";
 import { inTransaction, type Transaction } from "@/db/client.ts";
 import { chats, messages, quests } from "@/db/tables/quests-and-chats.ts";
 import { AppError } from "@/errors/app-error.ts";
@@ -112,12 +111,6 @@ export function createChat(owner: UserId, chat: NewChat): Promise<Chat> {
           .returning();
       }
       const result = insertedChat(created, chat.quest);
-      await grantVisualAssets(
-        owner,
-        tx,
-        { kind: "adventure", id: result.id },
-        { parts: chat.construct.definition },
-      );
       return result;
     }),
   );
@@ -182,12 +175,6 @@ export function createQuestWithChat(
       role: chat.opening.role,
       parts: chat.opening.parts,
     });
-    await grantVisualAssets(
-      owner,
-      db,
-      { kind: "adventure", id },
-      { parts: chat.construct.definition },
-    );
     return insertedChat(created, { id: questId, name: questName });
   }
   return withAppErrors("createQuestWithChat", () => {

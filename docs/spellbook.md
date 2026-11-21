@@ -28,4 +28,4 @@ Capture validates and saves with the destination's own rules inside the message 
 
 The constructs API lists and reads built-ins only and offers no mutation methods. Spellbook's Forgotten tab reads and writes only kind `spell`, including for direct requests with a legacy construct id.
 
-Legacy custom construct rows in `own_prompts` and their artwork stay stored. Conversation snapshot parsing, artwork delivery, premade quest assignments, Start Day and Undo use their retained definitions.
+Legacy custom construct rows in `own_prompts` stay stored. Conversation snapshot parsing, premade quest assignments, Start Day and Undo use their retained definitions.
