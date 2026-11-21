@@ -1,11 +1,17 @@
 "use client";
 
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { type JSX, useCallback, useEffect, useState } from "react";
 import { TimerPreferences } from "@/components/timer/timer-preferences.tsx";
 import { useTimerPresence } from "@/components/timer/use-timer-presence.ts";
 import { Button } from "@/components/ui/button.tsx";
 import type { TimerPresence } from "@/timer/presence.ts";
-import type { TimerSchedule } from "@/timer/schedule.ts";
+import {
+  TIMER_ONLY_PARAM,
+  TIMER_ONLY_VALUE,
+  type TimerSchedule,
+} from "@/timer/schedule.ts";
 import { TIMER_COPY } from "@/ui/copy/timer.ts";
 
 // How long Copy link shows what became of the copy before it reads Copy
@@ -69,6 +75,19 @@ function CopyLink(): JSX.Element {
   );
 }
 
+// Opens this timer alone, with no header, trail or panels.
+function TimerOnlyLink(): JSX.Element {
+  const pathname = usePathname();
+  const query = new URLSearchParams({ [TIMER_ONLY_PARAM]: TIMER_ONLY_VALUE });
+  return (
+    <Button asChild={true} variant="secondary">
+      <Link href={`${pathname}?${query.toString()}`}>
+        {TIMER_COPY.timerOnlyLink}
+      </Link>
+    </Button>
+  );
+}
+
 // How many others follow schedule, which reports the schedule as the
 // page's presence.
 function OthersFollowing({
@@ -98,6 +117,7 @@ function TimerTrailTools({
       {others}
       <TimerPreferences>
         <CopyLink />
+        <TimerOnlyLink />
       </TimerPreferences>
     </div>
   );

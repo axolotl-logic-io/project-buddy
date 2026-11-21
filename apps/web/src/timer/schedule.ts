@@ -206,3 +206,7 @@ export {
   timerPath,
   timerPhaseAt,
 };
+
+// The query that shows a running timer alone, without the site around it.
+export const TIMER_ONLY_PARAM = "mode";
+export const TIMER_ONLY_VALUE = "focus";

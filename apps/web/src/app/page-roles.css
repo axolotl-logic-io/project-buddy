@@ -2787,3 +2787,10 @@
     @apply flex flex-wrap justify-between gap-2;
   }
 }
+
+/* A running timer opened with ?mode=focus: only the timer shows. */
+@layer components {
+  html:has(.timer-only) .site-header {
+    display: none;
+  }
+}
