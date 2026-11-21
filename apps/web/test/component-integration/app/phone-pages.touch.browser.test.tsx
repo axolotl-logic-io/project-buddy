@@ -3,7 +3,7 @@
 // vitest.config.mts). At 320 and 390 CSS px wide nothing scrolls sideways
 // (1.4.10, Reflow), and every visible control is at least 24×24 CSS px
 // (2.5.8, Target Size (Minimum)). A row of tabs stays one row, and scrolls
-// sideways inside itself if it must (#845). Each page is checked in every theme,
+// sideways inside itself if it must. Each page is checked in every theme,
 // because each theme sets its own spacing and fonts, which move the sizes.
 // The pages are rendered from fixed data, in their layouts and the site's
 // frame (phone-pages-test-kit.tsx), with the site's stylesheet

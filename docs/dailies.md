@@ -39,4 +39,4 @@ The Day grid tab's [day grid](progress-timeline.md#day-grid) shows each recurrin
 
 ## Storage
 
-The `dailies_days` table (`apps/web/src/db/tables/dailies-days.ts`) holds one row per day, with its quest, its date, when it started, its conversation and, once it has ended, its recurring tasks. Each row also keeps what Undo needs: the parked conversation and its spell, the Start Day tasks version and the removed Ideas. Rows are deleted with their quest. `apps/web/src/dailies/day-store.ts` is the only module that reads or writes the table, and a day is open to the quest's owner alone.
+Each day is one row in `dailies_days` (see `apps/web/src/db/tables/dailies-days.ts`), deleted with its quest. A day is open to the quest's owner alone.

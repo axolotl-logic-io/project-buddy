@@ -4,7 +4,7 @@ These docs describe Project Buddy: its scope and operating practices. GitHub iss
 
 ## Product
 
-- [Button system](button-system.md): Letterpress action roles, color vocabulary and control inventory.
+- [Button system](button-system.md): Letterpress action roles, color vocabulary and usage rules.
 
 - [Appearance](appearance.md): the three textured swatches and browser preferences.
 
@@ -33,8 +33,6 @@ These docs describe Project Buddy: its scope and operating practices. GitHub iss
 - [Multi-user quests](multi-user-quests.md): shared quest permissions, accounts created by invitations and acceptance through the Pending tab or invitation links.
 
 ## Practices
-
-- [CLI and API proposal](cli-api-proposal.md): planned commands, JSONL output, shared data access and implementation slices.
 
 - [Project practices](project-practices.md): the design, type, lint, test and secrets rules for every app and tool.
 - [Docs style guide](docs-style-guide.md): how to write these docs.

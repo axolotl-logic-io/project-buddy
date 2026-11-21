@@ -40,7 +40,7 @@ const BOLD = "600";
 // which the app marks with an event. The worst measured was 1192 ms, on a
 // first run with Vite's cache cleared, under 1-minute load averages of 44-76
 // (12 busy loops on 10 cores, beside the machine's other jobs). This is over
-// 3 times that, and under the browser test timeout (#355).
+// 3 times that, and under the browser test timeout.
 const HIGHLIGHTED_RENDER_TIMEOUT_MS = 4000;
 // Waiting for the code to be colored by its syntax.
 const CODE_COLORED: Parameters<typeof expect.poll>[1] = {
