@@ -4,6 +4,7 @@ import { getChat, listMessages } from "@/chats/store.ts";
 import { getConstruct } from "@/constructs/index.ts";
 import { findConversation } from "@/conversations/conversation-store.ts";
 import { startDailies } from "@/conversations/dailies.ts";
+import { dayDate } from "@/dailies/dailies.ts";
 import { changeDayAction } from "@/dailies/day-actions.ts";
 import { readDailiesRecord } from "@/dailies/day-store.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
@@ -158,13 +159,15 @@ test("Dailies Start Day and Undo save records and restore collections without ch
   });
   await changeIdeaAction({ op: "add", questId, text: "Try mint" });
   const oldMessages = await listMessages(her.id, chat.id);
+  // Today on the server's clock, which the action accepts as the day's date.
+  const today = dayDate(undefined, new Date());
 
   expect(
     await changeDayAction({
       op: "start",
       questId,
       chatId: chat.id,
-      localDate: "2026-11-18",
+      localDate: today,
       clearTasks: true,
       clearIdeas: true,
     }),
@@ -174,7 +177,7 @@ test("Dailies Start Day and Undo save records and restore collections without ch
     throw new Error("Start Day did not open the day's workspace");
   }
   expect(await readDailiesRecord(her.id, questId)).toMatchObject({
-    days: [{ date: "2026-11-18" }],
+    days: [{ date: today }],
     undoable: true,
   });
   expect(await listIdeas(her.id, questId)).toEqual([]);

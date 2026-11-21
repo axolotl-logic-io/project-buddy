@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
 import { type JSX, useCallback, useEffect, useState } from "react";
 import { TimerPreferences } from "@/components/timer/timer-preferences.tsx";
 import { useTimerPresence } from "@/components/timer/use-timer-presence.ts";
@@ -11,6 +10,7 @@ import {
   TIMER_ONLY_PARAM,
   TIMER_ONLY_VALUE,
   type TimerSchedule,
+  timerPath,
 } from "@/timer/schedule.ts";
 import { TIMER_COPY } from "@/ui/copy/timer.ts";
 
@@ -76,12 +76,15 @@ function CopyLink(): JSX.Element {
 }
 
 // Opens this timer alone, with no header, trail or panels.
-function TimerOnlyLink(): JSX.Element {
-  const pathname = usePathname();
+function TimerOnlyLink({
+  schedule,
+}: {
+  readonly schedule: TimerSchedule;
+}): JSX.Element {
   const query = new URLSearchParams({ [TIMER_ONLY_PARAM]: TIMER_ONLY_VALUE });
   return (
     <Button asChild={true} variant="secondary">
-      <Link href={`${pathname}?${query.toString()}`}>
+      <Link href={`${timerPath(schedule)}?${query.toString()}`}>
         {TIMER_COPY.timerOnlyLink}
       </Link>
     </Button>
@@ -117,7 +120,7 @@ function TimerTrailTools({
       {others}
       <TimerPreferences>
         <CopyLink />
-        <TimerOnlyLink />
+        <TimerOnlyLink schedule={schedule} />
       </TimerPreferences>
     </div>
   );
