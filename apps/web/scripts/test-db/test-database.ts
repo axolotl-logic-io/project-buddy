@@ -182,25 +182,18 @@ async function dropTestDatabase(database: TestDatabase): Promise<void> {
 }
 
 // Drops and recreates the test database, then applies every migration in
-// migrationsFolder, drizzle/ by default, so it holds that schema and no rows.
-async function resetTestDatabase(
-  database: TestDatabase,
-  migrationsFolder: string = MIGRATIONS_FOLDER,
-): Promise<void> {
+// drizzle/, so it holds the current schema and no rows.
+async function resetTestDatabase(database: TestDatabase): Promise<void> {
   const { name } = checkTestDatabase(database.url);
   await onMaintenanceDatabase(database, async (maintenance) => {
     await maintenance.query(`drop database if exists ${name} with (force)`);
     await maintenance.query(`create database ${name}`);
   });
-  await migrateTestDatabase(database, migrationsFolder);
+  await migrateTestDatabase(database);
 }
 
-// Applies the migrations in migrationsFolder, drizzle/ by default, that the
-// test database doesn't have yet.
-async function migrateTestDatabase(
-  database: TestDatabase,
-  migrationsFolder: string = MIGRATIONS_FOLDER,
-): Promise<void> {
+// Applies the migrations in drizzle/ that the test database doesn't have yet.
+async function migrateTestDatabase(database: TestDatabase): Promise<void> {
   const { url } = checkTestDatabase(database.url);
   const [{ drizzle }, { migrate }] = await Promise.all([
     import("drizzle-orm/node-postgres"),
@@ -208,7 +201,9 @@ async function migrateTestDatabase(
   ]);
   const pool = testPool(url);
   try {
-    await migrate(drizzle({ client: pool }), { migrationsFolder });
+    await migrate(drizzle({ client: pool }), {
+      migrationsFolder: MIGRATIONS_FOLDER,
+    });
   } finally {
     await pool.end();
   }
@@ -219,6 +214,5 @@ export {
   checkTestDatabase,
   checkTestEnvironment,
   dropTestDatabase,
-  migrateTestDatabase,
   resetTestDatabase,
 };
