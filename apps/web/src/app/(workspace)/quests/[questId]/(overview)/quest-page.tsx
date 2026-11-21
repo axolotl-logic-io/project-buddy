@@ -335,10 +335,7 @@ async function questPage(
                     </h2>
                   </div>
                   {conversation !== undefined && (
-                    <ConstructAvatar
-                      construct={conversation.construct}
-                      destination={{ kind: "adventure", id: conversation.id }}
-                    />
+                    <ConstructAvatar construct={conversation.construct} />
                   )}
                 </div>
                 {quest.startingContext !== undefined &&

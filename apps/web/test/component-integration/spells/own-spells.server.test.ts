@@ -15,6 +15,7 @@ import {
   updateSpell,
 } from "@/spells/own-spell-store.ts";
 import { changeQuestSpellAction } from "@/spells/quest-spell-action.ts";
+import { defaultSpellDefinition } from "@/spells/spell-definition.ts";
 import { spellReply } from "@/spells/spell-reply.ts";
 import {
   currentSpell,
@@ -45,11 +46,11 @@ test("use_case_customize_spell", async () => {
   const edited = await updateSpell(user.id, copy.id, {
     name: "Small tasks",
     definition: {
-      destination: "tasks",
-      castReply: "Ready: {{spell}} in {{bucket}}.",
-      savedReply: "Kept {{message}}.",
-      stopReply: "Until next time.",
-      invalidReply: "Try a shorter message.",
+      ...defaultSpellDefinition("tasks"),
+      castReply: ["Ready: {{spell}} in {{bucket}}."],
+      savedReply: ["Kept {{message}}."],
+      stopReply: ["Until next time."],
+      invalidReply: ["Try a shorter message."],
     },
   });
   expect(edited?.definition.destination).toBe("tasks");
@@ -68,7 +69,7 @@ test("use_case_customize_spell", async () => {
   await updateSpell(user.id, copy.id, {
     name: "New ideas",
     definition: {
-      destination: "brainstorm",
+      ...defaultSpellDefinition("brainstorm"),
     },
   });
   expect((await readActiveSpell(user.id, chat))?.name).toBe("Small tasks");
@@ -104,7 +105,9 @@ test("own spells enforce ownership and retirement preserves an active snapshot",
   const other = await testUser();
   const spell = await createSpell(user.id, {
     name: "Possibilities",
-    definition: { destination: "brainstorm" },
+    definition: {
+      ...defaultSpellDefinition("brainstorm"),
+    },
   });
   expect(await getOwnSpell(other.id, spell.id)).toBeUndefined();
   expect(await listOwnSpells(other.id)).toEqual([]);
@@ -128,11 +131,11 @@ test("own spells enforce ownership and retirement preserves an active snapshot",
     spell.id,
   );
 
-  expect(await retireDefinition(other.id, "spell", spell.id)).toBe(false);
+  expect(await retireDefinition(other.id, spell.id)).toBe(false);
   expect(await setSpell(user.id, { chatId: chat.id, spell: spell.id })).toBe(
     true,
   );
-  expect(await retireDefinition(user.id, "spell", spell.id)).toBe(true);
+  expect(await retireDefinition(user.id, spell.id)).toBe(true);
   expect(await getOwnSpell(user.id, spell.id)).toBeUndefined();
   expect(await setSpell(user.id, { chatId: chat.id, spell: spell.id })).toBe(
     false,
@@ -145,7 +148,7 @@ test("own spells enforce ownership and retirement preserves an active snapshot",
   expect((await getOwnSpell(user.id, spell.id))?.definition).toEqual(
     spell.definition,
   );
-  await retireDefinition(user.id, "spell", spell.id);
+  await retireDefinition(user.id, spell.id);
   expect(await deleteRetiredDefinition(user.id, spell.id)).toBe(true);
   expect((await readActiveSpell(user.id, chat))?.definition).toEqual(
     spell.definition,
@@ -160,8 +163,8 @@ test("spells keep capturing messages beyond the former task limit", async () => 
   const spell = await createSpell(user.id, {
     name: "Keep tasks",
     definition: {
-      destination: "tasks",
-      savedReply: "Kept {{message}}.",
+      ...defaultSpellDefinition("tasks"),
+      savedReply: ["Kept {{message}}."],
     },
   });
   await setSpell(user.id, { chatId: chat.id, spell: spell.id });
@@ -186,7 +189,7 @@ test("a saved random reply is reused on retry while a new message can select ano
   const spell = await createSpell(user.id, {
     name: "Varied ideas",
     definition: {
-      destination: "brainstorm",
+      ...defaultSpellDefinition("brainstorm"),
       savedReply: ["First: {{message}}", "Second: {{message}}"],
     },
   });
@@ -223,11 +226,15 @@ test("casting uses case-insensitive owner-scoped names and refuses ids and ambig
   const other = await testUser();
   const own = await createSpell(user.id, {
     name: "Alstorm",
-    definition: { destination: "brainstorm" },
+    definition: {
+      ...defaultSpellDefinition("brainstorm"),
+    },
   });
   await createSpell(other.id, {
     name: "Alstorm",
-    definition: { destination: "tasks" },
+    definition: {
+      ...defaultSpellDefinition("tasks"),
+    },
   });
   await constructReply(chat.id, "/cast aLsToRm");
   expect(await currentSpell(user.id, chat)).toBe(own.id);
@@ -236,14 +243,18 @@ test("casting uses case-insensitive owner-scoped names and refuses ids and ambig
   expect(await currentSpell(user.id, chat)).toBe("tasks");
   await createSpell(user.id, {
     name: "Alstorm",
-    definition: { destination: "tasks" },
+    definition: {
+      ...defaultSpellDefinition("tasks"),
+    },
   });
   const refused = messageText(await constructReply(chat.id, "/cast alstorm"));
   expect(refused).toBe(SPELL_MODE_COPY.ambiguous);
   expect(await currentSpell(user.id, chat)).toBe("tasks");
   const multiword = await createSpell(user.id, {
     name: "Small experiments",
-    definition: { destination: "brainstorm" },
+    definition: {
+      ...defaultSpellDefinition("brainstorm"),
+    },
   });
   await constructReply(chat.id, "/cast SMALL   experiments");
   expect(await currentSpell(user.id, chat)).toBe(multiword.id);

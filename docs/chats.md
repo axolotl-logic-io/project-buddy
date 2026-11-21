@@ -4,13 +4,13 @@
 
 A quest has one continuing conversation (`src/conversations/`), stored as a `chats` row marked `continuing`. A partial unique index allows one per quest, so finding or making one is atomic: concurrent starts reach the same conversation, and only the request that made it writes its opening. Reading a quest's conversation (`readQuestConversation`) never starts one.
 
-A conversation keeps the construct it started with. Casting or stopping a spell changes where subsequent ordinary messages are saved. A reply reads the conversation's newest `CONVERSATION_WINDOW` messages (60, `src/replies/conversation-to-answer.ts`), with the quest's Tasks and newest milestones in its instructions, so a long-running quest never sends its whole history.
+A conversation keeps the construct it started with. Casting or stopping a spell changes where subsequent ordinary messages are saved. A reply reads only the conversation's newest messages (`CONVERSATION_WINDOW` in `src/replies/conversation-to-answer.ts`), with the quest's Tasks and newest milestones in its instructions, so a long-running quest never sends its whole history.
 
 ## Start a quest
 
-On Quests, choose Dailies, Learn a thing, Make a thing or Do a thing to open the shared start form. Each starting point assigns its construct. The starting point supplies the name, starting context and construct. Learn a thing, Make a thing and Do a thing offer an optional Why field; Dailies starts without one. Confirming creates the quest and its one conversation, with the supplied context followed by the construct's opening. Tasks and Ideas start empty, with no active spell.
+On Quests, choose a starting point to open the shared start form. Confirming creates the quest and its one conversation, with the supplied context followed by the construct's opening. Tasks and Ideas start empty, with no active spell. See [Premade quests](premade-quests.md) for the starting points and their constructs.
 
-Failed openings save nothing and keep the form's edits for retry. Cancel, Close and Escape create nothing. Dailies resumes the existing Dailies quest when the user already has one. See [Premade quests](premade-quests.md).
+Failed openings save nothing and keep the form's edits for retry. Cancel, Close and Escape create nothing. Dailies resumes the existing Dailies quest when the user already has one.
 
 ## Quests landing page
 
@@ -18,7 +18,7 @@ Quests (`/quests`) opens after sign-in when no explicit return destination was s
 
 Quests is laid out flush on the page, as Spellbook is: its heading and introduction, then Continue, for the user's current quest, then Start a quest's four tiles, Dailies, Learn a thing, Make a thing and Do a thing, then the user's quests under Active, Completed and Abandoned tabs. Continue names the user's own Active quest whose conversation was most recently active, with its next task, and opens its conversation; with no Active quest it is absent (`src/quests/current-quest-store.ts`). Reading it makes no model call.
 
-The quest list starts with Your quests, then shaped folder tabs with inline count badges. Inactive tab fills let the page texture show through, while the selected tab shares the slightly translucent list surface. The selected tab joins the list's surface. On phones the tabs form two columns so every category stays visible. The list's surface and side rules keep a slight translucency, with 32 px below the last row and a quick fade over the final 16 px, with no bottom border. Compact decorative marks and tighter title leading keep long names readable on phones; the whole row remains the navigation target.
+The quest list starts with Your quests, then folder tabs with inline count badges. The selected tab joins the list's surface. On phones the tabs form two columns so every category stays visible. The whole row is the navigation target.
 
 Quest names lead each row, with sharing markers and dates beneath; the whole row opens its conversation and highlights on hover or keyboard focus. Completed and Abandoned quests keep Restore quest below their names. Pending lists invitations with Accept and Decline; its count describes invitations, not a quest status. Switching tabs keeps the selection in the URL.
 
@@ -32,33 +32,29 @@ Spellbook lists and edits own spells and explains the built-in spells.
 
 The [conversation use cases](../apps/web/use-cases/chats.md) describe quest conversation behavior.
 
-Conversation behavior stays in Vitest. Playwright covers authentication flows only. Server and authentication runs require the non-production test database and file email outbox, guarded by `checkTestEnvironment`; never substitute a production database.
-
 ## Conversation header
 
 A quest's conversation starts below the site header's trail band, without a separate portrait bar. The trail band names the quest and keeps its rename pencil pinned. On the Active Dailies quest, once its conversation has started, the trail band also shows the construct's portrait and name after the breadcrumbs and before the quest-panel control, as a running timer's tools show there; on a phone the portrait alone shows. Choosing it opens the construct's profile. Quest status changes use `/complete`, `/abandon` and `/restore` in the composer. Scroll clearance keeps quest messages below the trail band.
 
 ## Conversation layout
 
-Each user message and its following construct reply share one card. The user message has a slightly translucent tinted surface that lets the page texture show through, with the author's name above the text. The reply continues directly below it, inside the same side borders, with the construct's name and 24 px portrait above its prose. Space separates each exchange. An opening or an unanswered user message has its own complete card; consecutive construct messages continue the same reply card. Consecutive user messages remain separate cards, with the reply joining the latest one.
+Each user message and its following construct reply share one card. The user message has a slightly translucent tinted surface that lets the page texture show through, with the author's name above the text. The reply continues directly below it, inside the same side borders, with the construct's name and portrait above its prose. An opening or an unanswered user message has its own complete card; consecutive construct messages continue the same reply card. Consecutive user messages remain separate cards, with the reply joining the latest one.
 
-Source Serif 4 prose stays at 17 px with a 1.55 line height. User messages and replies have the same inset within the reading width. Long names wrap, and saved images, Markdown, command notes and tool results keep their order. The opening illustration and snapshot artwork remain available.
+User messages and replies have the same inset within the reading width. Long names wrap, and Markdown, command notes and tool results keep their order. The opening illustration and snapshot artwork remain available. Tasks changes use a restrained side rule. Errors retain the shared alert treatment; a stopped reply keeps its explanation and Retry action without a panel frame.
 
-The reading measure is at most 43 rem. Compact message spacing and Markdown paragraph gaps reduce scrolling without shrinking prose or action targets. Tasks changes use a restrained side rule. Errors retain the shared alert treatment; a stopped reply keeps its explanation and Retry action without a panel frame.
-
-The docked composer has a lightly squared field and two initial lines, growing to twelve. The active spell and Stop appear above the conversation. Send and Stop reply keep the shared button styles and 44 px targets. These roles apply through semantic tokens in all three appearances and do not change other page typography or buttons.
+The docked composer starts at two lines and grows with the message. The active spell and Stop appear above the conversation. Send and Stop reply keep the shared button styles and 44 px targets.
 
 ## Message authors
 
-Each user message records its author, the user who sent it, in the nullable column `messages.user_id`. A message with no author recorded belongs to the quest's owner, and the construct's messages never have one. `listMessages` reads every user message with its author in the message's metadata, and `src/chats/message-author.ts` defines the author type.
+Each user message records its author, the user who sent it, in `messages.user_id`. The `messages_user_has_author` check requires an author on every user message. The construct's messages never have one.
 
-An author's name is the name they asked the construct to call them (`src/accounts/user-name.ts`). In the conversation, a user message that someone other than the viewer wrote shows its author's name, or their email address if they have no name, where the viewer's own messages show "You". The author in a message's metadata holds the email address only for an author with no name, so a named author's address never reaches anyone's browser. The name comes before the message, so a screen reader reads it first, and a long name wraps on a phone.
+An author's name is the name they asked the construct to call them. In the conversation, a user message that someone other than the viewer wrote shows its author's name, or their email address if they have no name, where the viewer's own messages show "You". The author in a message's metadata holds the email address only for an author with no name, so a named author's address never reaches anyone's browser. The name comes before the message, so a screen reader reads it first, and a long name wraps on a phone.
 
 When a conversation's user messages have more than one author, the construct needs to know who is speaking. `src/replies/author-names.ts` starts each user turn with a header, a text part of its own, such as `[Message from "Alex"]`. The name is quoted with `JSON.stringify`, and the header is always the turn's first part, so nothing a person types, and no name, can pass for another person's header. Each author also has a label, numbered in the order they first wrote: "person 1", "person 2" and so on. A header adds the label when two authors share a name, ignoring case, and uses the label alone for an author with no name. The construct never receives an email address.
 
-The rules for several people (`SEVERAL_AUTHORS_RULES` in `src/replies/global-prompt.ts`) say that only a turn's header says who wrote it, that a name and a colon inside a message are just what that person typed, and to address people by name. A conversation with one author sends no headers, and the saved messages never hold them. The local engine reads commands after the author header.
+The construct's rules for several people (`SEVERAL_AUTHORS_RULES` in `src/replies/global-prompt.ts`) say that only a turn's header says who wrote it, that a name and a colon inside a message are just what that person typed, and to address people by name. A conversation with one author sends no headers, and the saved messages never hold them. The local engine reads commands after the author header.
 
-The quest's owner and its [members](multi-user-quests.md) can write in its conversation, each as the author of their own messages. A removed member's messages keep their author. Server tests also write other authors' messages directly through the `author` field of the test kit's exchanges (`apps/web/test/support/test-database/data-test-kit.ts`). [`use_case_quest_member_access`](../apps/web/use-cases/quest-members.md#use_case_quest_member_access) covers this behavior.
+The quest's owner and its [members](multi-user-quests.md) can write in its conversation, each as the author of their own messages. A removed member's messages keep their author. [`use_case_quest_member_access`](../apps/web/use-cases/quest-members.md#use_case_quest_member_access) covers this behavior.
 
 ## Following messages
 
@@ -66,7 +62,7 @@ When a saved last message is still receiving a reply in another window, the conv
 
 Opening a conversation or sending a message brings the latest content into view. While the user stays at the bottom, new messages and streamed reply content keep the conversation there. Scrolling up pauses following and preserves the reading position. Returning to the bottom or sending a message resumes following. Scrolling is instant to respect reduced-motion preferences.
 
-On phones, following adapts when the keyboard changes the available space. The composer also moves above a keyboard that shrinks only the visual viewport. The browser tests in `apps/web/test/component-integration/components/chat/chat-scroll.browser.test.tsx` cover these behaviors under `use_case_follow_latest_messages`.
+On phones, following adapts when the keyboard changes the available space. The composer also moves above a keyboard that shrinks only the visual viewport.
 
 ### Scroll ownership
 
@@ -76,11 +72,9 @@ Upward wheel, touch movement or document navigation keys suspend following befor
 
 Input that starts after a keyboard resize invalidates that resize's pending reading position restoration. Input still awaiting its document scroll also prevents restoration, including when it arrives before the resize. Focus blocks automatic resumption independently: it does not invalidate the reading position or bypass the resize scroll guard. Resizing alone never grants permission to follow. All controller movements are instant. While reading, ordinary content layout and anchoring belong to the browser; the controller restores the document position only for keyboard and viewport changes without newer navigation.
 
-Headless viewport tests don't validate a real phone keyboard or touch momentum on physical devices.
+## Drafts
 
-## Images and drafts
-
-The composer accepts text only. Images already saved in a conversation stay visible in their messages. See [Saved images](images.md).
+The composer accepts text only.
 
 Unsent message text is kept in this browser per viewer and conversation until sent. It survives leaving and reopening the conversation. Draft text does not follow the user to another device, and anyone with access to this browser's storage can read it. Clear the composer to discard it on a shared device. Browser storage may be blocked or cleared.
 
@@ -88,11 +82,11 @@ Unsent message text is kept in this browser per viewer and conversation until se
 
 Where the trail band shows the construct's portrait, it opens the saved character's profile, with full artwork and public personality copy. The portrait keeps a full touch target without making the band taller.
 
-Construct messages show a 32px circular portrait beside the construct's name. User messages have no portrait. Reply text keeps the conversation's full width on narrow phones. Artwork uses the conversation's saved construct snapshot, so renaming or editing a source construct does not change existing conversations. Missing or unavailable artwork shows initials; names and compatibility ids never select built-in artwork.
+Construct messages show a circular portrait beside the construct's name. User messages have no portrait. Reply text keeps the conversation's full width on narrow phones. Artwork comes from the conversation's built-in construct. Missing or unavailable artwork shows initials; names and compatibility ids never select built-in artwork.
 
 The first saved message shows a larger illustration when it is a construct opening. It appears once in the conversation, including after reopening or saved-message refreshes. A conversation starting with a user message receives no invented opening. Rendering never requests new artwork or calls a model. The shared visual primitives handle artwork and fallback behavior.
 
-While the construct is thinking or writing, Lumen's portrait gently glows and Vellum's portrait has a subtle working motion. Finish, stop and error settle the portrait. Reduced motion keeps portraits static. Readable thinking or writing status and the message's busy state remain available independently of motion. `construct-presence.browser.test.tsx` covers this behavior with fake streams under `use_case_construct_presence`.
+While the construct is thinking or writing, Lumen's portrait gently glows and Vellum's portrait has a subtle working motion. Finish, stop and error settle the portrait. Reduced motion keeps portraits static. Readable thinking or writing status and the message's busy state remain available independently of motion.
 
 ## Reply control
 
@@ -102,17 +96,19 @@ While a reply runs, Stop reply takes Send's place in the composer dock, so it st
 
 The shared site header (`src/components/site-header.tsx`) has two parts:
 
-- **The bar** is one row holding the brand and, for a signed-in user, the ring of their progress toward the next circle, in the header's ink and gold. The brand is a compass medallion and the site's name, and it leads to Quests. Below 32rem (512 CSS pixels) the brand shows only its medallion, and "Project Buddy" stays its accessible name. The bar scrolls away.
+- **The bar** is one row holding the brand and, for a signed-in user, the ring of their progress toward the next circle, in the header's ink and gold. The brand is a medallion and the site's name, and it leads to Quests. On a phone the brand shows only its medallion, and "Project Buddy" stays its accessible name. The bar scrolls away.
 - **The trail band** sits under the bar's gold rim, as a parchment strip with a line beneath it. It shows the links to the pages above the current one, small and muted, separated by `/`, leading into the current page's name. That name is the page's one `h1`, so pages don't repeat it in their content. The band stays pinned while the page scrolls.
 
 Signed-in pages use a trail band whose heading names the current page. Quests, Spellbook, Profile and Settings are top-level destinations without parent breadcrumbs. Quest details lead from Quests; spell details lead from Spellbook; built-in construct details lead from Quests; forgotten spells lead from Spellbook. Explicit header-slot routes match the site panel's top-level destinations so client navigation replaces the previous header. The detail catch-all resolves names through the acting user's access checks (`src/components/header-breadcrumbs.ts`). Back and forward restore the matching trail. Unknown or inaccessible pages have no breadcrumb text; the row still holds the site-panel control. A page that fails under a band shows its error below the band's heading.
 
-The **site panel** (`src/components/site-panel.tsx`) mirrors the Timer panel on the left. Its expand button, a panel icon, starts the breadcrumb row on the left. The Timer panel's expand button sits at the row's right end. Both expand buttons stay pinned with the breadcrumbs as the brand bar scrolls away. Each panel starts at the breadcrumb row and extends down to the bottom of the screen. The expand and close controls are full-height edge tabs, at least 56 px wide, with larger icons centered beside the breadcrumb text. Their backgrounds match their panels, without dividing lines or rounded floating-button styling. The open panel hides its expand button and puts its close button at the same position, so the controls line up. Docked panels leave a gutter between each panel edge and the breadcrumb content. It holds Quick Note, the **Places** and **You** links for a signed-in user, the Ivory Vellum, Soot & Brass, and Espresso Leather swatches, and Credits; a visitor's has the swatches and Credits only. It opens over the page's left edge and never changes the page's size or flow. From the lg breakpoint (64rem) it docks there, leaving the page in reach, and stays open from page to page and after a reload until the user closes it; this browser's local storage keeps that choice. Narrower, it is a modal drawer over an undimmed page: Escape, its close button, a click beside it or following a link closes it. Opening it from its button moves focus to its close button, and closing it returns focus to its button.
+The **site panel** (`src/components/site-panel.tsx`) mirrors the Timer panel on the left. Its expand button starts the breadcrumb row on the left, and the Timer panel's expand button sits at the row's right end. Both stay pinned with the breadcrumbs as the brand bar scrolls away. Each panel starts at the breadcrumb row and extends to the bottom of the screen. The open panel hides its expand button and puts its close button at the same position.
+
+The site panel holds Quick Note, the **Places** and **You** links for a signed-in user, the Ivory Vellum, Soot & Brass, and Espresso Leather swatches, and Credits; a visitor's has the swatches and Credits only. It opens over the page's left edge and never changes the page's size or flow. From the lg breakpoint (64rem) it docks, leaving the page in reach, and stays open from page to page and after a reload until the user closes it; this browser's local storage keeps that choice. Narrower, it is a modal drawer over an undimmed page: Escape, its close button, a click beside it or following a link closes it. Opening it from its button moves focus to its close button, and closing it returns focus to its button.
 
 When names are long, the parent links shorten first, each with an ellipsis. They keep full 44-pixel touch targets and their whole names as accessible names. The heading keeps its words and wraps to at most two lines. On a phone, a trail with more than one parent leaves out its Quests link, because the medallion leads there.
 
 The quest's rename pencil sits beside its name in the trail band. A page's loading state draws no heading, since the band already shows it, so moving between pages keeps the header's footprint and the content's starting point.
 
-In a long quest conversation, the trail band stays within 112 CSS pixels on phones and 140 on wide screens, even with a two-line heading. Message jumps land below it.
+In a long quest conversation, the trail band stays short, even with a two-line heading, and message jumps land below it.
 
-Spell detail breadcrumbs read Spellbook → name. Built-in construct pages are read-only; historical custom construct detail links are unavailable.
+Spell detail breadcrumbs read Spellbook → name. Built-in construct pages are read-only.

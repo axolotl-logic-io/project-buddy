@@ -1,27 +1,12 @@
-import { SPELL_DEFINITION } from "@/spells/spell-definition.ts";
+import { defaultSpellDefinition } from "@/spells/spell-definition.ts";
 // Stored data for the phone checks (phone-pages-test-kit.tsx), shaped as the
 // stores return it: what each page shows beyond page-fixtures.ts's quests
 // and chats.
 
 import type { SessionUser } from "@/auth/session-token.ts";
-import { getConstruct } from "@/constructs/index.ts";
 import { OWN_PROMPT_ID } from "@/ids.ts";
 import type { OwnSpell } from "@/spells/own-spell-store.ts";
-import {
-  userConstructIdFixture,
-  userIdFixture,
-} from "../../support/id-fixtures.ts";
-import type { OwnConstruct } from "../../support/test-database/historical-construct-test-kit.ts";
-
-// Her clone of Vellum.
-const VELLUM_CLONE: OwnConstruct = {
-  id: userConstructIdFixture("2d3e4f5a-6b7c-4d8e-9f0a-1b2c3d4e5f6a"),
-  name: `${getConstruct("vellum").name} (clone)`,
-  definition: getConstruct("vellum").definition,
-  clonedFrom: "vellum",
-  createdAt: new Date("2026-10-12T09:00:00Z"),
-  updatedAt: new Date("2026-10-12T09:00:00Z"),
-};
+import { userIdFixture } from "../../support/id-fixtures.ts";
 
 // The user a sign-in link that works signs in: a signed-up account, so
 // continuing needs no name.
@@ -34,12 +19,9 @@ const LINK_USER: SessionUser & { readonly needsName: boolean } = {
 const OWN_SPELL: OwnSpell = {
   id: OWN_PROMPT_ID.parse("e17f52de-1234-4123-8123-123456789abc"),
   name: "Small experiments",
-  definition: SPELL_DEFINITION.parse({
-    destination: "brainstorm",
-  }),
-  clonedFrom: "brainstorm",
+  definition: defaultSpellDefinition("brainstorm"),
   createdAt: new Date("2026-11-01T00:00:00Z"),
   updatedAt: new Date("2026-11-01T00:00:00Z"),
 };
 
-export { LINK_USER, OWN_SPELL, VELLUM_CLONE };
+export { LINK_USER, OWN_SPELL };

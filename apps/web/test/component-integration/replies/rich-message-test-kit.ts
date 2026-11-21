@@ -1,4 +1,4 @@
-// Historical rich content exercises the renderer independently of the local command engine.
+// Saved rich content exercises the renderer independently of the local command engine.
 
 function markdownReplyText(): string {
   return [

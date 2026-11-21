@@ -2,7 +2,6 @@ import {
   CONSTRUCT_IDS,
   type Construct,
   type ConstructId,
-  type ConstructSnapshot,
 } from "@/constructs/construct.ts";
 import { lumen } from "@/constructs/lumen.ts";
 import { vellum } from "@/constructs/vellum.ts";
@@ -18,7 +17,6 @@ export type {
   Construct,
   ConstructDefinition,
   ConstructId,
-  ConstructSnapshot,
 } from "@/constructs/construct.ts";
 
 export const DEFAULT_CONSTRUCT_ID: ConstructId = "vellum";
@@ -33,11 +31,4 @@ export function listConstructs(): Construct[] {
 
 export function getConstruct(id: ConstructId): Construct {
   return constructsById[id];
-}
-
-export function snapshotOf({
-  name,
-  definition: parts,
-}: ConstructSnapshot): ConstructSnapshot {
-  return { name, definition: parts };
 }

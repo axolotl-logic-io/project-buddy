@@ -20,44 +20,46 @@ const DEFAULT_SPELL_RESPONSES = {
   invalidReply: "Use 1 to 200 characters for each idea or task.",
 };
 const SPELL_REPLY = z.string().trim().min(1).max(SPELL_REPLY_MAX);
-const SPELL_REPLIES = z
-  .union([
-    SPELL_REPLY,
-    z.array(SPELL_REPLY).min(1).max(SPELL_REPLY_CHOICES_MAX),
-  ])
-  .transform((value): string[] => {
-    if (typeof value === "string") {
-      return [value];
-    }
-    return value;
-  });
+const SPELL_REPLIES = z.array(SPELL_REPLY).min(1).max(SPELL_REPLY_CHOICES_MAX);
 const SPELL_REFERENCE = z.union([SPELL_DESTINATION, OWN_PROMPT_ID]);
 const SPELL_DEFINITION = z.object({
   destination: SPELL_DESTINATION,
-  castReply: SPELL_REPLIES.default([DEFAULT_SPELL_RESPONSES.castReply]),
-  savedReply: SPELL_REPLIES.default([DEFAULT_SPELL_RESPONSES.savedReply]),
-  stopReply: SPELL_REPLIES.default([DEFAULT_SPELL_RESPONSES.stopReply]),
-  invalidReply: SPELL_REPLIES.default([DEFAULT_SPELL_RESPONSES.invalidReply]),
+  castReply: SPELL_REPLIES,
+  savedReply: SPELL_REPLIES,
+  stopReply: SPELL_REPLIES,
+  invalidReply: SPELL_REPLIES,
 });
 const SPELL_SNAPSHOT = z.object({
   id: SPELL_REFERENCE,
   name: z.string().trim().min(1).max(SPELL_NAME_MAX),
   definition: SPELL_DEFINITION,
 });
-type SpellDefinitionInput = z.input<typeof SPELL_DEFINITION>;
 type SpellDefinition = z.infer<typeof SPELL_DEFINITION>;
 type SpellReference = z.infer<typeof SPELL_REFERENCE>;
 type SpellSnapshot = z.infer<typeof SPELL_SNAPSHOT>;
 
+// A spell that saves to destination, with the default replies.
+function defaultSpellDefinition(
+  destination: SpellDefinition["destination"],
+): SpellDefinition {
+  return {
+    destination,
+    castReply: [DEFAULT_SPELL_RESPONSES.castReply],
+    savedReply: [DEFAULT_SPELL_RESPONSES.savedReply],
+    stopReply: [DEFAULT_SPELL_RESPONSES.stopReply],
+    invalidReply: [DEFAULT_SPELL_RESPONSES.invalidReply],
+  };
+}
+
 export type {
   SpellDefinition,
-  SpellDefinitionInput,
   SpellReference,
   SpellResponseKey,
   SpellSnapshot,
 };
 export {
   DEFAULT_SPELL_RESPONSES,
+  defaultSpellDefinition,
   SPELL_DEFINITION,
   SPELL_NAME_MAX,
   SPELL_REFERENCE,

@@ -7,7 +7,7 @@
 // brand at least WCAG 2.5.8's minimum (24 px), and nothing scrolls
 // sideways. The open panel, on the left under the header, fits the
 // narrowest phone, with every link a target's height. On a wide screen the
-// panel docks over the page, which keeps its size and flow (#999).
+// panel docks over the page, which keeps its size and flow.
 // The header is laid out by width alone (no pointer media query in src/),
 // so the test's viewport stands in for the phone. The theme fonts are
 // loaded, since the site's name's width depends on them. The trail band
@@ -512,7 +512,7 @@ describe("the site panel", () => {
 });
 
 const LONG_NAME_REPEATS = 20;
-const LONG_NAME = "Long quest and adventure name ".repeat(LONG_NAME_REPEATS);
+const LONG_NAME = "Long quest and conversation name ".repeat(LONG_NAME_REPEATS);
 // Enough lines of page to scroll the header away, on any screen.
 const SCROLL_LINES = Array.from({ length: 200 }, (_, line) => `Line ${line}`);
 const QUESTS: Breadcrumb = { label: QUESTS_COPY.heading, href: "/quests" };

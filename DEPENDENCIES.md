@@ -7,23 +7,23 @@ every severity.
 
 ## Vercel CLI
 
-`apps/web/package.json` pins Vercel 65.16.0. It still pins vulnerable transitive
-packages, so the root `package.json` scopes security overrides to **Vercel's
+Vercel's CLI, pinned in `apps/web/package.json`, pins vulnerable transitive
+packages. The root `package.json` scopes security overrides to **Vercel's
 subtree**, not to the site's runtime or the other apps.
 
 | Dependency | Replacement | Reason |
 | --- | --- | --- |
-| `@vercel/cli-config` | 0.4.0 | Replace 0.3.1, which `@vercel/blob` and `@vercel/sandbox` reach through older `@vercel/oidc` pins, with the release Vercel's CLI uses. It only adds exports and depends on a patched zod. |
-| `@vercel/nft` | 1.11.5 | Move file tracing to glob 14, which fixes the AbortSignal traversal bypass and uses minimatch 11. Vercel pins 1.10.0, which uses glob 13. |
-| `ajv` | 8.20.0 | Fix the `$data` regular-expression denial of service. |
-| Vulnerable `esbuild` 0.27/0.28 releases | 0.28.2 | Fix the Windows development-server file disclosure; leave unaffected pins alone. |
-| `js-yaml` | 4.3.2 | Fix YAML merge/alias denial-of-service cases without moving to v5. |
-| `minimatch` 7 to 11.0.0 | 11.0.9 | Fix pathological wildcard, extglob and globparts matching. No 10.x release fixes the globparts case. The one direct caller, `@vercel/python-analysis`, uses `match()`, which v11 keeps. |
-| `path-to-regexp` v6 / v8 | 6.3.0 / 8.4.2 | Fix routing regular-expression denial of service while preserving each consumer's major API. |
-| `smol-toml` | 1.9.1 | Fix malformed-input and long-comment denial of service. |
-| `tar` | 7.5.23 | Fix archive parser denial of service and header interpretation issues. |
-| `undici` below 6.29.1 | 6.29.1 | Fix HTTP, cookie and WebSocket vulnerabilities, and drop the vulnerable `@fastify/busboy` that undici 5 bundles. This crosses v5 to v6 because the old pins have no complete backport. Unaffected v6/v7/v8 consumers keep their versions. |
-| `zod` below 4.6.6 | 4.6.7 | Fix memory exhaustion while validating large arrays. Every zod 3 release is affected. `@vercel/backends` and `@vercel/python-analysis` pin zod 3.22.4, and their schemas use only APIs that zod 4 keeps, including the one-argument `z.record()`. |
+| `@vercel/cli-config` | 0.4.0 | The release Vercel's CLI uses, in place of 0.3.1, which `@vercel/blob` and `@vercel/sandbox` reach through older `@vercel/oidc` pins. It only adds exports and depends on a patched zod. |
+| `@vercel/nft` | 1.11.5 | Uses glob 14, which fixes the AbortSignal traversal bypass, and minimatch 11. |
+| `ajv` | 8.20.0 | Fixes the `$data` regular-expression denial of service. |
+| Vulnerable `esbuild` 0.27/0.28 releases | 0.28.2 | Fixes the Windows development-server file disclosure; unaffected pins stay as they are. |
+| `js-yaml` | 4.3.2 | Fixes YAML merge/alias denial-of-service cases without moving to v5. |
+| `minimatch` 7 to 11.0.0 | 11.0.9 | Fixes pathological wildcard, extglob and globparts matching. No 10.x release fixes the globparts case. The one direct caller, `@vercel/python-analysis`, uses `match()`, which v11 keeps. |
+| `path-to-regexp` v6 / v8 | 6.3.0 / 8.4.2 | Fixes routing regular-expression denial of service while preserving each consumer's major API. |
+| `smol-toml` | 1.9.1 | Fixes malformed-input and long-comment denial of service. |
+| `tar` | 7.5.23 | Fixes archive parser denial of service and header interpretation issues. |
+| `undici` below 6.29.1 | 6.29.1 | Fixes HTTP, cookie and WebSocket vulnerabilities and drops the vulnerable `@fastify/busboy` that undici 5 bundles. It crosses v5 to v6 because the old pins have no complete backport. Unaffected v6/v7/v8 consumers keep their versions. |
+| `zod` below 4.6.6 | 4.6.7 | Fixes memory exhaustion while validating large arrays. Every zod 3 release is affected. `@vercel/backends` and `@vercel/python-analysis` pin zod 3.22.4, and their schemas use only APIs that zod 4 keeps, including the one-argument `z.record()`. |
 
 The compatibility-sensitive replacements are `undici`, `zod`, `minimatch` and
 `@vercel/nft`. When changing them, resolve the dependencies from Vercel's own

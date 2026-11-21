@@ -1,17 +1,14 @@
 import type { EnrichedPartState, PartState } from "@assistant-ui/react";
 import type { ComponentType } from "react";
 import { CastSpellPart } from "@/components/chat/cast-spell-part.tsx";
-import { GeneratedImagePart } from "@/components/chat/generated-image-part.tsx";
 import { MilestonePart } from "@/components/chat/milestone-part.tsx";
 import { QuestStatusPart } from "@/components/chat/quest-status-part.tsx";
 import { TasksChangeToolPart } from "@/components/chat/tasks-change-part.tsx";
-import { GENERATE_IMAGE_TOOL } from "@/images/generation-contract.ts";
 import { CHANGE_TASKS_TOOL } from "@/replies/tools/change-tasks-contract.ts";
 import { QUEST_STATUS_TOOL } from "@/replies/tools/quest-status-contract.ts";
 import { RECORD_MILESTONE_TOOL } from "@/replies/tools/record-milestone-contract.ts";
 import { CAST_SPELL_TOOL } from "@/spells/cast-spell-contract.ts";
 import { TOOL_FAILURES_COPY } from "@/ui/copy/chat.ts";
-import { GENERATION_COPY } from "@/ui/copy/generation.ts";
 
 type ToolCallPart = Extract<EnrichedPartState, { type: "tool-call" }>;
 
@@ -59,15 +56,6 @@ const TOOL_PARTS: ReadonlyMap<string, ToolPart> = new Map([
     {
       component: QuestStatusPart,
       failure: TOOL_FAILURES_COPY.questStatus,
-      placement: "inline",
-      textBefore: "prose",
-    },
-  ],
-  [
-    GENERATE_IMAGE_TOOL,
-    {
-      component: GeneratedImagePart,
-      failure: GENERATION_COPY.failed,
       placement: "inline",
       textBefore: "prose",
     },

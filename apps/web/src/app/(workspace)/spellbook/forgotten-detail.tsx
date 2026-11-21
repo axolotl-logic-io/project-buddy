@@ -13,7 +13,7 @@ function ForgottenSpellDetail({
   return (
     <>
       <p className="text-muted">
-        {RETIREMENT_COPY.kind[definition.kind]}
+        {RETIREMENT_COPY.kind}
         {RETIREMENT_COPY.separator}
         {RETIREMENT_COPY.dateLabel}{" "}
         <LocalTime dateTime={definition.retiredAt} detail="day" />

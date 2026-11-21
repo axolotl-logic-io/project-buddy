@@ -23,7 +23,7 @@ function ForgottenSpellControls({
   const confirm = useCallback((): void => {
     formRef.current?.requestSubmit();
   }, []);
-  const description = RETIREMENT_COPY.deleteDescription(definition.kind);
+  const description = RETIREMENT_COPY.deleteDescription;
   return (
     <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
       <form action={restoreDefinitionAction}>

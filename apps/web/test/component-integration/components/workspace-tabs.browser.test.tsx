@@ -48,7 +48,7 @@ test("keyboard section changes retain a draft and hide inactive controls", async
 });
 
 // Radix focuses a tab from script on a click, which browsers ring like
-// keyboard focus (#875). Keyboard focus keeps its ring, also after a click.
+// keyboard focus. Keyboard focus keeps its ring, also after a click.
 test("a clicked tab shows no focus ring, and a tab reached by keyboard does", async () => {
   applyTheme("parchment");
   await render(

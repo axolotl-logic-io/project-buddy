@@ -733,7 +733,7 @@
 
   /* A list whose items are rows divided by rules rather than cards, as the
      Quests index lists its quests: a quest's milestones, its Quick Notes,
-     and every other list of adventures. Inside
+     and every other list of conversations. Inside
      a framed workspace, a card for each item would stack a second layer of
      borders. */
   .divided-rows {
@@ -1486,7 +1486,7 @@
   }
 
   /* A row of tabs: the shared workspace tabs, a quest's sections and an
-     adventure's. It stays one row, and on a narrow screen scrolls sideways
+     conversation's. It stays one row, and on a narrow screen scrolls sideways
      inside itself rather than wrapping. Where tabs lie past an edge, that
      edge fades (scroll-driven, where the browser supports it), so the row
      shows there is more of it. A focused tab scrolls clear of the fade. The
@@ -2277,9 +2277,9 @@
     @apply font-heading text-foreground text-xl;
   }
 
-  /* A tasks change in an adventure (src/components/chat/tasks-change-part.tsx):
+  /* A tasks change in a conversation (src/components/chat/tasks-change-part.tsx):
      what the construct or a person changed, set apart from the words around
-     it as the adventure's other notes are (.card), with Undo. */
+     it as the conversation's other notes are (.card), with Undo. */
   .tasks-change {
     @apply flex flex-col gap-2 rounded-box border border-line bg-surface/70 px-4 py-3 text-sm shadow-control;
   }
@@ -2484,11 +2484,11 @@
     @apply max-w-none;
   }
 
-  .adventure-layout {
+  .conversation-layout {
     @apply flex min-w-0 flex-1 flex-col;
   }
 
-  .adventure-main {
+  .conversation-main {
     @apply mx-auto flex w-full min-w-0 max-w-3xl flex-1 flex-col gap-8;
   }
 
@@ -2735,7 +2735,7 @@
 
   @media (width >= --theme(--breakpoint-lg)) {
     /* Reserve the default dock before the browser hydrates the dialog. */
-    .adventure-layout:is(
+    .conversation-layout:is(
         [data-sidebar-open="true"],
         [data-sidebar-open="auto"]
       ) {

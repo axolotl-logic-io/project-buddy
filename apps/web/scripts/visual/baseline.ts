@@ -1,5 +1,5 @@
-// `mise run visual-baseline`: measures the site before the theme redesign,
-// so its effect can be compared. For each view in views.ts marked measure,
+// `mise run visual-baseline`: measures the site so runs can be compared.
+// For each view in views.ts marked measure,
 // in each appearance at each width, it loads the page in a fresh browser and
 // records the bytes transferred by kind, the font files, Largest Contentful
 // Paint and Cumulative Layout Shift, and scans it with axe. It brings every

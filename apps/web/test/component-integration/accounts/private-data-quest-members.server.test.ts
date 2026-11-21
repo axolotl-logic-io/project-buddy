@@ -40,8 +40,6 @@ describe("use_case_quest_member_access", () => {
       conversation: quest.chat.id,
       chat: quest.chat.id,
       messages: EXCHANGE_MESSAGES,
-      image: "image/png",
-      generation: quest.generationId,
       spell: "tasks",
     });
     expect(await writesBy(quest.member, quest)).toEqual(ALL_TAKEN);

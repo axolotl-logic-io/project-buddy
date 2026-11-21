@@ -1,4 +1,4 @@
-/* The built-in constructs' drawings (artwork/lumen-v2.tsx, vellum-v2.tsx).
+/* The built-in constructs' drawings (artwork/lumen.tsx, vellum.tsx).
    No shape names a colour: each carries a fill class (f-*), a stroke class
    (s-*) or a gradient stop class (st-*), and this file paints the classes
    with the appearance's --construct-* tokens (src/themes/themes.ts).

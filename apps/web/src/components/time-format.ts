@@ -7,7 +7,7 @@ type TimeDetail = "day" | "minute";
 
 // The day and the hour are zero-padded and every month is three letters, so a
 // time of each detail is always as long: the server's UTC placeholder and the
-// browser's local time have the same length (#58). The day and the clock are
+// browser's local time have the same length. The day and the clock are
 // written apart and joined with a comma, because engines join them
 // differently: WebKit writes "Oct 12, 2026 at 08:16 PM".
 const DAY_FORMAT: Intl.DateTimeFormatOptions = {

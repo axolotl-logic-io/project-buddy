@@ -42,9 +42,7 @@ interface QuestRow {
   readonly startingContext: string | null;
 }
 
-// The columns a quest is read from. Select only the fields this store
-// uses, so a later release can drop retired columns while this build is
-// still live.
+// The columns a quest is read from: only the fields this store uses.
 const QUEST_COLUMNS: {
   readonly startingContext: typeof quests.startingContext;
   readonly status: typeof quests.status;

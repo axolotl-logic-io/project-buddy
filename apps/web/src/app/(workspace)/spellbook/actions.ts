@@ -11,6 +11,7 @@ import {
   updateSpell,
 } from "@/spells/own-spell-store.ts";
 import {
+  defaultSpellDefinition,
   SPELL_DEFINITION,
   SPELL_NAME_MAX,
   SPELL_REPLIES,
@@ -45,7 +46,7 @@ async function newSpellAction(): Promise<never> {
   const user = await requireUser();
   const spell = await createSpell(user.id, {
     name: SPELLBOOK_COPY.newName,
-    definition: { destination: "brainstorm" },
+    definition: defaultSpellDefinition("brainstorm"),
   });
   redirect(`/spellbook/${spell.id}`);
 }
@@ -80,12 +81,7 @@ async function saveSpellAction(formData: FormData): Promise<never> {
 async function retireSpellAction(formData: FormData): Promise<never> {
   const user = await requireUser();
   const form = ID_FORM.safeParse(Object.fromEntries(formData));
-  if (
-    !(
-      form.success &&
-      (await retireDefinition(user.id, "spell", form.data.spellId))
-    )
-  ) {
+  if (!(form.success && (await retireDefinition(user.id, form.data.spellId)))) {
     notFound();
   }
   revalidatePath("/", "layout");

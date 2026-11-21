@@ -1,6 +1,6 @@
-// The commands an adventure's composer offers (src/tasks/tasks-commands.ts):
+// The commands a conversation's composer offers (src/tasks/tasks-commands.ts):
 // what the list under "/" shows, and how a command runs, without the
-// construct. The adventure gives them to its composer through
+// construct. The conversation gives them to its composer through
 // ChatCommandsContext; a composer without them sends every message.
 import { createContext } from "react";
 
