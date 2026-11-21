@@ -2,35 +2,24 @@ import { describe, expect, test } from "vitest";
 import { page, userEvent } from "vitest/browser";
 import { render } from "vitest-browser-react";
 import { ConstructHeader } from "@/components/constructs/construct-header.tsx";
-import type { ConstructSnapshot } from "@/constructs/construct.ts";
 import { getConstruct } from "@/constructs/index.ts";
 import { CONSTRUCT_DISCOVERY_COPY } from "@/ui/copy/construct-discovery.ts";
 import { tabForward } from "../../../support/keyboard-test-kit.ts";
 import { NARROWEST_VIEWPORT, setViewport } from "../../viewports-test-kit.ts";
 
-const PRIVATE_TEXT = "Private instructions that must stay hidden";
-const OWN: ConstructSnapshot = {
-  name: "Lumen",
-  definition: {
-    prompt: PRIVATE_TEXT,
-    visual: { version: 1, description: PRIVATE_TEXT },
-  },
-};
-
 describe("use_case_view_character_profile", () => {
-  test("keyboard opens the saved character, traps focus and returns it on Escape and close", async () => {
-    const snapshot = { ...getConstruct("vellum"), name: "Old Mapmaker" };
-    await render(<ConstructHeader construct={snapshot} />);
-    const trigger = page.getByRole("button", { name: "About Old Mapmaker" });
+  test("keyboard opens the character, traps focus and returns it on Escape and close", async () => {
+    await render(<ConstructHeader construct={getConstruct("vellum")} />);
+    const trigger = page.getByRole("button", { name: "About Vellum" });
     trigger.element().focus();
     await userEvent.keyboard("{Enter}");
-    const dialog = page.getByRole("dialog", { name: "Old Mapmaker" });
+    const dialog = page.getByRole("dialog", { name: "Vellum" });
     await expect.element(dialog).toBeVisible();
     await expect
       .element(page.getByText(CONSTRUCT_DISCOVERY_COPY.vellum.approach))
       .toBeVisible();
     const portrait = dialog
-      .getByText("OM", { exact: true })
+      .getByText("V", { exact: true })
       .element().parentElement;
     expect(portrait?.querySelector("svg")).toBeInstanceOf(SVGSVGElement);
     await tabForward();
@@ -43,26 +32,6 @@ describe("use_case_view_character_profile", () => {
       .getByRole("button", { name: CONSTRUCT_DISCOVERY_COPY.closeProfile })
       .click();
     await expect.element(trigger).toHaveFocus();
-  });
-
-  test("own and legacy identities keep their name and initials without private instructions or inferred personality", async () => {
-    await render(<ConstructHeader construct={OWN} />);
-    await page.getByRole("button", { name: "About Lumen" }).click();
-    await expect
-      .element(page.getByRole("dialog", { name: "Lumen" }))
-      .toBeVisible();
-    await expect
-      .element(page.getByText(CONSTRUCT_DISCOVERY_COPY.own.approach))
-      .toBeVisible();
-    await expect.element(page.getByText(PRIVATE_TEXT)).not.toBeInTheDocument();
-    await expect
-      .element(page.getByText(CONSTRUCT_DISCOVERY_COPY.lumen.temperament))
-      .not.toBeInTheDocument();
-    const initials = page.getByRole("dialog").getByText("L", { exact: true });
-    await expect.element(initials).toBeVisible();
-    expect(
-      initials.element().parentElement?.querySelector("img, svg"),
-    ).toBeNull();
   });
 
   test("the profile fits a 320px phone, and closing leaves the composer usable", async () => {

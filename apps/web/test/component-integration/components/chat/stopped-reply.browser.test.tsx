@@ -12,6 +12,7 @@ import { render } from "vitest-browser-react";
 import type { ChatMessage } from "@/chats/message-author.ts";
 import { ChatScreen } from "@/components/chat-screen.tsx";
 import { ChatView } from "@/components/chat-view.tsx";
+import { getConstruct } from "@/constructs/index.ts";
 import { stopReplyAction } from "@/replies/stop-reply-action.ts";
 import { CHAT_COPY } from "@/ui/copy/chat.ts";
 import {
@@ -95,7 +96,7 @@ describe("use_case_reply_fails", () => {
       <ChatView
         questId={questIdFixture()}
         viewer={userIdFixture()}
-        constructName="Vellum"
+        construct={getConstruct("vellum")}
         chatId={chatIdFixture()}
         initialMessages={[STOPPED]}
         stoppedReplyId={STOPPED.id}
@@ -165,7 +166,7 @@ describe("use_case_reply_fails", () => {
       <ChatView
         questId={questIdFixture()}
         viewer={userIdFixture()}
-        constructName="Vellum"
+        construct={getConstruct("vellum")}
         chatId={chatIdFixture()}
         initialMessages={[STOPPED]}
         stoppedReplyId={undefined}
@@ -217,7 +218,7 @@ describe("use_case_stop_reply", () => {
         <ChatView
           questId={questIdFixture()}
           viewer={userIdFixture()}
-          constructName="Vellum"
+          construct={getConstruct("vellum")}
           chatId={chatId}
           initialMessages={[STOPPED]}
           stoppedReplyId={STOPPED.id}

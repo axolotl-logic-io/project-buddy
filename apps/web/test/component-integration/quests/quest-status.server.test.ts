@@ -239,7 +239,6 @@ describe("quest status proposal contract", () => {
           toolCallId: "status",
           messages: [],
           context: {
-            construct: chat.construct,
             answeredId: newMessageId(),
             actingUser: user.id,
             chatId: chat.id,

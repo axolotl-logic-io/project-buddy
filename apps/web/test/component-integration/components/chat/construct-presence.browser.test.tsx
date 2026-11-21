@@ -7,7 +7,7 @@ import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { page } from "vitest/browser";
 import { render } from "vitest-browser-react";
 import { ChatView } from "@/components/chat-view.tsx";
-import type { ConstructSnapshot } from "@/constructs/construct.ts";
+import type { Construct } from "@/constructs/construct.ts";
 import { getConstruct } from "@/constructs/index.ts";
 import { CHAT_COPY } from "@/ui/copy/chat.ts";
 import {
@@ -38,15 +38,7 @@ const ANSWER: UIMessage = {
   parts: [{ type: "text", text: "Take one small step." }],
 };
 const HISTORY: UIMessage[] = [OPENING, QUESTION, ANSWER];
-const LEGACY: ConstructSnapshot = {
-  name: "Lumen",
-  definition: { prompt: "An own construct, renamed." },
-};
-const OWN: ConstructSnapshot = {
-  name: "Paper Bird",
-  definition: { prompt: "An own construct." },
-};
-const CONSTRUCT_NAME = /Lumen|Vellum|Paper Bird/u;
+const CONSTRUCT_NAME = /Lumen|Vellum/u;
 const LAPTOP_WIDTH = 1280;
 const LAPTOP_HEIGHT = 900;
 const AVATAR_SIZE = 24;
@@ -54,7 +46,7 @@ const PHONE_WIDTH = 320;
 const PHONE_HEIGHT = 700;
 
 function view(
-  construct: ConstructSnapshot,
+  construct: Construct,
   messages: UIMessage[] = HISTORY,
 ): React.JSX.Element {
   return (
@@ -62,7 +54,6 @@ function view(
       questId={questIdFixture()}
       viewer={VIEWER}
       chatId={ADVENTURE_ID}
-      constructName={construct.name}
       construct={construct}
       initialMessages={messages}
     />
@@ -235,22 +226,7 @@ describe("use_case_construct_presence", () => {
     }
   }
 
-  for (const construct of [OWN, LEGACY]) {
-    test(`${construct.name} without snapshot art uses initials without borrowing built-in identity`, async () => {
-      await render(view(construct));
-      expect(opening().textContent).toBe(
-        construct.name
-          .split(" ")
-          .map((word) => word[0])
-          .join(""),
-      );
-      expect(
-        portraitFor("Take one small step.").querySelector("img, svg"),
-      ).toBeNull();
-    });
-  }
-
-  test("legacy history starting with a user never treats a later reply as an opening", async () => {
+  test("a history starting with a user message never treats a later reply as an opening", async () => {
     await render(view(getConstruct("lumen"), [QUESTION, ANSWER]));
     expect(page.getByRole("img").elements()).toHaveLength(0);
     expect(

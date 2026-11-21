@@ -3,7 +3,7 @@
 import { type MessageRuntimeState, ThreadPrimitive } from "@assistant-ui/react";
 import { type JSX, memo, type ReactNode, useCallback } from "react";
 import { ChatMessage } from "@/components/chat/chat-message.tsx";
-import type { ConstructSnapshot } from "@/constructs/construct.ts";
+import type { Construct } from "@/constructs/construct.ts";
 
 // The complete, server-rendered history. Composer updates need not render
 // this list again when its message presentation has not changed.
@@ -13,7 +13,7 @@ function ChatHistoryContent({
   authorNames,
   progressAllowed,
 }: {
-  readonly construct: ConstructSnapshot;
+  readonly construct: Construct;
   readonly openingMessageId?: string | undefined;
   readonly authorNames: ReadonlyMap<string, string>;
   readonly progressAllowed: boolean;

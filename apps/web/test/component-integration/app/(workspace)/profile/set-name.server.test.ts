@@ -2,6 +2,7 @@ import { expect, test, vi } from "vitest";
 import { readUserName } from "@/accounts/users-store.ts";
 import { setNameAction } from "@/app/(workspace)/profile/actions.ts";
 import { createSpell } from "@/spells/own-spell-store.ts";
+import { defaultSpellDefinition } from "@/spells/spell-definition.ts";
 import { setSpell } from "@/spells/spell-store.ts";
 import { ACCOUNT_COPY } from "@/ui/copy/account.ts";
 import { testData } from "../../../../support/test-database/data-test-kit.ts";
@@ -22,7 +23,10 @@ test("use_case_set_name", async () => {
   const chat = await data.chat(quest);
   const spell = await createSpell(user.id, {
     name: "Named replies",
-    definition: { destination: "brainstorm", savedReply: "Hi {{name}}" },
+    definition: {
+      ...defaultSpellDefinition("brainstorm"),
+      savedReply: ["Hi {{name}}"],
+    },
   });
   await setSpell(user.id, { chatId: chat.id, spell: spell.id });
   await signIn(user);

@@ -6,7 +6,6 @@ import { startQuestAction } from "@/app/(workspace)/quests/actions.ts";
 import { readQuestConversation } from "@/conversations/start-quest.ts";
 import type { UserId } from "@/ids.ts";
 import { listQuests, type Quest } from "@/quests/store.ts";
-import { testData } from "../../support/test-database/data-test-kit.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
 import { formOf } from "../test-database/chat-test-kit.ts";
 import { expectRedirect } from "../test-database/navigation-test-kit.ts";
@@ -38,12 +37,11 @@ async function startedQuest(
 describe("a construct's start action", () => {
   test("a premade quest uses its predetermined construct despite a submitted override", async () => {
     const user = await testUser();
-    const own = await testData(user).editedConstruct();
     await signIn(user);
 
     const quest = await startedQuest(user.id, {
       premadeId: "do",
-      constructId: own.id,
+      constructId: "vellum",
     });
 
     const conversation = await readQuestConversation(user.id, quest.id);

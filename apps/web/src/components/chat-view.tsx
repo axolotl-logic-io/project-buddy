@@ -45,7 +45,7 @@ import {
 import { Button } from "@/components/ui/button.tsx";
 import { Notice } from "@/components/ui/form-message.tsx";
 import type { QuestActionResult } from "@/components/use-quest-action.ts";
-import type { ConstructSnapshot } from "@/constructs/construct.ts";
+import type { Construct } from "@/constructs/construct.ts";
 import { type DailiesDay, todayHere } from "@/dailies/dailies.ts";
 import { reloadForNewerBuild } from "@/errors/newer-build-reload.ts";
 import type { ChatId, QuestId, UserId } from "@/ids.ts";
@@ -498,7 +498,6 @@ function tasksDisabledNote({
 function ChatView({
   chatId,
   viewer,
-  constructName,
   construct,
   initialMessages,
   stoppedReplyId,
@@ -524,8 +523,7 @@ function ChatView({
   initialSection?: string | undefined;
   chatId: ChatId;
   viewer: UserId;
-  constructName: string;
-  construct?: ConstructSnapshot | undefined;
+  construct: Construct;
   initialMessages: UIMessage[];
   stoppedReplyId?: string | undefined;
   authorNames?: ReadonlyMap<string, string>;
@@ -573,7 +571,7 @@ function ChatView({
     chatId,
     initialState: initialTasks,
     disabledNote: tasksDisabledNote({
-      constructName,
+      constructName: construct.name,
       busy,
       replyStopped,
       error: shownError,
@@ -638,16 +636,14 @@ function ChatView({
     <>
       {replyingElsewhere === true && (
         <Notice role="status">
-          {CHAT_COPY.replyingElsewhere(constructName)}
+          {CHAT_COPY.replyingElsewhere(construct.name)}
         </Notice>
       )}
       <ChatThread
         error={shownError}
         replyStopped={replyStopped}
         onRetry={retryReply}
-        construct={
-          construct ?? { name: constructName, definition: { prompt: "" } }
-        }
+        construct={construct}
         openingMessageId={openingMessageId}
         authorNames={authorNames}
         stop={replyStop}

@@ -23,5 +23,3 @@ Only the spell's owner can read or change it. Restore and delete return to the F
 The shared `own_prompts` table has a nullable `retired_at` column. Active reads and edits require it to be null. Forgotten spell reads and permanent deletion require it to be set. Forgetting twice preserves the first date; restoring clears it. Ownership predicates scope every query.
 
 Dates use the browser’s local day.
-
-Legacy custom construct records are excluded. Their ids cannot be restored or deleted through these actions.

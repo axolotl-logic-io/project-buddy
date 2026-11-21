@@ -8,7 +8,7 @@ import {
 } from "@/components/constructs/construct-visual.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { Icon } from "@/components/ui/icon.tsx";
-import type { ConstructSnapshot } from "@/constructs/construct.ts";
+import type { Construct } from "@/constructs/construct.ts";
 import {
   CONSTRUCT_DISCOVERY_COPY,
   constructPersonality,
@@ -16,7 +16,7 @@ import {
 
 interface ConstructHeaderProps {
   /** The conversation's saved identity, including its visual metadata. */
-  readonly construct: ConstructSnapshot;
+  readonly construct: Construct;
   /** The surrounding conversation heading already names the construct. */
   readonly compact?: boolean;
 }

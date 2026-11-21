@@ -79,13 +79,7 @@ async function findOrCreateConversation(
     inTransaction(async (db) => {
       const inserted = await db
         .insert(chats)
-        .select(
-          newChatRow(
-            owner,
-            { quest, construct: start.construct, continuing: true },
-            id,
-          ),
-        )
+        .select(newChatRow(owner, { quest, construct: start.construct }, id))
         .onConflictDoNothing()
         .returning({ id: chats.id });
       if (inserted.length === 0) {

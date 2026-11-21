@@ -1,17 +1,10 @@
-import type { ConstructSnapshot } from "@/constructs/construct.ts";
-import { getConstruct } from "@/constructs/index.ts";
+import type { Construct } from "@/constructs/construct.ts";
 
 const CONSTRUCT_DISCOVERY_COPY = {
   openProfile: (name: string): string => `About ${name}`,
   closeProfile: "Close character profile",
   temperament: "Temperament",
   approach: "Approach to quests",
-  own: {
-    temperament: "A construct of your own, with its saved name and appearance.",
-    approach:
-      "Explore ideas, ask questions and work through your next step together.",
-    sample: "Where would you like to begin?",
-  },
   vellum: {
     temperament:
       "Calm, patient and precise, with a warm curiosity for what lies ahead.",
@@ -30,27 +23,11 @@ const CONSTRUCT_DISCOVERY_COPY = {
   },
 };
 
-// Public character copy follows explicit artwork identity, never a private
-// prompt, visual description, source id or a name that happens to match.
+// Each built-in construct's public character copy.
 function constructPersonality(
-  construct: ConstructSnapshot,
-): typeof CONSTRUCT_DISCOVERY_COPY.own {
-  const asset = construct.definition.visual?.canonical;
-  if (asset?.kind === "built-in") {
-    if (
-      asset.artwork === "vellum" &&
-      construct.definition.prompt === getConstruct("vellum").definition.prompt
-    ) {
-      return CONSTRUCT_DISCOVERY_COPY.vellum;
-    }
-    if (
-      asset.artwork === "lumen" &&
-      construct.definition.prompt === getConstruct("lumen").definition.prompt
-    ) {
-      return CONSTRUCT_DISCOVERY_COPY.lumen;
-    }
-  }
-  return CONSTRUCT_DISCOVERY_COPY.own;
+  construct: Construct,
+): typeof CONSTRUCT_DISCOVERY_COPY.vellum {
+  return CONSTRUCT_DISCOVERY_COPY[construct.id];
 }
 
 export { CONSTRUCT_DISCOVERY_COPY, constructPersonality };
