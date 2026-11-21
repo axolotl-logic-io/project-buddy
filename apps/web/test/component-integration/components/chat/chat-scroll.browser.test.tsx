@@ -240,7 +240,7 @@ describe("use_case_follow_latest_messages", () => {
     });
   }
 
-  test("upward input on a short adventure does not disable later following", async () => {
+  test("upward input on a short conversation does not disable later following", async () => {
     await openChat([]);
     await layoutSettled();
     expect(window.scrollY).toBe(0);

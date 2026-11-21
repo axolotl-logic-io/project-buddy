@@ -15,19 +15,19 @@ import {
   constructPersonality,
 } from "@/ui/copy/construct-discovery.ts";
 
-interface AdventureCharacterHeaderProps {
-  /** The adventure's saved identity, including its visual metadata. */
+interface ConstructHeaderProps {
+  /** The conversation's saved identity, including its visual metadata. */
   readonly construct: ConstructSnapshot;
   readonly destination?: VisualDestination | undefined;
-  /** The surrounding adventure heading already names the construct. */
+  /** The surrounding conversation heading already names the construct. */
   readonly compact?: boolean;
 }
 
-function AdventureCharacterHeader({
+function ConstructHeader({
   construct,
   destination,
   compact,
-}: AdventureCharacterHeaderProps): JSX.Element {
+}: ConstructHeaderProps): JSX.Element {
   const personality = constructPersonality(construct);
   return (
     <Dialog.Root>
@@ -88,4 +88,4 @@ function AdventureCharacterHeader({
   );
 }
 
-export { AdventureCharacterHeader };
+export { ConstructHeader };

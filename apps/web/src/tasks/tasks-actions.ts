@@ -4,7 +4,7 @@ import { generateId } from "ai";
 import { refresh } from "next/cache";
 import { z } from "zod";
 // The Server Actions that change a quest's tasks without the construct: from
-// the quest's page, from the Tasks panel and tasks cards in an adventure, and
+// the quest's page, from the Tasks panel and tasks cards in a conversation, and
 // from the composer's commands. None calls a model. A
 // command saves a task message to the conversation. Direct controls return
 // the updated tasks for local feedback without adding a message.
@@ -59,7 +59,7 @@ import { CHAT_COMMANDS_COPY } from "@/ui/copy/tasks.ts";
 // The most operations one request may make, as many as the construct's.
 const MOST_OPERATIONS = 40;
 
-// How many of the user's changes in an adventure /undo looks back through
+// How many of the user's changes in a conversation /undo looks back through
 // for one with something left to undo.
 const MOST_UNDO_TRIES = 10;
 
@@ -86,11 +86,11 @@ const COMMAND_REQUEST = z.object({
 });
 
 // What an action did: changed the quest's status, with the note it saved in
-// the adventure; ran another panel command (src/commands/panel-commands.ts),
+// the conversation; ran another panel command (src/commands/panel-commands.ts),
 // with its note; changed the tasks, with the tasks after it and, in an
-// adventure, the tasks message it saved there; showed the tasks as a card;
+// conversation, the tasks message it saved there; showed the tasks as a card;
 // changed nothing, with why and the tasks as they are; or found a problem with
-// a command, in words to show; or found no quest or adventure open to the
+// a command, in words to show; or found no quest or conversation open to the
 // user.
 type TasksActionResult =
   | {
@@ -188,7 +188,7 @@ async function answer(
 }
 
 // Changes the tasks of a quest open to the signed-in user, from its page or,
-// with chatId, from one of its adventures.
+// with chatId, from one of its conversations.
 async function changeTasksAction(request: unknown): Promise<TasksActionResult> {
   const user = await requireUser();
   const parsed = CHANGE_REQUEST.safeParse(request);
@@ -211,7 +211,7 @@ async function changeTasksAction(request: unknown): Promise<TasksActionResult> {
 }
 
 // Undoes a change to the tasks of a quest open to the signed-in user, made by
-// anyone, from its page or, with chatId, from one of its adventures.
+// anyone, from its page or, with chatId, from one of its conversations.
 async function undoTasksChangeAction(
   request: unknown,
 ): Promise<TasksActionResult> {
@@ -256,7 +256,7 @@ async function showTasks(
   return { kind: "shown", state, message };
 }
 
-// Undoes the user's newest change in the adventure that has something left
+// Undoes the user's newest change in the conversation that has something left
 // to undo: a newer one whose tasks were all changed or removed since is
 // passed over, so /undo never sticks on it.
 async function undoLatest(
@@ -328,7 +328,7 @@ async function runOperations(
 }
 
 // Changes the quest's status as /complete, /abandon or /restore asks, from
-// the status it has now, and saves the command's note in the adventure.
+// the status it has now, and saves the command's note in the conversation.
 async function runStatusCommand(
   user: UserId,
   chat: Chat,
@@ -368,7 +368,7 @@ async function runStatusCommand(
   return { kind: "quest-status", feedback, message };
 }
 
-// Runs a built-in command typed in an adventure open to the signed-in
+// Runs a built-in command typed in a conversation open to the signed-in
 // user, or sent by a quest panel control, without the construct: a status
 // command, a panel command (src/commands/panel-commands.ts) or a tasks
 // command (src/tasks/tasks-commands.ts).
@@ -412,7 +412,7 @@ async function runChatCommandAction(
   if (state === undefined) {
     return NOT_FOUND;
   }
-  // Every tasks command saves a message to the adventure, which must not
+  // Every tasks command saves a message to the conversation, which must not
   // come between a message and the reply it awaits.
   if (await chatAwaitsReply(user.id, chat.id)) {
     return { kind: "failed", reason: "awaiting-reply", state };

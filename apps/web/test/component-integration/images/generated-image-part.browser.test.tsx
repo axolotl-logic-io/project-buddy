@@ -9,7 +9,7 @@ const ID = GENERATION_ID.parse("baaf1045-0bcb-4f49-b600-18cfeb6936f4");
 const PROMPT = "A blue bird above a forest";
 const CHAT_IMAGE_HEIGHT_PX = 288;
 
-test("an adventure's generated image keeps its fixed height", async () => {
+test("a conversation's generated image keeps its fixed height", async () => {
   await render(
     <GeneratedImagePart
       part={{ result: { status: "generated", id: ID, prompt: PROMPT } }}

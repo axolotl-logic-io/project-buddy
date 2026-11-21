@@ -20,7 +20,7 @@ The built-in `description` values are the user-supplied texts, stored verbatim i
 
 Both expose the construct name as the accessible image name. Set `decorative` beside an already visible name. Missing or failed images show initials. The primitives have no animation, status announcement or interactive behavior.
 
-The v2 artwork is inline SVG painted with the active appearance's `--construct-*` tokens. The avatar role uses a simpler drawing for small sizes, and the other roles use the full drawing. A stored frame sets the SVG's `viewBox` or crops the delivered raster image.
+The artwork is inline SVG painted with the active appearance's `--construct-*` tokens. The avatar role uses a simpler drawing for small sizes, and the other roles use the full drawing. A stored frame sets the SVG's `viewBox` or crops the delivered raster image.
 
 ## Character profile
 
@@ -58,15 +58,15 @@ Generated sources use the same widths through a `width` query parameter on the d
 
 `apps/web/public/constructs/lumen-v1.png` and `vellum-v1.png` are the unmodified reference PNGs supplied by the repository owner on 2026-11-05. No independent artist or license information accompanied the files; don't invent attribution. Runtime uses committed paths. Keep these versioned files immutable; new art receives a new versioned path.
 
-The v2 SVG sources are in `outputs/theme-redesign/artwork/`. `src/draw.py` writes `lumen.svg`, `vellum.svg` and their avatar cuts, and `construct-art.css` there maps their paint classes to the `--construct-*` tokens. The drawings use no third-party parts. To regenerate the SVGs, run this command from the repository root:
+The SVG sources are in `apps/web/design/artwork/`. `src/draw.py` writes `lumen.svg`, `vellum.svg` and their avatar cuts, and `construct-art.css` there maps their paint classes to the `--construct-*` tokens. The drawings use no third-party parts. To regenerate the SVGs, run this command from the repository root:
 
 ```bash
-python3 outputs/theme-redesign/artwork/src/draw.py
+python3 apps/web/design/artwork/src/draw.py
 ```
 
 To regenerate the inline React components from the SVGs, run this command from the repository root, then format the output from `apps/web/`:
 
 ```bash
-python3 outputs/theme-redesign/artwork/src/to_tsx.py
+python3 apps/web/design/artwork/src/to_tsx.py
 (cd apps/web && npx biome check --write src/components/constructs/artwork)
 ```

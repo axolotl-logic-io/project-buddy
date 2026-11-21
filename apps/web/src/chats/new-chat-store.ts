@@ -28,7 +28,7 @@ interface NewChat {
   readonly quest: ChatQuest;
   readonly construct: NewChatConstruct;
   // Whether it is its place's one continuing conversation
-  // (src/conversations/); a legacy adventure otherwise.
+  // (src/conversations/); a legacy conversation otherwise.
   readonly continuing?: boolean;
 }
 

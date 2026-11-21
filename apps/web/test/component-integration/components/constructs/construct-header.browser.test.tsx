@@ -1,7 +1,7 @@
 import { describe, expect, test } from "vitest";
 import { page, userEvent } from "vitest/browser";
 import { render } from "vitest-browser-react";
-import { AdventureCharacterHeader } from "@/components/constructs/adventure-character-header.tsx";
+import { ConstructHeader } from "@/components/constructs/construct-header.tsx";
 import type { ConstructSnapshot } from "@/constructs/construct.ts";
 import { getConstruct } from "@/constructs/index.ts";
 import { CONSTRUCT_DISCOVERY_COPY } from "@/ui/copy/construct-discovery.ts";
@@ -20,7 +20,7 @@ const OWN: ConstructSnapshot = {
 describe("use_case_view_character_profile", () => {
   test("keyboard opens the saved character, traps focus and returns it on Escape and close", async () => {
     const snapshot = { ...getConstruct("vellum"), name: "Old Mapmaker" };
-    await render(<AdventureCharacterHeader construct={snapshot} />);
+    await render(<ConstructHeader construct={snapshot} />);
     const trigger = page.getByRole("button", { name: "About Old Mapmaker" });
     trigger.element().focus();
     await userEvent.keyboard("{Enter}");
@@ -46,7 +46,7 @@ describe("use_case_view_character_profile", () => {
   });
 
   test("own and legacy identities keep their name and initials without private instructions or inferred personality", async () => {
-    await render(<AdventureCharacterHeader construct={OWN} />);
+    await render(<ConstructHeader construct={OWN} />);
     await page.getByRole("button", { name: "About Lumen" }).click();
     await expect
       .element(page.getByRole("dialog", { name: "Lumen" }))
@@ -69,7 +69,7 @@ describe("use_case_view_character_profile", () => {
     await setViewport(NARROWEST_VIEWPORT);
     await render(
       <div>
-        <AdventureCharacterHeader construct={getConstruct("lumen")} />
+        <ConstructHeader construct={getConstruct("lumen")} />
         <textarea aria-label="Message" />
       </div>,
     );

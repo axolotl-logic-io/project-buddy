@@ -26,7 +26,7 @@ const VIEWER = userIdFixture();
 const OPENING: UIMessage = {
   id: "opening",
   role: "assistant",
-  parts: [{ type: "text", text: "Welcome to this adventure." }],
+  parts: [{ type: "text", text: "Welcome to this conversation." }],
 };
 const QUESTION: UIMessage = {
   id: "question",
@@ -116,14 +116,14 @@ describe("use_case_construct_presence", () => {
       const construct = getConstruct(id);
       const screen = await render(view(construct));
       await expect
-        .element(page.getByText("Welcome to this adventure."))
+        .element(page.getByText("Welcome to this conversation."))
         .toBeVisible();
       expect(
         page.getByRole("img", { name: construct.name }).elements(),
       ).toHaveLength(1);
       const art = opening();
       expect(art.closest("li")?.textContent).toContain(
-        "Welcome to this adventure.",
+        "Welcome to this conversation.",
       );
       expect(art.getBoundingClientRect().width).toBeGreaterThan(AVATAR_SIZE);
       const portrait = portraitFor("Take one small step.");
@@ -251,7 +251,7 @@ describe("use_case_construct_presence", () => {
     });
   }
 
-  test("generated snapshot artwork uses this adventure destination", async () => {
+  test("generated snapshot artwork uses this conversation destination", async () => {
     const assetId = "fd6f3060-f92a-447f-af44-a0fef80582a9";
     const construct: ConstructSnapshot = {
       name: "Paper Bird",

@@ -1,4 +1,4 @@
-// The messages a person adds to an adventure without the construct: a tasks
+// The messages a person adds to a conversation without the construct: a tasks
 // change or a tasks card. No reply answers one, and the construct reads each
 // as a short note rather than a request.
 
