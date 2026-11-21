@@ -10,7 +10,6 @@ import { StoppedReply } from "@/components/chat/stopped-reply.tsx";
 import { useChatScroll } from "@/components/chat/use-chat-scroll.ts";
 import { Notice } from "@/components/ui/form-message.tsx";
 import type { ConstructSnapshot } from "@/constructs/construct.ts";
-import type { ChatId } from "@/ids.ts";
 import { CHAT_COPY } from "@/ui/copy/chat.ts";
 
 // The conversation, any failure or a reply that stopped before it was
@@ -24,7 +23,6 @@ import { CHAT_COPY } from "@/ui/copy/chat.ts";
 // viewer's own.
 export function ChatThread({
   construct,
-  chatId,
   openingMessageId,
   authorNames,
   error,
@@ -37,7 +35,6 @@ export function ChatThread({
 }: {
   spellOnly?: boolean | undefined;
   construct: ConstructSnapshot;
-  chatId: ChatId;
   openingMessageId?: string | undefined;
   authorNames: ReadonlyMap<string, string>;
   error: Error | undefined;
@@ -75,7 +72,6 @@ export function ChatThread({
         >
           <ChatHistory
             construct={construct}
-            chatId={chatId}
             openingMessageId={openingMessageId}
             authorNames={authorNames}
             progressAllowed={error === undefined && replyStopped !== true}

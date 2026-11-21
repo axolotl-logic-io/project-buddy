@@ -642,7 +642,6 @@ function ChatView({
         </Notice>
       )}
       <ChatThread
-        chatId={chatId}
         error={shownError}
         replyStopped={replyStopped}
         onRetry={retryReply}

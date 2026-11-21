@@ -21,10 +21,7 @@ function ConstructTrailTools({
 }): JSX.Element {
   return (
     <div className="construct-trail-tools">
-      <ConstructHeader
-        construct={conversation.construct}
-        destination={{ kind: "adventure", id: conversation.id }}
-      />
+      <ConstructHeader construct={conversation.construct} />
     </div>
   );
 }

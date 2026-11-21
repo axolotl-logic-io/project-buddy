@@ -1,20 +1,13 @@
 import { z } from "zod";
 import type { ConstructSnapshot } from "@/constructs/construct.ts";
 
-// Built-in raster artwork is a committed reference PNG with WebP derivatives.
-// Snapshots taken before the drawings keep pointing at it.
-const RASTER_ARTWORK = z.enum(["vellum-v1", "lumen-v1"]);
-// Built-in drawn artwork is live SVG that the appearance colours.
-const DRAWN_ARTWORK = z.enum(["vellum-v2", "lumen-v2"]);
+// Built-in artwork is live SVG that the appearance colours.
+const ARTWORK = z.enum(["vellum", "lumen"]);
 
-// References are immutable identities, never provider URLs, storage keys or owner ids.
-const VISUAL_ASSET = z.discriminatedUnion("kind", [
-  z.object({
-    kind: z.literal("built-in"),
-    artwork: z.enum([...RASTER_ARTWORK.options, ...DRAWN_ARTWORK.options]),
-  }),
-  z.object({ kind: z.literal("generated"), assetId: z.uuid() }),
-]);
+const VISUAL_ASSET = z.object({
+  kind: z.literal("built-in"),
+  artwork: ARTWORK,
+});
 const VISUAL_FRAME = z.object({
   x: z.number().min(0).max(1),
   y: z.number().min(0).max(1),
@@ -27,12 +20,9 @@ const DESCRIPTION_LINE_BREAK = /\r\n?/gu;
 function normalizeVisualDescription(description: string): string {
   return description.replace(DESCRIPTION_LINE_BREAK, "\n").trim();
 }
-const FINGERPRINT_PATTERN = /^[a-f0-9]{64}$/u;
 const CONSTRUCT_VISUAL = z.object({
   version: z.literal(1),
   description: z.string().trim().min(1).max(DESCRIPTION_MAX),
-  sourceFingerprint: z.string().regex(FINGERPRINT_PATTERN).optional(),
-  sourceFingerprintVersion: z.literal(2).optional(),
   canonical: VISUAL_ASSET.optional(),
   working: VISUAL_ASSET.optional(),
   frames: z
@@ -45,14 +35,8 @@ const CONSTRUCT_VISUAL = z.object({
     .optional(),
 });
 
-const VISUAL_DESTINATION = z.object({
-  kind: z.enum(["construct", "adventure"]),
-  id: z.uuid(),
-});
-type VisualDestination = z.infer<typeof VISUAL_DESTINATION>;
-
 type VisualAsset = z.infer<typeof VISUAL_ASSET>;
-type DrawnArtwork = z.infer<typeof DRAWN_ARTWORK>;
+type Artwork = z.infer<typeof ARTWORK>;
 type VisualFrame = z.infer<typeof VISUAL_FRAME>;
 type VisualRole = z.infer<typeof VISUAL_ROLE>;
 type ConstructVisual = z.infer<typeof CONSTRUCT_VISUAL>;
@@ -90,44 +74,11 @@ function resolveConstructVisual(
   };
 }
 
-// The image file an asset loads from. Drawn built-ins render inline and have
-// no file, so they resolve to undefined, as do generated references without
-// a valid destination.
-function constructVisualSource(
-  asset: VisualAsset | undefined,
-  destination?: VisualDestination,
-): string | undefined {
-  if (asset?.kind === "built-in") {
-    const raster = RASTER_ARTWORK.safeParse(asset.artwork);
-    if (raster.success) {
-      return `/constructs/${raster.data}.png`;
-    }
-    return undefined;
-  }
-  if (
-    asset?.kind === "generated" &&
-    destination !== undefined &&
-    VISUAL_DESTINATION.safeParse(destination).success
-  ) {
-    return `/api/constructs/visuals/${destination.kind}/${destination.id}/${asset.assetId}`;
-  }
-  return undefined;
-}
-
-export type {
-  ConstructVisual,
-  DrawnArtwork,
-  VisualAsset,
-  VisualDestination,
-  VisualFrame,
-  VisualRole,
-};
+export type { Artwork, ConstructVisual, VisualAsset, VisualFrame, VisualRole };
 export {
+  ARTWORK,
   CONSTRUCT_VISUAL,
-  constructVisualSource,
-  DRAWN_ARTWORK,
   normalizeVisualDescription,
   resolveConstructVisual,
-  VISUAL_DESTINATION,
   VISUAL_ROLE,
 };

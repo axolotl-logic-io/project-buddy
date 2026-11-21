@@ -42,7 +42,7 @@ A construct or one of the two fixed spells that ships with the site.
 
 ### Historical own construct
 
-A private construct created by an older build. Custom construct creation, copying, editing and retirement are no longer available. Stored rows and artwork remain intact; existing conversations keep their saved construct snapshots.
+A private construct created by an older build. Custom construct creation, copying, editing and retirement are no longer available. Stored rows remain intact; existing conversations keep their saved construct snapshots.
 
 ### Forget, forgotten spells, restore, delete forever
 

@@ -121,7 +121,7 @@ The user takes back a Start Day chosen by mistake.
 
 - **Prerequisites:** `use_case_start_day`, with no message sent in the new day's conversation.
 - **Steps:** the user chooses Undo Start Day on Overview.
-- **Outcome:** the conversation from before Start Day comes back, with its messages, active spell and artwork. Tasks and Ideas come back as they were before Start Day, and a task added since stays. The day is no longer recorded, so the streaks are as they were. Undo Start Day is gone.
+- **Outcome:** the conversation from before Start Day comes back, with its messages and active spell. Tasks and Ideas come back as they were before Start Day, and a task added since stays. The day is no longer recorded, so the streaks are as they were. Undo Start Day is gone.
 - **Variations:**
   - Once anyone sends a message in the new day's conversation, Undo Start Day is gone and the day stays.
   - Another user can't undo it.

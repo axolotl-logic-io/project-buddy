@@ -18,10 +18,7 @@ import {
   ConstructIllustration,
 } from "@/components/constructs/construct-visual.tsx";
 import type { ConstructSnapshot } from "@/constructs/construct.ts";
-import {
-  resolveConstructVisual,
-  type VisualDestination,
-} from "@/constructs/visual.ts";
+import { resolveConstructVisual } from "@/constructs/visual.ts";
 import { CHAT_COPY } from "@/ui/copy/chat.ts";
 
 type Role = MessageRuntimeState["role"];
@@ -90,14 +87,12 @@ function showsUnderMessage(part: EnrichedPartState): boolean {
 function ChatMessage({
   role,
   construct,
-  destination,
   opening,
   progressAllowed,
   authorName,
 }: {
   role: Role;
   construct: ConstructSnapshot;
-  destination: VisualDestination;
   opening: boolean;
   progressAllowed: boolean;
   authorName?: string | undefined;
@@ -112,10 +107,7 @@ function ChatMessage({
   }
   const constructName = construct.name;
   const { asset } = resolveConstructVisual(construct, "avatar");
-  let artwork: string | undefined;
-  if (asset?.kind === "built-in") {
-    ({ artwork } = asset);
-  }
+  const artwork = asset?.artwork;
   const renderBodyPart = useCallback(
     ({ part, children }: BodyRenderInfo): ReactNode => {
       if (part.type === "group-text-run") {
@@ -150,7 +142,6 @@ function ChatMessage({
             >
               <ConstructAvatar
                 construct={construct}
-                destination={destination}
                 size={32}
                 decorative={true}
               />
@@ -170,12 +161,7 @@ function ChatMessage({
         </p>
         {role === "assistant" && opening && (
           <div className="chat-opening">
-            <ConstructIllustration
-              construct={construct}
-              destination={destination}
-              visualRole="opening"
-              displayWidth={224}
-            />
+            <ConstructIllustration construct={construct} visualRole="opening" />
           </div>
         )}
         <div className="chat-message-body">

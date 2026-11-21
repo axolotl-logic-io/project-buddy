@@ -8,12 +8,11 @@ import {
   VellumAvatar,
   VellumPortrait,
 } from "@/components/constructs/artwork/vellum.tsx";
-import {
-  DRAWN_ARTWORK,
-  type DrawnArtwork,
-  type VisualAsset,
-  type VisualFrame,
-  type VisualRole,
+import type {
+  Artwork,
+  VisualAsset,
+  VisualFrame,
+  VisualRole,
 } from "@/constructs/visual.ts";
 
 type Drawing = (props: DrawingProps) => JSX.Element;
@@ -25,26 +24,22 @@ interface Cuts {
   readonly portrait: Drawing;
 }
 
-const DRAWINGS: Readonly<Record<DrawnArtwork, Cuts>> = {
-  "lumen-v2": { avatar: LumenAvatar, portrait: LumenPortrait },
-  "vellum-v2": { avatar: VellumAvatar, portrait: VellumPortrait },
+const DRAWINGS: Readonly<Record<Artwork, Cuts>> = {
+  lumen: { avatar: LumenAvatar, portrait: LumenPortrait },
+  vellum: { avatar: VellumAvatar, portrait: VellumPortrait },
 };
 
-// The inline drawing of a drawn built-in asset in a role, framed as the
-// role's frame says, or undefined for any other asset.
+// The inline drawing of a built-in asset in a role, framed as the role's
+// frame says, or undefined without an asset.
 function constructDrawing(
   asset: VisualAsset | undefined,
   role: VisualRole,
   frame: VisualFrame,
 ): JSX.Element | undefined {
-  if (asset?.kind !== "built-in") {
+  if (asset === undefined) {
     return undefined;
   }
-  const drawn = DRAWN_ARTWORK.safeParse(asset.artwork);
-  if (!drawn.success) {
-    return undefined;
-  }
-  const { [drawn.data]: cuts } = DRAWINGS;
+  const { [asset.artwork]: cuts } = DRAWINGS;
   let Drawing = cuts.portrait;
   if (role === "avatar") {
     Drawing = cuts.avatar;

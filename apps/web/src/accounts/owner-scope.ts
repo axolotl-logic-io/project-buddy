@@ -30,7 +30,6 @@
 // Each predicate is SQL for a where clause or a join, on the table it names.
 import { and, eq, exists, inArray, type SQL, sql } from "drizzle-orm";
 import { QueryBuilder } from "drizzle-orm/pg-core";
-import { constructGenerations } from "@/db/tables/construct-visuals.ts";
 import { dailiesDays } from "@/db/tables/dailies-days.ts";
 import { imageGenerations } from "@/db/tables/image-generations.ts";
 import { images } from "@/db/tables/images.ts";
@@ -191,11 +190,6 @@ function ownPromptOwnedBy(owner: UserId): SQL {
   return eq(ownPrompts.userId, owner);
 }
 
-// An `image_generations` row that owner claimed, whose cost is owner's.
-function constructGenerationOwnedBy(owner: UserId): SQL {
-  return eq(constructGenerations.userId, owner);
-}
-
 // An `image_generations` row of a chat open to user, whose image they may
 // see, whoever claimed it.
 function generationOpenTo(user: UserId): SQL {
@@ -228,7 +222,6 @@ function replyRunOwnedBy(user: UserId): SQL {
 
 export {
   chatOpenTo,
-  constructGenerationOwnedBy,
   dailiesDayOwnedBy,
   generationOpenTo,
   ideaOpenTo,
