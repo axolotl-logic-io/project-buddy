@@ -1,7 +1,5 @@
-// Current-schema fixture for owner isolation after shared quest storage is gone.
-// The real historical membership/invitation transition is exercised in
-// db/retired-storage-migration.server.test.ts. Here the former member has
-// no membership rows, as after cleanup, and every store must still deny them.
+// A fixture for owner isolation: the former member has no membership rows,
+// and every store must still deny them.
 
 import type { User } from "@/accounts/users-store.ts";
 import type { Chat } from "@/chats/chat-rows.ts";
