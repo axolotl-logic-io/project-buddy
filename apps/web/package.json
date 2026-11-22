@@ -33,7 +33,8 @@
     "test-db:up": "bash scripts/test-env/require-env-test.sh && docker compose --file compose.test-db.yml up --detach --wait",
     "test-db:down": "bash scripts/test-env/require-env-test.sh && docker compose --file compose.test-db.yml down",
     "test-db:reset": "bash scripts/test-env/require-env-test.sh && node --env-file=.env.test --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/test-db/reset.ts",
-    "copy:export": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/export-copy.ts"
+    "copy:export": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/export-copy.ts",
+    "doctor": "npx react-doctor@latest"
   },
   "dependencies": {
     "@ai-sdk/provider": "4.0.26",
