@@ -76,6 +76,7 @@ interface SpaceWrite {
   readonly questId: QuestId;
   readonly spaceId: SpaceId;
   readonly nextTaskNumber: number;
+  readonly atTop: boolean;
 }
 
 async function takeTaskNumber({
@@ -108,6 +109,10 @@ async function applyChange(
     if (type === "task") {
       taskNumber = await takeTaskNumber(write);
     }
+    let position = (rows.at(-1)?.position ?? -1) + 1;
+    if (write.atTop) {
+      position = (rows[0]?.position ?? 1) - 1;
+    }
     const [added] = await tx
       .insert(murmlings)
       .values({
@@ -116,7 +121,7 @@ async function applyChange(
         type,
         text,
         taskNumber,
-        position: (rows.at(-1)?.position ?? -1) + 1,
+        position,
       })
       .returning({ id: murmlings.id });
     if (added === undefined) {
@@ -303,15 +308,25 @@ async function changeWithin(
   {
     questId,
     spaceId,
-  }: { readonly questId: QuestId; readonly spaceId: SpaceId },
+    activeOnly = false,
+    atTop = false,
+  }: {
+    readonly questId: QuestId;
+    readonly spaceId: SpaceId;
+    readonly activeOnly?: boolean;
+    readonly atTop?: boolean;
+  },
   change: MurmlingChange,
 ): Promise<ChangeResult> {
   const [quest] = await tx
-    .select({ nextTaskNumber: quests.nextTaskNumber })
+    .select({ nextTaskNumber: quests.nextTaskNumber, status: quests.status })
     .from(quests)
     .where(and(eq(quests.id, questId), questOpenTo(user)))
     .for("update");
-  if (quest === undefined) {
+  if (
+    quest === undefined ||
+    (activeOnly === true && quest.status !== "active")
+  ) {
     return "missing";
   }
   const [space] = await tx
@@ -329,7 +344,7 @@ async function changeWithin(
   }
   const rows = await spaceRows(tx, user, questId, spaceId);
   const result = await applyChange(
-    { tx, user, questId, spaceId, ...quest },
+    { tx, user, questId, spaceId, atTop, nextTaskNumber: quest.nextTaskNumber },
     rows,
     space.newType,
     change,

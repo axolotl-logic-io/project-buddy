@@ -227,3 +227,8 @@ vi.mock("@/rites/rite-actions.ts", () => ({
   copyRiteAction: vi.fn(),
   changeRiteAction: vi.fn(),
 }));
+
+vi.mock("@/spaces/quick-note-actions.ts", () => ({
+  listQuickNoteQuests: vi.fn(() => Promise.resolve([])),
+  saveQuickNote: vi.fn(),
+}));

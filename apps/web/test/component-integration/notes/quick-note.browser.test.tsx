@@ -8,17 +8,13 @@ import { render } from "vitest-browser-react";
 import { QuestNotes } from "@/components/quest-notes.tsx";
 import { AccountLinks, SiteHeader } from "@/components/site-header.tsx";
 import { SitePanel } from "@/components/site-panel.tsx";
+import { NOTE_ID, NOTE_MAX_LENGTH } from "@/notes/note.ts";
+import { changeNoteAction } from "@/notes/note-actions.ts";
 import {
-  NOTE_ID,
-  NOTE_MAX_LENGTH,
-  type NoteQuest,
-  type NoteResult,
-} from "@/notes/note.ts";
-import {
-  changeNoteAction,
-  listNoteQuestsAction,
-  saveNoteAction,
-} from "@/notes/note-actions.ts";
+  listQuickNoteQuests,
+  type QuickNoteQuest,
+  saveQuickNote,
+} from "@/spaces/quick-note-actions.ts";
 import { PANEL_COMMANDS_COPY } from "@/ui/copy/commands.ts";
 import { QUEST_NOTES_COPY, QUICK_NOTE_COPY } from "@/ui/copy/notes.ts";
 import { QUEST_SHARING_COPY } from "@/ui/copy/quest-members.ts";
@@ -35,14 +31,21 @@ import {
   setViewport,
 } from "../viewports-test-kit.ts";
 
-const OTHER_QUEST: NoteQuest = {
+const SPACES = [
+  { id: "6b778253-0b8a-4c2f-9072-3768bccb3e56", name: "Plans" },
+  { id: "ddd24b82-23a2-4b82-80c5-886b70093227", name: "Sketches" },
+];
+
+const OTHER_QUEST: QuickNoteQuest = {
   id: "22222222-2222-4222-8222-222222222222",
   name: "Kiln",
+  spaces: SPACES,
   sharing: { kind: "personal" },
 };
-const JOINED_QUEST: NoteQuest = {
+const JOINED_QUEST: QuickNoteQuest = {
   id: "33333333-3333-4333-8333-333333333333",
   name: "Kiln",
+  spaces: SPACES,
   sharing: { kind: "joined", owner: "Rowan" },
 };
 
@@ -63,16 +66,21 @@ async function openQuickNote(): Promise<void> {
 beforeEach(() => {
   applyTheme("parchment");
   route.pathname = "/";
-  vi.mocked(listNoteQuestsAction).mockResolvedValue([
+  vi.mocked(listQuickNoteQuests).mockResolvedValue([
     OTHER_QUEST,
-    { id: FOX_QUEST.id, name: FOX_QUEST.name, sharing: FOX_QUEST.sharing },
+    {
+      id: FOX_QUEST.id,
+      name: FOX_QUEST.name,
+      sharing: FOX_QUEST.sharing,
+      spaces: SPACES,
+    },
   ]);
 });
 
 describe("use_case_quick_note", () => {
   test("the site panel's Quick Note saves a note to the open quest and keeps it chosen", async () => {
     route.pathname = `/quests/${FOX_QUEST.id}`;
-    vi.mocked(saveNoteAction).mockResolvedValue({ kind: "saved", notes: [] });
+    vi.mocked(saveQuickNote).mockResolvedValue({ kind: "saved" });
     await openQuickNote();
 
     const dialog = page.getByRole("dialog", { name: QUICK_NOTE_COPY.heading });
@@ -92,17 +100,24 @@ describe("use_case_quick_note", () => {
       .toHaveAccessibleDescription(
         expect.stringContaining("An empty Quick Note can't be saved."),
       );
-    expect(saveNoteAction).not.toHaveBeenCalled();
+    expect(saveQuickNote).not.toHaveBeenCalled();
 
+    const space = dialog.getByRole("combobox", {
+      name: QUICK_NOTE_COPY.spaceLabel,
+    });
+    await space.selectOptions("Sketches");
     await text.fill("Glaze the blue bowl");
     await dialog.getByRole("button", { name: QUICK_NOTE_COPY.save }).click();
-    expect(saveNoteAction).toHaveBeenCalledWith({
+    expect(saveQuickNote).toHaveBeenCalledWith({
       questId: FOX_QUEST.id,
+      spaceId: "ddd24b82-23a2-4b82-80c5-886b70093227",
       text: "Glaze the blue bowl",
     });
     await expect
       .element(dialog.getByRole("status"))
-      .toHaveTextContent(QUICK_NOTE_COPY.saved(FOX_QUEST.name));
+      .toHaveTextContent(
+        QUICK_NOTE_COPY.savedToSpace(FOX_QUEST.name, "Sketches"),
+      );
     await expect.element(text).toHaveValue("");
     await expect.element(quest).toHaveValue(FOX_QUEST.id);
 
@@ -138,10 +153,10 @@ describe("use_case_quick_note", () => {
   });
 
   test("away from a quest the newest Active quest is chosen, and a refusal keeps the text", async () => {
-    vi.mocked(saveNoteAction).mockResolvedValue({
+    vi.mocked(saveQuickNote).mockResolvedValue({
       kind: "problem",
-      text: QUICK_NOTE_COPY.notFound,
-    } satisfies NoteResult);
+      text: QUICK_NOTE_COPY.spaceUnavailable,
+    });
     await setViewport(PHONE_VIEWPORT);
     await openQuickNote();
 
@@ -158,7 +173,7 @@ describe("use_case_quick_note", () => {
     await dialog.getByRole("button", { name: QUICK_NOTE_COPY.save }).click();
     await expect
       .element(dialog.getByRole("alert"))
-      .toHaveTextContent(QUICK_NOTE_COPY.notFound);
+      .toHaveTextContent(QUICK_NOTE_COPY.spaceUnavailable);
     await expect.element(text).toHaveValue("Fire on Friday");
     expect(document.documentElement.scrollWidth).toBeLessThanOrEqual(
       PHONE_VIEWPORT.width,
@@ -166,7 +181,7 @@ describe("use_case_quick_note", () => {
   });
 
   test("a quest shared with others is marked with its owner, beside a personal one of the same name", async () => {
-    vi.mocked(listNoteQuestsAction).mockResolvedValue([
+    vi.mocked(listQuickNoteQuests).mockResolvedValue([
       OTHER_QUEST,
       JOINED_QUEST,
     ]);
@@ -187,7 +202,7 @@ describe("use_case_quick_note", () => {
   });
 
   test("with no Active quest the dialog points to Quests", async () => {
-    vi.mocked(listNoteQuestsAction).mockResolvedValue([]);
+    vi.mocked(listQuickNoteQuests).mockResolvedValue([]);
     await openQuickNote();
 
     const dialog = page.getByRole("dialog", { name: QUICK_NOTE_COPY.heading });

@@ -11,9 +11,13 @@ export const QUICK_NOTE_COPY = {
   panelItem: "Quick Note",
   heading: "Quick Note",
   close: "Close Quick Note",
-  intro:
-    "Save a short note to a quest without opening it. Find it later in the quest's Quick Notes tab.",
+  intro: "Save a short note to one of your quest's spaces.",
   loading: "Loading your quests…",
+  spaceLabel: "Space",
+  chooseSpace: "Choose a quest and a space.",
+  spaceUnavailable: "That space is no longer available in an Active quest.",
+  savedToSpace: (quest: string, space: string): string =>
+    `Saved to ${space} in ${quest}.`,
   questLabel: "Quick Note for",
   textLabel: "Quick Note",
   textHint: `Up to ${NOTE_MAX_LENGTH} characters.`,
