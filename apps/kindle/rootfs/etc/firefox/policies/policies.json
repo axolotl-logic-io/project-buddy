@@ -1,0 +1,23 @@
+{
+  "policies": {
+    "Homepage": {
+      "URL": "https://project-buddy-rust.vercel.app",
+      "Locked": true,
+      "StartPage": "homepage"
+    },
+    "OverrideFirstRunPage": "",
+    "OverridePostUpdatePage": "",
+    "DisableDeveloperTools": true,
+    "DisableFirefoxAccounts": true,
+    "DisableTelemetry": true,
+    "DisablePocket": true,
+    "WebsiteFilter": {
+      "Block": ["<all_urls>"],
+      "Exceptions": ["https://project-buddy-rust.vercel.app/*"]
+    },
+    "Preferences": {
+      "gfx.webrender.software": {"Value": true, "Status": "default"},
+      "layers.acceleration.disabled": {"Value": true, "Status": "default"}
+    }
+  }
+}

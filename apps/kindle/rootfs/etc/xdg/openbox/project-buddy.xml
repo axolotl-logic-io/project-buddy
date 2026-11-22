@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<openbox_config xmlns="http://openbox.org/3.4/rc">
+  <desktops><number>1</number></desktops>
+  <applications>
+    <application class="firefox-esr" type="normal">
+      <decor>no</decor>
+      <maximized>yes</maximized>
+    </application>
+    <application class="Matchbox-keyboard">
+      <focus>no</focus>
+      <layer>above</layer>
+      <position force="yes"><x>center</x><y>-48</y></position>
+    </application>
+  </applications>
+</openbox_config>
