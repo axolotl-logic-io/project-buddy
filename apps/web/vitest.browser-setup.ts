@@ -195,3 +195,13 @@ vi.mock("@/spaces/space-actions.ts", () => ({
     throw new Error("Mock the space settings action in this test");
   }),
 }));
+
+vi.mock("@/spaces/murmling-store.ts", () => ({
+  listMurmlings: vi.fn(() => Promise.resolve([])),
+}));
+
+vi.mock("@/spaces/murmling-actions.ts", () => ({
+  changeMurmlingAction: vi.fn(() => {
+    throw new Error("Mock the murmling action in this test");
+  }),
+}));

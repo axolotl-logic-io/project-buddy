@@ -40,6 +40,7 @@ export const quests = pgTable(
       .notNull()
       .defaultNow(),
     dailies: boolean("dailies").notNull().default(false),
+    nextTaskNumber: integer("next_task_number").notNull().default(1),
   },
   (table) => [
     index("quests_user_id_idx").on(table.userId),

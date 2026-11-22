@@ -18,6 +18,7 @@ import {
   QuestStatusFeedback,
 } from "@/components/quest-status-controls.tsx";
 import { QuestTasks } from "@/components/quest-tasks.tsx";
+import { SpaceMurmlings } from "@/components/space-murmlings.tsx";
 import { SpaceSettings } from "@/components/space-settings.tsx";
 import { SpellPicker } from "@/components/spell-picker.tsx";
 import { StartDay } from "@/components/start-day.tsx";
@@ -36,6 +37,7 @@ import { listMilestones } from "@/milestones/milestone-store.ts";
 import { listNotes } from "@/notes/note-store.ts";
 import { listQuestPeople } from "@/quests/membership-store.ts";
 import { getQuest, type Quest } from "@/quests/store.ts";
+import { listMurmlings } from "@/spaces/murmling-store.ts";
 import { SPACE_ID } from "@/spaces/space.ts";
 import { listSpaces } from "@/spaces/space-store.ts";
 import { listOwnSpells } from "@/spells/own-spell-store.ts";
@@ -191,6 +193,10 @@ async function questPage(
     ]);
   const spaceId = SPACE_ID.safeParse(section).data;
   const space = spaces.find(({ id }) => id === spaceId);
+  let contents: Awaited<ReturnType<typeof listMurmlings>> = [];
+  if (space !== undefined) {
+    contents = await listMurmlings(user, quest.id, space.id);
+  }
   const record = days || undefined;
   const today = new Date();
   let current = SECTION.safeParse(section).data;
@@ -408,6 +414,13 @@ async function questPage(
                   </Link>
                 </Button>
                 <h2 className="quest-overview-title">{space.name}</h2>
+                <SpaceMurmlings
+                  key={space.id}
+                  space={space}
+                  questId={quest.id}
+                  contents={contents}
+                  destinations={spaces.filter(({ id }) => id !== space.id)}
+                />
                 <SpaceSettings
                   key={space.id}
                   questId={quest.id}
