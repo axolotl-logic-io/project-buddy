@@ -1,0 +1,3 @@
+#!/bin/sh
+export MOZ_ENABLE_WAYLAND=0
+exec openbox --config-file /etc/xdg/openbox/project-buddy.xml --startup /usr/local/bin/project-buddy-start

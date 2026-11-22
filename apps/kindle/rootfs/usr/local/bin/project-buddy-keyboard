@@ -1,0 +1,5 @@
+#!/bin/sh
+if pkill -u "$(id -u)" -f "^matchbox-keyboard($| )"; then
+  exit 0
+fi
+exec matchbox-keyboard
