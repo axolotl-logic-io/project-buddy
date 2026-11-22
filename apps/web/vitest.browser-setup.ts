@@ -185,3 +185,13 @@ vi.mock("@/quests/membership-store.ts", () => ({
 vi.mock("@/visits/record-visit-action.ts", () => ({
   recordVisitAction: vi.fn(() => Promise.resolve("known")),
 }));
+
+vi.mock("@/spaces/space-store.ts", () => ({
+  listSpaces: vi.fn(() => Promise.resolve([])),
+}));
+
+vi.mock("@/spaces/space-actions.ts", () => ({
+  saveSpaceAction: vi.fn(() => {
+    throw new Error("Mock the space settings action in this test");
+  }),
+}));

@@ -15,6 +15,7 @@ import { AppError } from "@/errors/app-error.ts";
 import { withAppErrors } from "@/errors/to-app-error.ts";
 import { type ChatId, parseChatId, parseQuestId, type UserId } from "@/ids.ts";
 import type { QuestName } from "@/quests/quest-name.ts";
+import { seedSpaces } from "@/spaces/space-store.ts";
 
 // The built-in construct a new chat is with.
 type NewChatConstruct = Construct;
@@ -109,6 +110,7 @@ export function createQuestWithChat(
     if (inserted.length === 0) {
       return undefined;
     }
+    await seedSpaces(db, questId);
     const created = await db
       .insert(chats)
       .values({

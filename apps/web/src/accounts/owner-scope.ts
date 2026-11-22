@@ -37,6 +37,7 @@ import { questNotes } from "@/db/tables/quest-notes.ts";
 import { chats, messages, quests } from "@/db/tables/quests-and-chats.ts";
 import { replyRuns } from "@/db/tables/reply-runs.ts";
 import { signedInDays } from "@/db/tables/signed-in-days.ts";
+import { spaces } from "@/db/tables/spaces.ts";
 import { spellMessageResults } from "@/db/tables/spell-message-results.ts";
 import { tasksVersions } from "@/db/tables/tasks-versions.ts";
 import { timerPresence } from "@/db/tables/timer-presence.ts";
@@ -122,6 +123,10 @@ function openChatIds(user: UserId): SQL {
 // A `messages` row in a chat open to user.
 function messageOpenTo(user: UserId): SQL {
   return inArray(messages.chatId, openChatIds(user));
+}
+
+function spaceOpenTo(user: UserId): SQL {
+  return inArray(spaces.questId, openQuestIds(user));
 }
 
 function spellResultOpenTo(user: UserId): SQL {
@@ -224,6 +229,7 @@ export {
   replyRunOpenTo,
   replyRunOwnedBy,
   signedInDayOwnedBy,
+  spaceOpenTo,
   spellResultOpenTo,
   tasksVersionOpenTo,
   timerPresenceOwnedBy,

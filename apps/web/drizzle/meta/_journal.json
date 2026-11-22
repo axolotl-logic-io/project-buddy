@@ -554,6 +554,13 @@
       "when": 1795287595321,
       "tag": "0078_drop_legacy_columns_and_data",
       "breakpoints": true
+    },
+    {
+      "idx": 79,
+      "version": "7",
+      "when": 1795387182018,
+      "tag": "0079_spaces",
+      "breakpoints": true
     }
   ]
 }

@@ -18,6 +18,7 @@ import {
   QuestStatusFeedback,
 } from "@/components/quest-status-controls.tsx";
 import { QuestTasks } from "@/components/quest-tasks.tsx";
+import { SpaceSettings } from "@/components/space-settings.tsx";
 import { SpellPicker } from "@/components/spell-picker.tsx";
 import { StartDay } from "@/components/start-day.tsx";
 import { TaskRows } from "@/components/tasks/task-rows.tsx";
@@ -35,6 +36,8 @@ import { listMilestones } from "@/milestones/milestone-store.ts";
 import { listNotes } from "@/notes/note-store.ts";
 import { listQuestPeople } from "@/quests/membership-store.ts";
 import { getQuest, type Quest } from "@/quests/store.ts";
+import { SPACE_ID } from "@/spaces/space.ts";
+import { listSpaces } from "@/spaces/space-store.ts";
 import { listOwnSpells } from "@/spells/own-spell-store.ts";
 import { getSpell, listSpells } from "@/spells/spell.ts";
 import type { SpellSnapshot } from "@/spells/spell-definition.ts";
@@ -51,6 +54,7 @@ import { QUEST_MEMBERS_COPY } from "@/ui/copy/quest-members.ts";
 import { QUEST_OVERVIEW_COPY } from "@/ui/copy/quest-overview.ts";
 import { QUEST_SIDEBAR_COPY } from "@/ui/copy/quest-sidebar.ts";
 import { QUEST_STATUS_COPY } from "@/ui/copy/quest-status.ts";
+import { SPACES_COPY } from "@/ui/copy/spaces.ts";
 import { TASKS_COPY } from "@/ui/copy/tasks.ts";
 import { TIMER_COPY } from "@/ui/copy/timer.ts";
 import { ProgressTimeline } from "./progress-timeline.tsx";
@@ -174,7 +178,7 @@ async function questPage(
   if (quest === undefined) {
     return undefined;
   }
-  const [conversation, tasks, ideas, notes, milestones, people, days] =
+  const [conversation, tasks, ideas, notes, milestones, people, days, spaces] =
     await Promise.all([
       findConversation(user, quest.id),
       readTasksState(user, quest.id),
@@ -183,7 +187,10 @@ async function questPage(
       listMilestones(user, quest.id),
       listQuestPeople(user, quest.id),
       quest.dailies && readDailiesRecord(user, quest.id),
+      listSpaces(user, quest.id),
     ]);
+  const spaceId = SPACE_ID.safeParse(section).data;
+  const space = spaces.find(({ id }) => id === spaceId);
   const record = days || undefined;
   const today = new Date();
   let current = SECTION.safeParse(section).data;
@@ -313,7 +320,7 @@ async function questPage(
       >
         <div className="quest-workspace quest-overview">
           <QuestStatusFeedback>
-            {current === undefined && (
+            {current === undefined && space === undefined && (
               <section className="quest-overview-hero" aria-label={quest.name}>
                 <div className="quest-overview-heading">
                   <div className="min-w-0">
@@ -370,7 +377,44 @@ async function questPage(
               <Notice>{QUEST_STATUS_COPY.effects}</Notice>
             )}
             {active}
-            {current === undefined && sectionLinks(quest.id, sections)}
+            {current === undefined && space === undefined && (
+              <>
+                <nav aria-label={SPACES_COPY.heading}>
+                  <h2 className="section-heading">{SPACES_COPY.heading}</h2>
+                  <ul className="quest-overview-links">
+                    {spaces.map((entry) => (
+                      <li key={entry.id}>
+                        <Link
+                          href={`/quests/${quest.id}?section=${entry.id}`}
+                          className="quest-overview-link"
+                        >
+                          {entry.name}
+                          <Icon name="chevron-right" />
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                  <SpaceSettings questId={quest.id} />
+                </nav>
+                {sectionLinks(quest.id, sections)}
+              </>
+            )}
+            {space !== undefined && (
+              <section className="quest-section-body" aria-label={space.name}>
+                <Button asChild={true} variant="quiet">
+                  <Link href={sectionPath(quest.id)}>
+                    <Icon name="arrow-left" />
+                    {QUEST_OVERVIEW_COPY.back}
+                  </Link>
+                </Button>
+                <h2 className="quest-overview-title">{space.name}</h2>
+                <SpaceSettings
+                  key={space.id}
+                  questId={quest.id}
+                  space={space}
+                />
+              </section>
+            )}
             {current !== undefined && (
               <section
                 className="quest-section-body"

@@ -14,7 +14,6 @@ const PENDING_CASES: readonly PendingCase[] = [
   { slug: "use_case_grimoire_page", lane: "rites-and-spaces" },
   { slug: "use_case_customize_rite", lane: "rites-and-spaces" },
   { slug: "use_case_quest_spaces", lane: "rites-and-spaces" },
-  { slug: "use_case_set_up_space", lane: "rites-and-spaces" },
   { slug: "use_case_murmling_types", lane: "rites-and-spaces" },
   { slug: "use_case_cli_api_performance", lane: "rites-and-spaces" },
 ];

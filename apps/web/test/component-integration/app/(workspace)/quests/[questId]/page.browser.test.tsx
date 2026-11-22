@@ -9,6 +9,8 @@ import { findConversation } from "@/conversations/conversation-store.ts";
 import { changeDayAction } from "@/dailies/day-actions.ts";
 import { readDailiesRecord } from "@/dailies/day-store.ts";
 import { getQuest } from "@/quests/store.ts";
+import { SPACE_ID } from "@/spaces/space.ts";
+import { listSpaces } from "@/spaces/space-store.ts";
 import { changeQuestSpellAction } from "@/spells/quest-spell-action.ts";
 import { getSpell } from "@/spells/spell.ts";
 import { CHAT_COPY } from "@/ui/copy/chat.ts";
@@ -87,6 +89,32 @@ beforeEach(() => {
   vi.mocked(findConversation).mockResolvedValue(undefined);
   vi.mocked(listMessages).mockResolvedValue([]);
   vi.mocked(readDailiesRecord).mockResolvedValue({ days: [], undoable: false });
+});
+
+test("opens a quest space and shows its saved settings", async () => {
+  const spaceId = SPACE_ID.parse(crypto.randomUUID());
+  vi.mocked(listSpaces).mockResolvedValueOnce([
+    {
+      id: spaceId,
+      position: 0,
+      version: 0,
+      name: "Plans",
+      singular: "plan",
+      plural: "plans",
+      checkOff: "Finish",
+      uncheck: "Resume",
+      newType: "plain",
+    },
+  ]);
+
+  await render(await questPage(spaceId));
+  await expect
+    .element(page.getByRole("heading", { name: "Plans" }))
+    .toBeVisible();
+  await page.getByText("Space settings").click();
+  await expect
+    .element(page.getByRole("textbox", { name: "Uncheck verb" }))
+    .toHaveValue("Resume");
 });
 
 describe("use_case_open_quest", () => {
