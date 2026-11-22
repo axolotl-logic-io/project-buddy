@@ -101,7 +101,7 @@ test("use_case_murmling_types", async () => {
       spaceId: space.id,
       change: { kind: "add", text: "Plant basil" },
     }),
-  ).toBeUndefined();
+  ).toMatchObject({ kind: "saved" });
   const [added] = await listMurmlings(owner.id, questId, space.id);
   if (added === undefined) {
     throw new Error("The murmling was not saved");
@@ -114,7 +114,7 @@ test("use_case_murmling_types", async () => {
       spaceId: space.id,
       change: { kind: "type", id, type: "task" },
     }),
-  ).toBeUndefined();
+  ).toMatchObject({ kind: "saved" });
   expect((await listMurmlings(owner.id, questId, space.id))[0]).toMatchObject({
     id,
     type: "task",
@@ -127,7 +127,7 @@ test("use_case_murmling_types", async () => {
       spaceId: space.id,
       change: { kind: "move", id, destination: destination.id },
     }),
-  ).toBeUndefined();
+  ).toMatchObject({ kind: "saved" });
   expect(await listMurmlings(owner.id, questId, space.id)).toEqual([]);
   expect(
     (await listMurmlings(owner.id, questId, destination.id))[0],
@@ -138,7 +138,7 @@ test("use_case_murmling_types", async () => {
       spaceId: destination.id,
       change: { kind: "check", id, checkedOff: true },
     }),
-  ).toBeUndefined();
+  ).toMatchObject({ kind: "saved" });
   const addingAndCheckingOff = 4;
   expect((await readExperience(owner.id)).experience).toBe(
     addingAndCheckingOff,
@@ -149,7 +149,7 @@ test("use_case_murmling_types", async () => {
       spaceId: destination.id,
       change: { kind: "type", id, type: "quick-note" },
     }),
-  ).toBeUndefined();
+  ).toMatchObject({ kind: "saved" });
   expect((await readExperience(owner.id)).experience).toBe(1);
   expect(
     (await listMurmlings(owner.id, questId, destination.id))[0],
@@ -166,15 +166,101 @@ test("use_case_murmling_types", async () => {
       spaceId: destination.id,
       change: { kind: "edit", id, text: "Basil\nNeeds sun" },
     }),
-  ).toBeUndefined();
+  ).toMatchObject({ kind: "saved" });
   expect(
     await changeMurmlingAction({
       questId,
       spaceId: destination.id,
       change: { kind: "type", id, type: "plain" },
     }),
-  ).toContain("one line");
+  ).toMatchObject({
+    kind: "problem",
+    text: expect.stringContaining("one line"),
+  });
   expect(
     (await listMurmlings(owner.id, questId, destination.id))[0],
   ).toMatchObject({ type: "quick-note", text: "Basil\nNeeds sun" });
+});
+
+test("use_case_quest_spaces", async () => {
+  const [owner, stranger] = await Promise.all([testUser(), testUser()]);
+  const started = await startQuest(
+    owner.id,
+    QUEST_NAME.parse("Workshop"),
+    getConstruct("vellum"),
+  );
+  if (started.kind !== "started") {
+    throw new Error("The quest did not start");
+  }
+  const questId = started.chat.quest.id;
+  const [source, destination] = await listSpaces(owner.id, questId);
+  if (source === undefined || destination === undefined) {
+    throw new Error("The starting spaces were not saved");
+  }
+  await signIn(owner);
+
+  await changeMurmlingAction({
+    questId,
+    spaceId: source.id,
+    change: { kind: "add", text: "Second" },
+  });
+  await changeMurmlingAction({
+    questId,
+    spaceId: source.id,
+    change: { kind: "add", text: "First" },
+  });
+  const [second, first] = await listMurmlings(owner.id, questId, source.id);
+  if (second === undefined || first === undefined) {
+    throw new Error("The murmlings were not saved");
+  }
+  expect(
+    await changeMurmlingAction({
+      questId,
+      spaceId: source.id,
+      change: { kind: "place", id: first.id, before: second.id },
+    }),
+  ).toMatchObject({ kind: "saved" });
+  expect(
+    await changeMurmlingAction({
+      questId,
+      spaceId: source.id,
+      change: { kind: "edit", id: first.id, text: "First draft" },
+    }),
+  ).toMatchObject({ kind: "saved" });
+  expect(
+    (await listMurmlings(owner.id, questId, source.id)).map(({ text }) => text),
+  ).toEqual(["First draft", "Second"]);
+
+  expect(
+    await changeMurmlingAction({
+      questId,
+      spaceId: source.id,
+      change: { kind: "move", id: first.id, destination: destination.id },
+    }),
+  ).toMatchObject({ kind: "saved" });
+  expect(await listMurmlings(owner.id, questId, destination.id)).toMatchObject([
+    {
+      id: first.id,
+      taskNumber: first.taskNumber,
+      text: "First draft",
+      type: "task",
+    },
+  ]);
+  const removal = {
+    questId,
+    spaceId: source.id,
+    change: { kind: "remove", id: second.id },
+  };
+  await signIn(stranger);
+  expect(await changeMurmlingAction(removal)).toMatchObject({
+    kind: "problem",
+  });
+  expect(await listMurmlings(stranger.id, questId, source.id)).toEqual([]);
+  expect(await listMurmlings(owner.id, questId, source.id)).toMatchObject([
+    { id: second.id },
+  ]);
+
+  await signIn(owner);
+  expect(await changeMurmlingAction(removal)).toMatchObject({ kind: "saved" });
+  expect(await listMurmlings(owner.id, questId, source.id)).toEqual([]);
 });

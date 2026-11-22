@@ -3,6 +3,7 @@
 import { refresh } from "next/cache";
 import { z } from "zod";
 import { requireUser } from "@/auth/current-user.ts";
+import type { QuestActionResult } from "@/components/use-quest-action.ts";
 import { AppError } from "@/errors/app-error.ts";
 import { QUEST_ID } from "@/ids.ts";
 import { SPACES_COPY } from "@/ui/copy/spaces.ts";
@@ -18,23 +19,23 @@ const REQUEST = z.object({
 
 async function changeMurmlingAction(
   request: unknown,
-): Promise<string | undefined> {
+): Promise<QuestActionResult> {
   const user = await requireUser();
   const input = REQUEST.safeParse(request);
   if (!input.success) {
-    return SPACES_COPY.invalidChange;
+    return { kind: "problem", text: SPACES_COPY.invalidChange };
   }
   try {
     const { questId, spaceId, change } = input.data;
     const result = await changeMurmling(user.id, questId, spaceId, change);
     if (result === "saved") {
       refresh();
-      return undefined;
+      return { kind: "saved", message: SPACES_COPY.savedChange };
     }
-    return SPACES_COPY.changeProblems[result];
+    return { kind: "problem", text: SPACES_COPY.changeProblems[result] };
   } catch (error) {
     if (error instanceof AppError) {
-      return error.message;
+      return { kind: "problem", text: error.message };
     }
     throw error;
   }

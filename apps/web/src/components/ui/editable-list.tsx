@@ -502,11 +502,11 @@ function EditableListRow({
   readonly editor: EditorOptions;
   readonly editLabel: string;
   readonly actionsLabel: string;
-  readonly menuLabel?: string;
+  readonly menuLabel?: string | undefined;
   readonly disabled: boolean;
   readonly onSave: (text: string) => Promise<boolean>;
   readonly children: ReactNode;
-  readonly checked?: boolean;
+  readonly checked?: boolean | undefined;
   readonly toggleLabel?: string;
   readonly onToggle?: () => Promise<void>;
   // A short note about the item, shown before its actions, such as a

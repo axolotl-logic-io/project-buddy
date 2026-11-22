@@ -19,6 +19,11 @@ const MURMLING_CHANGE = z.discriminatedUnion("kind", [
   z.object({ kind: z.literal("remove"), id: MURMLING_ID }),
   z.object({ kind: z.literal("move"), id: MURMLING_ID, destination: SPACE_ID }),
   z.object({
+    kind: z.literal("place"),
+    id: MURMLING_ID,
+    before: MURMLING_ID.optional(),
+  }),
+  z.object({
     kind: z.literal("reorder"),
     id: MURMLING_ID,
     direction: z.enum(["up", "down"]),

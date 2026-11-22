@@ -8,8 +8,6 @@ interface PendingCase {
   readonly lane: Lane;
 }
 
-const PENDING_CASES: readonly PendingCase[] = [
-  { slug: "use_case_quest_spaces", lane: "rites-and-spaces" },
-];
+const PENDING_CASES: readonly PendingCase[] = [];
 
 export { PENDING_CASES };

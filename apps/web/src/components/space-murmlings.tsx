@@ -1,14 +1,30 @@
 "use client";
 
-import { type JSX, type SubmitEvent, useCallback, useState } from "react";
+import { type JSX, type SubmitEvent, useCallback } from "react";
 import { LocalTime } from "@/components/local-time.tsx";
 import { Button } from "@/components/ui/button.tsx";
+import {
+  AddListItem,
+  EditableList,
+  EditableListAction,
+  EditableListRow,
+  EditableListScope,
+} from "@/components/ui/editable-list.tsx";
+import type { EditorOptions } from "@/components/ui/editable-list-contract.ts";
+import { SelectField } from "@/components/ui/field.tsx";
 import { Alert, FormStatus } from "@/components/ui/form-message.tsx";
+import { useQuestAction } from "@/components/use-quest-action.ts";
 import type { QuestId } from "@/ids.ts";
-import { MURMLING_CHANGE } from "@/spaces/murmling.ts";
+import { MURMLING_CHANGE, type MurmlingChange } from "@/spaces/murmling.ts";
 import { changeMurmlingAction } from "@/spaces/murmling-actions.ts";
 import type { Murmling } from "@/spaces/murmling-store.ts";
-import { MURMLING_TYPE } from "@/spaces/space.ts";
+import {
+  MURMLING_TYPE,
+  type MurmlingType,
+  murmlingLimit,
+  murmlingText,
+  SPACE_ID,
+} from "@/spaces/space.ts";
 import type { Space } from "@/spaces/space-store.ts";
 import { SPACES_COPY } from "@/ui/copy/spaces.ts";
 
@@ -19,164 +35,153 @@ interface SpaceMurmlingsProps {
   readonly destinations: readonly Space[];
 }
 
-type Submit = (event: SubmitEvent<HTMLFormElement>) => Promise<void>;
+type RunChange = (change: MurmlingChange) => Promise<boolean>;
+
+function editorFor(noun: string, type: MurmlingType): EditorOptions {
+  return {
+    label: SPACES_COPY.editMurmling(noun),
+    placeholder: SPACES_COPY.addMurmling(noun),
+    save: SPACES_COPY.saveEdit,
+    cancel: SPACES_COPY.cancelEdit,
+    maxLength: murmlingLimit(type),
+    multiline: type === "quick-note",
+    validate: (value: string): ReturnType<EditorOptions["validate"]> => {
+      const text = murmlingText(type).safeParse(value).data;
+      if (text === undefined) {
+        return { problem: SPACES_COPY.changeProblems["invalid-text"] };
+      }
+      return { text };
+    },
+  };
+}
+
+function MarkType({
+  id,
+  type,
+  run,
+}: {
+  readonly id: Murmling["id"];
+  readonly type: MurmlingType;
+  readonly run: RunChange;
+}): JSX.Element {
+  const mark = useCallback(async (): Promise<void> => {
+    await run({ kind: "type", id, type });
+  }, [id, run, type]);
+  return (
+    <EditableListAction icon="checklist" onSelect={mark}>
+      {SPACES_COPY.markAs(SPACES_COPY.types[type])}
+    </EditableListAction>
+  );
+}
 
 function MurmlingRow({
   item,
   space,
   destinations,
-  submit,
-  pending,
+  run,
+  busy,
 }: Omit<SpaceMurmlingsProps, "contents" | "questId"> & {
   readonly item: Murmling;
-  readonly submit: Submit;
-  readonly pending: boolean;
+  readonly run: RunChange;
+  readonly busy: boolean;
 }): JSX.Element {
-  const label = SPACES_COPY.editMurmling(space.singular);
-  let checkedLabel = space.checkOff;
-  if (item.checkedOff) {
-    checkedLabel = space.uncheck;
+  const { id, checkedOff } = item;
+  const save = useCallback(
+    (text: string): Promise<boolean> => run({ kind: "edit", id, text }),
+    [id, run],
+  );
+  const remove = useCallback(async (): Promise<void> => {
+    await run({ kind: "remove", id });
+  }, [id, run]);
+  const up = useCallback(async (): Promise<void> => {
+    await run({ kind: "reorder", id, direction: "up" });
+  }, [id, run]);
+  const down = useCallback(async (): Promise<void> => {
+    await run({ kind: "reorder", id, direction: "down" });
+  }, [id, run]);
+  const toggle = useCallback(async (): Promise<void> => {
+    await run({ kind: "check", id, checkedOff: !checkedOff });
+  }, [id, run, checkedOff]);
+  const move = useCallback(
+    async (event: SubmitEvent<HTMLFormElement>): Promise<void> => {
+      event.preventDefault();
+      const destination = SPACE_ID.safeParse(
+        new FormData(event.currentTarget).get("destination"),
+      ).data;
+      if (destination !== undefined) {
+        await run({ kind: "move", id, destination });
+      }
+    },
+    [id, run],
+  );
+  let checked: boolean | undefined;
+  let toggleLabel = space.checkOff;
+  let menuLabel: string | undefined;
+  let detail: JSX.Element | undefined;
+  let leading: JSX.Element | undefined;
+  if (item.type === "task") {
+    checked = checkedOff;
+  }
+  if (checkedOff) {
+    toggleLabel = space.uncheck;
+  }
+  if (item.taskNumber !== null) {
+    menuLabel = SPACES_COPY.taskNumber(item.taskNumber);
+  }
+  if (item.type === "quick-note") {
+    leading = <LocalTime dateTime={item.createdAt} detail="day" />;
+  }
+  if (destinations.length > 0) {
+    detail = (
+      <details>
+        <summary>{SPACES_COPY.moveTo}</summary>
+        <form onSubmit={move} className="flex flex-wrap items-end gap-2">
+          <SelectField label={SPACES_COPY.destination} name="destination">
+            {destinations.map((destination) => (
+              <option key={destination.id} value={destination.id}>
+                {destination.name}
+              </option>
+            ))}
+          </SelectField>
+          <Button type="submit" variant="quiet" disabled={busy}>
+            {SPACES_COPY.move}
+          </Button>
+        </form>
+      </details>
+    );
   }
   return (
-    <li className="grid gap-2">
-      {item.type === "task" && (
-        <form onSubmit={submit}>
-          <input type="hidden" name="id" value={item.id} />
-          <input
-            type="hidden"
-            name="checkedOff"
-            value={String(!item.checkedOff)}
-          />
-          <Button
-            type="submit"
-            name="kind"
-            value="check"
-            variant="quiet"
-            disabled={pending}
-          >
-            {checkedLabel}
-          </Button>
-        </form>
-      )}
-      <details>
-        <summary>{item.text}</summary>
-        <form onSubmit={submit}>
-          <input type="hidden" name="id" value={item.id} />
-          <label>
-            {label}
-            <textarea
-              className="input-field"
-              name="text"
-              defaultValue={item.text}
-              key={item.text}
-            />
-          </label>
-          <Button type="submit" name="kind" value="edit" disabled={pending}>
-            {SPACES_COPY.saveEdit}
-          </Button>
-        </form>
-      </details>
-      {item.type === "quick-note" && (
-        <LocalTime dateTime={item.createdAt} detail="day" />
-      )}
-      <details>
-        <summary>{SPACES_COPY.actions(space.singular)}</summary>
-        {item.taskNumber !== null && (
-          <p>{SPACES_COPY.taskNumber(item.taskNumber)}</p>
-        )}
-        <form onSubmit={submit} className="flex flex-wrap gap-2">
-          <input type="hidden" name="id" value={item.id} />
-          <Button
-            type="submit"
-            name="direction"
-            value="up"
-            variant="quiet"
-            disabled={pending}
-          >
-            {SPACES_COPY.moveUp}
-          </Button>
-          <Button
-            type="submit"
-            name="direction"
-            value="down"
-            variant="quiet"
-            disabled={pending}
-          >
-            {SPACES_COPY.moveDown}
-          </Button>
-          {MURMLING_TYPE.options
-            .filter((type) => type !== item.type)
-            .map((type) => (
-              <Button
-                type="submit"
-                name="type"
-                key={type}
-                value={type}
-                variant="quiet"
-                disabled={pending}
-              >
-                {SPACES_COPY.markAs(SPACES_COPY.types[type])}
-              </Button>
-            ))}
-          <Button
-            type="submit"
-            name="kind"
-            value="remove"
-            variant="quiet-danger"
-            disabled={pending}
-          >
-            {SPACES_COPY.removeMurmling(space.singular)}
-          </Button>
-        </form>
-        {destinations.length > 0 && (
-          <form onSubmit={submit}>
-            <input type="hidden" name="id" value={item.id} />
-            <label>
-              {SPACES_COPY.moveTo}
-              <select className="input-field" name="destination">
-                {destinations.map((destination) => (
-                  <option key={destination.id} value={destination.id}>
-                    {destination.name}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <Button
-              type="submit"
-              name="kind"
-              value="move"
-              variant="quiet"
-              disabled={pending}
-            >
-              {SPACES_COPY.move}
-            </Button>
-          </form>
-        )}
-      </details>
-    </li>
+    <EditableListRow
+      id={id}
+      text={item.text}
+      editor={editorFor(space.singular, item.type)}
+      editLabel={SPACES_COPY.editMurmling(space.singular)}
+      actionsLabel={SPACES_COPY.actions(space.singular)}
+      menuLabel={menuLabel}
+      checked={checked}
+      toggleLabel={toggleLabel}
+      onToggle={toggle}
+      disabled={busy}
+      onSave={save}
+      detail={detail}
+      leading={leading}
+    >
+      <EditableListAction icon="arrow-up" onSelect={up}>
+        {SPACES_COPY.moveUp}
+      </EditableListAction>
+      <EditableListAction icon="arrow-down" onSelect={down}>
+        {SPACES_COPY.moveDown}
+      </EditableListAction>
+      {MURMLING_TYPE.options
+        .filter((type) => type !== item.type)
+        .map((type) => (
+          <MarkType key={type} type={type} id={id} run={run} />
+        ))}
+      <EditableListAction icon="trash" onSelect={remove}>
+        {SPACES_COPY.removeMurmling(space.singular)}
+      </EditableListAction>
+    </EditableListRow>
   );
-}
-
-function readChange(
-  event: SubmitEvent<HTMLFormElement>,
-): ReturnType<typeof MURMLING_CHANGE.safeParse> {
-  const values = new FormData(event.currentTarget, event.nativeEvent.submitter);
-  const { kind, type, direction, checkedOff, ...fields } =
-    Object.fromEntries(values);
-  let operation = kind;
-  if (direction !== undefined) {
-    operation = "reorder";
-  }
-  if (type !== undefined) {
-    operation = "type";
-  }
-  return MURMLING_CHANGE.safeParse({
-    ...fields,
-    kind: operation,
-    type,
-    direction,
-    checkedOff: checkedOff === "true",
-  });
 }
 
 function SpaceMurmlings({
@@ -185,43 +190,36 @@ function SpaceMurmlings({
   contents,
   destinations,
 }: SpaceMurmlingsProps): JSX.Element {
-  const [error, setError] = useState("");
-  const [saved, setSaved] = useState(false);
-  const [pending, setPending] = useState(false);
+  const {
+    run: save,
+    busy,
+    status,
+    problem,
+  } = useQuestAction(changeMurmlingAction);
   const spaceId = space.id;
-
-  const submit = useCallback(
-    async (event: SubmitEvent<HTMLFormElement>): Promise<void> => {
-      event.preventDefault();
-      const form = event.currentTarget;
-      const parsed = readChange(event);
-      if (!parsed.success) {
-        setError(SPACES_COPY.invalidChange);
-        return;
-      }
-      setPending(true);
-      setError("");
-      setSaved(false);
-      try {
-        const problem = await changeMurmlingAction({
-          questId,
-          spaceId,
-          change: parsed.data,
-        });
-        setError(problem ?? "");
-        setSaved(problem === undefined);
-        if (problem === undefined && parsed.data.kind === "add") {
-          form.reset();
-        }
-      } catch {
-        setError(SPACES_COPY.changeProblems.missing);
-      } finally {
-        setPending(false);
-      }
-    },
-    [questId, spaceId],
+  const run = useCallback(
+    (change: MurmlingChange): Promise<boolean> =>
+      save({ questId, spaceId, change }),
+    [questId, save, spaceId],
   );
-
+  const add = useCallback(
+    (text: string): Promise<boolean> => run({ kind: "add", text }),
+    [run],
+  );
+  const place = useCallback(
+    (id: string, before: string | undefined): Promise<boolean> => {
+      const change = MURMLING_CHANGE.safeParse({
+        kind: "place",
+        id,
+        before,
+      }).data;
+      if (change === undefined) {
+        return Promise.resolve(false);
+      }
+      return run(change);
+    },
+    [run],
+  );
   function row(item: Murmling): JSX.Element {
     return (
       <MurmlingRow
@@ -229,36 +227,41 @@ function SpaceMurmlings({
         item={item}
         space={space}
         destinations={destinations}
-        submit={submit}
-        pending={pending}
+        run={run}
+        busy={busy}
       />
     );
   }
-
-  const done = contents.filter((item) => item.checkedOff);
+  const done = contents.filter(({ checkedOff }) => checkedOff);
+  const addLabel = SPACES_COPY.addMurmling(space.singular);
   return (
-    <div className="grid gap-3">
-      <form onSubmit={submit}>
-        <label>
-          {SPACES_COPY.addMurmling(space.singular)}
-          <textarea className="input-field" name="text" required={true} />
-        </label>
-        <Button type="submit" name="kind" value="add" disabled={pending}>
-          {SPACES_COPY.addMurmling(space.singular)}
-        </Button>
-      </form>
-      {error !== "" && <Alert>{error}</Alert>}
-      <FormStatus>{saved === true && SPACES_COPY.added}</FormStatus>
-      <ul className="grid gap-3">
-        {contents.filter((item) => !item.checkedOff).map(row)}
-      </ul>
-      {done.length > 0 && (
-        <details>
-          <summary>{SPACES_COPY.done}</summary>
-          <ul className="grid gap-3">{done.map(row)}</ul>
-        </details>
-      )}
-    </div>
+    <EditableListScope blocked={busy}>
+      <div className="grid gap-3">
+        <FormStatus>{status}</FormStatus>
+        {problem !== undefined && <Alert>{problem}</Alert>}
+        <AddListItem
+          label={addLabel}
+          editor={{
+            ...editorFor(space.singular, space.newType),
+            label: addLabel,
+            save: addLabel,
+          }}
+          disabled={busy}
+          onSave={add}
+        />
+        <EditableList label={space.plural} onMove={place}>
+          {contents.filter(({ checkedOff }) => !checkedOff).map(row)}
+        </EditableList>
+        {done.length > 0 && (
+          <details>
+            <summary>{SPACES_COPY.done}</summary>
+            <EditableList label={SPACES_COPY.done}>
+              {done.map(row)}
+            </EditableList>
+          </details>
+        )}
+      </div>
+    </EditableListScope>
   );
 }
 

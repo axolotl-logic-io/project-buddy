@@ -242,6 +242,29 @@ async function applyExisting(
         .where(target);
       return "saved";
     }
+    case "place": {
+      const reordered = rows.filter(({ id }) => id !== row.id);
+      let before = reordered.length;
+      if (change.before !== undefined) {
+        before = reordered.findIndex(({ id }) => id === change.before);
+        if (before < 0) {
+          return "missing";
+        }
+      }
+      if (before === index) {
+        return "unchanged";
+      }
+      reordered.splice(before, 0, row);
+      await Promise.all(
+        reordered.map((item, position) =>
+          tx
+            .update(murmlings)
+            .set({ position })
+            .where(and(eq(murmlings.id, item.id), murmlingOpenTo(user))),
+        ),
+      );
+      return "saved";
+    }
     case "reorder": {
       let neighbourIndex = index + 1;
       if (change.direction === "up") {
