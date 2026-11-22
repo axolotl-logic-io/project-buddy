@@ -31,6 +31,7 @@ import { QueryBuilder } from "drizzle-orm/pg-core";
 import { dailiesDays } from "@/db/tables/dailies-days.ts";
 import { milestones } from "@/db/tables/milestones.ts";
 import { ownPrompts } from "@/db/tables/own-prompts.ts";
+import { conjurations, performances, rites } from "@/db/tables/performances.ts";
 import { questIdeas } from "@/db/tables/quest-ideas.ts";
 import { questInvitations, questMembers } from "@/db/tables/quest-members.ts";
 import { questNotes } from "@/db/tables/quest-notes.ts";
@@ -133,6 +134,24 @@ function murmlingOpenTo(user: UserId): SQL {
   return inArray(murmlings.questId, openQuestIds(user));
 }
 
+function performanceOpenTo(user: UserId): SQL {
+  return inArray(performances.questId, openQuestIds(user));
+}
+
+function conjurationOpenTo(user: UserId): SQL {
+  return inArray(
+    conjurations.performanceId,
+    new QueryBuilder()
+      .select({ id: performances.id })
+      .from(performances)
+      .where(performanceOpenTo(user)),
+  );
+}
+
+function riteOwnedBy(user: UserId): SQL {
+  return eq(rites.userId, user);
+}
+
 function spellResultOpenTo(user: UserId): SQL {
   return inArray(spellMessageResults.chatId, openChatIds(user));
 }
@@ -216,6 +235,7 @@ function replyRunOwnedBy(user: UserId): SQL {
 
 export {
   chatOpenTo,
+  conjurationOpenTo,
   dailiesDayOwnedBy,
   ideaOpenTo,
   messageOpenTo,
@@ -225,6 +245,7 @@ export {
   opensQuest,
   ownPromptOwnedBy,
   parkedChatOwnedBy,
+  performanceOpenTo,
   questInvitationOpenTo,
   questInvitationTo,
   questMemberOpenTo,
@@ -233,6 +254,7 @@ export {
   questPendingFor,
   replyRunOpenTo,
   replyRunOwnedBy,
+  riteOwnedBy,
   signedInDayOwnedBy,
   spaceOpenTo,
   spellResultOpenTo,

@@ -17,6 +17,8 @@ const COMMAND_OPTIONS = [
   "revision",
   "before",
   "spell",
+  "rite",
+  "space",
 ] as const;
 
 type CommandOption = (typeof COMMAND_OPTIONS)[number];
@@ -38,6 +40,8 @@ const PARSE_OPTIONS = {
   revision: { type: "string" },
   before: { type: "string" },
   spell: { type: "string" },
+  rite: { type: "string" },
+  space: { type: "string" },
 } as const;
 
 // An invocation as given: its positionals, the shared options, and each

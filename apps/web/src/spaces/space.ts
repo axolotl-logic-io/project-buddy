@@ -46,6 +46,15 @@ const STARTING_SPACES: readonly SpaceWords[] = [
   },
 ];
 
+function murmlingLimit(
+  type: MurmlingType,
+): typeof MURMLING_LINE_MAX | typeof QUICK_NOTE_MAX {
+  if (type === "quick-note") {
+    return QUICK_NOTE_MAX;
+  }
+  return MURMLING_LINE_MAX;
+}
+
 function murmlingText(type: MurmlingType): z.ZodType<string> {
   if (type === "quick-note") {
     return z.string().trim().min(1).max(QUICK_NOTE_MAX);
@@ -59,4 +68,11 @@ function murmlingText(type: MurmlingType): z.ZodType<string> {
 }
 
 export type { MurmlingType, SpaceId, SpaceWords };
-export { MURMLING_TYPE, murmlingText, SPACE_ID, SPACE_WORDS, STARTING_SPACES };
+export {
+  MURMLING_TYPE,
+  murmlingLimit,
+  murmlingText,
+  SPACE_ID,
+  SPACE_WORDS,
+  STARTING_SPACES,
+};

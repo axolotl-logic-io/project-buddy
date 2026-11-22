@@ -205,3 +205,18 @@ vi.mock("@/spaces/murmling-actions.ts", () => ({
     throw new Error("Mock the murmling action in this test");
   }),
 }));
+
+vi.mock("@/performances/performance-store.ts", () => ({
+  listPerformances: vi.fn(() => Promise.resolve([])),
+  readConjurations: vi.fn(() => Promise.resolve([])),
+}));
+
+vi.mock("@/rites/rite-store.ts", () => ({
+  listRites: vi.fn(() => Promise.resolve([])),
+}));
+
+vi.mock("@/performances/performance-actions.ts", () => ({
+  startPerformanceAction: vi.fn(),
+  stopPerformanceAction: vi.fn(),
+  conjureAction: vi.fn(),
+}));

@@ -50,6 +50,11 @@ const RESOURCES: readonly Resource[] = [
   { name: "note", summary: "Read, add and remove a quest's Quick Notes." },
   { name: "milestone", summary: "Read, edit and remove a quest's milestones." },
   { name: "construct", summary: "List the constructs open to you." },
+  { name: "rite", summary: "List the rites open to you." },
+  {
+    name: "performance",
+    summary: "Start and stop performances and make conjurations.",
+  },
   { name: "spell", summary: "List spells, and cast or stop one in a quest." },
   {
     name: "conversation",
@@ -550,6 +555,78 @@ const CONVERSATION_COMMANDS: readonly Command[] = [
   }),
 ];
 
+function performancePath(input: CommandInput): string {
+  return `${questPath(input)}/performances/${encodeURIComponent(targetOf(input, "performance"))}`;
+}
+
+const PERFORMANCE_COMMANDS: readonly Command[] = [
+  command({
+    resource: "performance",
+    action: "list",
+    usage: "performance list --quest QUEST_ID",
+    summary: "List the quest's performances.",
+    options: ["quest"],
+    list: true,
+    request: (input: CommandInput): ApiRequest => ({
+      method: "GET",
+      path: `${questPath(input)}/performances`,
+    }),
+  }),
+  command({
+    resource: "performance",
+    action: "get",
+    usage: "performance get PERFORMANCE_ID --quest QUEST_ID",
+    summary: "Read a performance and its conjurations.",
+    options: ["quest"],
+    target: true,
+    request: (input: CommandInput): ApiRequest => ({
+      method: "GET",
+      path: performancePath(input),
+    }),
+  }),
+  command({
+    resource: "performance",
+    action: "start",
+    usage: "performance start --quest QUEST_ID --rite RITE_ID --space SPACE_ID",
+    summary: "Perform a rite on a space.",
+    options: ["quest", "rite", "space"],
+    request: (input: CommandInput): ApiRequest => ({
+      method: "POST",
+      path: `${questPath(input)}/performances`,
+      body: {
+        riteId: required(input, "rite"),
+        spaceId: required(input, "space"),
+      },
+    }),
+  }),
+  command({
+    resource: "performance",
+    action: "conjure",
+    usage:
+      "performance conjure PERFORMANCE_ID --quest QUEST_ID (--text TEXT | --text-file PATH | --stdin)",
+    summary: "Make a conjuration and receive its reply.",
+    options: ["quest", "text"],
+    target: true,
+    request: (input: CommandInput): ApiRequest => ({
+      method: "POST",
+      path: performancePath(input),
+      body: { id: crypto.randomUUID(), text: textOf(input) },
+    }),
+  }),
+  command({
+    resource: "performance",
+    action: "stop",
+    usage: "performance stop PERFORMANCE_ID --quest QUEST_ID",
+    summary: "End the active performance.",
+    options: ["quest"],
+    target: true,
+    request: (input: CommandInput): ApiRequest => ({
+      method: "DELETE",
+      path: performancePath(input),
+    }),
+  }),
+];
+
 const COMMANDS: readonly Command[] = [
   command({
     resource: "whoami",
@@ -564,6 +641,8 @@ const COMMANDS: readonly Command[] = [
   ...NOTE_COMMANDS,
   ...MILESTONE_COMMANDS,
   ...definitionCommands("construct", "constructs"),
+  ...definitionCommands("rite", "rites"),
+  ...PERFORMANCE_COMMANDS,
   ...SPELL_COMMANDS,
   ...CONVERSATION_COMMANDS,
 ];

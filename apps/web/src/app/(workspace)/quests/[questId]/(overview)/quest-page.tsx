@@ -9,9 +9,12 @@ import { ConversationPanel } from "@/components/conversation-panel.tsx";
 import { DayGrid } from "@/components/dailies/day-grid.tsx";
 import { LocalTime } from "@/components/local-time.tsx";
 import { NextTask } from "@/components/next-task.tsx";
+import { Conjure, PerformRite } from "@/components/performance-controls.tsx";
+import { PerformanceTranscript } from "@/components/performance-transcript.tsx";
 import { QuestIdeas } from "@/components/quest-ideas.tsx";
 import { QuestMembers } from "@/components/quest-members.tsx";
 import { QuestNotes } from "@/components/quest-notes.tsx";
+import { QuestPerformances } from "@/components/quest-performances.tsx";
 import { QuestSharingMark } from "@/components/quest-sharing-mark.tsx";
 import {
   QuestStatusControls,
@@ -28,6 +31,7 @@ import { QuestTimer } from "@/components/timer/quest-timer.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { Notice } from "@/components/ui/form-message.tsx";
 import { Icon } from "@/components/ui/icon.tsx";
+import { DEFAULT_CONSTRUCT_ID, getConstruct } from "@/constructs/index.ts";
 import { findConversation } from "@/conversations/conversation-store.ts";
 import type { DailiesRecord } from "@/dailies/dailies.ts";
 import { readDailiesRecord } from "@/dailies/day-store.ts";
@@ -35,8 +39,13 @@ import { listIdeas } from "@/ideas/idea-store.ts";
 import type { ChatId, QuestId, UserId } from "@/ids.ts";
 import { listMilestones } from "@/milestones/milestone-store.ts";
 import { listNotes } from "@/notes/note-store.ts";
+import {
+  listPerformances,
+  readConjurations,
+} from "@/performances/performance-store.ts";
 import { listQuestPeople } from "@/quests/membership-store.ts";
 import { getQuest, type Quest } from "@/quests/store.ts";
+import { listRites } from "@/rites/rite-store.ts";
 import { listMurmlings } from "@/spaces/murmling-store.ts";
 import { SPACE_ID } from "@/spaces/space.ts";
 import { listSpaces } from "@/spaces/space-store.ts";
@@ -52,6 +61,7 @@ import {
 import { readTasksState } from "@/tasks/tasks-store.ts";
 import { IDEAS_COPY } from "@/ui/copy/ideas.ts";
 import { QUEST_NOTES_COPY } from "@/ui/copy/notes.ts";
+import { PERFORMANCE_COPY } from "@/ui/copy/performances.ts";
 import { QUEST_MEMBERS_COPY } from "@/ui/copy/quest-members.ts";
 import { QUEST_OVERVIEW_COPY } from "@/ui/copy/quest-overview.ts";
 import { QUEST_SIDEBAR_COPY } from "@/ui/copy/quest-sidebar.ts";
@@ -175,6 +185,7 @@ async function questPage(
   user: UserId,
   questId: string,
   section: unknown,
+  performanceParam?: unknown,
 ): Promise<JSX.Element | undefined> {
   const quest = await getQuest(user, questId);
   if (quest === undefined) {
@@ -196,6 +207,44 @@ async function questPage(
   let contents: Awaited<ReturnType<typeof listMurmlings>> = [];
   if (space !== undefined) {
     contents = await listMurmlings(user, quest.id, space.id);
+  }
+  const performances = await listPerformances(user, quest.id);
+  const running = performances.find(({ endedAt }) => endedAt === null);
+  const selected = performances.find(({ id }) => id === performanceParam);
+  const construct =
+    conversation?.construct ?? getConstruct(DEFAULT_CONSTRUCT_ID);
+  let runningContent: ReactNode;
+  if (running !== undefined) {
+    runningContent = (
+      <section aria-label={running.rite.name} className="quest-section-body">
+        <h2 className="section-heading">{running.rite.name}</h2>
+        <PerformanceTranscript
+          performance={running}
+          entries={await readConjurations(user, running.id)}
+          construct={construct}
+        />
+        <Conjure
+          key={running.id}
+          questId={quest.id}
+          performanceId={running.id}
+        />
+      </section>
+    );
+  }
+  let historyContent: ReactNode;
+  if (section === "performances") {
+    historyContent = (
+      <QuestPerformances questId={quest.id} performances={performances} />
+    );
+    if (selected !== undefined) {
+      historyContent = (
+        <PerformanceTranscript
+          performance={selected}
+          entries={await readConjurations(user, selected.id)}
+          construct={construct}
+        />
+      );
+    }
   }
   const record = days || undefined;
   const today = new Date();
@@ -237,6 +286,29 @@ async function questPage(
     membersSummary = QUEST_OVERVIEW_COPY.people(people.members.length + 1);
   }
 
+  let riteContent: ReactNode;
+  if (section === "rites") {
+    riteContent = (
+      <section
+        aria-label={PERFORMANCE_COPY.ritesAndStatus}
+        className="quest-section-body"
+      >
+        <h2 className="section-heading">{PERFORMANCE_COPY.ritesAndStatus}</h2>
+        <PerformRite
+          questId={quest.id}
+          rites={await listRites(user)}
+          spaces={spaces}
+        />
+        <h3 className="section-heading">{QUEST_OVERVIEW_COPY.status}</h3>
+        <QuestStatusControls quest={quest} />
+      </section>
+    );
+  }
+  const onOverview =
+    current === undefined &&
+    space === undefined &&
+    section !== "performances" &&
+    section !== "rites";
   const shownTasks = tasks?.tasks ?? EMPTY_TASKS;
   let spellsContent: ReactNode;
   if (current === "spells") {
@@ -326,7 +398,7 @@ async function questPage(
       >
         <div className="quest-workspace quest-overview">
           <QuestStatusFeedback>
-            {current === undefined && space === undefined && (
+            {onOverview === true && (
               <section className="quest-overview-hero" aria-label={quest.name}>
                 <div className="quest-overview-heading">
                   <div className="min-w-0">
@@ -383,7 +455,7 @@ async function questPage(
               <Notice>{QUEST_STATUS_COPY.effects}</Notice>
             )}
             {active}
-            {current === undefined && space === undefined && (
+            {onOverview === true && (
               <>
                 <nav aria-label={SPACES_COPY.heading}>
                   <h2 className="section-heading">{SPACES_COPY.heading}</h2>
@@ -402,6 +474,24 @@ async function questPage(
                   </ul>
                   <SpaceSettings questId={quest.id} />
                 </nav>
+                <ul className="quest-overview-links">
+                  <li>
+                    <Link
+                      href={`/quests/${quest.id}?section=rites`}
+                      className="quest-overview-link"
+                    >
+                      {PERFORMANCE_COPY.ritesAndStatus}
+                    </Link>
+                  </li>
+                  <li>
+                    <Link
+                      href={`/quests/${quest.id}?section=performances`}
+                      className="quest-overview-link"
+                    >
+                      {PERFORMANCE_COPY.heading}
+                    </Link>
+                  </li>
+                </ul>
                 {sectionLinks(quest.id, sections)}
               </>
             )}
@@ -436,6 +526,24 @@ async function questPage(
                 {sections[current].content}
               </section>
             )}
+            {(section === "rites" || section === "performances") && (
+              <Button asChild={true} variant="quiet">
+                <Link href={sectionPath(quest.id)}>
+                  {QUEST_OVERVIEW_COPY.back}
+                </Link>
+              </Button>
+            )}
+            {riteContent}
+            {historyContent !== undefined && (
+              <section
+                aria-label={PERFORMANCE_COPY.heading}
+                className="quest-section-body"
+              >
+                <h2 className="section-heading">{PERFORMANCE_COPY.heading}</h2>
+                {historyContent}
+              </section>
+            )}
+            {section !== "performances" && runningContent}
           </QuestStatusFeedback>
         </div>
       </QuestTasks>

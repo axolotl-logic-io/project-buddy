@@ -271,6 +271,56 @@ async function applyExisting(
   }
 }
 
+async function changeWithin(
+  tx: Transaction,
+  user: UserId,
+  {
+    questId,
+    spaceId,
+  }: { readonly questId: QuestId; readonly spaceId: SpaceId },
+  change: MurmlingChange,
+): Promise<ChangeResult> {
+  const [quest] = await tx
+    .select({ nextTaskNumber: quests.nextTaskNumber })
+    .from(quests)
+    .where(and(eq(quests.id, questId), questOpenTo(user)))
+    .for("update");
+  if (quest === undefined) {
+    return "missing";
+  }
+  const [space] = await tx
+    .select({ newType: spaces.newType })
+    .from(spaces)
+    .where(
+      and(
+        eq(spaces.questId, questId),
+        eq(spaces.id, spaceId),
+        spaceOpenTo(user),
+      ),
+    );
+  if (space === undefined) {
+    return "missing";
+  }
+  const rows = await spaceRows(tx, user, questId, spaceId);
+  const result = await applyChange(
+    { tx, user, questId, spaceId, ...quest },
+    rows,
+    space.newType,
+    change,
+  );
+  if (result === "saved") {
+    const changed = [spaceId];
+    if (change.kind === "move") {
+      changed.push(change.destination);
+    }
+    await tx
+      .update(spaces)
+      .set({ version: sql`${spaces.version} + 1` })
+      .where(and(inArray(spaces.id, changed), spaceOpenTo(user)));
+  }
+  return result;
+}
+
 function changeMurmling(
   user: UserId,
   questId: QuestId,
@@ -278,49 +328,9 @@ function changeMurmling(
   change: MurmlingChange,
 ): Promise<ChangeResult> {
   return withAppErrors("changeMurmling", () =>
-    inTransaction(async (tx) => {
-      const [quest] = await tx
-        .select({ nextTaskNumber: quests.nextTaskNumber })
-        .from(quests)
-        .where(and(eq(quests.id, questId), questOpenTo(user)))
-        .for("update");
-      if (quest === undefined) {
-        return "missing";
-      }
-      const [space] = await tx
-        .select({ newType: spaces.newType })
-        .from(spaces)
-        .where(
-          and(
-            eq(spaces.questId, questId),
-            eq(spaces.id, spaceId),
-            spaceOpenTo(user),
-          ),
-        );
-      if (space === undefined) {
-        return "missing";
-      }
-      const rows = await spaceRows(tx, user, questId, spaceId);
-      const result = await applyChange(
-        { tx, user, questId, spaceId, ...quest },
-        rows,
-        space.newType,
-        change,
-      );
-      if (result === "saved") {
-        const changed = [spaceId];
-        if (change.kind === "move") {
-          changed.push(change.destination);
-        }
-        await tx
-          .update(spaces)
-          .set({ version: sql`${spaces.version} + 1` })
-          .where(and(inArray(spaces.id, changed), spaceOpenTo(user)));
-      }
-      return result;
-    }),
+    inTransaction((tx) => changeWithin(tx, user, { questId, spaceId }, change)),
   );
 }
 
 export type { Murmling };
-export { changeMurmling, listMurmlings };
+export { changeMurmling, changeWithin, listMurmlings };
