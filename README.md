@@ -190,11 +190,3 @@ It takes the same options as the visual comparison, except `--mockups`; run `mis
 Project Buddy installs on a phone's Home Screen from the browser: Chrome on Android offers **Install app**, and Safari on an iPhone offers **Add to Home Screen** in the Share menu. The web app manifest is `apps/web/src/app/manifest.ts`, with icons in `apps/web/public/icons/`.
 
 See [installed app use cases](apps/web/use-cases/notifications.md) for Home Screen installation.
-
-## Export copy for a writer
-
-From `apps/web/`, run `npm run copy:export -- copy.csv`. Import the resulting UTF-8 CSV into Google Sheets. The same command writes `copy-definitions.csv` beside it, to import as a separate sheet. An optional second path selects the definitions file: `npm run copy:export -- copy.csv copy-definitions.csv`.
-
-The script reads the `*_COPY` objects in `src/ui/copy/` without starting the app and exports only fields with more than three words. Each field gets an identifier, an approximate needed word count, a description and an empty Copy cell. The description tells the writer where the text appears, what has happened, what it needs to say and what the person can do next, and lists a template's `{{placeholders}}`. It never includes the original wording, so the writer can create new copy without seeing it. Maintain these briefs in `apps/web/scripts/copy-briefs.ts`; the export stops if an included field has no brief.
-
-The definitions sheet has Term and Definition columns so the writer can understand the terms used in copy identifiers and descriptions. When you change `docs/GLOSSARY.md`, update the explanations in `apps/web/scripts/copy-glossary.ts`. Each new term heading requires a writer explanation for the export to run.
