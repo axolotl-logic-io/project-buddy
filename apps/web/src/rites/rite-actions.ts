@@ -1,0 +1,94 @@
+"use server";
+
+import { refresh } from "next/cache";
+import { notFound, redirect } from "next/navigation";
+import { z } from "zod";
+import { requireUser } from "@/auth/current-user.ts";
+import { GRIMOIRE_COPY } from "@/ui/copy/grimoire.ts";
+import { MAX_RITE_NAME, RITE_DEFINITION } from "./rite.ts";
+import {
+  changeRiteAvailability,
+  OWN_RITE_ID,
+  readRite,
+  saveRite,
+} from "./rite-store.ts";
+
+type RiteSave =
+  | {
+      readonly kind: "invalid";
+      readonly field: "name" | "replies";
+      readonly message: string;
+    }
+  | { readonly kind: "unavailable" }
+  | { readonly kind: "saved"; readonly id: string };
+
+const SAVE = RITE_DEFINITION.extend({ id: OWN_RITE_ID.optional() });
+
+async function saveRiteAction(request: unknown): Promise<RiteSave> {
+  const user = await requireUser();
+  const parsed = SAVE.safeParse(request);
+  if (!parsed.success) {
+    const [issue] = parsed.error.issues;
+    if (issue?.path[0] === "name") {
+      return {
+        kind: "invalid",
+        field: "name",
+        message: GRIMOIRE_COPY.invalidName,
+      };
+    }
+    if (issue?.path[0] === "replies") {
+      return {
+        kind: "invalid",
+        field: "replies",
+        message: GRIMOIRE_COPY.invalidReplies,
+      };
+    }
+    return { kind: "unavailable" };
+  }
+  const { id, ...definition } = parsed.data;
+  const rite = await saveRite(user.id, definition, id);
+  if (rite === undefined) {
+    return { kind: "unavailable" };
+  }
+  refresh();
+  return { kind: "saved", id: rite.id };
+}
+
+async function copyRiteAction(form: FormData): Promise<void> {
+  const user = await requireUser();
+  const id = z.string().safeParse(form.get("id")).data;
+  if (id === undefined) {
+    notFound();
+  }
+  const source = await readRite(user.id, id);
+  if (source === undefined) {
+    notFound();
+  }
+  const copied = await saveRite(user.id, {
+    name: GRIMOIRE_COPY.copyName(source.name).slice(0, MAX_RITE_NAME),
+    replies: source.replies,
+  });
+  if (copied === undefined) {
+    notFound();
+  }
+  redirect(`/grimoire/${copied.id}`);
+}
+
+const AVAILABILITY = z.object({
+  id: OWN_RITE_ID,
+  change: z.enum(["forget", "restore", "delete"]),
+});
+
+async function changeRiteAction(form: FormData): Promise<void> {
+  const user = await requireUser();
+  const input = AVAILABILITY.safeParse(Object.fromEntries(form)).data;
+  if (
+    input === undefined ||
+    !(await changeRiteAvailability(user.id, input.id, input.change))
+  ) {
+    notFound();
+  }
+  redirect("/grimoire?filter=forgotten");
+}
+
+export { changeRiteAction, copyRiteAction, saveRiteAction };

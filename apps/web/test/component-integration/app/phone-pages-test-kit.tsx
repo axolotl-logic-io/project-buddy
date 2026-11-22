@@ -10,6 +10,8 @@ import { vi } from "vitest";
 import { page } from "vitest/browser";
 import { readSignInLinkUser } from "@/accounts/sign-in-links.ts";
 import ConstructPage from "@/app/(workspace)/constructs/[constructId]/page.tsx";
+import RitePage from "@/app/(workspace)/grimoire/[riteId]/page.tsx";
+import GrimoirePage from "@/app/(workspace)/grimoire/page.tsx";
 import ProfileLayout from "@/app/(workspace)/profile/layout.tsx";
 import ProfilePage from "@/app/(workspace)/profile/page.tsx";
 import QuestListLayout from "@/app/(workspace)/quests/(list)/layout.tsx";
@@ -37,6 +39,8 @@ import {
   getRetiredDefinition,
   listRetiredDefinitions,
 } from "@/retirement/retirement-store.ts";
+import { BUILT_IN_RITES } from "@/rites/rite.ts";
+import { listRites, readRite } from "@/rites/rite-store.ts";
 import {
   findSpell,
   getOwnSpell,
@@ -200,6 +204,30 @@ function projectPageFor(
 const projectPage = projectPageFor();
 
 const PHONE_PAGES: readonly PhonePage[] = [
+  {
+    name: "the Grimoire",
+    path: ["grimoire"],
+    render: workspacePage(
+      () => {
+        vi.mocked(listRites).mockResolvedValue([...BUILT_IN_RITES]);
+      },
+      () => GrimoirePage({ params: NO_PARAMS, searchParams: NO_PARAMS }),
+    ),
+  },
+  {
+    name: "a built-in rite",
+    path: ["grimoire", "capture"],
+    render: workspacePage(
+      () => {
+        vi.mocked(readRite).mockResolvedValue(BUILT_IN_RITES[0]);
+      },
+      () =>
+        RitePage({
+          params: Promise.resolve({ riteId: "capture" }),
+          searchParams: NO_PARAMS,
+        }),
+    ),
+  },
   {
     name: "Forgotten spells",
     path: ["spellbook"],

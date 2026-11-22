@@ -6,6 +6,7 @@ import type { Conversation } from "@/conversations/conversation-store.ts";
 import { readQuestConversation } from "@/conversations/start-quest.ts";
 import { getQuest, type Quest } from "@/quests/store.ts";
 import { getRetiredDefinition } from "@/retirement/retirement-store.ts";
+import { readRite } from "@/rites/rite-store.ts";
 import { findSpell } from "@/spells/own-spell-store.ts";
 import { getSpell, SPELL_ID } from "@/spells/spell.ts";
 import {
@@ -14,6 +15,7 @@ import {
   type TimerSchedule,
   timerPhaseAt,
 } from "@/timer/schedule.ts";
+import { GRIMOIRE_COPY } from "@/ui/copy/grimoire.ts";
 import { PROFILE_COPY } from "@/ui/copy/profile.ts";
 import { QUESTS_COPY } from "@/ui/copy/quests.ts";
 import { SETTINGS_COPY } from "@/ui/copy/settings.ts";
@@ -47,6 +49,7 @@ const ROOTS: ReadonlyMap<string, Breadcrumb & { readonly href: Route }> =
   new Map([
     ["quests", { label: QUESTS_COPY.heading, href: "/quests" }],
     ["constructs", QUESTS],
+    ["grimoire", { label: GRIMOIRE_COPY.heading, href: "/grimoire" }],
     ["spellbook", { label: SPELLBOOK_COPY.heading, href: "/spellbook" }],
     ["profile", { label: PROFILE_COPY.heading, href: "/profile" }],
     ["settings", { label: SETTINGS_COPY.heading, href: "/settings" }],
@@ -154,6 +157,12 @@ async function headerBreadcrumbs(
   if (section === "constructs") {
     if (isConstructId(id)) {
       ({ name } = getConstruct(id));
+    }
+  } else if (section === "grimoire") {
+    if (id === "new") {
+      name = GRIMOIRE_COPY.create;
+    } else {
+      name = (await readRite(user.id, id, true))?.name;
     }
   } else if (section === "spellbook") {
     const parsed = SPELL_ID.safeParse(id);

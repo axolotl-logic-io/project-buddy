@@ -24,6 +24,8 @@ type RiteDefinition = z.infer<typeof RITE_DEFINITION>;
 
 interface Rite extends RiteDefinition {
   readonly id: string;
+  readonly updatedAt?: Date;
+  readonly forgotten?: boolean;
   readonly source: "built-in" | "own";
 }
 
@@ -72,4 +74,11 @@ function riteReply(
 }
 
 export type { Rite, RiteDefinition };
-export { BUILT_IN_RITES, RITE_DEFINITION, riteReply };
+export {
+  BUILT_IN_RITES,
+  MAX_REPLIES,
+  MAX_REPLY,
+  MAX_RITE_NAME,
+  RITE_DEFINITION,
+  riteReply,
+};
