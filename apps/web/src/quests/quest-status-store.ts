@@ -4,7 +4,7 @@ import { getDb, inTransaction, type Transaction } from "@/db/client.ts";
 import { questStatusApprovals } from "@/db/tables/quest-status-approvals.ts";
 import { chats, quests } from "@/db/tables/quests-and-chats.ts";
 import { withAppErrors } from "@/errors/to-app-error.ts";
-import { gainPoints, losePoints } from "@/experience/experience-store.ts";
+import { recordEvents, takeBackEvents } from "@/experience/experience-store.ts";
 import type { ChatId, QuestId, UserId } from "@/ids.ts";
 import {
   type QuestStatus,
@@ -50,14 +50,16 @@ async function saveStatus(
     })
     .where(and(eq(quests.id, change.questId), questOpenTo(user)));
   if (change.toStatus === "completed") {
-    await gainPoints(
+    await recordEvents(
       tx,
       { user, questId: change.questId },
       "completing-quests",
       [change.questId],
     );
   } else if (change.fromStatus === "completed") {
-    await losePoints(tx, "completing-quests", change.questId, [change.questId]);
+    await takeBackEvents(tx, "completing-quests", change.questId, [
+      change.questId,
+    ]);
   }
 }
 

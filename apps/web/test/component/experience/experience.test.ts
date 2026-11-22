@@ -1,14 +1,14 @@
-// Experience's rules: how ability points weigh into experience, where the
+// Experience's rules: how event counts weigh into experience, where the
 // triangular curve starts each circle, the titles circles take, and what a
 // change to a quest's Tasks gains or takes back.
 
 import { describe, expect, test } from "vitest";
 import {
-  abilitiesByExperience,
   circleAt,
   circleStart,
+  eventsByExperience,
   experienceOf,
-  NO_POINTS,
+  NO_EVENTS,
   nextTitleOf,
 } from "@/experience/experience.ts";
 import { taskPointChanges } from "@/experience/task-points.ts";
@@ -48,7 +48,7 @@ const TITLES = [
 ] as const;
 
 function titleAt(circle: number): string {
-  return experienceOf({ ...NO_POINTS, noting: circleStart(circle) }).title;
+  return experienceOf({ ...NO_EVENTS, adding: circleStart(circle) }).title;
 }
 
 describe("circles", () => {
@@ -86,29 +86,23 @@ describe("circles", () => {
   });
 });
 
-test("abilities line up by the experience they earned, ties in their usual order", () => {
-  const standings = abilitiesByExperience({
-    "adding-tasks": 3,
-    ideating: 3,
-    noting: 0,
-    "completing-tasks": 2,
+test("events line up by the experience they earned, ties in their usual order", () => {
+  const standings = eventsByExperience({
+    adding: 6,
+    "checking-off": 2,
     "completing-quests": 1,
   });
   expect(standings).toEqual([
-    { ability: "completing-quests", points: 1, experience: 9 },
-    { ability: "completing-tasks", points: 2, experience: 6 },
-    { ability: "adding-tasks", points: 3, experience: 3 },
-    { ability: "ideating", points: 3, experience: 3 },
-    { ability: "noting", points: 0, experience: 0 },
+    { event: "completing-quests", counts: 1, experience: 9 },
+    { event: "adding", counts: 6, experience: 6 },
+    { event: "checking-off", counts: 2, experience: 6 },
   ]);
 });
 
-test("abilities weigh into experience: a completed task three, a completed quest nine", () => {
+test("events weigh into experience: a completed task three, a completed quest nine", () => {
   const experience = experienceOf({
-    "adding-tasks": 2,
-    ideating: 1,
-    noting: 1,
-    "completing-tasks": 1,
+    adding: 4,
+    "checking-off": 1,
     "completing-quests": 1,
   });
   expect(experience).toMatchObject({
@@ -138,7 +132,7 @@ describe("taskPointChanges", () => {
     });
   });
 
-  test("a removed task keeps its points and a restored one gains none", () => {
+  test("a removed task keeps its counts and a restored one gains none", () => {
     const removed: Tasks = {
       items: POTTERY.items.filter((task) => task.number !== 1),
       nextNumber: 4,

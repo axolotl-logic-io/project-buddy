@@ -8,7 +8,7 @@ import { getDb, inTransaction } from "@/db/client.ts";
 import { questNotes } from "@/db/tables/quest-notes.ts";
 import { quests } from "@/db/tables/quests-and-chats.ts";
 import { withAppErrors } from "@/errors/to-app-error.ts";
-import { gainPoints } from "@/experience/experience-store.ts";
+import { recordEvents } from "@/experience/experience-store.ts";
 import type { QuestId, UserId } from "@/ids.ts";
 import { NOTE_ID, type Note, type NoteId } from "@/notes/note.ts";
 
@@ -57,10 +57,10 @@ function saveNote(
             ),
         )
         .returning({ id: questNotes.id });
-      await gainPoints(
+      await recordEvents(
         tx,
         { user: owner, questId },
-        "noting",
+        "adding",
         rows.map((row) => row.id),
       );
       return rows.length > 0;

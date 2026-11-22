@@ -122,11 +122,6 @@ const CONSTRUCT_COMMANDS: readonly CommandListing[] = [
     usage: "/stop",
     description: "Stop the active spell and return to Chat",
   },
-  {
-    command: "/exp",
-    usage: "/exp",
-    description: "Show your experience, circle and title",
-  },
 ];
 
 // The newest tasks the construct's change_tasks calls in the messages saved,

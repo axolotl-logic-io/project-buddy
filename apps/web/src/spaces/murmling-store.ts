@@ -8,7 +8,7 @@ import { getDb, inTransaction, type Transaction } from "@/db/client.ts";
 import { quests } from "@/db/tables/quests-and-chats.ts";
 import { murmlings, spaces } from "@/db/tables/spaces.ts";
 import { withAppErrors } from "@/errors/to-app-error.ts";
-import { gainPoints, losePoints } from "@/experience/experience-store.ts";
+import { recordEvents, takeBackEvents } from "@/experience/experience-store.ts";
 import type { QuestId, UserId } from "@/ids.ts";
 import { MURMLING_ID, type MurmlingChange } from "./murmling.ts";
 import { MURMLING_TYPE, murmlingText, type SpaceId } from "./space.ts";
@@ -127,7 +127,7 @@ async function applyChange(
     if (added === undefined) {
       throw new Error("Inserting a murmling returned no murmling");
     }
-    await gainPoints(tx, { user, questId }, "adding-tasks", [added.id]);
+    await recordEvents(tx, { user, questId }, "adding", [added.id]);
     return "saved";
   }
   const index = rows.findIndex(({ id }) => id === change.id);
@@ -175,7 +175,7 @@ async function applyExisting(
         return "invalid-text";
       }
       if (row.checkedOff) {
-        await losePoints(tx, "completing-tasks", questId, [
+        await takeBackEvents(tx, "checking-off", questId, [
           String(row.taskNumber),
         ]);
       }
@@ -199,11 +199,11 @@ async function applyExisting(
         return "unchanged";
       }
       if (change.checkedOff) {
-        await gainPoints(tx, { user, questId }, "completing-tasks", [
+        await recordEvents(tx, { user, questId }, "checking-off", [
           String(row.taskNumber),
         ]);
       } else {
-        await losePoints(tx, "completing-tasks", questId, [
+        await takeBackEvents(tx, "checking-off", questId, [
           String(row.taskNumber),
         ]);
       }

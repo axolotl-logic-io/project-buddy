@@ -5,7 +5,7 @@ import type { setNameAction } from "@/app/(workspace)/profile/actions.ts";
 import ProfileLayout from "@/app/(workspace)/profile/layout.tsx";
 import ProfilePage from "@/app/(workspace)/profile/page.tsx";
 import {
-  ABILITY_WEIGHTS,
+  EVENT_KIND_WEIGHTS,
   experienceOf,
   nextTitleOf,
 } from "@/experience/experience.ts";
@@ -124,37 +124,30 @@ test("Profile's card shows the user's circle, title, the experience the next cir
     .toBeVisible();
 });
 
-test("Profile lists abilities by the experience they earned, the most marked", async () => {
+test("Profile lists events by the experience they earned, the most marked", async () => {
   await renderProfile();
-  const abilities = page
-    .getByRole("region", { name: EXPERIENCE_COPY.abilitiesLabel })
+  const events = page
+    .getByRole("region", { name: EXPERIENCE_COPY.eventsLabel })
     .getByRole("listitem");
-  // Mabel's abilities, by experience: 7 completed tasks are worth 21, 12
-  // added tasks 12, 1 completed quest 9, 4 ideas 4 and 1 Quick Note 1.
-  const order = [
-    "completing-tasks",
-    "adding-tasks",
-    "completing-quests",
-    "ideating",
-    "noting",
-  ] as const;
-  await expect.element(abilities).toHaveLength(order.length);
-  expect(abilities.elements().map((tile) => tile.textContent)).toEqual(
-    order.map((ability) =>
-      expect.stringContaining(EXPERIENCE_COPY.abilities[ability]),
+  // Mabel earned 21 for checking off tasks, 17 for adding and 9 for completing quests.
+  const order = ["checking-off", "adding", "completing-quests"] as const;
+  await expect.element(events).toHaveLength(order.length);
+  expect(events.elements().map((tile) => tile.textContent)).toEqual(
+    order.map((event) =>
+      expect.stringContaining(EXPERIENCE_COPY.events[event]),
     ),
   );
   const [most] = order;
   await expect
-    .element(abilities.nth(0).getByText(EXPERIENCE_COPY.mostExperience))
+    .element(events.nth(0).getByText(EXPERIENCE_COPY.mostExperience))
     .toBeVisible();
   await expect
     .element(
-      abilities
+      events
         .nth(0)
         .getByText(
           EXPERIENCE_COPY.worth(
-            MABEL_EXPERIENCE.points[most] * ABILITY_WEIGHTS[most],
+            MABEL_EXPERIENCE.counts[most] * EVENT_KIND_WEIGHTS[most],
           ),
         ),
     )
@@ -164,26 +157,26 @@ test("Profile lists abilities by the experience they earned, the most marked", a
     .toHaveLength(1);
 });
 
-test("Profile says what an untried ability's first point is worth", async () => {
+test("Profile says what an untried event's first point is worth", async () => {
   readExperience.mockResolvedValueOnce(
-    experienceOf({ ...MABEL_EXPERIENCE.points, noting: 0 }),
+    experienceOf({ ...MABEL_EXPERIENCE.counts, adding: 0 }),
   );
   await renderProfile();
-  const noting = page
+  const adding = page
     .getByRole("listitem")
-    .filter({ hasText: EXPERIENCE_COPY.abilities.noting });
+    .filter({ hasText: EXPERIENCE_COPY.events.adding });
   await expect
     .element(
-      noting.getByText(
+      adding.getByText(
         EXPERIENCE_COPY.untried(
-          EXPERIENCE_COPY.firstSteps.noting,
-          ABILITY_WEIGHTS.noting,
+          EXPERIENCE_COPY.firstSteps.adding,
+          EVENT_KIND_WEIGHTS.adding,
         ),
       ),
     )
     .toBeVisible();
   await expect
-    .element(noting.getByText(EXPERIENCE_COPY.worth(0)))
+    .element(adding.getByText(EXPERIENCE_COPY.worth(0)))
     .not.toBeInTheDocument();
 });
 

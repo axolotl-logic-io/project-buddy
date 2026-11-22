@@ -5,7 +5,7 @@ import { type Database, getDb, inTransaction } from "@/db/client.ts";
 import { questIdeas } from "@/db/tables/quest-ideas.ts";
 import { quests } from "@/db/tables/quests-and-chats.ts";
 import { withAppErrors } from "@/errors/to-app-error.ts";
-import { gainPoints } from "@/experience/experience-store.ts";
+import { recordEvents } from "@/experience/experience-store.ts";
 import {
   IDEA,
   type Idea,
@@ -132,10 +132,10 @@ function changeIdea(
         if (rows.length === 0) {
           return NOT_FOUND;
         }
-        await gainPoints(
+        await recordEvents(
           tx,
           { user: owner, questId },
-          "ideating",
+          "adding",
           rows.map((row) => row.id),
         );
         return { kind: "saved" };

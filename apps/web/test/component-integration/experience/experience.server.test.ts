@@ -1,11 +1,11 @@
-// Experience in the test database: the points each ability gains from the
-// stores that save tasks, ideas, Quick Notes and quest status, the points
-// reopening and undo take back, and the points Start Day and removal keep.
+// Experience in the test database: the counts each event gains from the
+// stores that save tasks, ideas, Quick Notes and quest status, the counts
+// reopening and undo take back, and the counts Start Day and removal keep.
 
 import { describe, expect, test, vi } from "vitest";
 import type { User } from "@/accounts/users-store.ts";
 import { getDb } from "@/db/client.ts";
-import type { AbilityPoints } from "@/experience/experience.ts";
+import type { EventCounts } from "@/experience/experience.ts";
 import { readExperience } from "@/experience/experience-store.ts";
 import { changeIdea, listIdeas } from "@/ideas/idea-store.ts";
 import type { QuestId } from "@/ids.ts";
@@ -42,8 +42,8 @@ async function change(
   return outcome.change.version;
 }
 
-async function pointsOf(user: User): Promise<AbilityPoints> {
-  return (await readExperience(user.id)).points;
+async function pointsOf(user: User): Promise<EventCounts> {
+  return (await readExperience(user.id)).counts;
 }
 
 async function questOf(user: User): Promise<QuestId> {
@@ -56,7 +56,7 @@ const ADD_TWO: readonly TasksUndoOperation[] = [
 ];
 
 describe("use_case_experience", () => {
-  test("a new user is in the first circle with no points", async () => {
+  test("a new user is in the first circle with no counts", async () => {
     const user = await testUser();
     expect(await readExperience(user.id)).toMatchObject({
       experience: 0,
@@ -66,7 +66,7 @@ describe("use_case_experience", () => {
     });
   });
 
-  test("each ability gains a point for each thing done, weighted into experience", async () => {
+  test("each event gains a point for each thing done, weighted into experience", async () => {
     const user = await testUser();
     const questId = await questOf(user);
     await change(user, questId, ADD_TWO);
@@ -80,11 +80,9 @@ describe("use_case_experience", () => {
       revision: 0,
     });
     expect(await readExperience(user.id)).toMatchObject({
-      points: {
-        "adding-tasks": 2,
-        ideating: 1,
-        noting: 1,
-        "completing-tasks": 1,
+      counts: {
+        adding: 4,
+        "checking-off": 1,
         "completing-quests": 1,
       },
       experience: 16,
@@ -98,19 +96,19 @@ describe("use_case_experience", () => {
     await change(user, questId, ADD_TWO);
     await change(user, questId, [{ op: "complete", task: 1 }]);
     await change(user, questId, [{ op: "reopen", task: 1 }]);
-    expect(await pointsOf(user)).toMatchObject({ "completing-tasks": 0 });
+    expect(await pointsOf(user)).toMatchObject({ "checking-off": 0 });
     const completed = await change(user, questId, [
       { op: "complete", task: 2 },
     ]);
-    expect(await pointsOf(user)).toMatchObject({ "completing-tasks": 1 });
+    expect(await pointsOf(user)).toMatchObject({ "checking-off": 1 });
     await undoTasksChange(user.id, { questId, author: "person" }, completed);
     expect(await pointsOf(user)).toMatchObject({
-      "adding-tasks": 2,
-      "completing-tasks": 0,
+      adding: 2,
+      "checking-off": 0,
     });
   });
 
-  test("Start Day keeps a recurring task's points, so completing it again gains more, and its undo gains none", async () => {
+  test("Start Day keeps a recurring task's counts, so completing it again gains more, and its undo gains none", async () => {
     const user = await testUser();
     const questId = await questOf(user);
     await change(user, questId, ADD_TWO);
@@ -119,7 +117,7 @@ describe("use_case_experience", () => {
       { op: "complete", task: 1 },
     ]);
     const { version } = await startTasksDay(user.id, questId, getDb(), false);
-    expect(await pointsOf(user)).toMatchObject({ "completing-tasks": 1 });
+    expect(await pointsOf(user)).toMatchObject({ "checking-off": 1 });
     if (version === undefined) {
       throw new Error("Start Day reopened nothing");
     }
@@ -127,13 +125,13 @@ describe("use_case_experience", () => {
       database: getDb(),
       points: false,
     });
-    expect(await pointsOf(user)).toMatchObject({ "completing-tasks": 1 });
+    expect(await pointsOf(user)).toMatchObject({ "checking-off": 1 });
     await startTasksDay(user.id, questId, getDb(), false);
     await change(user, questId, [{ op: "complete", task: 1 }]);
-    expect(await pointsOf(user)).toMatchObject({ "completing-tasks": 2 });
+    expect(await pointsOf(user)).toMatchObject({ "checking-off": 2 });
   });
 
-  test("removing a task or idea keeps its points, and restoring gains none", async () => {
+  test("removing a task or idea keeps its counts, and restoring gains none", async () => {
     const user = await testUser();
     const questId = await questOf(user);
     await change(user, questId, ADD_TWO);
@@ -146,25 +144,24 @@ describe("use_case_experience", () => {
     }
     await changeIdea(user.id, { op: "remove", questId, id: idea.id });
     expect(await pointsOf(user)).toMatchObject({
-      "adding-tasks": 2,
-      ideating: 1,
+      adding: 3,
     });
   });
 
-  test("a member gains their own points, and reopening takes back whoever's completion it was", async () => {
+  test("a member gains their own counts, and reopening takes back whoever's completion it was", async () => {
     const owner = await testUser();
     const member = await testUser();
     const questId = await questOf(owner);
     await addMember(owner, questId, member);
     await change(member, questId, ADD_TWO);
     await change(owner, questId, [{ op: "complete", task: 1 }]);
-    expect(await pointsOf(member)).toMatchObject({ "adding-tasks": 2 });
+    expect(await pointsOf(member)).toMatchObject({ adding: 2 });
     expect(await pointsOf(owner)).toMatchObject({
-      "adding-tasks": 0,
-      "completing-tasks": 1,
+      adding: 0,
+      "checking-off": 1,
     });
     await change(member, questId, [{ op: "reopen", task: 1 }]);
-    expect(await pointsOf(owner)).toMatchObject({ "completing-tasks": 0 });
+    expect(await pointsOf(owner)).toMatchObject({ "checking-off": 0 });
   });
 
   test("reopening a completed quest takes its point back", async () => {

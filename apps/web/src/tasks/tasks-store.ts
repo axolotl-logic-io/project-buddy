@@ -279,7 +279,7 @@ type Attempt =
 
 // How a change is saved: how often it was tried already, the database or
 // transaction it is saved in, and whether it gains and loses the acting
-// user's ability points, as every change but a fresh day's does.
+// user's event points, as every change but a fresh day's does.
 interface SaveOptions {
   readonly tries?: number;
   readonly database?: Database;

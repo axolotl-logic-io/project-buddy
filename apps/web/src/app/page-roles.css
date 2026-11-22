@@ -1014,13 +1014,13 @@
     @apply text-muted text-sm;
   }
 
-  /* The abilities: full-width rows on a phone, tiles side by side from sm,
+  /* The events: full-width rows on a phone, tiles side by side from sm,
      the most experience first. A badge sits on its tile's top edge. */
-  .ability-tiles {
+  .event-tiles {
     @apply mt-3 grid gap-3 pt-2 sm:grid-cols-[repeat(auto-fill,minmax(15rem,1fr))];
   }
 
-  .ability-tile {
+  .event-tile {
     @apply relative grid items-center gap-x-3 rounded-box border-2 bg-field px-3 py-2.5 sm:gap-y-2 sm:p-3.5;
     border-color: color-mix(in oklab, var(--line) 40%, transparent);
     grid-template-columns: auto 1fr auto;
@@ -1029,7 +1029,7 @@
       "icon name worth";
   }
 
-  .ability-tile-untried {
+  .event-tile-untried {
     @apply border-dashed bg-transparent;
     border-color: color-mix(in oklab, var(--line) 60%, transparent);
     grid-template-areas:
@@ -1037,71 +1037,71 @@
       "icon hint count";
   }
 
-  .ability-tile-most {
+  .event-tile-most {
     @apply mt-1.5;
     border-color: var(--hud-gold);
   }
 
   @media (width >= 40rem) {
-    .ability-tile {
+    .event-tile {
       grid-template-areas:
         "icon name name"
         "count count worth";
     }
 
-    .ability-tile-untried {
+    .event-tile-untried {
       grid-template-areas:
         "icon name count"
         "hint hint hint";
     }
 
-    .ability-tile-most {
+    .event-tile-most {
       @apply mt-0;
     }
   }
 
-  .ability-badge {
+  .event-badge {
     @apply absolute start-3 -top-2.5 rounded-full px-2 py-px font-extrabold text-[0.6875rem] uppercase tracking-wider sm:start-auto sm:end-3;
     background: var(--hud-gold);
     color: var(--hud-ink);
   }
 
-  .ability-icon {
+  .event-icon {
     @apply grid size-9 place-items-center rounded-full;
     grid-area: icon;
     background: var(--hud-ink);
     color: var(--hud-gold);
   }
 
-  .ability-icon > .icon > svg {
+  .event-icon > .icon > svg {
     @apply size-4.5;
   }
 
-  .ability-tile-untried > .ability-icon {
+  .event-tile-untried > .event-icon {
     @apply border-2 border-line border-dashed bg-transparent text-muted;
   }
 
-  .ability-name {
+  .event-name {
     @apply font-bold leading-tight;
     grid-area: name;
   }
 
-  .ability-count {
+  .event-count {
     @apply text-end text-muted text-sm leading-none sm:text-start;
     grid-area: count;
   }
 
-  .ability-number {
+  .event-number {
     @apply font-bold font-heading text-2xl text-foreground sm:text-3xl;
   }
 
-  .ability-worth {
+  .event-worth {
     @apply self-center justify-self-end rounded-full px-2 py-0.5 font-extrabold text-accent text-xs;
     grid-area: worth;
     background: color-mix(in oklab, var(--accent) 12%, transparent);
   }
 
-  .ability-hint {
+  .event-hint {
     @apply text-muted text-sm leading-snug;
     grid-area: hint;
   }
