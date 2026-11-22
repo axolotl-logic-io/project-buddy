@@ -103,7 +103,7 @@ describe("milestone tool contract", () => {
   });
 });
 
-describe("use_case_view_progress_timeline", () => {
+describe("the progress timeline", () => {
   test("the quest's Progress lists its milestones newest first, and no one else's", async () => {
     const { her, herData, otherData } = await twoUsers();
     const quest = await herData.quest("Sea turtle model");
@@ -150,7 +150,7 @@ describe("use_case_view_progress_timeline", () => {
   });
 });
 
-describe("use_case_edit_milestone", () => {
+describe("editing a milestone", () => {
   test("her /edit-milestone changes the milestone's text, keeps its date and chat, and notes it in the conversation", async () => {
     const { user, chat } = await signedInChat();
     const source = { questId: chat.quest.id, chatId: chat.id };

@@ -5,7 +5,7 @@ import { startQuest } from "@/conversations/start-quest.ts";
 import { QUEST_NAME } from "@/quests/quest-name.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
 
-test("use_case_start_without_remote_models", async () => {
+test("starting a quest without remote models", async () => {
   const user = await testUser();
   const result = await startQuest(
     user.id,

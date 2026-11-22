@@ -1,4 +1,4 @@
-// "use_case_send_message" in use-cases/chats.md, in Chromium and WebKit:
+// "use_case_send_message" in use-cases/performances.md, in Chromium and WebKit:
 // her typing survives the reply finishing while she types, and a message she
 // hasn't sent is still in the box when she comes back to the chat. The
 // test's fetch

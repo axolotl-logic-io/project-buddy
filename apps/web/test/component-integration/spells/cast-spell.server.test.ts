@@ -12,7 +12,7 @@ import {
   signedInChat,
 } from "../test-database/chat-test-kit.ts";
 
-describe("use_case_construct_casts_spell", () => {
+describe("the construct casts a spell", () => {
   test("built-in and own spell names are accepted", async () => {
     const { chat } = await signedInChat();
     const prompt = await constructPrompt(chat.id);

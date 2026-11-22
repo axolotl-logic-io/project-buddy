@@ -22,7 +22,7 @@ const ONE_TASK_ADDED = [
   "- Completing quests: 0 points",
 ].join("\n");
 
-test("use_case_experience_command", async () => {
+test("the exp command answers with experience", async () => {
   const { user, chat } = await signedInChat();
   await constructReply(chat.id, "/tasks");
   await constructReply(chat.id, "Buy clay");

@@ -181,7 +181,7 @@ afterEach(() => {
   vi.clearAllMocks();
 });
 
-describe("use_case_breadcrumbs_in_long_chat", () => {
+describe("use_case_breadcrumbs_in_long_performance", () => {
   for (const { viewport, pinnedBudget } of SCREENS) {
     for (const name of [FOX_QUEST.name, LONG_QUEST_NAME]) {
       test(`${viewport.width} px wide, for ${name}`, async () => {

@@ -188,7 +188,7 @@ describe("use_case_reply_fails", () => {
   });
 });
 
-describe("use_case_stop_reply", () => {
+describe("stopping a reply", () => {
   test("Stop takes Send's place, waits for the server, and a failed request leaves the stream running", async () => {
     let output: ReadableStreamDefaultController<UIMessageChunk> | undefined;
     const fetcher = vi.fn<typeof fetch>(() =>

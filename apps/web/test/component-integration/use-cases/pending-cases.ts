@@ -1,14 +1,22 @@
 // Use cases written before their tests; each lane removes its entries.
 
-// No lanes have pending cases. When a case is written before its test, add its
-// lane here.
-type Lane = never;
+// The lane that brings the site in line with the rites-and-spaces glossary.
+type Lane = "rites-and-spaces";
 
 interface PendingCase {
   readonly slug: `use_case_${string}`;
   readonly lane: Lane;
 }
 
-const PENDING_CASES: readonly PendingCase[] = [];
+const PENDING_CASES: readonly PendingCase[] = [
+  { slug: "use_case_perform_rite", lane: "rites-and-spaces" },
+  { slug: "use_case_view_performances", lane: "rites-and-spaces" },
+  { slug: "use_case_grimoire_page", lane: "rites-and-spaces" },
+  { slug: "use_case_customize_rite", lane: "rites-and-spaces" },
+  { slug: "use_case_quest_spaces", lane: "rites-and-spaces" },
+  { slug: "use_case_set_up_space", lane: "rites-and-spaces" },
+  { slug: "use_case_murmling_types", lane: "rites-and-spaces" },
+  { slug: "use_case_cli_api_performance", lane: "rites-and-spaces" },
+];
 
 export { PENDING_CASES };

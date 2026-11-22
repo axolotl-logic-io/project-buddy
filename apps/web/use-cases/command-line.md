@@ -14,20 +14,20 @@ These cases cover the `project-buddy` command, which works with the user's quest
 
 ## use_case_cli_api_quest_records
 
-- **Intent:** Keep a quest's Tasks, Ideas, Quick Notes and milestones from a terminal.
+- **Intent:** Keep a quest's spaces and murmlings from a terminal.
 - **Prerequisites:** [`use_case_cli_api_quests`](#use_case_cli_api_quests).
 - **Steps:**
-  - They add, edit, complete and remove tasks by task number, and undo a change by its version.
-  - They add Ideas, reorder them and move one to Tasks.
-  - They save and delete Quick Notes, and list and edit milestones.
-  - They list and read the constructs and spells open to them.
-- **Outcome:** each change answers with the quest's records as they now are, and Tasks answers with its new version. A missing idea, task or milestone is not found. Quick Notes save only to an Active quest, and deleting one that's already gone succeeds. Another user's records are not found.
+  - They list the quest's spaces and read one.
+  - They add, edit, check off, uncheck, reorder and remove murmlings, mark one as plain, a task or a quick note, and move one to another space.
+  - They undo a change by its version.
+  - They list and read the constructs and rites open to them.
+- **Outcome:** each change answers with the space as it now is, with its new version. Tasks keep their task numbers, including when moved. A missing space or murmling is not found. Another user's spaces are not found.
 
-## use_case_cli_api_conversation
+## use_case_cli_api_performance
 
-- **Intent:** Run a spell conversation from a terminal.
+- **Intent:** Perform a rite on a space from a terminal.
 - **Prerequisites:** [`use_case_cli_api_quests`](#use_case_cli_api_quests).
 - **Steps:**
-  - They cast a spell.
-  - They send a message from `--text`, a file or stdin, read the conversation, then stop the spell.
-- **Outcome:** sending waits for the construct's reply, and the conversation then shows both messages with their authors. Sending requires an active spell. A quest's members can read its conversation; anyone else gets not found.
+  - They start a performance of a rite on one of the quest's spaces.
+  - They make a conjuration from `--text`, a file or stdin, read the performance, then stop it.
+- **Outcome:** a conjuration adds its murmling to the space and waits for the rite's reply, and the performance then shows both with their authors. Conjuring requires an active performance. A quest's members can read its performances; anyone else gets not found.

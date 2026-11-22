@@ -18,7 +18,7 @@ import { callApi, dataOf } from "./api-test-kit.ts";
 const sent = vi.hoisted(() => ({ sendEmail: vi.fn<SendEmail>() }));
 vi.mock("@/email/send-email.ts", () => sent);
 
-describe("use_case_cli_api_conversation", () => {
+describe("the CLI API conversation", () => {
   test("a sent message waits for the construct's reply, which the conversation then shows", async () => {
     const { her, herData } = await twoUsers();
     const quest = await herData.quest();

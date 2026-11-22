@@ -49,7 +49,7 @@ test("a conversation keeps every exchange, in order", async () => {
   ]);
 });
 
-test("use_case_continue_chat", async () => {
+test("use_case_continue_performance", async () => {
   const { user, chat } = await userWithChat();
   await sendToEnd(user, chat, "An earlier question");
   const reopened = await getChat(user.id, chat.id);

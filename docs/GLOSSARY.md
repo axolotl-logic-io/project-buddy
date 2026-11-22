@@ -40,11 +40,11 @@ A quest the user owns or has joined as a quest member. Use **open to** for acces
 
 ### Space
 
-A named, ordered collection of murmlings in a quest. Every space belongs to one quest. A space sets the words shown for its contents: a singular and plural noun for its murmlings, and the verbs for checking off and unchecking its tasks. It also sets the type a conjuration gives each new murmling. Themed wording, such as spooky verbs, belongs in a space's words and a rite's replies rather than in the glossary.
+A named, ordered collection of murmlings in a quest. Every space belongs to one quest. A space sets the words shown for its contents: a singular and plural noun for its murmlings, and the verbs for checking off and unchecking its tasks. It also sets the type a conjuration gives each new murmling. Themed wording, such as spooky verbs, belongs in a space's words and a rite's replies rather than in the glossary. [Space use cases](../apps/web/use-cases/spaces.md)
 
 ### Murmling
 
-Anything in a space. Each murmling has one type: **plain**, **task** or **quick note**. On screen, the space's noun names it. To **move** a murmling is to place it in another space of the same quest, keeping its type and contents.
+Anything in a space. Each murmling has one type: **plain**, **task** or **quick note**. On screen, the space's noun names it. To **move** a murmling is to place it in another space of the same quest, keeping its type and contents. [Murmling types use case](../apps/web/use-cases/spaces.md#use_case_murmling_types)
 
 ### Task
 
@@ -56,7 +56,7 @@ The first open task in the quest, taking its spaces in order and each space's mu
 
 ### Quick note
 
-A murmling marked as a quick note: a short thought that shows the date it was added.
+A murmling marked as a quick note: a short thought that shows the date it was added. [Quick note use case](../apps/web/use-cases/spaces.md#use_case_quick_note)
 
 ## Dailies
 
@@ -66,7 +66,7 @@ The user's one ongoing, private quest for daily work, created from the Dailies s
 
 ### Dailies day
 
-A day the owner explicitly begins with **Start Day** in an Active Dailies quest. It takes the browser's calendar date under normal conditions. Start Day records the previous day's recurring task results, ends the active performance and unchecks recurring tasks that are checked off. One-off tasks keep their state unless the owner chooses to remove all tasks. **Undo Start Day** is available until the next conjuration in the quest. [Start Day use case](../apps/web/use-cases/quests.md#use_case_start_day) and [Undo Start Day use case](../apps/web/use-cases/quests.md#use_case_undo_start_day)
+A day the owner explicitly begins with **Start Day** in an Active Dailies quest. It takes the browser's calendar date under normal conditions. Start Day records the previous day's recurring task results, ends the active performance and unchecks recurring tasks that are checked off. One-off tasks keep their state, and other murmlings remain, unless the owner chooses spaces to empty. **Undo Start Day** is available until the next conjuration in the quest. [Start Day use case](../apps/web/use-cases/quests.md#use_case_start_day) and [Undo Start Day use case](../apps/web/use-cases/quests.md#use_case_undo_start_day)
 
 ### Recurring task
 
@@ -80,7 +80,7 @@ A run of consecutive calendar dates on which a recurring task was checked off. A
 
 ### Rite
 
-A named way to add murmlings to a space and reply to the user. A **rite definition** supplies the name and a list of replies. The site writes the messages for starting and stopping a performance, and for a failed conjuration, from the rite's name and the space's words. The built-in rites are **Capture**, which confirms each conjuration, and **Brainstorm**, which replies with brainstorming cues. Either can be performed on any space.
+A named way to add murmlings to a space and reply to the user. A **rite definition** supplies the name and a list of replies. The site writes the messages for starting and stopping a performance, and for a failed conjuration, from the rite's name and the space's words. The built-in rites are **Capture**, which confirms each conjuration, and **Brainstorm**, which replies with brainstorming cues. Either can be performed on any space. [Customize rite use case](../apps/web/use-cases/grimoire.md#use_case_customize_rite)
 
 ### Reply
 
@@ -88,11 +88,11 @@ The rite's answer to a conjuration, picked at random from the rite's reply list.
 
 ### Performance
 
-A rite performed on one space of a quest, from start to stop. Starting a performance saves a **rite snapshot**, a copy of the definition, so editing or forgetting the rite leaves the performance unchanged. The **active performance** is the one in effect for everyone in the quest, and a quest has at most one. **Stop** or Start Day ends it. **Performances** is the quest's record of its past and active performances.
+A rite performed on one space of a quest, from start to stop. Starting a performance saves a **rite snapshot**, a copy of the definition, so editing or forgetting the rite leaves the performance unchanged. The **active performance** is the one in effect for everyone in the quest, and a quest has at most one. **Stop** or Start Day ends it. **Performances** is the quest's record of its past and active performances. [Performance use cases](../apps/web/use-cases/performances.md)
 
 ### Conjuration
 
-A message a user writes during the active performance. Each conjuration adds one murmling to the performance's space, with the type the space sets, and the rite replies. A conjuration keeps its author. A user needs an active performance to make a conjuration.
+A message a user writes during the active performance. Each conjuration adds one murmling to the performance's space, with the type the space sets, and the rite replies. A conjuration keeps its author. A user needs an active performance to make a conjuration. [Conjuration use case](../apps/web/use-cases/performances.md#use_case_send_message)
 
 ### Construct
 
@@ -100,11 +100,11 @@ The character shown with a performance's replies. The built-in constructs are Ve
 
 ### Grimoire
 
-The collection where a user finds built-in rites and manages their own rites. A **built-in rite** is a read-only definition supplied by the site. An **own rite** is a private definition that its owner creates or copies and can edit. Quest members share the performances in a quest according to quest access. They do not acquire access to the original private definition.
+The collection where a user finds built-in rites and manages their own rites. A **built-in rite** is a read-only definition supplied by the site. An **own rite** is a private definition that its owner creates or copies and can edit. Quest members share the performances in a quest according to quest access. They do not acquire access to the original private definition. [Grimoire use cases](../apps/web/use-cases/grimoire.md)
 
 ### Forgotten rite
 
-An own rite put aside with **Forget**. It appears in the Grimoire's **Forgotten** tab and is unavailable for new performances. **Restore** makes the same definition available again. **Delete forever** permanently removes the definition. Both actions preserve existing rite snapshots.
+An own rite put aside with **Forget**. It appears in the Grimoire's **Forgotten** tab and is unavailable for new performances. **Restore** makes the same definition available again. **Delete forever** permanently removes the definition. Both actions preserve existing rite snapshots. [Retirement use cases](../apps/web/use-cases/retirement.md)
 
 ## Accounts and personal progress
 
@@ -118,7 +118,7 @@ The signed-in state established when a user confirms an emailed link. Signing ou
 
 ### Event
 
-A tracked action that earns experience: adding a murmling, checking off a task or completing a quest. An event belongs to the user who performed it, including in a shared quest. Unchecking a task or restoring a completed quest takes its event back.
+A tracked action that earns experience: adding a murmling, checking off a task or completing a quest. An event belongs to the user who performed it, including in a shared quest. Unchecking a task or restoring a completed quest takes its event back. [Experience use case](../apps/web/use-cases/experience.md#use_case_experience)
 
 ### Experience
 

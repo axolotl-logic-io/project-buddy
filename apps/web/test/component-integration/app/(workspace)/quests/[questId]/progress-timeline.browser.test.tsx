@@ -32,7 +32,7 @@ function textField(): ReturnType<typeof page.getByRole> {
   return page.getByRole("textbox", { name: PROGRESS_TIMELINE_COPY.textLabel });
 }
 
-describe("use_case_view_progress_timeline", () => {
+describe("the progress timeline", () => {
   test("lists the milestones newest first, each with its day", async () => {
     await renderTimeline();
 
@@ -69,7 +69,7 @@ describe("use_case_view_progress_timeline", () => {
   });
 });
 
-describe("use_case_edit_milestone", () => {
+describe("editing a milestone", () => {
   test("edits a milestone's text, keeping refused text on screen with the reason", async () => {
     applyTheme("parchment");
     change.mockResolvedValueOnce({

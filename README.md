@@ -79,7 +79,7 @@ The app makes no requests to AI model companies. Constructs use deterministic co
 
 ### Quests and conversations
 
-Quests at `/quests` is the signed-in landing page. Start a quest offers Dailies, Learn a thing, Make a thing and Do a thing. Each quest has one continuing conversation, a Tasks, Ideas, Quick Notes and a Progress timeline, which its owner, or anyone already in it, can share by inviting people as [members](docs/GLOSSARY.md#quest-member). Dailies continues the same quest each day. See [quest use cases](apps/web/use-cases/quests.md) and [conversation use cases](apps/web/use-cases/chats.md).
+Quests at `/quests` is the signed-in landing page. Start a quest offers Dailies, Learn a thing, Make a thing and Do a thing. Each quest has spaces of murmlings, starting with Tasks and Ideas, and a record of its performances: rites performed on a space, where each conjuration adds a murmling and the rite replies. Its owner, or anyone already in it, can share it by inviting people as [members](docs/GLOSSARY.md#quest-member). Dailies continues the same quest each day. See [quest use cases](apps/web/use-cases/quests.md), [space use cases](apps/web/use-cases/spaces.md) and [performance use cases](apps/web/use-cases/performances.md).
 
 Each starting point assigns the construct for its quest's conversation. Spellbook at `/spellbook` lists built-in and own spells with search and source filters. Profile at `/profile` holds the user's name and experience; Settings at `/settings` holds appearance and security.
 

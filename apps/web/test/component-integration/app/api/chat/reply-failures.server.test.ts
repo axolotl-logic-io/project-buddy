@@ -1,5 +1,5 @@
 // A reply that fails, or that holds a failed step, through POST /api/chat
-// with the local construct engine (use-cases/when-things-go-wrong.md and chats.md): what
+// with the local construct engine (use-cases/when-things-go-wrong.md and performances.md): what
 // the route streams and what the chat saves, which is all a reload shows.
 // How the alerts, the working note and the failure line look is
 // chat-error.test.tsx's, working-note.browser.test.tsx's and
@@ -111,7 +111,7 @@ describe("use_case_reply_fails", () => {
   });
 });
 
-test("use_case_session_expired_in_chat", async () => {
+test("use_case_session_expired_in_performance", async () => {
   const user = await testUser();
   const data = testData(user);
   const chat = await data.chat(await data.quest());

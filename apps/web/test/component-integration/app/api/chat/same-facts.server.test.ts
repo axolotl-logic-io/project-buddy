@@ -8,7 +8,7 @@ import {
   signedInChat,
 } from "../../../test-database/chat-test-kit.ts";
 
-test("use_case_same_facts_any_construct", async () => {
+test("every construct is given the same facts", async () => {
   const { user, chat } = await signedInChat();
   const data = testData(user);
   const quest = await data.quest("Another construct");

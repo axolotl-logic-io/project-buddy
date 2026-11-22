@@ -57,7 +57,7 @@ function ideasPanel({
   );
 }
 
-describe("use_case_quest_ideas", () => {
+describe("the quest's Ideas", () => {
   test("the visible Move to Tasks action keeps a refused idea and moves it with feedback and focus on success", async () => {
     const send = mockChange().mockResolvedValueOnce({
       kind: "problem",

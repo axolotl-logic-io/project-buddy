@@ -17,7 +17,7 @@ import {
 
 afterEach(() => vi.unstubAllEnvs());
 
-describe("use_case_spell_buckets", () => {
+describe("spell buckets", () => {
   test("commands cast the persistent spell and route subsequent messages until stopped", async () => {
     const { user, chat } = await signedInChat();
     await constructReply(chat.id, "/cast Brainstorm");

@@ -85,7 +85,7 @@ test("quest actions update collections and status with no conversation", async (
   ]);
 });
 
-test("use_case_spell_required", async () => {
+test("use_case_performance_required", async () => {
   const { her, herData } = await twoUsers();
   const quest = await herData.quest();
   const chat = await herData.chat(quest);

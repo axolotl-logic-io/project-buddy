@@ -85,7 +85,7 @@ function heldProvider(): {
   };
 }
 
-describe("use_case_stop_reply", () => {
+describe("stopping a reply", () => {
   test("the owner requests provider cancellation; repeated Stop preserves the partial reply and clears retry state", async () => {
     const [user, formerMember] = await Promise.all([testUser(), testUser()]);
     const quest = await testData(user).quest();

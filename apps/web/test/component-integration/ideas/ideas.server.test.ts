@@ -44,7 +44,7 @@ async function ideaTexts(
   return (await listIdeas(user.id, questId)).map((idea) => idea.text);
 }
 
-describe("use_case_quest_ideas", () => {
+describe("the quest's Ideas", () => {
   test("ideas persist, can be edited and removed, and move into Tasks once, each noted in the conversation", async () => {
     const { user, quest, chat } = await signedInQuest();
     expect(

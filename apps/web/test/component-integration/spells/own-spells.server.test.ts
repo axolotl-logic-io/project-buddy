@@ -37,7 +37,7 @@ import {
 
 vi.mock("next/cache", () => ({ refresh: vi.fn() }));
 
-test("use_case_customize_spell", async () => {
+test("customizing an own spell", async () => {
   const { user, chat } = await signedInChat();
   const copy = await cloneSpell(user.id, "brainstorm");
   if (copy === undefined) {

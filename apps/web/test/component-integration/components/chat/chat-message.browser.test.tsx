@@ -1,4 +1,4 @@
-// "use_case_read_formatted_reply" in use-cases/chats.md, in Chromium and
+// "use_case_read_formatted_reply" in use-cases/performances.md, in Chromium and
 // WebKit: a saved chat with the local construct engine's reply to `/mock-markdown` (a
 // heading, emphasis, lists, a table, a manual link and a Python block) and
 // a message she typed with Markdown in it. A saved chat is what she sees

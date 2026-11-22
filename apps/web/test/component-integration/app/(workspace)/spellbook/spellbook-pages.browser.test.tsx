@@ -83,7 +83,7 @@ async function ownPage(): Promise<void> {
   );
 }
 
-test("use_case_spellbook_page", async () => {
+test("the spellbook page", async () => {
   await render(inWorkspace(await SpellLists()));
   await expect
     .element(page.getByRole("link", { name: "View Tasks", exact: true }))
