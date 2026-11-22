@@ -101,7 +101,6 @@ async function startNewQuest(
         name,
         startingContext: initialContext,
         tasks: EMPTY_TASKS,
-        milestones: [],
       }),
     { construct },
   );

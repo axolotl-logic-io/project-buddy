@@ -32,15 +32,6 @@ import { startDay, undoStartDay } from "@/dailies/day-store.ts";
 import { IDEA_TEXT_MAX_LENGTH, type Idea } from "@/ideas/idea.ts";
 import { changeIdea, listIdeas } from "@/ideas/idea-store.ts";
 import type { ChatId, QuestId, UserId } from "@/ids.ts";
-import {
-  MILESTONE_TEXT,
-  MILESTONE_TEXT_MAX_LENGTH,
-} from "@/milestones/milestone.ts";
-import {
-  deleteMilestone,
-  editMilestone,
-  listMilestones,
-} from "@/milestones/milestone-store.ts";
 import { checkNoteText } from "@/notes/note.ts";
 import { deleteNote, editNote, listNotes } from "@/notes/note-store.ts";
 import {
@@ -53,7 +44,6 @@ import { HOME_PATH } from "@/routes.ts";
 import { readCommandLine } from "@/tasks/tasks-commands.ts";
 import { commandNoteMessage } from "@/tasks/tasks-message.ts";
 import { PANEL_COMMANDS_COPY } from "@/ui/copy/commands.ts";
-import { PROGRESS_TIMELINE_COPY } from "@/ui/copy/milestones.ts";
 import { QUICK_NOTE_COPY } from "@/ui/copy/notes.ts";
 import { QUEST_MEMBERS_COPY } from "@/ui/copy/quest-members.ts";
 
@@ -306,45 +296,6 @@ async function noteCommand(
   return noted(context, PANEL_COMMANDS_COPY.notes.dropNote(note.text));
 }
 
-async function milestoneCommand(
-  context: CommandContext,
-): Promise<PanelCommandResult> {
-  const milestones = await listMilestones(context.user, context.questId);
-  const { place: named, rest, written } = placeThenRest(context.argument);
-  const place = placeIn(named, milestones.length);
-  const milestone = milestones[(place ?? 0) - 1];
-  if (place === undefined || milestone === undefined) {
-    return problem(PANEL_COMMANDS_COPY.problems.noMilestone(milestones.length));
-  }
-  if (context.name === "drop-milestone") {
-    if (rest !== "") {
-      return problem(
-        PANEL_COMMANDS_COPY.problems.noMilestone(milestones.length),
-      );
-    }
-    await deleteMilestone(context.user, milestone.id);
-    return noted(
-      context,
-      PANEL_COMMANDS_COPY.notes.dropMilestone(milestone.text),
-    );
-  }
-  // A milestone is one line, so one written on more is refused, not joined.
-  const text = MILESTONE_TEXT.safeParse(written);
-  if (!text.success) {
-    if (rest === "") {
-      return problem(PROGRESS_TIMELINE_COPY.needsText);
-    }
-    return problem(PROGRESS_TIMELINE_COPY.tooLong(MILESTONE_TEXT_MAX_LENGTH));
-  }
-  if (!(await editMilestone(context.user, milestone.id, text.data))) {
-    return problem(PANEL_COMMANDS_COPY.problems.noMilestone(milestones.length));
-  }
-  return noted(
-    context,
-    PANEL_COMMANDS_COPY.notes.editMilestone(place, text.data),
-  );
-}
-
 // What /start-day's words ask it to clear, or undefined for a word it
 // doesn't take.
 function clearing(
@@ -545,9 +496,6 @@ function runNamed(context: CommandContext): Promise<PanelCommandResult> {
     case "edit-note":
     case "drop-note":
       return noteCommand(context);
-    case "edit-milestone":
-    case "drop-milestone":
-      return milestoneCommand(context);
     case "start-day":
     case "undo-start-day":
       return startDayCommand(context);

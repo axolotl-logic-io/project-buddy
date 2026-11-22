@@ -48,7 +48,6 @@ const RESOURCES: readonly Resource[] = [
   { name: "task", summary: "Read and change a quest's Tasks." },
   { name: "idea", summary: "Read and change a quest's Ideas." },
   { name: "note", summary: "Read, add and remove a quest's Quick Notes." },
-  { name: "milestone", summary: "Read, edit and remove a quest's milestones." },
   { name: "construct", summary: "List the constructs open to you." },
   { name: "rite", summary: "List the rites open to you." },
   {
@@ -469,35 +468,6 @@ const NOTE_COMMANDS: readonly Command[] = [
   }),
 ];
 
-const MILESTONE_COMMANDS: readonly Command[] = [
-  questList("milestone", "milestones", "List the quest's milestones."),
-  command({
-    resource: "milestone",
-    action: "edit",
-    usage:
-      "milestone edit MILESTONE_ID (--text TEXT | --text-file PATH | --stdin)",
-    summary: "Change a milestone's text.",
-    target: true,
-    options: ["text"],
-    request: (input: CommandInput): ApiRequest => ({
-      method: "PATCH",
-      path: `/milestones/${segment(targetOf(input, "milestone"))}`,
-      body: { text: textOf(input) },
-    }),
-  }),
-  command({
-    resource: "milestone",
-    action: "remove",
-    usage: "milestone remove MILESTONE_ID",
-    summary: "Remove a milestone. Removing it again changes nothing.",
-    target: true,
-    request: (input: CommandInput): ApiRequest => ({
-      method: "DELETE",
-      path: `/milestones/${segment(targetOf(input, "milestone"))}`,
-    }),
-  }),
-];
-
 const SPELL_COMMANDS: readonly Command[] = [
   ...definitionCommands("spell", "spells"),
   command({
@@ -639,7 +609,6 @@ const COMMANDS: readonly Command[] = [
   ...TASK_COMMANDS,
   ...IDEA_COMMANDS,
   ...NOTE_COMMANDS,
-  ...MILESTONE_COMMANDS,
   ...definitionCommands("construct", "constructs"),
   ...definitionCommands("rite", "rites"),
   ...PERFORMANCE_COMMANDS,

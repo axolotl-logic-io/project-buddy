@@ -5,11 +5,9 @@
 import {
   type ChatId,
   type MessageId,
-  type MilestoneId,
   type OwnPromptId,
   parseChatId,
   parseMessageId,
-  parseMilestoneId,
   parseOwnPromptId,
   parseQuestId,
   parseUserId,
@@ -52,11 +50,6 @@ const messageIdFixture: IdFixture<MessageId> = idFixture(
   parseMessageId,
 );
 
-const milestoneIdFixture: IdFixture<MilestoneId> = idFixture(
-  "milestoneIdFixture",
-  parseMilestoneId,
-);
-
 const ownSpellIdFixture: IdFixture<OwnPromptId> = idFixture(
   "spellIdFixture",
   parseOwnPromptId,
@@ -65,7 +58,6 @@ const ownSpellIdFixture: IdFixture<OwnPromptId> = idFixture(
 export {
   chatIdFixture,
   messageIdFixture,
-  milestoneIdFixture,
   ownSpellIdFixture,
   questIdFixture,
   userIdFixture,

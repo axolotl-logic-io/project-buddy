@@ -37,7 +37,6 @@ import type { DailiesRecord } from "@/dailies/dailies.ts";
 import { readDailiesRecord } from "@/dailies/day-store.ts";
 import { listIdeas } from "@/ideas/idea-store.ts";
 import type { ChatId, QuestId, UserId } from "@/ids.ts";
-import { listMilestones } from "@/milestones/milestone-store.ts";
 import { listNotes } from "@/notes/note-store.ts";
 import {
   listPerformances,
@@ -69,13 +68,11 @@ import { QUEST_STATUS_COPY } from "@/ui/copy/quest-status.ts";
 import { SPACES_COPY } from "@/ui/copy/spaces.ts";
 import { TASKS_COPY } from "@/ui/copy/tasks.ts";
 import { TIMER_COPY } from "@/ui/copy/timer.ts";
-import { ProgressTimeline } from "./progress-timeline.tsx";
 
 const SECTION = z.enum([
   "tasks",
   "ideas",
   "notes",
-  "progress",
   "spells",
   "members",
   "days",
@@ -191,13 +188,12 @@ async function questPage(
   if (quest === undefined) {
     return undefined;
   }
-  const [conversation, tasks, ideas, notes, milestones, people, days, spaces] =
+  const [conversation, tasks, ideas, notes, people, days, spaces] =
     await Promise.all([
       findConversation(user, quest.id),
       readTasksState(user, quest.id),
       listIdeas(user, quest.id),
       listNotes(user, quest.id),
-      listMilestones(user, quest.id),
       listQuestPeople(user, quest.id),
       quest.dailies && readDailiesRecord(user, quest.id),
       listSpaces(user, quest.id),
@@ -354,12 +350,6 @@ async function questPage(
       icon: "note",
       summary: QUEST_OVERVIEW_COPY.notes(notes.length),
       content: <QuestNotes notes={notes} quest={quest} />,
-    },
-    progress: {
-      label: QUEST_OVERVIEW_COPY.progressLabel,
-      icon: "flag",
-      summary: QUEST_OVERVIEW_COPY.progress(milestones.length),
-      content: <ProgressTimeline milestones={milestones} questId={quest.id} />,
     },
     spells: {
       label: QUEST_OVERVIEW_COPY.spells,

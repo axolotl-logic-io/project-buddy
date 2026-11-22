@@ -7,7 +7,7 @@
 // owner and its accepted members (quest_members). Everything reached
 // through a quest is open to everyone the quest is open to: its
 // conversation, the conversation's messages, spell results and
-// reply runs, its Tasks, Ideas, milestones and Quick Notes, and the quest's
+// reply runs, its Tasks, Ideas and Quick Notes, and the quest's
 // members and pending invitations, which any of them may see, add to or
 // remove. The owner is never a member row, so no one can remove them. The
 // one action left to the owner alone is finding a quest as their Dailies,
@@ -29,7 +29,6 @@
 import { and, eq, exists, inArray, type SQL, sql } from "drizzle-orm";
 import { QueryBuilder } from "drizzle-orm/pg-core";
 import { dailiesDays } from "@/db/tables/dailies-days.ts";
-import { milestones } from "@/db/tables/milestones.ts";
 import { ownPrompts } from "@/db/tables/own-prompts.ts";
 import { conjurations, performances, rites } from "@/db/tables/performances.ts";
 import { questIdeas } from "@/db/tables/quest-ideas.ts";
@@ -156,11 +155,6 @@ function spellResultOpenTo(user: UserId): SQL {
   return inArray(spellMessageResults.chatId, openChatIds(user));
 }
 
-// A `milestones` row of a quest open to user.
-function milestoneOpenTo(user: UserId): SQL {
-  return inArray(milestones.questId, openQuestIds(user));
-}
-
 // A `tasks_versions` row of a quest open to user.
 function tasksVersionOpenTo(user: UserId): SQL {
   return inArray(tasksVersions.questId, openQuestIds(user));
@@ -239,7 +233,6 @@ export {
   dailiesDayOwnedBy,
   ideaOpenTo,
   messageOpenTo,
-  milestoneOpenTo,
   murmlingOpenTo,
   noteOpenTo,
   opensQuest,

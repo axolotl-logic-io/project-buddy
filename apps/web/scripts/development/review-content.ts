@@ -21,16 +21,6 @@ type QuestStep =
   | { readonly kind: "tasks"; readonly texts: readonly string[] }
   // A Quick Note, from the Quick Note box.
   | { readonly kind: "note"; readonly text: string }
-  // A milestone on the progress timeline.
-  | { readonly kind: "milestone"; readonly text: string }
-  // A message and a construct reply that records a milestone, with its
-  // card in the conversation.
-  | {
-      readonly kind: "milestone-reply";
-      readonly message: string;
-      readonly reply: string;
-      readonly milestone: string;
-    }
   // A message and a construct reply written in Markdown.
   | { readonly kind: "reply"; readonly message: string; readonly reply: string }
   // The quest's new status, from its status control.
@@ -173,20 +163,11 @@ const TYPICAL: ReviewContent = {
           kind: "note",
           text: "The library has Lewis and Short on the second floor.",
         },
-        {
-          kind: "milestone",
-          text: "Learned the twenty commonest map abbreviations",
-        },
-        {
-          kind: "milestone",
-          text: "Read the compass rose on the Mercator sheet",
-        },
         { kind: "cast", name: "Margin notes" },
         {
-          kind: "milestone-reply",
+          kind: "reply",
           message: "I read the whole Mercator legend without the dictionary!",
           reply: LATIN_MAP_REPLY,
-          milestone: "Read the Mercator legend without a dictionary",
         },
         { kind: "command", text: "/tasks" },
       ],
@@ -201,7 +182,6 @@ const QUEST_NAME_MAX = 80;
 const TASK_MAX = 200;
 const IDEA_MAX = 200;
 const NOTE_MAX = 1000;
-const MILESTONE_MAX = 200;
 const SPELL_NAME_MAX = 120;
 const SPELL_REPLY_MAX = 2000;
 const SPELL_REPLIES_MAX = 20;
@@ -212,7 +192,6 @@ const PANEL_TASKS = 26;
 const COMMAND_TASKS = 4;
 const IDEAS = 15;
 const NOTES = 10;
-const MILESTONES = 8;
 const SPELLS = 14;
 
 // The crowded main quest's tasks with long words and addresses, before the
@@ -402,26 +381,12 @@ const CROWDED_MAIN: ReviewQuest = {
       }),
     ),
     { kind: "note", text: `${LONG_URL} ${LONG_WORD}` },
-    ...Array.from(
-      { length: MILESTONES },
-      (_, index): Extract<QuestStep, { kind: "milestone" }> => ({
-        kind: "milestone",
-        text: textOfLength(
-          `Milestone ${index + 1}: finished cataloguing and boxing another full shelf of the family archive, with photographs `,
-          MILESTONE_MAX,
-        ),
-      }),
-    ),
     { kind: "cast", name: "Brainstorm" },
     { kind: "send", text: LONG_MESSAGE },
     {
-      kind: "milestone-reply",
+      kind: "reply",
       message: LONG_MESSAGE,
       reply: `Recorded. ${PROSE.repeat(COMMAND_TASKS)}`,
-      milestone: textOfLength(
-        `Moved ${LONG_WORD} and every other box `,
-        MILESTONE_MAX,
-      ),
     },
     {
       kind: "reply",

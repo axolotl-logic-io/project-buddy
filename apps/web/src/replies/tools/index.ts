@@ -18,8 +18,6 @@ import { changeTasksTool } from "@/replies/tools/change-tasks.ts";
 import { CHANGE_TASKS_TOOL } from "@/replies/tools/change-tasks-contract.ts";
 import { questStatusTool } from "@/replies/tools/quest-status.ts";
 import { QUEST_STATUS_TOOL } from "@/replies/tools/quest-status-contract.ts";
-import { recordMilestoneTool } from "@/replies/tools/record-milestone.ts";
-import { RECORD_MILESTONE_TOOL } from "@/replies/tools/record-milestone-contract.ts";
 import { castSpellTool } from "@/spells/cast-spell.ts";
 import { CAST_SPELL_TOOL } from "@/spells/cast-spell-contract.ts";
 
@@ -28,7 +26,6 @@ import { CAST_SPELL_TOOL } from "@/spells/cast-spell-contract.ts";
 type ChatTools = Readonly<{
   [CAST_SPELL_TOOL]: typeof castSpellTool;
   [CHANGE_TASKS_TOOL]: typeof changeTasksTool;
-  [RECORD_MILESTONE_TOOL]: typeof recordMilestoneTool;
   [QUEST_STATUS_TOOL]: typeof questStatusTool;
 }>;
 
@@ -56,7 +53,6 @@ function chatTools(): ChatTools {
   return {
     [CAST_SPELL_TOOL]: castSpellTool,
     [CHANGE_TASKS_TOOL]: changeTasksTool,
-    [RECORD_MILESTONE_TOOL]: recordMilestoneTool,
     [QUEST_STATUS_TOOL]: withSettings(questStatusTool, {
       providerOptions: PROMPT_CACHE_BREAKPOINT,
     }),
@@ -115,7 +111,6 @@ function streamChatToolCalls(
     toolsContext: {
       [CAST_SPELL_TOOL]: context,
       [CHANGE_TASKS_TOOL]: context,
-      [RECORD_MILESTONE_TOOL]: context,
       [QUEST_STATUS_TOOL]: context,
     },
   });

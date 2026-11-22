@@ -93,21 +93,14 @@ export const TASKS_COPY = {
   streak,
   // The line under a recurring task's streak chain: the streak, and what
   // checking the task off does next.
-  streakNote: ({
-    streak: count,
-    doneToday,
-    milestone,
-  }: StreakChain): string => {
+  streakNote: ({ streak: count, doneToday }: StreakChain): string => {
     if (count === 0) {
       return "Check it off to start a streak.";
     }
     if (!doneToday) {
       return `${streak(count)}. Check it off to make it ${count + 1}.`;
     }
-    if (count === milestone) {
-      return `${streak(count)}. Milestone reached.`;
-    }
-    return `${streak(count)}. ${milestone - count} more to ${milestone}.`;
+    return `${streak(count)}.`;
   },
   recurring: "Recurring",
   recurringNoStreak: "Recurring, no streak",

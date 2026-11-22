@@ -1,5 +1,5 @@
 // Domain ids, typed so a quest id cannot be passed where a chat id is
-// expected. User, quest, chat, milestone and user construct ids are
+// expected. User, quest, chat and user construct ids are
 // Postgres UUIDs. The parsers, and the
 // schemas for zod objects that hold an id, are the only way to make one, so a
 // QuestId or ChatId is always a canonical lowercase UUID string. A message
@@ -32,12 +32,6 @@ const CHAT_ID = z
   .regex(CANONICAL_UUID)
   .toLowerCase()
   .brand<"ChatId">();
-const MILESTONE_ID = z
-  .string()
-  .regex(CANONICAL_UUID)
-  .toLowerCase()
-  .brand<"MilestoneId">();
-
 const OWN_PROMPT_ID = z
   .string()
   .regex(CANONICAL_UUID)
@@ -59,9 +53,6 @@ type QuestId = z.infer<typeof QUEST_ID>;
 type ChatId = z.infer<typeof CHAT_ID>;
 
 type OwnPromptId = z.infer<typeof OWN_PROMPT_ID>;
-
-// A milestone's id, as `parseMilestoneId` returns it.
-type MilestoneId = z.infer<typeof MILESTONE_ID>;
 
 // A chat message's id, as `parseMessageId` returns it.
 type MessageId = z.infer<typeof MESSAGE_ID>;
@@ -89,27 +80,19 @@ function parseOwnPromptId(value: string): OwnPromptId | undefined {
   return OWN_PROMPT_ID.safeParse(value).data;
 }
 
-// The value as a lowercase MilestoneId, or undefined unless it is a
-// canonical UUID.
-function parseMilestoneId(value: string): MilestoneId | undefined {
-  return MILESTONE_ID.safeParse(value).data;
-}
-
 // The value as a MessageId, or undefined if it is empty or longer than
 // MESSAGE_ID_MAX_LENGTH.
 function parseMessageId(value: string): MessageId | undefined {
   return MESSAGE_ID.safeParse(value).data;
 }
 
-export type { ChatId, MessageId, MilestoneId, OwnPromptId, QuestId, UserId };
+export type { ChatId, MessageId, OwnPromptId, QuestId, UserId };
 export {
   CHAT_ID,
   MESSAGE_ID,
-  MILESTONE_ID,
   OWN_PROMPT_ID,
   parseChatId,
   parseMessageId,
-  parseMilestoneId,
   parseOwnPromptId,
   parseQuestId,
   parseUserId,

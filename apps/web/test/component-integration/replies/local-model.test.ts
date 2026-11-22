@@ -111,7 +111,6 @@ test.each(["look", "/LOOK"])(
         quest: {
           name: "Test quest",
           tasks: EMPTY_TASKS,
-          milestones: [],
           startingContext: "Private starting context.",
         },
       }),
@@ -148,7 +147,7 @@ test("constructs share command guidance", async () => {
         model: localConstructModel(),
         system: renderReplyInstructions({
           userName: "Sam",
-          quest: { name: "Test quest", tasks: EMPTY_TASKS, milestones: [] },
+          quest: { name: "Test quest", tasks: EMPTY_TASKS },
           construct,
         }),
         prompt: "help",

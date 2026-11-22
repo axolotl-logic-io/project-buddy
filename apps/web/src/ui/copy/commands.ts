@@ -10,9 +10,6 @@ const PANEL_COMMAND_DESCRIPTIONS: Readonly<Record<PanelCommandName, string>> = {
   "edit-note":
     "Change a Quick Note’s text, naming it by its place, newest first",
   "drop-note": "Delete a Quick Note, naming it by its place, newest first",
-  "edit-milestone":
-    "Change a milestone's text, naming it by its place in Progress, newest first",
-  "drop-milestone": "Delete a milestone from Progress",
   "start-day":
     "Start a new day in Dailies, clearing the tasks or Ideas if asked",
   "undo-start-day": "Take back the newest Start Day",
@@ -42,10 +39,6 @@ const PANEL_COMMANDS_COPY = {
     editNote: (place: number, text: string): string =>
       `Changed Quick Note ${place} to “${text}”.`,
     dropNote: (text: string): string => `Deleted the Quick Note “${text}”.`,
-    editMilestone: (place: number, text: string): string =>
-      `Changed milestone ${place} in Progress to “${text}”.`,
-    dropMilestone: (text: string): string =>
-      `Deleted the milestone “${text}” from Progress.`,
     startDay: (cleared: readonly string[]): string => {
       if (cleared.length === 0) {
         return "Started a new day.";
@@ -86,12 +79,6 @@ const PANEL_COMMANDS_COPY = {
         return "This quest has no Quick Notes.";
       }
       return `Name a Quick Note by its place, newest first, from 1 to ${most}.`;
-    },
-    noMilestone: (most: number): string => {
-      if (most === 0) {
-        return "This quest has no milestones yet.";
-      }
-      return `Name a milestone by its place in Progress, newest first, from 1 to ${most}.`;
     },
     startDayWords:
       "Write /start-day alone, or with clear-tasks, clear-ideas or both.",

@@ -9,7 +9,6 @@ import { listMessages } from "@/chats/store.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
 import {
   ALL_TAKEN,
-  deletesBy,
   formerMemberQuest,
   NONE_TAKEN,
   NOTHING,
@@ -34,11 +33,6 @@ describe("use_case_private_data", () => {
     expect(await writesBy(quest.owner, quest)).toEqual(ALL_TAKEN);
     expect(await seenBy(quest.owner, quest)).toMatchObject({
       messages: EXCHANGE_MESSAGES + 1,
-      milestones: ["Rigged the flippers", "Edited"],
-    });
-    await deletesBy(quest.owner, quest);
-    expect(await seenBy(quest.owner, quest)).toMatchObject({
-      milestones: ["Rigged the flippers"],
     });
   });
 
@@ -48,7 +42,6 @@ describe("use_case_private_data", () => {
 
     expect(await seenBy(quest.member, quest)).toEqual(NOTHING);
     expect(await writesBy(quest.member, quest)).toEqual(NONE_TAKEN);
-    await deletesBy(quest.member, quest);
     expect(await seenBy(quest.owner, quest)).toEqual(before);
   });
 

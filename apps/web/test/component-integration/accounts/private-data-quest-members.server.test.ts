@@ -45,7 +45,6 @@ describe("use_case_quest_member_access", () => {
     expect(await writesBy(quest.member, quest)).toEqual(ALL_TAKEN);
     expect(await seenBy(quest.owner, quest)).toMatchObject({
       messages: EXCHANGE_MESSAGES + 1,
-      milestones: ["Rigged the flippers", "Edited"],
     });
   });
 

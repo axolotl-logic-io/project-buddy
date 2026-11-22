@@ -15,7 +15,6 @@ import { page } from "vitest/browser";
 import { render } from "vitest-browser-react";
 import type { readSignInLinkUser } from "@/accounts/sign-in-links.ts";
 import type { getChat, listMessages } from "@/chats/store.ts";
-import type { listMilestones } from "@/milestones/milestone-store.ts";
 import type { readCurrentQuest } from "@/quests/current-quest-store.ts";
 import type { getQuest, listQuests } from "@/quests/store.ts";
 import { listRetiredDefinitions } from "@/retirement/retirement-store.ts";
@@ -82,9 +81,6 @@ vi.mock("@/chats/store.ts", () => ({
 vi.mock("@/conversations/start-quest.ts", () => ({
   readQuestConversation: vi.fn(),
   startQuestConversation: vi.fn(),
-}));
-vi.mock("@/milestones/milestone-store.ts", () => ({
-  listMilestones: vi.fn<typeof listMilestones>(),
 }));
 vi.mock(
   "@/tasks/tasks-store.ts",

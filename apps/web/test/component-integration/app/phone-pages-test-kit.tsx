@@ -32,7 +32,6 @@ import LoginPage from "@/app/login/page.tsx";
 import SignUpPage from "@/app/signup/page.tsx";
 import { listMessages } from "@/chats/store.ts";
 import { readQuestConversation } from "@/conversations/start-quest.ts";
-import { listMilestones } from "@/milestones/milestone-store.ts";
 import { readCurrentQuest } from "@/quests/current-quest-store.ts";
 import { getQuest, listQuests } from "@/quests/store.ts";
 import {
@@ -59,11 +58,7 @@ import {
   RETIRED_DEFINITIONS,
   RETIRED_SPELL,
 } from "../retirement/retirement-fixtures.ts";
-import {
-  FOX_CONVERSATION,
-  FOX_MILESTONES,
-  FOX_QUEST,
-} from "./(workspace)/page-fixtures.ts";
+import { FOX_CONVERSATION, FOX_QUEST } from "./(workspace)/page-fixtures.ts";
 import { LINK_USER, OWN_SPELL } from "./phone-pages-fixtures.ts";
 import { inWorkspace } from "./workspace-test-kit.tsx";
 
@@ -185,7 +180,6 @@ function projectPageFor(
       });
       vi.mocked(readQuestConversation).mockResolvedValue(FOX_CONVERSATION);
       vi.mocked(listMessages).mockResolvedValue([]);
-      vi.mocked(listMilestones).mockResolvedValue([...FOX_MILESTONES]);
       vi.mocked(listQuests).mockResolvedValue([FOX_QUEST]);
     },
     async () => (
@@ -438,11 +432,6 @@ const PHONE_PAGES: readonly PhonePage[] = [
     name: "a quest's Tasks",
     path: QUEST_PATH,
     render: projectPageFor("tasks"),
-  },
-  {
-    name: "a quest's Progress",
-    path: QUEST_PATH,
-    render: projectPageFor("progress"),
   },
 ];
 

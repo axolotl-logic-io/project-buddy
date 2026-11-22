@@ -732,7 +732,7 @@
   }
 
   /* A list whose items are rows divided by rules rather than cards, as the
-     Quests index lists its quests: a quest's milestones, its Quick Notes,
+     Quests index lists its quests, with Quick Notes,
      and every other list of conversations. Inside
      a framed workspace, a card for each item would stack a second layer of
      borders. */
@@ -2059,8 +2059,7 @@
     @apply col-start-2;
   }
 
-  /* A recurring task's streak chain: a row of links toward its next
-     milestone, and a line that says what they show. */
+  /* A recurring task's recent streak and its current day. */
   .streak-chain {
     @apply flex flex-col gap-1;
   }
@@ -2079,10 +2078,6 @@
 
   .streak-link[data-link="today"] {
     @apply border border-primary border-dashed bg-transparent;
-  }
-
-  .streak-link[data-link="milestone"] {
-    @apply border border-accent;
   }
 
   .streak-note {

@@ -13,10 +13,6 @@ import { getDb } from "@/db/client.ts";
 import { chats } from "@/db/tables/quests-and-chats.ts";
 import { changeIdea, listIdeas } from "@/ideas/idea-store.ts";
 import type { ChatId, UserId } from "@/ids.ts";
-import {
-  listMilestones,
-  recordMilestone,
-} from "@/milestones/milestone-store.ts";
 import { QUEST_NAME } from "@/quests/quest-name.ts";
 import { getQuest } from "@/quests/store.ts";
 import { currentSpell, setSpell } from "@/spells/spell-store.ts";
@@ -116,11 +112,6 @@ describe("Start Day", () => {
     await setSpell(user.id, { chatId: before.id, spell: "brainstorm" });
     await writeMessage(user, before);
     const ideas = await listIdeas(user.id, questId);
-    const milestone = await recordMilestone(
-      user.id,
-      { questId, chatId: before.id },
-      "Made a clay fox",
-    );
     const nextId = await resetConversation(user.id, before.id);
     expect(nextId).toBeDefined();
     const next = await getChat(user.id, nextId ?? "");
@@ -132,9 +123,6 @@ describe("Start Day", () => {
       { number: 3, text: "Book the vet", done: true },
     ]);
     expect(await listIdeas(user.id, questId)).toEqual(ideas);
-    expect(await listMilestones(user.id, questId)).toMatchObject([
-      { id: milestone?.id, text: "Made a clay fox" },
-    ]);
     if (next === undefined) {
       throw new Error("No fresh conversation");
     }

@@ -3,8 +3,6 @@ import { readUserName } from "@/accounts/users-store.ts";
 import type { Chat } from "@/chats/chat-rows.ts";
 import type { Construct } from "@/constructs/index.ts";
 import type { ChatId, QuestId, UserId } from "@/ids.ts";
-import type { Milestone } from "@/milestones/milestone.ts";
-import { listMilestones } from "@/milestones/milestone-store.ts";
 import type { QuestStatus, StatusApproval } from "@/quests/quest-status.ts";
 import { readLatestStatusApproval } from "@/quests/quest-status-store.ts";
 import { getQuest } from "@/quests/store.ts";
@@ -12,10 +10,6 @@ import {
   GLOBAL_PROMPT_SECTIONS,
   SEVERAL_AUTHORS_RULES,
 } from "@/replies/global-prompt.ts";
-import {
-  MILESTONES_IN_PROMPT,
-  milestonesPromptSection,
-} from "@/replies/milestones-prompt.ts";
 import { PROMPT_CACHE_BREAKPOINT } from "@/replies/prompt-cache.ts";
 import { startingContextSection } from "@/replies/starting-context.ts";
 import { tasksPromptSection } from "@/replies/tasks-prompt.ts";
@@ -46,7 +40,7 @@ interface ReplyPromptContext {
 }
 
 // A chat's quest as its prompt reads it: its name, its memory, its tasks
-// and its newest milestones, newest first, as they were read once for the
+// as they were read once for the
 // whole prompt, so every section sees the same version.
 interface PromptQuest {
   readonly status?: QuestStatus | undefined;
@@ -54,7 +48,6 @@ interface PromptQuest {
   readonly name: string;
   readonly startingContext?: string | undefined;
   readonly tasks: Tasks;
-  readonly milestones: readonly Milestone[];
 }
 
 // A section of one chat's prompt, rendered from the context alone.
@@ -122,7 +115,6 @@ const CHAT_SECTIONS: readonly PromptSection[] = [
   severalAuthorsSection,
   startingContextSection,
   tasksPromptSection,
-  milestonesPromptSection,
   spellSection,
   visualDescriptionSection,
 ];
@@ -155,20 +147,18 @@ function renderReplyInstructions(
 }
 
 // The acting user's quest as a chat's prompt reads it, with its memory,
-// tasks and newest milestones as they are now.
+// tasks as they are now.
 async function readPromptQuest(
   actingUser: UserId,
   quest: { readonly id: QuestId; readonly name: string },
 ): Promise<PromptQuest> {
-  const [storedQuest, tasks, milestones] = await Promise.all([
+  const [storedQuest, tasks] = await Promise.all([
     getQuest(actingUser, quest.id),
     readTasks(actingUser, quest.id),
-    listMilestones(actingUser, quest.id, MILESTONES_IN_PROMPT),
   ]);
   return {
     name: quest.name,
     tasks: tasks ?? EMPTY_TASKS,
-    milestones,
     status: storedQuest?.status,
   };
 }

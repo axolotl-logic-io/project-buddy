@@ -8,21 +8,11 @@ import {
   readQuestConversation,
   startQuestConversation,
 } from "@/conversations/start-quest.ts";
-import type { MilestoneId } from "@/ids.ts";
-import {
-  deleteMilestone,
-  editMilestone,
-  listMilestones,
-  recordMilestone,
-} from "@/milestones/milestone-store.ts";
 import { getQuest, listQuests, type Quest } from "@/quests/store.ts";
 import { currentSpell, setSpell } from "@/spells/spell-store.ts";
 import { testData } from "../../support/test-database/data-test-kit.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
 import { newMessageId, question } from "../test-database/chat-test-kit.ts";
-
-// The milestone the owner records in the quest.
-const MILESTONE = "Modelled the shell";
 
 // A quest, its owner and a former member, with one of each kind of data the
 // owner saved in it.
@@ -31,11 +21,10 @@ interface FormerMemberQuest {
   readonly member: User;
   readonly quest: Quest;
   readonly chat: Chat;
-  readonly milestoneId: MilestoneId;
 }
 
 // A new quest of a new owner's, with a chat holding a message, an active
-// spell and a milestone; and a second user with no access to it.
+// spell; and a second user with no access to it.
 async function formerMemberQuest(): Promise<FormerMemberQuest> {
   const [owner, member] = await Promise.all([testUser(), testUser()]);
   const data = testData(owner);
@@ -45,20 +34,11 @@ async function formerMemberQuest(): Promise<FormerMemberQuest> {
   await data.exchanges(chat, [
     { message: "Hello", reply: [{ type: "text", text: "Hi" }] },
   ]);
-  const milestone = await recordMilestone(
-    owner.id,
-    { questId: quest.id, chatId: chat.id },
-    MILESTONE,
-  );
-  if (milestone === undefined) {
-    throw new Error("The milestone was not recorded");
-  }
   return {
     owner,
     member,
     quest,
     chat,
-    milestoneId: milestone.id,
   };
 }
 
@@ -69,25 +49,15 @@ async function seenBy(
   fixture: FormerMemberQuest,
 ): Promise<Record<string, unknown>> {
   const { quest, chat } = fixture;
-  const [
-    found,
-    listed,
-    conversation,
-    openedChat,
-    messages,
-    spell,
-
-    milestones,
-  ] = await Promise.all([
-    getQuest(user.id, quest.id),
-    listQuests(user.id),
-    readQuestConversation(user.id, quest.id),
-    getChat(user.id, chat.id),
-    listMessages(user.id, chat.id),
-    currentSpell(user.id, chat),
-
-    listMilestones(user.id, quest.id),
-  ]);
+  const [found, listed, conversation, openedChat, messages, spell] =
+    await Promise.all([
+      getQuest(user.id, quest.id),
+      listQuests(user.id),
+      readQuestConversation(user.id, quest.id),
+      getChat(user.id, chat.id),
+      listMessages(user.id, chat.id),
+      currentSpell(user.id, chat),
+    ]);
   return {
     quest: found?.name,
     listed: listed.some(({ id }) => id === quest.id),
@@ -95,8 +65,6 @@ async function seenBy(
     chat: openedChat?.id,
     messages: messages.length,
     spell,
-
-    milestones: milestones.map(({ text }) => text),
   };
 }
 
@@ -109,8 +77,6 @@ const NOTHING: Record<string, unknown> = {
   chat: undefined,
   messages: 0,
   spell: undefined,
-
-  milestones: [],
 };
 
 // Tries every write the owner may make in the quest, as user, and says what
@@ -128,20 +94,12 @@ async function writesBy(
     chatId: chat.id,
     spell: "brainstorm",
   });
-  const milestone = await recordMilestone(
-    user.id,
-    { questId: quest.id, chatId: chat.id },
-    "Rigged the flippers",
-  );
-  const edited = await editMilestone(user.id, fixture.milestoneId, "Edited");
   const started = await startQuestConversation(user.id, quest.id);
   const conversation =
     started.kind === "started" && started.conversation.id === chat.id;
   return {
     message,
     spell,
-    milestone: milestone !== undefined,
-    edited,
     conversation,
   };
 }
@@ -151,8 +109,6 @@ async function writesBy(
 const NONE_TAKEN: Record<string, unknown> = {
   message: "id-taken",
   spell: false,
-  milestone: false,
-  edited: false,
   conversation: false,
 };
 
@@ -160,25 +116,7 @@ const NONE_TAKEN: Record<string, unknown> = {
 const ALL_TAKEN: Record<string, unknown> = {
   message: "inserted",
   spell: true,
-  milestone: true,
-  edited: true,
   conversation: true,
 };
 
-// Deletes the milestone as user, which answers nothing of its own.
-async function deletesBy(
-  user: User,
-  fixture: FormerMemberQuest,
-): Promise<void> {
-  await deleteMilestone(user.id, fixture.milestoneId);
-}
-
-export {
-  ALL_TAKEN,
-  deletesBy,
-  formerMemberQuest,
-  NONE_TAKEN,
-  NOTHING,
-  seenBy,
-  writesBy,
-};
+export { ALL_TAKEN, formerMemberQuest, NONE_TAKEN, NOTHING, seenBy, writesBy };

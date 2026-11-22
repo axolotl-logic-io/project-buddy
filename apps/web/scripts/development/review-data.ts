@@ -10,7 +10,7 @@
 // in this process with the site's own stores, as its pages and commands
 // make it. Two things go straight into the database, because the local
 // construct engine never makes them: the construct replies that record a
-// milestone (with the milestone itself) and the replies written in Markdown.
+// replies written in Markdown.
 //
 // Runs after npm ci, from run.ts.
 import process from "node:process";
@@ -336,55 +336,6 @@ async function addNote(scene: Scene, text: string): Promise<void> {
   }
 }
 
-// A milestone on the quest's progress timeline, recorded as the
-// record_milestone tool records one; with a message, the construct's reply
-// that recorded it, with its card.
-async function addMilestone(
-  scene: Scene,
-  text: string,
-  exchange?: { readonly message: string; readonly reply: string },
-): Promise<void> {
-  const [
-    { recordMilestone },
-    { RECORD_MILESTONE_TOOL },
-    { CHAT_ID, QUEST_ID, USER_ID },
-  ] = await Promise.all([
-    import("@/milestones/milestone-store.ts"),
-    import("@/replies/tools/record-milestone-contract.ts"),
-    import("@/ids.ts"),
-  ]);
-  const milestone = await recordMilestone(
-    USER_ID.parse(scene.owner),
-    {
-      questId: QUEST_ID.parse(scene.questId),
-      chatId: CHAT_ID.parse(scene.chatId),
-    },
-    text,
-  );
-  if (milestone === undefined) {
-    throw new Error("The milestone was not recorded.");
-  }
-  if (exchange === undefined) {
-    return;
-  }
-  await saveExchange(scene, exchange.message, [
-    {
-      type: `tool-${RECORD_MILESTONE_TOOL}`,
-      toolCallId: `review-${milestone.id}`,
-      state: "output-available",
-      input: { text },
-      output: {
-        status: "recorded",
-        milestoneId: milestone.id,
-        questId: scene.questId,
-        text,
-        recordedAt: milestone.recordedAt.toISOString(),
-      },
-    },
-    { type: "text", text: exchange.reply },
-  ]);
-}
-
 // Completes or abandons the quest as its status control does, with the
 // command note the /complete and /abandon commands save.
 async function changeStatus(
@@ -480,12 +431,6 @@ async function runStep(
       return;
     case "note":
       await addNote(scene, step.text);
-      return;
-    case "milestone":
-      await addMilestone(scene, step.text);
-      return;
-    case "milestone-reply":
-      await addMilestone(scene, step.milestone, step);
       return;
     case "reply":
       await saveExchange(scene, step.message, [

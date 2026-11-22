@@ -1,13 +1,13 @@
 // The chat's commands beyond the tasks commands (src/tasks/tasks-commands.ts)
 // and the quest status commands (src/quests/quest-status-commands.ts): for
-// Ideas, Quick Notes, the progress timeline, the quest's members, Start Day
+// Ideas, Quick Notes, the quest's members, Start Day
 // and starting the conversation. Each quest panel control
 // sends one of them, or a tasks command, to the conversation, as if the user
 // had typed it, so the conversation records what was done to the quest. It
 // imports nothing from the server, because the panel and the composer in the
 // browser write and list the same commands.
 //
-// A command names an idea, a Quick Note or a milestone by its place in its
+// A command names an idea, or a Quick Note by its place in its
 // list as the panel shows it, 1 being first; and a person by their name as
 // Members shows it.
 
@@ -22,8 +22,6 @@ const PANEL_COMMAND_NAMES = [
   "idea-to-tasks",
   "edit-note",
   "drop-note",
-  "edit-milestone",
-  "drop-milestone",
   "start-day",
   "undo-start-day",
   "invite",
@@ -46,8 +44,6 @@ const PANEL_COMMAND_USAGE: Readonly<Record<PanelCommandName, string>> = {
   "idea-to-tasks": "/idea-to-tasks IDEA",
   "edit-note": "/edit-note NOTE TEXT",
   "drop-note": "/drop-note NOTE",
-  "edit-milestone": "/edit-milestone MILESTONE TEXT",
-  "drop-milestone": "/drop-milestone MILESTONE",
   "start-day": "/start-day [clear-tasks] [clear-ideas]",
   "undo-start-day": "/undo-start-day",
   invite: "/invite EMAIL",
@@ -94,9 +90,6 @@ const PANEL_COMMAND = {
   editNote: (place: number, text: string): string =>
     `/edit-note ${place} ${text}`,
   dropNote: (place: number): string => `/drop-note ${place}`,
-  editMilestone: (place: number, text: string): string =>
-    `/edit-milestone ${place} ${text}`,
-  dropMilestone: (place: number): string => `/drop-milestone ${place}`,
   status: (
     to: "active" | "completed" | "abandoned",
   ): "/restore" | "/complete" | "/abandon" => {

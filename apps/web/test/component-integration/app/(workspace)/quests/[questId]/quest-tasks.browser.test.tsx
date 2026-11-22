@@ -460,8 +460,6 @@ describe("use_case_daily_streaks", () => {
       .getByRole("checkbox", { name: TASKS_COPY.checkOff(SCULPT) })
       .click();
     await page.getByText(TASKS_COPY.done(1)).click();
-    await expect
-      .element(page.getByText("1-day streak. 2 more to 3."))
-      .toBeVisible();
+    await expect.element(page.getByText("1-day streak.")).toBeVisible();
   });
 });

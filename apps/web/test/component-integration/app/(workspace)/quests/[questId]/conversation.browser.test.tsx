@@ -75,9 +75,6 @@ vi.mock("@/conversations/start-quest.ts", () => ({
 vi.mock("@/app/(workspace)/quests/[questId]/(overview)/actions.ts", () => ({
   startConversationAction: vi.fn(),
 }));
-vi.mock("@/milestones/milestone-store.ts", () => ({
-  listMilestones: vi.fn().mockResolvedValue([]),
-}));
 vi.mock(
   "@/dailies/day-store.ts",
   () => import("../../../../dailies/day-store-test-kit.ts"),

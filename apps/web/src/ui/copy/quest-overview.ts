@@ -22,13 +22,6 @@ const QUEST_OVERVIEW_COPY = {
     }
     return `${count} notes`;
   },
-  progressLabel: "Progress",
-  progress: (count: number): string => {
-    if (count === 1) {
-      return "1 milestone";
-    }
-    return `${count} milestones`;
-  },
   people: (count: number): string => `${count} people in this quest`,
   check: "Check off",
   day: "Today",

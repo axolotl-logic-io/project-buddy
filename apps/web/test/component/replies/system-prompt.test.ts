@@ -14,7 +14,7 @@ import {
 import { EMPTY_TASKS } from "@/tasks/tasks.ts";
 
 const CONTEXT: ReplyPromptContext = {
-  quest: { name: "Birdhouse", tasks: EMPTY_TASKS, milestones: [] },
+  quest: { name: "Birdhouse", tasks: EMPTY_TASKS },
   construct: getConstruct(DEFAULT_CONSTRUCT_ID),
   userName: "Sam",
 };
@@ -59,7 +59,6 @@ test("quest context includes the tasks while unrelated requests take precedence"
         items: [{ number: 1, text: "Assemble the roof.", done: false }],
         nextNumber: 2,
       },
-      milestones: [],
     },
   }).join("\n");
   expect(prompt).toContain(

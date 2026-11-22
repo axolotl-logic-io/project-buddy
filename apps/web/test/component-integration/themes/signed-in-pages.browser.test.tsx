@@ -21,7 +21,6 @@ import QuestPage from "@/app/(workspace)/quests/[questId]/(overview)/page.tsx";
 import type { ChatMessage } from "@/chats/message-author.ts";
 import type { getChat, listMessages } from "@/chats/store.ts";
 import type { readQuestConversation } from "@/conversations/start-quest.ts";
-import type { listMilestones } from "@/milestones/milestone-store.ts";
 import type { getQuest, listQuests } from "@/quests/store.ts";
 import { THEMES } from "@/themes/themes.ts";
 import { CHAT_COPY } from "@/ui/copy/chat.ts";
@@ -76,14 +75,10 @@ const stores = vi.hoisted(() => ({
     readQuestConversation: vi.fn<typeof readQuestConversation>(),
     startQuestConversation: vi.fn(),
   },
-  milestones: {
-    listMilestones: vi.fn<typeof listMilestones>(() => Promise.resolve([])),
-  },
 }));
 vi.mock("@/quests/store.ts", () => stores.quests);
 vi.mock("@/chats/store.ts", () => stores.chats);
 vi.mock("@/conversations/start-quest.ts", () => stores.conversations);
-vi.mock("@/milestones/milestone-store.ts", () => stores.milestones);
 vi.mock(
   "@/tasks/tasks-store.ts",
   () => import("../tasks/tasks-store-test-kit.ts"),

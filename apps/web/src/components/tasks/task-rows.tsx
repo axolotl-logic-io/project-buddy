@@ -72,29 +72,14 @@ function recurringBadge(task: Task, chain: StreakChain | undefined): ReactNode {
   );
 }
 
-// What a link of a streak chain stands for: a day of the streak before the
-// current day, the current day, open or done, a day still to come, or the
-// milestone at the chain's end.
-type LinkKind = "earned" | "today" | "milestone" | "ahead";
-
-function linkKind(chain: StreakChain, index: number): LinkKind {
-  if (index < chain.earned) {
+function linkKind(chain: StreakChain, index: number): "earned" | "today" {
+  if (index < chain.earned || chain.doneToday) {
     return "earned";
   }
-  if (index === chain.earned) {
-    if (chain.doneToday) {
-      return "earned";
-    }
-    return "today";
-  }
-  if (index === chain.links - 1) {
-    return "milestone";
-  }
-  return "ahead";
+  return "today";
 }
 
-// A recurring task's streak chain, under its text: the links toward its
-// next milestone, which screen readers skip, and the line that says them.
+// A recurring task's streak chain, with its current day at the end.
 function StreakChainLine({
   chain,
 }: {

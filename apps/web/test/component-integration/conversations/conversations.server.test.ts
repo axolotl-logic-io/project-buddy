@@ -4,7 +4,6 @@ import { inTransaction } from "@/db/client.ts";
 // reading, open to the quest's owner alone, and the user's one Dailies
 // quest, reused by its mark whatever its name.
 
-import { eq } from "drizzle-orm";
 import { describe, expect, test } from "vitest";
 import type { User } from "@/accounts/users-store.ts";
 import { getChat, listMessages } from "@/chats/store.ts";
@@ -15,13 +14,7 @@ import {
   startQuest,
   startQuestConversation,
 } from "@/conversations/start-quest.ts";
-import { getDb } from "@/db/client.ts";
-import { chats } from "@/db/tables/quests-and-chats.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
-import {
-  listMilestones,
-  recordMilestone,
-} from "@/milestones/milestone-store.ts";
 import { QUEST_NAME } from "@/quests/quest-name.ts";
 import { listQuests, renameQuest } from "@/quests/store.ts";
 import {
@@ -142,26 +135,6 @@ describe("a quest's conversation", () => {
     expect(await listMessages(owner.id, chat.id)).toEqual(before);
     expect(await readQuestConversation(member.id, quest.id)).toBeUndefined();
     expect(await getChat(member.id, chat.id)).toBeUndefined();
-  });
-});
-
-describe("a quest's Progress", () => {
-  test("a milestone stays on the timeline, with no conversation, once its conversation is gone", async () => {
-    const user = await testUser();
-    const data = testData(user);
-    const quest = await data.quest();
-    const chat = await data.chat(quest);
-    await recordMilestone(
-      user.id,
-      { questId: quest.id, chatId: chat.id },
-      "Modelled the shell",
-    );
-
-    await getDb().delete(chats).where(eq(chats.id, chat.id));
-
-    expect(await listMilestones(user.id, quest.id)).toMatchObject([
-      { text: "Modelled the shell", chatId: undefined },
-    ]);
   });
 });
 

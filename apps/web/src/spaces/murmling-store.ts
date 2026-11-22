@@ -255,14 +255,17 @@ async function applyExisting(
         return "unchanged";
       }
       reordered.splice(before, 0, row);
-      await Promise.all(
-        reordered.map((item, position) =>
-          tx
-            .update(murmlings)
-            .set({ position })
-            .where(and(eq(murmlings.id, item.id), murmlingOpenTo(user))),
+      const positions = sql.join(
+        reordered.map(
+          (item, position) =>
+            sql`when ${item.id}::uuid then ${position}::integer`,
         ),
+        sql` `,
       );
+      await tx
+        .update(murmlings)
+        .set({ position: sql`case ${murmlings.id} ${positions} end` })
+        .where(and(eq(murmlings.spaceId, spaceId), murmlingOpenTo(user)));
       return "saved";
     }
     case "reorder": {

@@ -31,7 +31,6 @@ export const CHAT_COPY = {
 export const TOOL_FAILURES_COPY = {
   questStatus: "Your construct couldn’t request the quest status change.",
   castSpell: "Your construct couldn't cast the spell.",
-  recordMilestone: "Your construct couldn't add the milestone to the timeline.",
   changeTasks: "Your construct couldn't change the quest's tasks.",
 } as const;
 

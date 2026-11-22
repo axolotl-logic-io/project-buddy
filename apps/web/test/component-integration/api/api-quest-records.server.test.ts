@@ -2,14 +2,9 @@ import { describe, expect, test } from "vitest";
 import { GET as getConstruct } from "@/app/api/v1/constructs/[constructId]/route.ts";
 import { GET as listConstructs } from "@/app/api/v1/constructs/route.ts";
 import {
-  PATCH as editMilestone,
-  DELETE as removeMilestone,
-} from "@/app/api/v1/milestones/[milestoneId]/route.ts";
-import {
   POST as changeIdeas,
   GET as listIdeas,
 } from "@/app/api/v1/quests/[questId]/ideas/route.ts";
-import { GET as listMilestones } from "@/app/api/v1/quests/[questId]/milestones/route.ts";
 import { DELETE as removeNote } from "@/app/api/v1/quests/[questId]/notes/[noteId]/route.ts";
 import {
   POST as addNote,
@@ -23,7 +18,6 @@ import { POST as undoTasks } from "@/app/api/v1/quests/[questId]/tasks/undo/rout
 import { GET as getSpell } from "@/app/api/v1/spells/[spellId]/route.ts";
 import { GET as listSpells } from "@/app/api/v1/spells/route.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
-import { recordMilestone } from "@/milestones/milestone-store.ts";
 import { changeQuestStatus } from "@/quests/quest-status-store.ts";
 import { signIn } from "../test-database/session-test-kit.ts";
 import { twoUsers } from "../test-database/two-users-test-kit.ts";
@@ -172,49 +166,6 @@ describe("use_case_cli_api_quest_records", () => {
       status: HTTP_STATUS.conflict,
       body: { error: { code: "conflict" } },
     });
-  });
-
-  test("milestones list by quest and change by id, for their owner only", async () => {
-    const { her, herData, other } = await twoUsers();
-    const quest = await herData.quest();
-    const chat = await herData.chat(quest);
-    const milestone = await recordMilestone(
-      her.id,
-      { questId: quest.id, chatId: chat.id },
-      "Drew the first sketch",
-    );
-    const milestoneParams = { milestoneId: milestone?.id ?? "" };
-    await signIn(other);
-    expect(
-      (
-        await callApi(editMilestone, {
-          params: milestoneParams,
-          method: "PATCH",
-          body: { text: "Mine now" },
-        })
-      ).status,
-    ).toBe(HTTP_STATUS.notFound);
-
-    await signIn(her);
-    const edited = await callApi(editMilestone, {
-      params: milestoneParams,
-      method: "PATCH",
-      body: { text: "Drew two sketches" },
-    });
-    expect(dataOf(edited)).toEqual({
-      id: milestone?.id,
-      text: "Drew two sketches",
-    });
-    expect(
-      (await callApi(listMilestones, { params: { questId: quest.id } })).body,
-    ).toMatchObject({ items: [{ text: "Drew two sketches" }] });
-    await callApi(removeMilestone, {
-      params: milestoneParams,
-      method: "DELETE",
-    });
-    expect(
-      (await callApi(listMilestones, { params: { questId: quest.id } })).body,
-    ).toEqual({ items: [] });
   });
 
   test("constructs and spells list the built-ins and get by id", async () => {

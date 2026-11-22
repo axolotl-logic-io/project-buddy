@@ -63,7 +63,6 @@ const WORK_MINUTES = 50;
 const BREAK_MINUTES = 10;
 const MINUTES_IN = 18;
 const ACTIONS = /^Actions for/u;
-const DELETE_MILESTONE = /^Delete the milestone/u;
 const YOURS = /^Yours/u;
 // The chat requests that ask the construct for a reply.
 const CHAT_REQUESTS = "**/api/chat**";
@@ -259,14 +258,6 @@ const VIEWS: readonly VisualView[] = [
   },
   {
     view: "quest",
-    state: "progress",
-    account: "typical",
-    path: quest(QUEST_LEARN),
-    frame: "sidebar",
-    prepare: sidebarTab("Progress"),
-  },
-  {
-    view: "quest",
     state: "completed",
     account: "typical",
     path: quest(QUEST_DONE),
@@ -330,20 +321,6 @@ const VIEWS: readonly VisualView[] = [
     async prepare(at: ViewPage): Promise<void> {
       await openQuestSidebar(at);
       await at.page.getByRole("button", { name: ACTIONS }).first().click();
-    },
-  },
-  {
-    view: "quest",
-    state: "confirm-dialog",
-    account: "typical",
-    path: quest(QUEST_LEARN),
-    frame: "window",
-    async prepare(at: ViewPage): Promise<void> {
-      await sidebarTab("Progress")(at);
-      await at.page
-        .getByRole("button", { name: DELETE_MILESTONE })
-        .first()
-        .click();
     },
   },
   {

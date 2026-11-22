@@ -47,9 +47,6 @@ vi.mock("@/chats/store.ts", () => ({
 vi.mock("@/ideas/idea-store.ts", () => ({
   listIdeas: vi.fn().mockResolvedValue([]),
 }));
-vi.mock("@/milestones/milestone-store.ts", () => ({
-  listMilestones: vi.fn().mockResolvedValue([]),
-}));
 vi.mock(
   "@/tasks/tasks-actions.ts",
   () => import("../../../../tasks/tasks-actions-test-kit.ts"),
@@ -131,7 +128,7 @@ describe("use_case_open_quest", () => {
       .getByRole("link")
       .all();
     expect(links.map((link) => link.element().getAttribute("href"))).toEqual(
-      ["tasks", "ideas", "notes", "progress", "spells", "members"].map(
+      ["tasks", "ideas", "notes", "spells", "members"].map(
         (section) => `${PATH}?section=${section}`,
       ),
     );
