@@ -171,7 +171,7 @@ test.each(THEME_MODES)(
     await renderTimer(longSchedule);
     await openTimerPreferences();
     // The illustration sits on the page's own texture and adds no second
-    // paper surface (docs/timer.md).
+    // paper surface.
     expect(
       parse(getComputedStyle(timerStage()).backgroundColor)?.alpha,
       "the timer's stage paints no surface of its own",

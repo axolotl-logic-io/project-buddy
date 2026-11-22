@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import glossary from "../../../../../GLOSSARY.md?raw";
+import glossary from "../../../../../docs/GLOSSARY.md?raw";
 import {
   copyDefinitions,
   definitionsCsv,
@@ -39,6 +39,12 @@ describe("writer definitions", (): void => {
       copyDefinitions([field("forecast spellbound tasksmith")], glossary),
     ).toEqual([]);
     expect(copyDefinitions([], glossary)).toEqual([]);
+  });
+
+  test("explains historical copy terms without a current domain entry", (): void => {
+    expect(
+      copyDefinitions([field("Explain the global prompt.")], glossary),
+    ).toContainEqual(expect.objectContaining({ term: "Global prompt" }));
   });
 
   test("requires an explanation when the glossary gains a term", (): void => {

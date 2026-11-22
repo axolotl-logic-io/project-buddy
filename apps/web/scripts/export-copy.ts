@@ -37,7 +37,10 @@ if (definitionsOutput === output) {
     "The copy sheet and definitions sheet need different output paths.",
   );
 }
-const glossary: string = await readFile(resolve("../../GLOSSARY.md"), "utf8");
+const glossary: string = await readFile(
+  resolve("../../docs/GLOSSARY.md"),
+  "utf8",
+);
 const definitions = copyDefinitions(fields, glossary);
 await writeFile(output, copyCsv(fields), "utf8");
 await writeFile(definitionsOutput, definitionsCsv(definitions), "utf8");

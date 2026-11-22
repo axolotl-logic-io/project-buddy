@@ -37,7 +37,7 @@ npm run ops:query -- production "select count(*) from quests"
 
 The repo's other development tooling spends no tokens. The CI workflows (`.github/workflows/integration.yml` and `release.yml`) smoke-test with signed-out requests only, the Full suite workflow (`full-suite.yml`) runs the tests with the local engine, and no script calls a model. The web app’s tests require an isolated local database and file email outbox.
 
-At runtime, constructs use local commands and make no requests to AI model companies. Local replies have no token spend. See [local construct behavior and limits](local-constructs.md).
+At runtime, constructs use local commands and make no requests to AI model companies. Local replies have no token spend. See [construct use cases](../apps/web/use-cases/constructs.md).
 
 ## Signed-out smoke checks
 

@@ -38,7 +38,7 @@ Tabs, menu options, checkboxes, radio swatches, native selects, disclosures, por
 | Panel handles | Attached edge silhouette and panel glyph; preserve expanded state and focus restoration |
 | Quest starting-point tiles | Fine keyline, paper surface, subtle hover shadow; retain title and description |
 | Construct portrait | Artwork stays the trigger, with a full target and accessible name |
-| Appearance choices | Texture-only radios, solid selection and separate dashed focus ([Appearance](appearance.md)) |
+| Appearance choices | Texture-only radios, solid selection and separate dashed focus ([Appearance use cases](../apps/web/use-cases/appearance.md)) |
 | Fields and disclosures | Keep native field/summary behavior and their established surface or disclosure arrow |
 | Navigation and saved-content links | Preserve destinations and recognizable links; do not turn ordinary prose links into buttons |
 | Notices, statuses and saved-content cards | Static content has no action styling or false affordance |

@@ -2,16 +2,16 @@ import { type CopySheetField, csvRows } from "./copy-sheet.ts";
 
 interface WriterTerm {
   readonly term: string;
-  readonly heading: string;
+  readonly heading?: string;
   readonly aliases: readonly string[];
   readonly definition: string;
 }
 
-// Plain-language explanations based on the named sections of GLOSSARY.md.
+// Writer explanations that describe a glossary entry name its heading.
+// Other explanations cover wording specific to copy briefs.
 const WRITER_TERMS: readonly WriterTerm[] = [
   {
     term: "Project Buddy",
-    heading: "Project Buddy",
     aliases: ["Project Buddy"],
     definition:
       "The website these descriptions are for. People use it to work toward things they want to do, make or learn. Each goal is worked on in a quest, with a construct, a conversation and places to save work and ideas.",
@@ -25,56 +25,52 @@ const WRITER_TERMS: readonly WriterTerm[] = [
   },
   {
     term: "Site panel",
-    heading: "Site panel",
     aliases: ["site panel"],
     definition:
       "The panel on the left of every page, opened from the button at the start of the header. It holds links to the site's places, the person's own pages, the Light, Dark and System choices and Credits. On a wide screen it can stay open beside the page.",
   },
   {
     term: "Prompt",
-    heading: "Prompt",
     aliases: ["prompt", "prompts"],
     definition:
       "Instructions once used to guide how a construct replied. Some descriptions refer to editing these instructions in an older version of the site. The current site follows typed commands instead and does not offer this instruction editor.",
   },
   {
     term: "Character Sheet",
-    heading: "Character Sheet",
     aliases: ["Character Sheet"],
     definition:
       "A heading in older saved instructions for a built-in construct. It is not a form the person can fill in.",
   },
   {
     term: "Built-in construct or spell",
-    heading: "Built-in construct or spell",
     aliases: ["built-in spell", "built-in spells"],
     definition:
       "A construct or spell supplied with the website. People can copy built-in spells, but cannot change supplied originals or copy constructs. The supplied spells are Tasks and Brainstorm.",
   },
   {
     term: "Forget",
-    heading: "Forget, forgotten spells, restore, delete forever",
+    heading: "Forget",
     aliases: ["forget", "forgotten", "forgetting"],
     definition:
       "Put aside a spell the person owns without losing its settings. It cannot be chosen for new use until restored. Existing conversations keep what they already saved.",
   },
   {
     term: "Forgotten spells",
-    heading: "Forget, forgotten spells, restore, delete forever",
+    heading: "Forget",
     aliases: ["forgotten spells"],
     definition:
       "The Spellbook tab listing a person's forgotten spells. They can bring one back for use or permanently delete it here.",
   },
   {
     term: "Restore",
-    heading: "Forget, forgotten spells, restore, delete forever",
+    heading: "Restore spell",
     aliases: ["restore", "restoring", "restored", "restoration"],
     definition:
       "Make a forgotten spell available again, keeping its saved settings. For a Completed or Abandoned quest, restore means change its status back to Active.",
   },
   {
     term: "Delete forever",
-    heading: "Forget, forgotten spells, restore, delete forever",
+    heading: "Delete forever",
     aliases: [
       "delete forever",
       "permanently delete",
@@ -86,7 +82,6 @@ const WRITER_TERMS: readonly WriterTerm[] = [
   },
   {
     term: "Create spell",
-    heading: "Create, make a copy, edit, save, cancel",
     aliases: [
       "create spell",
       "creating a spell",
@@ -97,7 +92,6 @@ const WRITER_TERMS: readonly WriterTerm[] = [
   },
   {
     term: "Make a copy",
-    heading: "Create, make a copy, edit, save, cancel",
     aliases: [
       "make a copy",
       "copying",
@@ -110,21 +104,18 @@ const WRITER_TERMS: readonly WriterTerm[] = [
   },
   {
     term: "Edit",
-    heading: "Create, make a copy, edit, save, cancel",
     aliases: ["edit", "editing", "edited"],
     definition:
       "Open something the person owns so they can change its saved name or settings.",
   },
   {
     term: "Save",
-    heading: "Create, make a copy, edit, save, cancel",
     aliases: ["save", "saved", "saving"],
     definition:
       "Keep the person's changes. When editing a spell, leaving without saving may keep unfinished changes in the browser, but does not change the saved version.",
   },
   {
     term: "Cancel",
-    heading: "Create, make a copy, edit, save, cancel",
     aliases: ["cancel", "cancelling", "canceled", "cancelled"],
     definition:
       "Abandon changes in an editing form and return to the last saved version.",
@@ -138,35 +129,31 @@ const WRITER_TERMS: readonly WriterTerm[] = [
   },
   {
     term: "Context",
-    heading: "Context",
     aliases: ["context"],
     definition:
       "Information available when a reply is prepared, such as recent messages and current Tasks. Older descriptions also refer to instructions supplied to a reply-writing service. A person's private information is not automatically included.",
   },
   {
     term: "Placeholder",
-    heading: "Placeholder",
     aliases: ["placeholder", "placeholders", "marker", "markers"],
     definition:
       "A marker such as {{name}} that stands for information to be filled in, such as a person's name. In a template, keep the marker exactly as shown. Some instructions show markers as examples rather than replacing them immediately.",
   },
   {
     term: "Snapshot",
-    heading: "Snapshot",
+    heading: "Spell snapshot",
     aliases: ["snapshot", "snapshots", "saved copy", "saved copies"],
     definition:
-      "A copy of a construct's name and settings kept when a conversation starts. Editing the original afterward does not change that conversation's copy. A spell also keeps its settings when it is cast.",
+      "A saved copy of settings. A conversation keeps the construct it started with. Casting a spell saves its name, message destination and replies for that cast.",
   },
   {
     term: "Harness",
-    heading: "Harness",
     aliases: ["harness"],
     definition:
       "The site's behind-the-scenes code for preparing replies, carrying out actions and checking what the person may access. This term belongs to older technical descriptions, not text for the site's users.",
   },
   {
     term: "Global prompt",
-    heading: "Global prompt",
     aliases: ["global prompt"],
     definition:
       "Shared instructions once supplied to every conversation. People cannot edit these rules. References to them concern an older reply-writing system.",
@@ -180,28 +167,24 @@ const WRITER_TERMS: readonly WriterTerm[] = [
   },
   {
     term: "Construct code names",
-    heading: "Construct code names",
     aliases: ["construct code names"],
     definition:
       "Names used by programmers to store and refer to constructs. They are not labels the writer needs to explain to site users.",
   },
   {
     term: "Built-in construct",
-    heading: "Built-in construct",
     aliases: ["built-in construct", "built-in constructs"],
     definition:
       "A construct supplied with the site, such as Vellum or Lumen. Premade quests assign one. Supplied constructs are read-only.",
   },
   {
     term: "Default construct",
-    heading: "Default construct",
     aliases: ["default construct"],
     definition:
       "Vellum, used when a starting point or other choice does not specify a different construct.",
   },
   {
     term: "Vellum",
-    heading: "Default construct",
     aliases: ["Vellum"],
     definition:
       "The site's calm, patient construct, associated with maps and finding a next step. It is used for Dailies and Learn a thing, and its voice is also used in sign-in and invitation emails.",
@@ -222,14 +205,12 @@ const WRITER_TERMS: readonly WriterTerm[] = [
   },
   {
     term: "Voice",
-    heading: "Voice",
     aliases: ["voice"],
     definition:
       "The way a construct speaks, such as Vellum's calm, patient style or Lumen's enthusiasm. These descriptions guide the writing about the construct; the current command system does not read old voice instructions.",
   },
   {
     term: "Habits",
-    heading: "Habits",
     aliases: ["habits"],
     definition:
       "The way a construct is described as helping, rather than how it speaks. The current command system does not read old instructions about these habits.",
@@ -266,7 +247,7 @@ const WRITER_TERMS: readonly WriterTerm[] = [
     heading: "Conversation",
     aliases: ["conversation", "conversations"],
     definition:
-      "The messages and replies for an active spell. The quest owner and members share the conversation.",
+      "The messages and replies for a quest. The quest owner and members share the conversation. The workspace shows the active spell’s transcript while it is on.",
   },
   {
     term: "Overview",
@@ -298,7 +279,6 @@ const WRITER_TERMS: readonly WriterTerm[] = [
   },
   {
     term: "Author",
-    heading: "Author",
     aliases: ["author", "authors"],
     definition:
       "The person who wrote a message. Their name stays with the message even if they leave the quest or someone else views it.",
@@ -319,7 +299,6 @@ const WRITER_TERMS: readonly WriterTerm[] = [
   },
   {
     term: "Start a quest",
-    heading: "Start a quest",
     aliases: ["start a quest", "starting a quest", "start quest"],
     definition:
       "Open the form for choosing a starting point and entering a quest's details. The quest is created only when the person confirms. Browsing choices or closing the form creates nothing.",
@@ -351,6 +330,20 @@ const WRITER_TERMS: readonly WriterTerm[] = [
       "A control in Dailies for beginning a new day, after confirmation. It sets the old conversation aside, opens an empty one and marks finished daily tasks open again. Other tasks, Ideas and Progress stay as they are, unless the person chooses to remove tasks or Ideas. A line under it says how long ago the last day started. Until someone sends a message, Undo Start Day brings everything back.",
   },
   {
+    term: "Dailies day",
+    heading: "Dailies day",
+    aliases: ["Dailies day", "Dailies days"],
+    definition:
+      "A day the person begins by choosing Start Day in Dailies. More than one day may start on the same calendar date.",
+  },
+  {
+    term: "Day grid",
+    heading: "Day grid",
+    aliases: ["day grid"],
+    definition:
+      "The Dailies overview shows each recurring task’s last seven dates, including dates before the task was tracked and gaps when no day started.",
+  },
+  {
     term: "Recurring task",
     heading: "Recurring task",
     aliases: ["recurring task", "recurring tasks", "Make recurring"],
@@ -365,15 +358,14 @@ const WRITER_TERMS: readonly WriterTerm[] = [
       "How many days in a row the person has done a recurring task in Dailies. A day the task wasn't done ends it, and so does a day with no Start Day.",
   },
   {
-    term: "Milestone",
-    heading: "Milestone",
-    aliases: ["milestone", "milestones", "Milestone reached"],
+    term: "Streak milestone",
+    heading: "Streak milestone",
+    aliases: ["streak milestone", "streak milestones", "Milestone reached"],
     definition:
       "A length a streak can reach: 3, 7, 14 or 30 days, then every 30 days after that. A milestone in the Progress list is a different thing.",
   },
   {
     term: "Streak chain",
-    heading: "Streak chain",
     aliases: ["streak chain", "streak chains"],
     definition:
       "A row of links under a recurring task in Dailies. Each day of the streak fills one, and today's stays dashed until the task is done. The chain ends at the next milestone, and a line under it says what checking the task off does.",
@@ -383,35 +375,37 @@ const WRITER_TERMS: readonly WriterTerm[] = [
     heading: "Gap",
     aliases: ["gap", "no day started"],
     definition:
-      "A date on which the person didn't start a day in Dailies. It ends every streak, and the Progress section shows it with a dashed square.",
+      "A date between Dailies days when the person did not start a day. A gap ends every streak, and Day grid shows it with a dashed square.",
   },
   {
     term: "Quest code names",
-    heading: "Quest code names",
     aliases: ["quest code names"],
     definition:
       "Names used by programmers to refer to quests in the code and saved data. For site users, the name is Quest.",
   },
   {
     term: "Personal quest",
-    heading: "Personal quest",
     aliases: ["personal quest", "private quest"],
     definition:
       "A quest only its creator can open. It becomes a multi-user quest when someone accepts an invitation. Dailies always stays private.",
   },
   {
     term: "Goal",
-    heading: "Goal",
     aliases: ["goal", "goals"],
     definition:
       "What the person wants to achieve through a quest. It is discussed in the conversation; there is no separate Goal box to fill in.",
   },
   {
-    term: "Recorded milestone",
-    heading: "Milestone (recorded)",
-    aliases: ["recorded milestone", "recorded milestones"],
+    term: "Milestone",
+    heading: "Milestone",
+    aliases: [
+      "milestone",
+      "milestones",
+      "recorded milestone",
+      "recorded milestones",
+    ],
     definition:
-      "A short, dated description of something the person has finished in a quest. The construct records it in Progress; people with access can edit or delete it.",
+      "A short, dated description of something the person has finished in a quest. People with access can add, edit or delete it in Progress.",
   },
   {
     term: "Progress timeline",
@@ -423,7 +417,7 @@ const WRITER_TERMS: readonly WriterTerm[] = [
       "progress",
     ],
     definition:
-      "The quest's list of recorded milestones, shown under Progress. It celebrates finished work. In Dailies, a grid above it shows the last week of each daily step.",
+      "The quest's list of recorded milestones, shown under Progress. It celebrates finished work. In Dailies, Day grid on the quest overview shows recurring tasks for the last seven dates.",
   },
   {
     term: "Next task",
@@ -476,14 +470,12 @@ const WRITER_TERMS: readonly WriterTerm[] = [
   },
   {
     term: "Buckets",
-    heading: "Buckets",
     aliases: ["Buckets", "bucket", "buckets"],
     definition:
       "Tasks and Ideas, the collections where spells save captured messages. Each has a section linked from the quest overview.",
   },
   {
     term: "Spells & status",
-    heading: "Spells & status",
     aliases: ["spells & status", "spells and status"],
     definition:
       "A quest section where people cast spells, change quest status and undo a status change. Open it from Overview.",
@@ -504,7 +496,6 @@ const WRITER_TERMS: readonly WriterTerm[] = [
   },
   {
     term: "Tasks change",
-    heading: "Tasks change",
     aliases: ["Tasks change", "change to Tasks", "changes to Tasks"],
     definition:
       "An edit to Tasks, such as adding a task or marking one done. The Tasks section shows what changed and offers Undo.",
@@ -518,7 +509,6 @@ const WRITER_TERMS: readonly WriterTerm[] = [
   },
   {
     term: "Command note",
-    heading: "Command note",
     aliases: ["command note", "command notes"],
     definition:
       "The line the conversation shows under a command that changed the quest, saying what it did. The construct reads it on its next reply but does not answer it.",
@@ -532,35 +522,30 @@ const WRITER_TERMS: readonly WriterTerm[] = [
   },
   {
     term: "Tool",
-    heading: "Tool",
     aliases: ["tool", "tools"],
     definition:
       "An action the construct can carry out during a reply, such as changing Tasks or recording a milestone. The writer can usually call this an action instead of using the technical word tool.",
   },
   {
     term: "Tool part",
-    heading: "Tool part",
     aliases: ["tool part", "tool parts"],
     definition:
       "The part of a conversation showing an action carried out during a reply. It may appear within the reply or below it.",
   },
   {
     term: "Working note",
-    heading: "Working note",
     aliases: ["working note"],
     definition:
       "A short explanation from the construct shown just above a spell being turned on.",
   },
   {
     term: "Installed app",
-    heading: "Installed app",
     aliases: ["installed app", "Home Screen"],
     definition:
       "Project Buddy added to a phone's Home Screen so it opens in its own window. It remains the same website and does not keep an offline copy.",
   },
   {
     term: "Profile",
-    heading: "Profile",
     aliases: ["Profile"],
     definition:
       "A person's own page, where they change their saved name and see their experience, circle, points in each ability and days signed in.",
@@ -574,7 +559,6 @@ const WRITER_TERMS: readonly WriterTerm[] = [
   },
   {
     term: "Settings",
-    heading: "Settings",
     aliases: ["Settings"],
     definition:
       "The page where a person changes their appearance choices and sign-in security.",
@@ -588,7 +572,6 @@ const WRITER_TERMS: readonly WriterTerm[] = [
   },
   {
     term: "Role",
-    heading: "Role",
     aliases: ["role", "roles"],
     definition:
       "An account's ordinary-user or administrator setting. Neither setting gives access to someone else's private information.",
@@ -602,35 +585,33 @@ const WRITER_TERMS: readonly WriterTerm[] = [
   },
   {
     term: "Owner",
-    heading: "Owner",
+    heading: "Quest owner",
     aliases: ["owner", "owners"],
     definition:
       "The person who created a quest. They cannot be removed from it. A person also owns their own spells; sharing a quest does not share those originals. The site owner means the person running the website.",
   },
   {
     term: "Sign-up link",
-    heading: "Sign-up link",
     aliases: ["sign-up link", "sign up link"],
     definition:
       "An emailed link for someone creating an account. It lasts 30 minutes. Opening it does not create the account; choosing Continue verifies the email, creates the account and signs that browser in.",
   },
   {
     term: "Sign-in link",
-    heading: "Sign-in link",
     aliases: ["sign-in link", "sign in link", "signing in"],
     definition:
       "An emailed link that lets someone enter their existing account. An invited person also gives their name to finish setting up their account when they continue.",
   },
   {
     term: "Session",
-    heading: "Session, sign out everywhere",
+    heading: "Session",
     aliases: ["session", "sessions"],
     definition:
       "A browser staying signed in to an account. Signing out ends that access in the browser; signing out everywhere ends it on every browser and device.",
   },
   {
     term: "Sign out everywhere",
-    heading: "Session, sign out everywhere",
+    heading: "Session",
     aliases: ["sign out everywhere", "signs out on every browser"],
     definition:
       "An action that signs the person out on every browser and device, including the one they are using. Old sign-in and invitation links stop working, but pending invitations remain.",
@@ -649,7 +630,7 @@ const WRITER_TERMS: readonly WriterTerm[] = [
   },
   {
     term: "Member",
-    heading: "Member",
+    heading: "Quest member",
     aliases: ["member", "members"],
     definition:
       "Someone who accepted an invitation to a quest. They can read and change it, invite others, remove other members or leave, but cannot remove its owner. Leaving does not remove what they wrote.",
@@ -675,7 +656,7 @@ const WRITER_TERMS: readonly WriterTerm[] = [
   },
   {
     term: "Pending quest",
-    heading: "Pending quest",
+    heading: "Quest invitation",
     aliases: ["pending quest", "pending quests", "Pending"],
     definition:
       "A quest someone has been invited to but has not joined. It appears under Pending on the Quests page. Pending describes the unanswered invitation, not whether the quest itself is Active, Completed or Abandoned.",
@@ -696,42 +677,36 @@ const WRITER_TERMS: readonly WriterTerm[] = [
   },
   {
     term: "Client",
-    heading: "Client",
     aliases: ["client", "clients"],
     definition:
       "Software that uses the site's planned connection feature to act for a person. This feature is planned and is not currently available.",
   },
   {
     term: "External agent",
-    heading: "External agent",
     aliases: ["external agent", "external agents"],
     definition:
       "Software outside Project Buddy that could act for a person through the planned connection feature. It is not a construct or a separate person with an account.",
   },
   {
     term: "Connection",
-    heading: "Connection",
     aliases: ["connection", "connections"],
     definition:
       "A person's permission for outside software to act for them within agreed limits. This feature is planned and is not currently available.",
   },
   {
     term: "Connection permission",
-    heading: "Connection permission",
     aliases: ["connection permission", "connection permissions"],
     definition:
       "One action a person would allow outside software to carry out through a connection, such as reading or changing their information. It cannot give access the person does not already have. This feature is planned.",
   },
   {
     term: "Login command",
-    heading: "Login command",
     aliases: ["login command"],
     definition:
       "A planned instruction for outside software to ask someone to sign in and approve a connection. It is not the wording for signing in on the website.",
   },
   {
     term: "Chat",
-    heading: "Chat",
     aliases: ["Chat"],
     definition:
       "Ordinary conversation when no spell is turned on. Code uses chat to mean a quest's conversation. Use conversation in writing for the site.",
@@ -741,7 +716,7 @@ const WRITER_TERMS: readonly WriterTerm[] = [
     heading: "Timer",
     aliases: ["timer", "timers"],
     definition:
-      "The page for a repeating work and break timer. A large ring shows progress through the current period, its name and the time left. It requires signing in, is separate from quests and can be shared by its link.",
+      "The page for a repeating work and break timer. A large ring shows progress through the current period, its name and the time left. Anyone can open it or follow its link. A quest also has its own Timer panel.",
   },
   {
     term: "Timer schedule",
@@ -826,12 +801,7 @@ function copyDefinitions(
           availableText.includes(searchable(alias)),
         )
       ) {
-        if (
-          !(
-            glossary.includes(`### ${entry.heading}\n`) ||
-            glossary.includes(`## ${entry.heading}\n`)
-          )
-        ) {
+        if (entry.heading !== undefined && !headings.includes(entry.heading)) {
           throw new Error(`Glossary section not found: ${entry.heading}`);
         }
         selected.add(entry);

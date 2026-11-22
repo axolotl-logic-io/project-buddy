@@ -477,7 +477,7 @@ for (const mode of THEME_MODES) {
     const inactivePaint = getComputedStyle(completed.element());
     // Inactive fills let the page's texture show through; the selected tab
     // shares the list's slightly translucent surface, more solid than they
-    // are (docs/chats.md).
+    // are.
     const inactiveAlpha = parse(inactivePaint.backgroundColor)?.alpha ?? 1;
     const selectedAlpha = parse(selectedPaint.backgroundColor)?.alpha ?? 1;
     expect(inactiveAlpha, "an inactive tab's fill is see-through").toBeLessThan(

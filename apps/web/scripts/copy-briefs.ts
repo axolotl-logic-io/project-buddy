@@ -95,6 +95,10 @@ const COPY_BRIEFS = new Map<string, string>([
     "In a quest conversation, where a person exchanges messages with its construct. Confirm that the reply was stopped. Explain that changes already started, such as changing Tasks, may still finish.",
   ],
   [
+    "CHAT_COPY.commandKeyHint",
+    "Beside the message box in a quest conversation. Explain that Enter sends, Shift+Enter adds a line break and slash opens the command list.",
+  ],
+  [
     "CHAT_COPY.keyHint",
     "In a quest conversation, where a person exchanges messages with its construct. Help beside the message box explaining the keyboard controls: Enter sends; Shift+Enter inserts a line break.",
   ],
@@ -547,6 +551,10 @@ const COPY_BRIEFS = new Map<string, string>([
     "In the quest composer when a slash command cannot run. Explain that undo is unavailable if there is no Start Day to undo or someone has written in the new conversation.",
   ],
   [
+    "PANEL_COMMANDS_COPY.problems.dayChanged",
+    "In the Dailies day controls. Explain that the day changed before the request could apply and the user can try again on the updated page.",
+  ],
+  [
     "PANEL_COMMANDS_COPY.problems.dailies",
     "In the quest composer when a slash command cannot run. Explain that Dailies is personal and cannot have invitees.",
   ],
@@ -691,6 +699,10 @@ const COPY_BRIEFS = new Map<string, string>([
     "In the Progress section of a quest, where finished work is recorded as milestones. Text read aloud by screen-reading software on the edit button identifying a milestone by its text.",
   ],
   [
+    "PROGRESS_TIMELINE_COPY.empty",
+    "In Progress when the quest has no milestones. Prompt the user to add a milestone for work they finished.",
+  ],
+  [
     "PROGRESS_TIMELINE_COPY.needsText",
     "In the Progress section of a quest, where finished work is recorded as milestones. When someone tries to save a blank milestone in Progress, ask them to write what they did.",
   ],
@@ -701,6 +713,10 @@ const COPY_BRIEFS = new Map<string, string>([
   [
     "PROGRESS_TIMELINE_COPY.tooLong",
     "In the Progress section of a quest, where finished work is recorded as milestones. When a milestone cannot be saved in Progress, explain that it needs a line without a line break within the supplied character limit.",
+  ],
+  [
+    "PROGRESS_TIMELINE_COPY.unavailable",
+    "In Progress when the requested milestone cannot be found. Explain that the milestone is no longer available.",
   ],
   [
     "PROMPT_COPY.limit",
@@ -891,6 +907,18 @@ const COPY_BRIEFS = new Map<string, string>([
     "In a quest's Quick Notes. Explain that the quest has become inactive or inaccessible. The attempted save failed and the draft text is still present.",
   ],
   [
+    "QUEST_OVERVIEW_COPY.people",
+    "In the Members summary on a quest overview. Give the number of people in the quest, including its owner.",
+  ],
+  [
+    "QUEST_OVERVIEW_COPY.spellOptions",
+    "On a quest overview when there is no active spell. Describe what the Spells & status section lets the user do.",
+  ],
+  [
+    "QUEST_OVERVIEW_COPY.tasks",
+    "In the Tasks summary on a quest overview. Give separate counts for open and done tasks.",
+  ],
+  [
     "QUEST_SHARING_COPY.option.variant3",
     "In a list where someone chooses between their own quests and quests they have joined. Text in the list where someone chooses a quest identifying a quest joined from another owner, using quest and owner names.",
   ],
@@ -1067,6 +1095,10 @@ const COPY_BRIEFS = new Map<string, string>([
     "In the site’s introduction to Project Buddy. Short product tagline describing working on personal quests and ideas with constructs.",
   ],
   [
+    "SPELLBOOK_COPY.castFromQuest",
+    "On a spell’s detail page in Spellbook. Tell the user where to cast that spell inside a quest.",
+  ],
+  [
     "SPELLBOOK_COPY.empty",
     "In Spellbook. For an empty spell list, explain how to get a spell by making one or copying a built-in spell.",
   ],
@@ -1083,12 +1115,20 @@ const COPY_BRIEFS = new Map<string, string>([
     "In Spellbook. Label the control that searches for spells by name.",
   ],
   [
+    "SPELLBOOK_COPY.unavailable",
+    "In Spellbook when the requested spell cannot be found. Explain that the spell is no longer available.",
+  ],
+  [
     "SPELL_MODE_COPY.ambiguous",
     "Beside the controls or replies for turning a spell on or off in a conversation. Explain that multiple spells have the requested name and must be renamed in Workshop before casting.",
   ],
   [
     "SPELL_MODE_COPY.castUsage",
     "Beside the controls or replies for turning a spell on or off in a conversation. Explain the how to type a cast command with Tasks and Brainstorm as examples.",
+  ],
+  [
+    "SPELL_MODE_COPY.unavailable",
+    "Beside the spell controls in a quest when a cast or stop request fails. Explain that the change could not be saved and invite the user to try again.",
   ],
   [
     "SPELLBOOK_COPY.builtIn",
@@ -1303,6 +1343,10 @@ const COPY_BRIEFS = new Map<string, string>([
     "On the Timer page, which repeats a work period followed by a break and is separate from any quest. Explain that sharing this page’s link shares only the timer schedule and gives no access to the person’s quests or account.",
   ],
   [
+    "TIMER_COPY.timerOnlyLink",
+    "In the running timer’s preferences. Label the link that opens the same schedule in a view with only the countdown and period display.",
+  ],
+  [
     "TIMER_COPY.copyFailed",
     "On the Timer page, which repeats a work period followed by a break and is separate from any quest. Explain that copying the timer link failed and suggest copying it from the browser’s address bar instead.",
   ],
@@ -1322,6 +1366,8 @@ const COPY_BRIEFS = new Map<string, string>([
 
 const MARKER_HELP = new Map<string, string>([
   ["count", "the number of items in the list"],
+  ["open", "the number of open tasks"],
+  ["done", "the number of done tasks"],
   ["place", "the position of the item in the list"],
   [
     'cleared.join("_and_the_")',
