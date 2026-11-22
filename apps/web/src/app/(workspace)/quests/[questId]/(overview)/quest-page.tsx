@@ -45,7 +45,7 @@ import {
 import { listQuestPeople } from "@/quests/membership-store.ts";
 import { getQuest, type Quest } from "@/quests/store.ts";
 import { listRites } from "@/rites/rite-store.ts";
-import { listMurmlings } from "@/spaces/murmling-store.ts";
+import { listMurmlings, readNextMurmling } from "@/spaces/murmling-store.ts";
 import { SPACE_ID } from "@/spaces/space.ts";
 import { listSpaces } from "@/spaces/space-store.ts";
 import { listOwnSpells } from "@/spells/own-spell-store.ts";
@@ -305,6 +305,10 @@ async function questPage(
     space === undefined &&
     section !== "performances" &&
     section !== "rites";
+  let nextTask: Awaited<ReturnType<typeof readNextMurmling>>;
+  if (onOverview && !quest.dailies) {
+    nextTask = await readNextMurmling(user, quest.id);
+  }
   const shownTasks = tasks?.tasks ?? EMPTY_TASKS;
   let spellsContent: ReactNode;
   if (current === "spells") {
@@ -421,7 +425,7 @@ async function questPage(
                   )}
                 {quest.dailies === true &&
                   dayControls(quest, record, today, conversation?.id)}
-                {!quest.dailies && <NextTask />}
+                {!quest.dailies && <NextTask task={nextTask} />}
               </section>
             )}
             {current !== undefined && (

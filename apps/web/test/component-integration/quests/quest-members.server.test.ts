@@ -20,6 +20,11 @@ import { getChat, readStoppedReply, saveMessage } from "@/chats/store.ts";
 import { PANEL_COMMAND } from "@/commands/panel-commands.ts";
 import { getConstruct } from "@/constructs/index.ts";
 import { startDailies } from "@/conversations/dailies.ts";
+import {
+  CONJURATION,
+  conjure,
+  startPerformance,
+} from "@/performances/performance-store.ts";
 import { readCurrentQuest } from "@/quests/current-quest-store.ts";
 import { INVITATIONS_PER_HOUR } from "@/quests/membership.ts";
 import { answerInvitationAction } from "@/quests/membership-actions.ts";
@@ -49,6 +54,7 @@ import {
   stopReply,
 } from "@/replies/reply-runs.ts";
 import { HOME_PATH } from "@/routes.ts";
+import { listSpaces } from "@/spaces/space-store.ts";
 import { PANEL_COMMANDS_COPY } from "@/ui/copy/commands.ts";
 import { LINK_PAGE_COPY } from "@/ui/copy/login.ts";
 import {
@@ -872,6 +878,27 @@ describe("how a quest is shared, wherever quests are listed", () => {
     await saveUserName(owner.id, "Rowan Owner");
     await addMember(owner, first.id, member);
     const own = await testData(member).quest();
+
+    const [space] = await listSpaces(member.id, first.id);
+    if (space === undefined) {
+      throw new Error("The member cannot see the quest's starting spaces");
+    }
+    const performance = await startPerformance(member.id, first.id, {
+      spaceId: space.id,
+      riteId: "capture",
+    });
+    if (performance === undefined) {
+      throw new Error("The member could not start a performance");
+    }
+    await conjure(
+      member.id,
+      first.id,
+      CONJURATION.parse({
+        id: crypto.randomUUID(),
+        performanceId: performance.id,
+        text: "Sketch the shared project",
+      }),
+    );
 
     const [ownerQuests, memberQuests, continued] = await Promise.all([
       listQuests(owner.id),

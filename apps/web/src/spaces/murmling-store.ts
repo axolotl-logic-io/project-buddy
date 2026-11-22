@@ -373,5 +373,32 @@ function changeMurmling(
   );
 }
 
+function readNextMurmling(
+  user: UserId,
+  questId: QuestId,
+): Promise<Murmling | undefined> {
+  return withAppErrors("readNextMurmling", async () => {
+    const [row] = await getDb()
+      .select({ item: murmlings })
+      .from(murmlings)
+      .innerJoin(spaces, eq(spaces.id, murmlings.spaceId))
+      .where(
+        and(
+          eq(murmlings.questId, questId),
+          murmlingOpenTo(user),
+          spaceOpenTo(user),
+          eq(murmlings.type, "task"),
+          eq(murmlings.checkedOff, false),
+        ),
+      )
+      .orderBy(spaces.position, murmlings.position, murmlings.id)
+      .limit(1);
+    if (row === undefined) {
+      return;
+    }
+    return toMurmling(row.item);
+  });
+}
+
 export type { Murmling };
-export { changeMurmling, changeWithin, listMurmlings };
+export { changeMurmling, changeWithin, listMurmlings, readNextMurmling };

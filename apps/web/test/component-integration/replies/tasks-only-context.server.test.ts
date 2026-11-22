@@ -6,7 +6,7 @@ import {
   signedInChat,
 } from "../test-database/chat-test-kit.ts";
 
-test("use_case_ask_whats_next", async () => {
+test("The construct prompt includes the quest task list", async () => {
   const { user, chat } = await signedInChat();
   await changeTasks(user.id, { questId: chat.quest.id, author: "person" }, [
     { op: "add", text: "Shape the shell" },

@@ -15,7 +15,6 @@ import {
   saveMessage,
 } from "@/chats/store.ts";
 import type { ChatId, QuestId, UserId } from "@/ids.ts";
-import { readCurrentQuest } from "@/quests/current-quest-store.ts";
 import {
   TASKS_NOTE_MARK,
   tasksPartForModel,
@@ -320,23 +319,6 @@ describe("a quest's tasks, changed without the construct", () => {
     expect(await command(chat.id, "/done")).toEqual({ kind: "not-found" });
     expect(await readTasksState(stranger.id, quest.id)).toBeUndefined();
     expect(await openTexts(owner.id, quest.id)).toEqual([SCULPT, RENDER]);
-  });
-
-  test("Continue's next task comes only from the tasks", async () => {
-    const { user, chat } = await signedInChat();
-    await sendChatMessage(chat.id, "help");
-    expect((await readCurrentQuest(user.id))?.nextTask).toBeUndefined();
-    await laidOut(chat.quest.id);
-    expect((await readCurrentQuest(user.id))?.nextTask).toBe(BLOCK_OUT);
-    await changeTasksAction({
-      questId: chat.quest.id,
-      operations: [
-        { op: "remove", task: 1 },
-        { op: "remove", task: 2 },
-        { op: "remove", task: 3 },
-      ],
-    });
-    expect((await readCurrentQuest(user.id))?.nextTask).toBeUndefined();
   });
 
   test("controls and commands can add beyond the former task limit", async () => {

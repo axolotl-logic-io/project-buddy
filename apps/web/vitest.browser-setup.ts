@@ -198,6 +198,7 @@ vi.mock("@/spaces/space-actions.ts", () => ({
 
 vi.mock("@/spaces/murmling-store.ts", () => ({
   listMurmlings: vi.fn(() => Promise.resolve([])),
+  readNextMurmling: vi.fn(() => Promise.resolve(undefined)),
 }));
 
 vi.mock("@/spaces/murmling-actions.ts", () => ({

@@ -6,7 +6,7 @@
 
 import { and, desc, eq } from "drizzle-orm";
 import { questOpenTo } from "@/accounts/owner-scope.ts";
-import { getDb } from "@/db/client.ts";
+import { getDb, inTransaction } from "@/db/client.ts";
 import { quests } from "@/db/tables/quests-and-chats.ts";
 import { withAppErrors } from "@/errors/to-app-error.ts";
 import { parseQuestId, type QuestId, type UserId } from "@/ids.ts";
@@ -18,6 +18,7 @@ import {
   sharingOf,
 } from "@/quests/quest-sharing.ts";
 import { QUEST_STATUS, type QuestStatus } from "@/quests/quest-status.ts";
+import { seedSpaces } from "@/spaces/space-store.ts";
 
 interface Quest {
   id: QuestId;
@@ -126,38 +127,39 @@ export async function getQuest(
   return quest;
 }
 
-// A new quest of the owner's, with no conversation. The site starts every
-// quest with its conversation (src/conversations/start-quest.ts); tests make
-// empty ones.
+// A new quest with its starting spaces.
 export function createQuest(owner: UserId, name: QuestName): Promise<Quest> {
-  return withAppErrors("createQuest", async () => {
-    const inserted = await getDb()
-      .insert(quests)
-      .values({ userId: owner, name })
-      .returning({
-        startingContext: quests.startingContext,
-        status: quests.status,
-        statusRevision: quests.statusRevision,
-        id: quests.id,
-        name: quests.name,
-        createdAt: quests.createdAt,
-        dailies: quests.dailies,
-      });
-    // A new quest is its owner's own, with no members yet.
-    const [quest] = toQuests(
-      owner,
-      inserted.map((row) => ({
-        ...row,
-        ownerId: owner,
-        ownerName: null,
-        hasMembers: false,
-      })),
-    );
-    if (quest === undefined) {
-      throw new Error("Inserting a quest returned no quest");
-    }
-    return quest;
-  });
+  return withAppErrors("createQuest", () =>
+    inTransaction(async (tx) => {
+      const inserted = await tx
+        .insert(quests)
+        .values({ userId: owner, name })
+        .returning({
+          startingContext: quests.startingContext,
+          status: quests.status,
+          statusRevision: quests.statusRevision,
+          id: quests.id,
+          name: quests.name,
+          createdAt: quests.createdAt,
+          dailies: quests.dailies,
+        });
+      // A new quest is its owner's own, with no members yet.
+      const [quest] = toQuests(
+        owner,
+        inserted.map((row) => ({
+          ...row,
+          ownerId: owner,
+          ownerName: null,
+          hasMembers: false,
+        })),
+      );
+      if (quest === undefined) {
+        throw new Error("Inserting a quest returned no quest");
+      }
+      await seedSpaces(tx, quest.id);
+      return quest;
+    }),
+  );
 }
 
 // The owner or a member can rename a quest. Unknown or inaccessible ids
