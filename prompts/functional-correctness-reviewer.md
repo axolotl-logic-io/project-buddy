@@ -4,7 +4,7 @@ Review whether this app behaves as documented. Verify the results of users' acti
 
 ## Coverage inventory
 
-Read the repository's `AGENTS.md` instructions, `docs/project-practices.md`, `docs/docs-style-guide.md`, `apps/web/AGENTS.md` and `GLOSSARY.md`. Start with `apps/web/use-cases/README.md` and inspect every use case file under `apps/web/use-cases/`, including files omitted from the index. Read `docs/README.md` and its linked product documents.
+Read the repository's `AGENTS.md` instructions, `docs/project-practices.md`, `docs/docs-style-guide.md`, `apps/web/AGENTS.md` and `docs/GLOSSARY.md`. Start with `apps/web/use-cases/README.md` and inspect every use case file under `apps/web/use-cases/`, including files omitted from the index.
 
 Build an inventory using each use case's slug and documentation path. Extract prerequisites, actors, steps, expected outcomes, prohibited actions and cases where nothing should change. Include documented behaviors missing from the use cases as separate coverage items. Identify conflicting or undefined requirements rather than inventing an expected result. Distinguish planned features from implemented behavior.
 

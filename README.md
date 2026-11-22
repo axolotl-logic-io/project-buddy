@@ -1,6 +1,6 @@
 # project-buddy
 
-project-buddy is a personal Next.js site where constructs help each user with their own projects and ideas, on any subject. Constructs use local commands to keep quest Tasks and Ideas. The [glossary](GLOSSARY.md) defines the site's words.
+project-buddy is a personal Next.js site where constructs help each user with their own projects and ideas, on any subject. Constructs use local commands to keep quest Tasks and Ideas. The [glossary](docs/GLOSSARY.md) defines the site's words.
 
 Before changing the code, read `AGENTS.md`, which links the rules for code, tests and production in [project practices](docs/project-practices.md). Remaining work is tracked in GitHub issues. The issue pipeline in the [ecosystem repository](https://github.com/axolotl-logic-io/ecosystem) works them; its docs are in that repository's `docs/` folder.
 
@@ -11,7 +11,7 @@ The repo is a monorepo of npm workspaces with mise tasks:
 - `apps/web/`: the site, a Next.js app. Everything below describes it, and its paths are relative to this folder.
 - `apps/cli/`: `project-buddy`, a command-line client for the site's `/api/v1` routes that writes JSONL; run `project-buddy --help` for its commands.
 - `apps/instruction-counter/`: a pi-backed text-file measurement tool that emits one JSON line; see its `README.md`.
-- `docs/`: product scope, practices and operating notes, starting at `docs/README.md`.
+- `docs/`: domain reference, style guides, practices and operating notes, starting at `docs/README.md`.
 - The root holds the shared tooling (`package.json` with the workspaces, the one `package-lock.json`, `mise.toml`, `biome.jsonc`) and the top-level docs (`AGENTS.md` and this README).
 
 ## Development
@@ -75,11 +75,11 @@ A failed or cancelled release opens or updates an `ops` issue titled `Production
 
 ### Local construct engine
 
-The app makes no requests to AI model companies. Constructs use deterministic commands inspired by multi-user dungeons (MUDs): `help`, `look`, `exp` and `cast <spell id>`. See [local construct behavior and limits](docs/local-constructs.md).
+The app makes no requests to AI model companies. Constructs use deterministic commands inspired by multi-user dungeons (MUDs): `help`, `look`, `exp` and `cast <spell id>`. See [construct use cases](apps/web/use-cases/constructs.md).
 
 ### Quests and conversations
 
-Quests at `/quests` is the signed-in landing page. Start a quest offers Dailies, Learn a thing, Make a thing and Do a thing. Each quest has one continuing conversation, a Tasks, Ideas, Quick Notes and a Progress timeline, which its owner, or anyone already in it, can share by inviting people as [members](docs/multi-user-quests.md). Dailies continues the same quest each day. See [quests and conversations](docs/chats.md), [premade quests](docs/premade-quests.md) and [Progress](docs/progress-timeline.md).
+Quests at `/quests` is the signed-in landing page. Start a quest offers Dailies, Learn a thing, Make a thing and Do a thing. Each quest has one continuing conversation, a Tasks, Ideas, Quick Notes and a Progress timeline, which its owner, or anyone already in it, can share by inviting people as [members](docs/GLOSSARY.md#quest-member). Dailies continues the same quest each day. See [quest use cases](apps/web/use-cases/quests.md) and [conversation use cases](apps/web/use-cases/chats.md).
 
 Each starting point assigns the construct for its quest's conversation. Spellbook at `/spellbook` lists built-in and own spells with search and source filters. Profile at `/profile` holds the user's name and experience; Settings at `/settings` holds appearance and security.
 
@@ -131,7 +131,7 @@ Keep one full web suite scheduled at a time. The repository scripts do not confi
 
 A new page gets an entry in `PHONE_PAGES` in `apps/web/test/component-integration/app/phone-pages-test-kit.tsx`. The browser tests check every page at 320 and 390 px wide, with touch, in every theme, for sideways scrolling and touch targets smaller than 24 px (`npm run test:browser`).
 
-The site offers three fixed textured appearances: Ivory Vellum, Soot & Brass, and Espresso Leather. Texture swatches in the site panel and Settings apply the choice immediately and remember it in this browser. The site never follows the system appearance. See [Appearance](docs/appearance.md). Theme contract and contrast tests check the token definitions and WCAG AA color pairs.
+The site offers three fixed textured appearances: Ivory Vellum, Soot & Brass, and Espresso Leather. Texture swatches in the site panel and Settings apply the choice immediately and remember it in this browser. The site never follows the system appearance. See [appearance use cases](apps/web/use-cases/appearance.md). Theme contract and contrast tests check the token definitions and WCAG AA color pairs.
 
 ### Review accounts
 
@@ -189,12 +189,4 @@ It takes the same options as the visual comparison, except `--mockups`; run `mis
 
 Project Buddy installs on a phone's Home Screen from the browser: Chrome on Android offers **Install app**, and Safari on an iPhone offers **Add to Home Screen** in the Share menu. The web app manifest is `apps/web/src/app/manifest.ts`, with icons in `apps/web/public/icons/`.
 
-See [installed app](docs/notifications.md) for Home Screen installation.
-
-## Export copy for a writer
-
-From `apps/web/`, run `npm run copy:export -- copy.csv`. Import the resulting UTF-8 CSV into Google Sheets. The same command writes `copy-definitions.csv` beside it, to import as a separate sheet. An optional second path selects the definitions file: `npm run copy:export -- copy.csv copy-definitions.csv`.
-
-The script reads the `*_COPY` objects in `src/ui/copy/` without starting the app and exports only fields with more than three words. Each field gets an identifier, an approximate needed word count, a description and an empty Copy cell. The description tells the writer where the text appears, what has happened, what it needs to say and what the person can do next, and lists a template's `{{placeholders}}`. It never includes the original wording, so the writer can create new copy without seeing it. Maintain these briefs in `apps/web/scripts/copy-briefs.ts`; the export stops if an included field has no brief.
-
-The definitions sheet has Term and Definition columns. It explains the glossary terms found in the copy identifiers and descriptions, so a writer does not need the repository docs. Maintain the explanations in `apps/web/scripts/copy-glossary.ts` when `GLOSSARY.md` changes; a new glossary section without an explanation stops the export.
+See [installed app use cases](apps/web/use-cases/notifications.md) for Home Screen installation.

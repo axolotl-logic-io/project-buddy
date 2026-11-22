@@ -1,4 +1,4 @@
-// The `exp` command (docs/local-constructs.md): the construct answers it in
+// The `exp` command: the construct answers it in
 // the conversation with the sender's experience, read as it replies: their
 // circle and its title, the experience they still need for the next circle,
 // and their points in each ability. It changes nothing, so it never saves the

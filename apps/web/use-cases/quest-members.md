@@ -1,6 +1,6 @@
 # Quest members
 
-The conventions for these cases are in [the index](README.md#conventions). A quest's owner, or any member, invites people by email; everyone who accepts shares its conversation, Tasks, Ideas, Progress and Quick Notes. The repository's `docs/multi-user-quests.md` describes the rules in full.
+The conventions for these cases are in [the index](README.md#conventions). A quest's owner, or any member, invites people by email; everyone who accepts shares its conversation, Tasks, Ideas, Progress and Quick Notes.
 
 ## use_case_invite_to_quest
 
