@@ -36,4 +36,4 @@ The user permanently removes a forgotten rite.
 
 The Forgotten tab's dates use the browser’s local day. On phones, names use the card width and actions wrap below them. Search uses a labelled text field with the shared input styling and touch target.
 
-The Forgotten tab's forgetting, restoration and permanent-deletion feedback use the shared page notice treatment, distinct from explanatory copy. Completing an action there retains keyboard focus after its card disappears. Notices persist, wrap at 320 px in Light and Dark modes, and keep links and actions keyboard-accessible. Historical custom constructs are unavailable here, and cannot be retired, restored or deleted. Their records and quest snapshots remain intact.
+The Forgotten tab's forgetting, restoration and permanent-deletion feedback use the shared page notice treatment, distinct from explanatory copy. Completing an action there retains keyboard focus after its card disappears. Notices persist, wrap at 320 px in Light and Dark modes, and keep links and actions keyboard-accessible.

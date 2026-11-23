@@ -87,7 +87,7 @@ The performance keeps the quest's construct across visits.
 
 - **Prerequisites:** `use_case_send_message`.
 - **Steps:** leave, reopen the quest and make another conjuration.
-- **Outcome:** the heading and replies keep the saved construct's name and artwork. The reply text comes from the rite, whatever the construct. Editing the source construct does not replace the quest's snapshot.
+- **Outcome:** the heading and replies keep the quest's construct's name and artwork, the construct its starting point assigned. The reply text comes from the rite, whatever the construct.
 
 ## use_case_open_missing_page
 

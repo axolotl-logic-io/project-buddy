@@ -96,7 +96,7 @@ A message a user writes during the active performance. Each conjuration adds one
 
 ### Construct
 
-The character shown with a performance's replies. The built-in constructs are Vellum and Lumen. A quest's starting point assigns its construct, and the quest keeps a snapshot of the construct's name and portrait. [Construct use cases](../apps/web/use-cases/constructs.md)
+The character shown with a performance's replies. The built-in constructs are Vellum and Lumen. A quest's starting point assigns its construct, and the quest keeps it. [Construct use cases](../apps/web/use-cases/constructs.md)
 
 ### Grimoire
 
