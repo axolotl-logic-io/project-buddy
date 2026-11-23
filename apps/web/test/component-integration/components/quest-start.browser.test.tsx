@@ -1,4 +1,4 @@
-// Quest starting dialogs and the inline start used inside Chat.
+// The starting points' dialogs on Quests.
 
 import { afterEach, describe, expect, test, vi } from "vitest";
 import { page, userEvent } from "vitest/browser";

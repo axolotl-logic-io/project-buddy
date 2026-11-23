@@ -1,7 +1,6 @@
-// The site panel's Quick Note dialog and a quest's Quick Notes tab, in
-// Chromium and WebKit. The Server Actions and the conversation's send are
-// mocked; the server test (quick-notes.server.test.ts) checks what they
-// store, edit and delete.
+// The site panel's Quick Note dialog, in Chromium and WebKit. The Server
+// Actions are mocked; the server test (spaces/quick-note.server.test.ts)
+// checks what they store.
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { page, userEvent } from "vitest/browser";
 import { render } from "vitest-browser-react";

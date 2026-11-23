@@ -49,18 +49,11 @@ vi.mock(
   "@/experience/experience-store.ts",
   () => import("../experience/experience-store-test-kit.ts"),
 );
-vi.mock("@/ideas/idea-store.ts", () => ({
-  listIdeas: vi.fn().mockResolvedValue([]),
-}));
 
 vi.mock(
   "@/auth/current-user.ts",
   () => import("../auth/current-user-test-kit.ts"),
 );
-
-vi.mock("@/images/generation-store.ts", () => ({
-  listGeneratedImages: vi.fn(),
-}));
 
 // The stores the pages read, whose answers each PHONE_PAGES entry sets.
 vi.mock("@/quests/store.ts", () => ({
@@ -91,15 +84,6 @@ vi.mock("@/app/login/link/actions.ts", () => ({
 }));
 vi.mock("@/app/(workspace)/quests/actions.ts", () => ({
   startQuestAction: vi.fn(),
-}));
-vi.mock("@/app/(workspace)/quests/[questId]/(overview)/actions.ts", () => ({}));
-vi.mock("@/app/(workspace)/constructs/actions.ts", () => ({
-  retireConstructAction: vi.fn(),
-  cloneConstructAction: vi.fn(),
-  editBuiltInConstructAction: vi.fn(),
-  newConstructAction: vi.fn(),
-  resetConstructPromptAction: vi.fn(),
-  saveConstructAction: vi.fn(),
 }));
 vi.mock("@/app/(workspace)/profile/actions.ts", () => ({
   setNameAction: vi.fn(),

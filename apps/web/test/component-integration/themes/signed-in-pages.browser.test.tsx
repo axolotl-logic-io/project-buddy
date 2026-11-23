@@ -38,11 +38,7 @@ const stores = vi.hoisted(() => ({
   },
 }));
 vi.mock("@/quests/store.ts", () => stores.quests);
-vi.mock("@/app/(workspace)/quests/[questId]/(overview)/actions.ts", () => ({
-  startConversationAction: vi.fn(),
-}));
-
-// ChatView refreshes the page through the App Router.
+// The performance refreshes the page through the App Router.
 vi.mock("next/navigation", () => import("../components/router-test-kit.ts"));
 
 // The pages' forms post to Server Actions, which these tests never run.
@@ -104,7 +100,7 @@ async function sectionsAlongsideLongName(): Promise<boolean> {
   );
 }
 
-// The font sizes of the chat page's heading and of its reply's level-2
+// The font sizes of the quest page's heading and of its reply's level-2
 // heading.
 async function headingSizes(): Promise<{ page: number; reply: number }> {
   await renderMarkdownReply();

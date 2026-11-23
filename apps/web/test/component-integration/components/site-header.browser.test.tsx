@@ -346,7 +346,7 @@ describe("use_case_experience_ring", () => {
 });
 
 describe("the site panel", () => {
-  test("groups Quests and Spellbook apart from Profile and Settings, above the appearance choices and Credits", async () => {
+  test("groups Quests and Grimoire apart from Profile and Settings, above the appearance choices and Credits", async () => {
     await renderSignedIn();
     await openPanel();
 
@@ -512,7 +512,7 @@ describe("the site panel", () => {
 });
 
 const LONG_NAME_REPEATS = 20;
-const LONG_NAME = "Long quest and conversation name ".repeat(LONG_NAME_REPEATS);
+const LONG_NAME = "Long quest and performance name ".repeat(LONG_NAME_REPEATS);
 // Enough lines of page to scroll the header away, on any screen.
 const SCROLL_LINES = Array.from({ length: 200 }, (_, line) => `Line ${line}`);
 const QUESTS: Breadcrumb = { label: QUESTS_COPY.heading, href: "/quests" };

@@ -1,5 +1,5 @@
 // Times show in the zone of her browser, not the server's: a quest's
-// start ("use_case_view_quests"), a chat's start ("use_case_open_quest")
+// start ("use_case_view_quests"), a performance's start ("use_case_open_quest")
 // that falls on a different day in New York than in Tokyo. The server
 // renders them in UTC, unseen, and hydrating shows the browser's time with
 // no mismatch. The browser-<zone> quests in vitest.config.mts run this

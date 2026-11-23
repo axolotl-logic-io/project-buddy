@@ -1,6 +1,6 @@
 // The Continue card at the top of Quests, in Chromium and WebKit
 // ("use_case_continue_quest"): the quest to pick up again, its next task
-// when it has one, and Continue, which opens its conversation. Which quest
+// when it has one, and Continue, which opens it. Which quest
 // it is is quests/current-quest.server.test.ts's.
 
 import { describe, expect, test } from "vitest";
@@ -18,7 +18,7 @@ const QUEST: Pick<Quest, "id" | "name"> = {
 };
 
 describe("use_case_continue_quest", () => {
-  test("names the quest and its next task, and Continue opens its conversation", async () => {
+  test("names the quest and its next task, and Continue opens it", async () => {
     await render(
       <CurrentQuestCard
         quest={{
