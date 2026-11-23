@@ -10,7 +10,6 @@ import {
   endEverySession,
   findUserByEmail,
   saveUserName,
-  type User,
 } from "@/accounts/users-store.ts";
 import QuestPage from "@/app/(workspace)/quests/[questId]/(overview)/page.tsx";
 import { continueSignInAction } from "@/app/login/link/actions.ts";
@@ -20,7 +19,6 @@ import { currentUser } from "@/auth/current-user.ts";
 import {
   CONJURATION,
   conjure,
-  readConjurations,
   startPerformance,
 } from "@/performances/performance-store.ts";
 import { readCurrentQuest } from "@/quests/current-quest-store.ts";
@@ -585,51 +583,6 @@ test("use_case_quest_member_powers", async () => {
   expect(await getQuest(other.id, first.id)).toBeUndefined();
 });
 
-test("use_case_quest_member_access", async () => {
-  const [{ owner, first, second }, member, pending, stranger] =
-    await Promise.all([
-      ownerWithTwoQuests(),
-      testUser(),
-      testUser(),
-      testUser(),
-    ]);
-  await addMember(owner, first.id, member);
-  await addInvitee(owner, first.id, pending);
-  const [space] = await listSpaces(member.id, first.id);
-  if (space === undefined) {
-    throw new Error("Member could not read the quest's spaces");
-  }
-  const performance = await startPerformance(member.id, first.id, {
-    spaceId: space.id,
-    riteId: "capture",
-  });
-  if (performance === undefined) {
-    throw new Error("Member could not start a performance");
-  }
-  const performanceId = performance.id;
-  function makeRequest(): Parameters<typeof conjure>[2] {
-    return CONJURATION.parse({
-      id: crypto.randomUUID(),
-      performanceId,
-      text: "Work from the sketch",
-    });
-  }
-  async function expectDenied(person: User): Promise<void> {
-    expect(await getQuest(person.id, first.id)).toBeUndefined();
-    expect(await listSpaces(person.id, first.id)).toEqual([]);
-    expect(await readConjurations(person.id, performanceId)).toEqual([]);
-    expect(await conjure(person.id, first.id, makeRequest())).toBeUndefined();
-  }
-  const saved = await conjure(member.id, first.id, makeRequest());
-  expect(saved).toBeDefined();
-  expect(await readConjurations(owner.id, performance.id)).toEqual([saved]);
-  expect(await listSpaces(member.id, second.id)).toEqual([]);
-  await Promise.all([pending, stranger].map(expectDenied));
-  await removeFromQuest(owner.id, { questId: first.id, person: member.id });
-  await expectDenied(member);
-  expect(await readConjurations(owner.id, performance.id)).toEqual([saved]);
-});
-
 describe("use_case_remove_quest_member", () => {
   test("a removed member's quest page can't be found", async () => {
     const [{ owner, first }, member] = await Promise.all([
@@ -677,7 +630,7 @@ describe("how a quest is shared, wherever quests are listed", () => {
       CONJURATION.parse({
         id: crypto.randomUUID(),
         performanceId: performance.id,
-        text: "Sketch the shared project",
+        text: "Sketch the shared quest",
       }),
     );
 

@@ -79,11 +79,12 @@ describe("use_case_view_quests", () => {
   });
 });
 
-// A Journal's next step, which the tasks keeps instead.
+// A next step written into a starting context, which belongs in the
+// quest's Tasks space instead.
 const NEXT_STEP = /next step/iu;
 
 describe("use_case_new_quest", () => {
-  test("no starting Journal holds a next step, which the tasks keeps", () => {
+  test("no starting point's context holds a next step, which belongs in Tasks", () => {
     for (const quest of PREMADE_QUESTS) {
       expect(quest.context).not.toMatch(NEXT_STEP);
     }

@@ -48,7 +48,7 @@ const BOLD = "600";
 // highlighter is ready, which beforeAll awaits with no clock: Streamdown's
 // lazy code-block chunk, one tokenising pass and one React commit, none of
 // which the app marks with an event. Over 3 times the worst measured for
-// the chat this transcript replaced (1192 ms, under heavy load), and under
+// the view this transcript replaced (1192 ms, under heavy load), and under
 // the browser test timeout.
 const HIGHLIGHTED_RENDER_TIMEOUT_MS = 4000;
 const CODE_COLORED: Parameters<typeof expect.poll>[1] = {

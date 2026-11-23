@@ -52,7 +52,7 @@ describe("use_case_continue_quest", () => {
     await Promise.all([
       setStartedAt(user.id, turtle.id, STARTED_AT[0]),
       setStartedAt(user.id, garden.id, STARTED_AT[1]),
-      testData(other).quest("Private project"),
+      testData(other).quest("Private quest"),
     ]);
     expect((await readCurrentQuest(user.id))?.quest.id).toBe(garden.id);
     const [space] = await listSpaces(user.id, turtle.id);

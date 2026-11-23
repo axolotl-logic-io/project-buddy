@@ -13,7 +13,7 @@ import {
   startPerformance,
 } from "@/performances/performance-store.ts";
 import { QUEST_NAME } from "@/quests/quest-name.ts";
-import { createOrResumeQuest } from "@/quests/store.ts";
+import { createOrResumeQuest, listQuests } from "@/quests/store.ts";
 import { listMurmlings, writeSpaceContents } from "@/spaces/murmling-store.ts";
 import { listSpaces } from "@/spaces/space-store.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
@@ -152,7 +152,9 @@ test("use_case_undo_start_day", async () => {
   });
   const outsider = await testUser();
   expect(await undoQuestDay(outsider.id, quest.id)).toBe(false);
+  const experience = await readExperience(owner.id);
   expect(await undoQuestDay(owner.id, quest.id)).toBe(true);
+  expect(await readExperience(owner.id)).toEqual(experience);
   expect(
     (await listMurmlings(owner.id, quest.id, second.id)).map(
       ({ text }) => text,
@@ -187,4 +189,37 @@ test("use_case_undo_start_day", async () => {
     }),
   );
   expect(await undoQuestDay(owner.id, quest.id)).toBe(false);
+});
+
+test("use_case_dailies: starting Dailies twice at once makes one quest, and each user has their own", async () => {
+  const [owner, other] = await Promise.all([testUser(), testUser()]);
+  const name = QUEST_NAME.parse("Dailies");
+  const started = await Promise.all(
+    [owner, owner, other].map((user) =>
+      createOrResumeQuest(user.id, name, { dailies: true }),
+    ),
+  );
+  const [first, second, theirs] = started.map(({ quest }) => quest.id);
+  if (first === undefined) {
+    throw new Error("Dailies did not start");
+  }
+
+  expect(second).toBe(first);
+  expect(theirs).not.toBe(first);
+  expect(started.map(({ resumed }) => resumed).sort()).toEqual([
+    false,
+    false,
+    true,
+  ]);
+  const [ownQuests, otherQuests, spaces] = await Promise.all([
+    listQuests(owner.id),
+    listQuests(other.id),
+    listSpaces(owner.id, first),
+  ]);
+  expect(ownQuests).toMatchObject([{ id: first, dailies: true }]);
+  expect(otherQuests).toMatchObject([{ id: theirs, dailies: true }]);
+  expect(spaces.map(({ name: spaceName }) => spaceName)).toEqual([
+    "Tasks",
+    "Ideas",
+  ]);
 });

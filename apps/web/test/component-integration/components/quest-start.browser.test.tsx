@@ -144,7 +144,7 @@ describe("use_case_browse_premade_quests", () => {
     await expect.element(choose("Dailies")).not.toBeInTheDocument();
   });
 
-  test("a preset Journal opens its choice at once, and isn't offered to Dailies", async () => {
+  test("a preset starting context opens its choice at once, and isn't offered to Dailies", async () => {
     const summary = "- a balcony herb garden";
     await render(
       <QuestStartChoices

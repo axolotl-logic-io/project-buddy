@@ -163,7 +163,7 @@ afterEach(() => {
 });
 
 describe("use_case_view_quests", () => {
-  test(`a project's start shows on her day, in ${browserZone()}`, async () => {
+  test(`a quest's start shows on her day, in ${browserZone()}`, async () => {
     const hydration = serverRenderThenHydrate(
       <QuestList
         quests={[

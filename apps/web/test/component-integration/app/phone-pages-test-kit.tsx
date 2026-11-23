@@ -127,7 +127,7 @@ function constructPage(constructId: string): Promise<JSX.Element> {
 
 // The Quests page, with one quest, which it offers to continue under a
 // long name.
-const projectsPage = workspacePage(
+const questsPage = workspacePage(
   () => {
     vi.mocked(listQuests).mockResolvedValue([FOX_QUEST]);
     vi.mocked(readCurrentQuest).mockResolvedValue({
@@ -147,7 +147,7 @@ const projectsPage = workspacePage(
 );
 
 // A quest's page, as its owner sees it.
-function projectPageFor(
+function questPageFor(
   section = "overview",
   dailies = false,
 ): () => Promise<JSX.Element> {
@@ -173,7 +173,7 @@ function projectPageFor(
   );
 }
 
-const projectPage = projectPageFor();
+const questPage = questPageFor();
 
 const PHONE_PAGES: readonly PhonePage[] = [
   {
@@ -215,11 +215,11 @@ const PHONE_PAGES: readonly PhonePage[] = [
   { name: "the sign-up page", render: signedOut(SignUpPage) },
   { name: "a sign-in link's page", render: linkPage(LINK_USER) },
   { name: "an expired sign-in link's page", render: linkPage(undefined) },
-  { name: "the projects list", path: QUESTS_PATH, render: projectsPage },
+  { name: "the Quests page", path: QUESTS_PATH, render: questsPage },
   {
-    name: "the projects list's Make a thing dialog",
+    name: "the Quests page's Make a thing dialog",
     path: QUESTS_PATH,
-    render: projectsPage,
+    render: questsPage,
     open: async (): Promise<void> => {
       await page
         .getByRole("button", { name: "Make a thing", exact: false })
@@ -232,11 +232,11 @@ const PHONE_PAGES: readonly PhonePage[] = [
       );
     },
   },
-  { name: "a project", path: QUEST_PATH, render: projectPage },
+  { name: "a quest", path: QUEST_PATH, render: questPage },
   {
-    name: "a project with the Timer drawer open",
+    name: "a quest with the Timer drawer open",
     path: QUEST_PATH,
-    render: projectPage,
+    render: questPage,
     open: async (): Promise<void> => {
       await page.getByRole("button", { name: TIMER_COPY.panel.expand }).click();
       await page
@@ -247,7 +247,7 @@ const PHONE_PAGES: readonly PhonePage[] = [
   {
     name: "the Dailies quest, with Start Day",
     path: QUEST_PATH,
-    render: projectPageFor("overview", true),
+    render: questPageFor("overview", true),
     open: async (): Promise<void> => {
       await vi.waitFor(() =>
         page.getByRole("button", { name: "Start Day" }).element(),
@@ -257,7 +257,7 @@ const PHONE_PAGES: readonly PhonePage[] = [
   {
     name: "a quest with its title editor open",
     path: QUEST_PATH,
-    render: projectPage,
+    render: questPage,
     open: async (): Promise<void> => {
       await page.getByRole("button", { name: QUEST_COPY.rename }).click();
       await vi.waitFor(() =>

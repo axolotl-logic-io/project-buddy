@@ -89,7 +89,7 @@ function members(viewer = OWNER.id, dailies = false): JSX.Element {
     <QuestMembers
       viewer={viewer}
       people={PEOPLE}
-      quest={{ id: QUEST_ID, name: "Fox project", dailies }}
+      quest={{ id: QUEST_ID, name: "Fox quest", dailies }}
     />
   );
 }

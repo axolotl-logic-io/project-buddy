@@ -150,17 +150,17 @@ describe("a server test's after() tasks", () => {
   });
 });
 
-describe("a server test's projects", () => {
+describe("a server test's quests", () => {
   test("can have fixed dates so newest-first order does not depend on the clock", async () => {
     const owner = await testUser();
     const data = testData(owner);
     const newerDate = new Date("2026-10-03T09:00:00Z");
     const olderDate = new Date("2026-10-01T09:00:00Z");
     // Insert the newer quest first: insertion order cannot prove chronology.
-    const newer = await data.quest("Newer project", newerDate);
-    const older = await data.quest("Older project", olderDate);
+    const newer = await data.quest("Newer quest", newerDate);
+    const older = await data.quest("Older quest", olderDate);
     const otherOwner = await testUser();
-    await testData(otherOwner).quest("Foreign project", newerDate);
+    await testData(otherOwner).quest("Foreign quest", newerDate);
 
     expect(newer.createdAt).toEqual(newerDate);
     expect(older.createdAt).toEqual(olderDate);
