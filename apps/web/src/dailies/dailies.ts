@@ -7,7 +7,6 @@
 // the server, because the browser shows the streaks of the tasks as they
 // change.
 import { z } from "zod";
-import type { Tasks } from "@/tasks/tasks.ts";
 
 const LOCAL_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/u;
 
@@ -37,6 +36,12 @@ const DAY_TASK = z.object({
 
 type DayTask = z.infer<typeof DAY_TASK>;
 
+interface DayTasks {
+  readonly items: readonly (DayTask & {
+    readonly recurring?: boolean | undefined;
+  })[];
+}
+
 // A started day: its date and when it started, and, once the next Start Day
 // has ended it, its recurring tasks as they ended. The newest day has no
 // tasks while it is still going.
@@ -47,7 +52,7 @@ interface DailiesDay {
 }
 
 // A Dailies quest's days, oldest first, and whether the newest Start Day can
-// still be undone: until someone sends a message in its conversation.
+// still be undone: until someone makes a conjuration.
 interface DailiesRecord {
   readonly days: readonly DailiesDay[];
   readonly undoable: boolean;
@@ -114,7 +119,7 @@ function todayHere(now: Date): LocalDate {
 // which no day was started is a gap.
 function doneOn(
   days: readonly DailiesDay[],
-  tasks: Tasks,
+  tasks: DayTasks,
   number: number,
   date: LocalDate,
 ): DayMark {
@@ -137,7 +142,7 @@ function doneOn(
 
 function markOf(
   day: DailiesDay,
-  tasks: Tasks,
+  tasks: DayTasks,
   number: number,
 ): Exclude<DayMark, "gap"> {
   if (day.tasks === undefined) {
@@ -187,7 +192,7 @@ function chainOf(streak: number, doneToday: boolean): StreakChain {
 // one-off tasks, there are none.
 function streakChains(
   days: readonly DailiesDay[],
-  tasks: Tasks,
+  tasks: DayTasks,
 ): ReadonlyMap<number, StreakChain> {
   const found = new Map<number, StreakChain>();
   const newest = days.at(-1);
@@ -214,7 +219,7 @@ function streakChains(
 // first day's at the earliest, and each recurring task's mark on each.
 function dayGrid(
   days: readonly DailiesDay[],
-  tasks: Tasks,
+  tasks: DayTasks,
   count: number,
 ): DayGrid {
   const first = days.at(0);
@@ -246,6 +251,7 @@ export type {
   DayGrid,
   DayMark,
   DayTask,
+  DayTasks,
   LocalDate,
   StreakChain,
 };

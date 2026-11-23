@@ -5,13 +5,25 @@ import {
   spaceOpenTo,
 } from "@/accounts/owner-scope.ts";
 import { getDb, inTransaction, type Transaction } from "@/db/client.ts";
-import { quests } from "@/db/tables/quests-and-chats.ts";
+import { quests } from "@/db/tables/quests.ts";
+import { spaceChanges } from "@/db/tables/space-changes.ts";
 import { murmlings, spaces } from "@/db/tables/spaces.ts";
 import { withAppErrors } from "@/errors/to-app-error.ts";
-import { recordEvents, takeBackEvents } from "@/experience/experience-store.ts";
+import {
+  latestCheckOff,
+  recordEvents,
+  takeBackEvents,
+} from "@/experience/experience-store.ts";
 import type { QuestId, UserId } from "@/ids.ts";
 import { MURMLING_ID, type MurmlingChange } from "./murmling.ts";
 import { MURMLING_TYPE, murmlingText, type SpaceId } from "./space.ts";
+import { readSpace, type Space } from "./space-store.ts";
+import {
+  CHECK_OFF,
+  type Inverse,
+  SPACE_INVERSE,
+  undoSpaceChange,
+} from "./space-undo.ts";
 
 type Row = typeof murmlings.$inferSelect;
 
@@ -38,6 +50,7 @@ function toMurmling(row: Row): {
 type Murmling = ReturnType<typeof toMurmling>;
 
 type ChangeResult = "saved" | "missing" | "invalid-text" | "unchanged";
+type ForwardChange = Exclude<MurmlingChange, { kind: "undo" }>;
 
 function spaceRows(
   tx: Transaction | ReturnType<typeof getDb>,
@@ -77,6 +90,7 @@ interface SpaceWrite {
   readonly spaceId: SpaceId;
   readonly nextTaskNumber: number;
   readonly atTop: boolean;
+  readonly dailies: boolean;
 }
 
 async function takeTaskNumber({
@@ -96,7 +110,7 @@ async function applyChange(
   write: SpaceWrite,
   rows: readonly Row[],
   newType: string,
-  change: MurmlingChange,
+  change: ForwardChange,
 ): Promise<ChangeResult> {
   const { tx, user, questId, spaceId } = write;
   if (change.kind === "add") {
@@ -149,7 +163,7 @@ async function applyExisting(
     readonly index: number;
     readonly row: Row;
   },
-  change: Exclude<MurmlingChange, { kind: "add" }>,
+  change: Exclude<ForwardChange, { kind: "add" }>,
 ): Promise<ChangeResult> {
   const { tx, user, questId, spaceId } = write;
   const target = and(eq(murmlings.id, row.id), murmlingOpenTo(user));
@@ -210,6 +224,19 @@ async function applyExisting(
       await tx
         .update(murmlings)
         .set({ checkedOff: change.checkedOff })
+        .where(target);
+      return "saved";
+    case "recurring":
+      if (
+        !write.dailies ||
+        row.type !== "task" ||
+        row.recurring === change.recurring
+      ) {
+        return "unchanged";
+      }
+      await tx
+        .update(murmlings)
+        .set({ recurring: change.recurring })
         .where(target);
       return "saved";
     case "remove":
@@ -302,6 +329,70 @@ async function applyExisting(
   }
 }
 
+async function captureCheckOff(
+  tx: Transaction,
+  questId: QuestId,
+  row: Row | undefined,
+  change: ForwardChange,
+): Promise<Inverse["checkOff"]> {
+  if (
+    (change.kind === "check" || change.kind === "type") &&
+    row !== undefined &&
+    row.taskNumber !== null
+  ) {
+    const event = await latestCheckOff(tx, questId, row.taskNumber);
+    if (event !== undefined) {
+      return CHECK_OFF.parse(event);
+    }
+  }
+  return undefined;
+}
+
+async function inverseFor(
+  write: SpaceWrite,
+  rows: readonly Row[],
+  newType: string,
+  change: ForwardChange,
+): Promise<{ readonly result: ChangeResult; readonly inverse?: Inverse }> {
+  const { tx, user, questId, spaceId } = write;
+  let before: Row | undefined;
+  let neighbour: string | undefined;
+  if (change.kind !== "add") {
+    const index = rows.findIndex(({ id }) => id === change.id);
+    if (index >= 0) {
+      before = rows[index];
+      neighbour = rows[index + 1]?.id;
+    }
+  }
+  const checkOff = await captureCheckOff(tx, questId, before, change);
+  const result = await applyChange(write, rows, newType, change);
+  if (result !== "saved") {
+    return { result };
+  }
+  let destination = spaceId;
+  if (change.kind === "move") {
+    ({ destination } = change);
+  }
+  const saved = await spaceRows(tx, user, questId, destination);
+  let after = saved.find(({ id }) => id === before?.id);
+  if (change.kind === "add") {
+    const previous = new Set(rows.map(({ id }) => id));
+    after = saved.find(({ id }) => !previous.has(id));
+  }
+  const checkOffAfter = await captureCheckOff(tx, questId, after, change);
+  return {
+    result,
+    inverse: SPACE_INVERSE.parse({
+      kind: change.kind,
+      before,
+      after,
+      neighbour,
+      checkOff,
+      checkOffAfter,
+    }),
+  };
+}
+
 async function changeWithin(
   tx: Transaction,
   user: UserId,
@@ -319,7 +410,11 @@ async function changeWithin(
   change: MurmlingChange,
 ): Promise<ChangeResult> {
   const [quest] = await tx
-    .select({ nextTaskNumber: quests.nextTaskNumber, status: quests.status })
+    .select({
+      nextTaskNumber: quests.nextTaskNumber,
+      status: quests.status,
+      dailies: quests.dailies,
+    })
     .from(quests)
     .where(and(eq(quests.id, questId), questOpenTo(user)))
     .for("update");
@@ -342,22 +437,37 @@ async function changeWithin(
   if (space === undefined) {
     return "missing";
   }
+  if (change.kind === "undo") {
+    return undoSpaceChange(tx, user, { questId, spaceId }, change.version);
+  }
   const rows = await spaceRows(tx, user, questId, spaceId);
-  const result = await applyChange(
-    { tx, user, questId, spaceId, atTop, nextTaskNumber: quest.nextTaskNumber },
+  const { result, inverse } = await inverseFor(
+    {
+      tx,
+      user,
+      questId,
+      spaceId,
+      atTop,
+      nextTaskNumber: quest.nextTaskNumber,
+      dailies: quest.dailies,
+    },
     rows,
     space.newType,
     change,
   );
-  if (result === "saved") {
+  if (inverse !== undefined) {
     const changed = [spaceId];
     if (change.kind === "move") {
       changed.push(change.destination);
     }
-    await tx
+    const versions = await tx
       .update(spaces)
       .set({ version: sql`${spaces.version} + 1` })
-      .where(and(inArray(spaces.id, changed), spaceOpenTo(user)));
+      .where(and(inArray(spaces.id, changed), spaceOpenTo(user)))
+      .returning({ spaceId: spaces.id, version: spaces.version });
+    await tx
+      .insert(spaceChanges)
+      .values(versions.map((version) => ({ ...version, inverse })));
   }
   return result;
 }
@@ -370,6 +480,54 @@ function changeMurmling(
 ): Promise<ChangeResult> {
   return withAppErrors("changeMurmling", () =>
     inTransaction((tx) => changeWithin(tx, user, { questId, spaceId }, change)),
+  );
+}
+
+interface SpaceContents extends Space {
+  readonly murmlings: readonly Murmling[];
+}
+
+async function spaceContents(
+  db: ReturnType<typeof getDb>,
+  user: UserId,
+  questId: QuestId,
+  spaceId: SpaceId,
+): Promise<SpaceContents | undefined> {
+  const space = await readSpace(db, user, questId, spaceId);
+  if (space === undefined) {
+    return undefined;
+  }
+  const rows = await spaceRows(db, user, questId, spaceId);
+  return { ...space, murmlings: rows.map(toMurmling) };
+}
+
+function readSpaceContents(
+  user: UserId,
+  questId: QuestId,
+  spaceId: SpaceId,
+): Promise<SpaceContents | undefined> {
+  return withAppErrors("readSpaceContents", () =>
+    spaceContents(getDb(), user, questId, spaceId),
+  );
+}
+
+function writeSpaceContents(
+  user: UserId,
+  questId: QuestId,
+  spaceId: SpaceId,
+  change: MurmlingChange,
+): Promise<{
+  readonly result: ChangeResult;
+  readonly space?: SpaceContents | undefined;
+}> {
+  return withAppErrors("writeSpaceContents", () =>
+    inTransaction(async (tx) => {
+      const result = await changeWithin(tx, user, { questId, spaceId }, change);
+      if (result !== "saved") {
+        return { result };
+      }
+      return { result, space: await spaceContents(tx, user, questId, spaceId) };
+    }),
   );
 }
 
@@ -401,4 +559,11 @@ function readNextMurmling(
 }
 
 export type { Murmling };
-export { changeMurmling, changeWithin, listMurmlings, readNextMurmling };
+export {
+  changeMurmling,
+  changeWithin,
+  listMurmlings,
+  readNextMurmling,
+  readSpaceContents,
+  writeSpaceContents,
+};

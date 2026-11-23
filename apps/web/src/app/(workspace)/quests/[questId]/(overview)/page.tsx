@@ -4,7 +4,7 @@ import type { JSX } from "react";
 import { requireUser } from "@/auth/current-user.ts";
 import { questPage } from "./quest-page.tsx";
 
-// The keyboard shrinks the viewport so the spell composer stays reachable.
+// The keyboard shrinks the viewport so the performance composer stays reachable.
 export const viewport: Viewport = { interactiveWidget: "resizes-content" };
 
 export default async function QuestPage({

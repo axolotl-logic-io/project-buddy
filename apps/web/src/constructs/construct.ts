@@ -8,7 +8,7 @@ export interface ConstructDefinition {
   readonly visual?: ConstructVisual | undefined;
 }
 
-// A built-in construct (src/constructs/). A conversation names its
+// A built-in construct (src/constructs/). A quest names its
 // construct by id.
 export interface Construct {
   readonly id: ConstructId;

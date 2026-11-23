@@ -1,7 +1,12 @@
 import { and, desc, eq } from "drizzle-orm";
 import { questOpenTo, spaceOpenTo } from "@/accounts/owner-scope.ts";
-import { getDb, inTransaction, type Transaction } from "@/db/client.ts";
-import { quests } from "@/db/tables/quests-and-chats.ts";
+import {
+  type Database,
+  getDb,
+  inTransaction,
+  type Transaction,
+} from "@/db/client.ts";
+import { quests } from "@/db/tables/quests.ts";
 import { spaces } from "@/db/tables/spaces.ts";
 import { withAppErrors } from "@/errors/to-app-error.ts";
 import type { QuestId, UserId } from "@/ids.ts";
@@ -47,6 +52,28 @@ function listSpaces(user: UserId, questId: QuestId): Promise<Space[]> {
       .orderBy(spaces.position);
     return rows.map(toSpace);
   });
+}
+
+async function readSpace(
+  db: Database,
+  user: UserId,
+  questId: QuestId,
+  spaceId: SpaceId,
+): Promise<Space | undefined> {
+  const [row] = await db
+    .select()
+    .from(spaces)
+    .where(
+      and(
+        eq(spaces.questId, questId),
+        eq(spaces.id, spaceId),
+        spaceOpenTo(user),
+      ),
+    );
+  if (row === undefined) {
+    return undefined;
+  }
+  return toSpace(row);
 }
 
 function saveSpace(
@@ -101,4 +128,4 @@ function saveSpace(
 }
 
 export type { Space };
-export { listSpaces, saveSpace, seedSpaces };
+export { listSpaces, readSpace, saveSpace, seedSpaces };

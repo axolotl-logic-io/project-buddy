@@ -6,7 +6,7 @@ import {
 } from "@/accounts/owner-scope.ts";
 import { getDb } from "@/db/client.ts";
 import { conjurations, performances } from "@/db/tables/performances.ts";
-import { quests } from "@/db/tables/quests-and-chats.ts";
+import { quests } from "@/db/tables/quests.ts";
 import { withAppErrors } from "@/errors/to-app-error.ts";
 import { parseQuestId, type QuestId, type UserId } from "@/ids.ts";
 import type { QuestSharing } from "@/quests/membership.ts";

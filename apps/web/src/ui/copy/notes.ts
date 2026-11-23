@@ -1,6 +1,4 @@
-// The text of Quick Notes: the site panel's Quick Note dialog, and a quest's
-// Quick Notes tab.
-import { NOTE_MAX_LENGTH, type NoteTextProblem } from "@/notes/note.ts";
+import { NOTE_MAX_LENGTH, type NoteTextProblem } from "@/spaces/quick-note.ts";
 
 const PROBLEMS: Record<NoteTextProblem, string> = {
   empty: "Write something to save. An empty Quick Note can't be saved.",
@@ -32,29 +30,4 @@ export const QUICK_NOTE_COPY = {
   noQuests:
     "Quick Notes go to an Active quest. Start a quest or restore one from Quests first.",
   noQuestsLink: "Go to Quests",
-} as const;
-
-export const QUEST_NOTES_COPY = {
-  heading: "Quick Notes",
-  emptyHeading: "A blank page for a thought",
-  bucketIntro: "Dated thoughts, kept for later.",
-  summary: (count: number): string => `${count} saved · Newest first`,
-  none: "No Quick Notes yet.",
-  composer: "Add Quick Note",
-  placeholder: "Something to remember…",
-  textHint: `1–${NOTE_MAX_LENGTH} characters`,
-  clear: "Clear",
-  saved: "Quick Note saved.",
-  deleted: "Quick Note deleted.",
-  inactive:
-    "Only Active quests take new Quick Notes. You can still read, edit and delete saved notes.",
-  unavailable:
-    "This quest is no longer Active or open to you. The Quick Note wasn’t saved; your text is still here.",
-  count: (length: number): string => `${length}/${NOTE_MAX_LENGTH}`,
-  edit: "Edit Quick Note",
-  save: "Save Quick Note",
-  cancel: "Cancel editing Quick Note",
-  actions: (text: string): string => `Actions for the Quick Note "${text}"`,
-  delete: "Delete",
-  deleteLabel: (text: string): string => `Delete the Quick Note "${text}"`,
 } as const;

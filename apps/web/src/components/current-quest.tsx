@@ -9,7 +9,7 @@ import { CURRENT_QUEST_COPY } from "@/ui/copy/quests.ts";
 const HEADING_ID = "current-quest-heading";
 
 // The quest to pick up again, at the top of Quests: its name, with a
-// marker if it is multi-user, its next task when it has one, and Continue, which opens its conversation. It shows
+// marker if it is multi-user, its next task when it has one, and Continue, which opens the quest. It shows
 // nothing when there is no quest to continue.
 function CurrentQuestCard({
   quest,

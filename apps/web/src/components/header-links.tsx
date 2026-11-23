@@ -10,18 +10,18 @@ import { QuestTitle } from "@/components/quest-title.tsx";
 import { SignedInHeader } from "@/components/signed-in-header.tsx";
 import { TimerPreferences } from "@/components/timer/timer-preferences.tsx";
 import { TimerTrailTools } from "@/components/timer/timer-trail-tools.tsx";
-import type { Conversation } from "@/conversations/conversation-store.ts";
+import type { Construct } from "@/constructs/index.ts";
 
 // The active Dailies quest's construct at the right of the trail band,
 // opposite the breadcrumbs, clear of the site panel that opens on the left.
 function ConstructTrailTools({
-  conversation,
+  construct,
 }: {
-  readonly conversation: Pick<Conversation, "id" | "construct">;
+  readonly construct: Construct;
 }): JSX.Element {
   return (
     <div className="construct-trail-tools">
-      <ConstructHeader construct={conversation.construct} />
+      <ConstructHeader construct={construct} />
     </div>
   );
 }
@@ -41,15 +41,15 @@ async function HeaderLinksAt({
     resolved = await headerBreadcrumbs(user, path);
   }
   const breadcrumbs: readonly Breadcrumb[] = resolved.map(
-    ({ quest, conversation, timer, ...item }) => {
+    ({ quest, construct, timer, ...item }) => {
       if (quest !== undefined) {
         return {
           ...item,
           action: (
             <>
               <QuestTitle quest={quest} />
-              {conversation !== undefined && (
-                <ConstructTrailTools conversation={conversation} />
+              {construct !== undefined && (
+                <ConstructTrailTools construct={construct} />
               )}
             </>
           ),

@@ -1,14 +1,13 @@
 import type { Route } from "next";
 import type { User } from "@/accounts/users-store.ts";
 import type { Breadcrumb } from "@/components/breadcrumb.ts";
-import { getConstruct, isConstructId } from "@/constructs/index.ts";
-import type { Conversation } from "@/conversations/conversation-store.ts";
-import { readQuestConversation } from "@/conversations/start-quest.ts";
+import {
+  type Construct,
+  getConstruct,
+  isConstructId,
+} from "@/constructs/index.ts";
 import { getQuest, type Quest } from "@/quests/store.ts";
-import { getRetiredDefinition } from "@/retirement/retirement-store.ts";
 import { readRite } from "@/rites/rite-store.ts";
-import { findSpell } from "@/spells/own-spell-store.ts";
-import { getSpell, SPELL_ID } from "@/spells/spell.ts";
 import {
   parseTimerSchedule,
   TIMER_PATH,
@@ -19,14 +18,11 @@ import { GRIMOIRE_COPY } from "@/ui/copy/grimoire.ts";
 import { PROFILE_COPY } from "@/ui/copy/profile.ts";
 import { QUESTS_COPY } from "@/ui/copy/quests.ts";
 import { SETTINGS_COPY } from "@/ui/copy/settings.ts";
-import { SPELLBOOK_COPY } from "@/ui/copy/spells.ts";
 import { TIMER_COPY } from "@/ui/copy/timer.ts";
 
 interface HeaderBreadcrumb extends Breadcrumb {
   readonly quest?: Pick<Quest, "id" | "name">;
-  // The active Dailies quest's conversation, whose construct the band shows
-  // at its right.
-  readonly conversation?: Pick<Conversation, "id" | "construct">;
+  readonly construct?: Construct;
   // A running timer's schedule, whose tools the band shows at its right.
   readonly timer?: TimerSchedule;
 }
@@ -50,7 +46,6 @@ const ROOTS: ReadonlyMap<string, Breadcrumb & { readonly href: Route }> =
     ["quests", { label: QUESTS_COPY.heading, href: "/quests" }],
     ["constructs", QUESTS],
     ["grimoire", { label: GRIMOIRE_COPY.heading, href: "/grimoire" }],
-    ["spellbook", { label: SPELLBOOK_COPY.heading, href: "/spellbook" }],
     ["profile", { label: PROFILE_COPY.heading, href: "/profile" }],
     ["settings", { label: SETTINGS_COPY.heading, href: "/settings" }],
   ]);
@@ -78,22 +73,6 @@ function timerLinkBreadcrumbs(
     return [root, { label }];
   }
   return [root, { label, timer: schedule }];
-}
-
-// The conversation of the active Dailies quest, once it has started, for
-// the band's construct button. Any other quest's page shows none.
-async function dailiesConversation(
-  user: Pick<User, "id">,
-  quest: Quest,
-): Promise<Pick<Conversation, "id" | "construct"> | undefined> {
-  if (!quest.dailies || quest.status !== "active") {
-    return undefined;
-  }
-  const conversation = await readQuestConversation(user.id, quest.id);
-  if (conversation === undefined) {
-    return undefined;
-  }
-  return { id: conversation.id, construct: conversation.construct };
 }
 
 // The trail of a page anyone may open, signed in or not: the Timer's setup
@@ -144,11 +123,10 @@ async function headerBreadcrumbs(
       label: quest.name,
       quest: { id: quest.id, name: quest.name },
     };
-    const conversation = await dailiesConversation(user, quest);
-    if (conversation === undefined) {
-      return [QUESTS, crumb];
+    if (quest.dailies && quest.status === "active") {
+      return [QUESTS, { ...crumb, construct: getConstruct(quest.constructId) }];
     }
-    return [QUESTS, { ...crumb, conversation }];
+    return [QUESTS, crumb];
   }
   if (root === undefined || path.length !== DETAIL_DEPTH) {
     return [];
@@ -163,15 +141,6 @@ async function headerBreadcrumbs(
       name = GRIMOIRE_COPY.create;
     } else {
       name = (await readRite(user.id, id, true))?.name;
-    }
-  } else if (section === "spellbook") {
-    const parsed = SPELL_ID.safeParse(id);
-    if (parsed.success) {
-      ({ name } = getSpell(parsed.data));
-    } else {
-      name =
-        (await findSpell(user.id, id))?.name ??
-        (await getRetiredDefinition(user.id, id))?.name;
     }
   }
   if (name === undefined) {

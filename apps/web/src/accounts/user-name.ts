@@ -1,8 +1,7 @@
 // The name she asks the construct to call her: one line of text, trimmed, short,
 // with no braces, so a name never holds the {{name}} placeholder it fills
 // in. withUserName puts it in place of every NAME_PLACEHOLDER, in the
-// construct's system prompt (src/replies/system-prompt.ts) and the spells the
-// construct casts (src/spells/cast-spell.ts). The browser imports this module, so it
+// rite replies. The browser imports this module, so it
 // imports nothing server-only. The users table's users_name_normalized check
 // holds the same rule.
 

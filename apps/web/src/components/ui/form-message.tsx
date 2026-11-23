@@ -1,7 +1,7 @@
 import type { JSX, ReactNode, Ref } from "react";
 import { Icon } from "@/components/ui/icon.tsx";
 
-// What went wrong, such as with a form, one of its fields or a chat's reply.
+// What went wrong, such as with a form, one of its fields or a rite's reply.
 // It is an alert, so a screen reader reads it as soon as it appears. A field
 // names it by id in aria-describedby (see field.tsx) and keeps it inline.
 // Page errors use the shared notice box, with an icon as well as error text.

@@ -14,7 +14,8 @@ import {
   type Transaction,
 } from "@/db/client.ts";
 import { conjurations, performances } from "@/db/tables/performances.ts";
-import { quests } from "@/db/tables/quests-and-chats.ts";
+import { questDays } from "@/db/tables/quest-days.ts";
+import { quests } from "@/db/tables/quests.ts";
 import { spaces } from "@/db/tables/spaces.ts";
 import { withAppErrors } from "@/errors/to-app-error.ts";
 import type { QuestId, UserId } from "@/ids.ts";
@@ -167,6 +168,39 @@ async function stopWithin(
     .where(and(eq(performances.id, performance.id), performanceOpenTo(user)));
 }
 
+// The caller holds the quest lock while changing a day and its performance.
+async function closePerformanceForDay(
+  tx: Transaction,
+  user: UserId,
+  questId: QuestId,
+): Promise<PerformanceId | undefined> {
+  const performance = await active(tx, user, questId);
+  if (performance === undefined) {
+    return undefined;
+  }
+  await stopWithin(tx, user, performance);
+  return performance.id;
+}
+
+async function restorePerformanceForDay(
+  tx: Transaction,
+  user: UserId,
+  questId: QuestId,
+  id: PerformanceId,
+): Promise<void> {
+  await closePerformanceForDay(tx, user, questId);
+  await tx
+    .update(performances)
+    .set({ endedAt: null, closing: null })
+    .where(
+      and(
+        eq(performances.id, id),
+        eq(performances.questId, questId),
+        performanceOpenTo(user),
+      ),
+    );
+}
+
 function startPerformance(
   user: UserId,
   questId: QuestId,
@@ -311,7 +345,17 @@ function conjure(
       if (performance === undefined || performance.id !== input.performanceId) {
         return;
       }
-      return addConjuration(tx, { user, questId, author }, performance, input);
+      const entry = await addConjuration(
+        tx,
+        { user, questId, author },
+        performance,
+        input,
+      );
+      await tx
+        .update(questDays)
+        .set({ undo: null })
+        .where(eq(questDays.questId, questId));
+      return entry;
     });
   });
 }
@@ -388,10 +432,12 @@ async function addConjuration(
 export type { Conjuration, Performance, PerformanceId };
 export {
   CONJURATION,
+  closePerformanceForDay,
   conjure,
   listPerformances,
   PERFORMANCE_ID,
   readConjurations,
+  restorePerformanceForDay,
   startPerformance,
   stopPerformance,
 };

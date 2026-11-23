@@ -1,4 +1,4 @@
-// What the viewer has typed but not yet sent or saved, such as a chat
+// What the viewer has typed but not yet sent or saved, such as a performance
 // message or an edit to a construct's prompt, kept in this browser's local
 // storage under a key of its own, so that leaving the page, reloading or
 // closing the tab doesn't lose it. A draft stays in this browser: the server

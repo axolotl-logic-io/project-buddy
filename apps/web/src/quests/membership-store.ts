@@ -31,10 +31,9 @@ import {
   normalizeEmail,
 } from "@/accounts/users-store.ts";
 import type { SessionUser } from "@/auth/session-token.ts";
-import { releaseRepliesOf } from "@/chats/store.ts";
 import { getDb, inTransaction, type Transaction } from "@/db/client.ts";
 import { questInvitations, questMembers } from "@/db/tables/quest-members.ts";
-import { quests } from "@/db/tables/quests-and-chats.ts";
+import { quests } from "@/db/tables/quests.ts";
 import { users } from "@/db/tables/users.ts";
 import { EmailFailure, type EmailProblem } from "@/email/email-failure.ts";
 import { questInvitationEmail } from "@/email/quest-invitation-email.ts";
@@ -44,14 +43,13 @@ import { withAppErrors } from "@/errors/to-app-error.ts";
 import { parseQuestId, parseUserId, type QuestId, type UserId } from "@/ids.ts";
 import { INVITATION_LINK_LIFETIME_DAYS } from "@/quests/membership.ts";
 import { QUEST_STATUS, type QuestStatus } from "@/quests/quest-status.ts";
-import { endRepliesOf } from "@/replies/reply-runs.ts";
 import { SIGN_IN_LINK_PATH } from "@/routes.ts";
 
 const MS_PER_DAY = 86_400_000;
 
 // A person as others in a quest see them: their name, or their email
 // address when they have given no name, as message authors are shown
-// (src/chats/message-author.ts). A pending invitee is shown only by the
+// for display. A pending invitee is shown only by the
 // address they were invited at, so inviting reveals nothing of an
 // existing account, not even whether there is one.
 interface QuestPerson {
@@ -437,29 +435,8 @@ function removeFromQuest(
 ): Promise<boolean> {
   return withAppErrors("remove from quest", () =>
     inTransaction(async (tx) => {
-      const [member] = await tx
-        .select({ userId: questMembers.userId })
-        .from(questMembers)
-        .where(
-          and(
-            eq(questMembers.questId, request.questId),
-            eq(questMembers.userId, request.person),
-            questMemberOpenTo(user),
-          ),
-        )
-        .for("update");
-      if (member !== undefined) {
-        // Before the membership goes, while the quest is still open to
-        // whoever removes, which may be the member leaving: a reply their
-        // message awaits stops, and anyone left may ask for it again.
-        await endRepliesOf(tx, user, {
-          questId: request.questId,
-          person: request.person,
-        });
-        await releaseRepliesOf(tx, user, {
-          questId: request.questId,
-          author: request.person,
-        });
+      if ((await lockedSharableQuest(tx, user, request.questId)) === undefined) {
+        return false;
       }
       const members = await tx
         .delete(questMembers)

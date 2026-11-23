@@ -252,7 +252,7 @@
     @apply mx-auto flex w-full max-w-3xl flex-1 flex-col gap-8 px-4 py-8 sm:px-6 sm:py-10;
   }
 
-  .page-column:has(.chat-thread) {
+  .page-column:has(.performance-thread) {
     @apply pb-0;
   }
 
@@ -273,71 +273,7 @@
     @apply flex min-w-0 flex-col gap-6;
   }
 
-  /* Save, with the hint that says what it costs above it and the status
-     line below: what the editor pins while the form scrolls. The other
-     actions, Reset and Discard changes, follow it at the form's end, so
-     the pinned bar is one short row on a phone. */
-  .prompt-editor-actions {
-    @apply sticky bottom-0 z-10 flex flex-col gap-2 border-line border-t bg-background py-2;
-  }
-
-  .prompt-editor-save-hint {
-    @apply text-sm sm:text-base;
-  }
-
-  .prompt-editor-more {
-    @apply flex flex-wrap items-center gap-x-5;
-  }
-
-  .prompt-editor {
-    @apply grid min-w-0 gap-4;
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .prompt-editor-name,
-  .prompt-editor-replies {
-    @apply grid min-w-0 gap-4;
-  }
-
-  .prompt-editor-name > * {
-    max-inline-size: 36rem;
-  }
-
-  .prompt-editor-nav {
-    @apply flex flex-col items-stretch gap-1;
-  }
-
-  /* The chosen section is marked, not filled: Save stays the editor's
-     strongest control. */
-  .prompt-editor-nav button {
-    @apply rounded-none border-transparent border-l-2 ps-3 text-left;
-  }
-
-  .prompt-editor-nav [aria-pressed="true"] {
-    @apply border-primary bg-surface text-foreground;
-  }
-
-  .prompt-editor-field textarea {
-    block-size: 40dvh;
-  }
-
   /* Short windows need editing space more than pinned form controls. */
-  @media (max-height: 32rem) {
-    .prompt-editor-actions {
-      position: static;
-    }
-  }
-
-  @media (min-width: 48rem) {
-    .prompt-editor-replies {
-      grid-template-columns: minmax(0, 12rem) minmax(0, 1fr);
-      align-items: start;
-    }
-
-    .prompt-editor-heading {
-      grid-column: 1 / -1;
-    }
-  }
 
   /* The headings take their sizes from the theme (src/themes/contract.css).
      The site's name, as the heading of the home and login pages, has a
@@ -733,7 +669,7 @@
 
   /* A list whose items are rows divided by rules rather than cards, as the
      Quests index lists its quests, with Quick Notes,
-     and every other list of conversations. Inside
+     and other lists of records. Inside
      a framed workspace, a card for each item would stack a second layer of
      borders. */
   .divided-rows {
@@ -801,11 +737,6 @@
       --header-gutter: --spacing(6);
       --trail-heading-leading: 1.2;
     }
-  }
-
-  /* A quest's conversation below its section links and actions. */
-  .quest-conversation {
-    @apply flex min-w-0 flex-1 flex-col gap-4;
   }
 
   /* Leave room under the pinned trail band when jumping to a message. */
@@ -1485,43 +1416,10 @@
     @apply flex min-w-0 flex-wrap items-center justify-between gap-x-4 border-line border-y px-4 sm:px-6;
   }
 
-  /* A row of tabs: the shared workspace tabs, a quest's sections and an
-     conversation's. It stays one row, and on a narrow screen scrolls sideways
-     inside itself rather than wrapping. Where tabs lie past an edge, that
-     edge fades (scroll-driven, where the browser supports it), so the row
-     shows there is more of it. A focused tab scrolls clear of the fade. The
-     quest sidebar is the exception: its tabs wrap (see .quest-sidebar). */
-  .workspace-tablist {
-    --tablist-fade: --spacing(8);
-    scroll-padding-inline: var(--tablist-fade);
-    overscroll-behavior-inline: contain;
-    @apply flex min-w-0 max-w-full gap-x-4 overflow-x-auto;
-  }
-
-  @supports (scrollbar-width: none) {
-    .workspace-tablist {
-      scrollbar-width: none;
-    }
-  }
-
-  .workspace-tablist > * {
-    @apply shrink-0;
-  }
-
-  /* The scrolling row would clip a ring drawn outside a tab, so a tab's
-     ring sits just inside its own edge. */
-  .workspace-tablist :focus-visible {
-    outline-offset: calc(-1 * var(--focus-offset));
-  }
-
   /* The fades, by how far the row has scrolled: the end edge at the start,
      both edges in between and the start edge at the end. A row with
      nothing to scroll has no timeline, so it never fades. */
   @supports (animation-timeline: scroll()) and (mask-image: none) {
-    .workspace-tablist {
-      animation: tablist-fade linear both;
-      animation-timeline: scroll(self inline);
-    }
 
     @keyframes tablist-fade {
       0% {
@@ -1549,32 +1447,6 @@
         );
       }
     }
-  }
-
-  .workspace-tab {
-    min-inline-size: var(--target-size);
-    min-block-size: var(--target-size);
-    @apply inline-flex items-center justify-center gap-2 whitespace-nowrap border-transparent border-b-2 py-3 text-left text-muted text-sm;
-  }
-
-  .workspace-tab[data-state="active"],
-  .workspace-tab[aria-current="page"] {
-    @apply border-action-fill font-semibold text-foreground;
-  }
-
-  /* A tab focused by a click shows no focus ring beside its underline;
-     keyboard focus keeps it (src/components/tab-pointer-focus.ts). */
-  .workspace-tab:focus-visible {
-    outline-style: dashed;
-  }
-
-  .workspace-tab:hover {
-    @apply text-action-ink underline underline-offset-4;
-  }
-
-  .workspace-tab[data-pointer-focus]:focus-visible {
-    outline: none;
-    box-shadow: none;
   }
 
   .workspace-content {
@@ -1984,14 +1856,6 @@
     @apply wrap-anywhere whitespace-pre-wrap min-w-0 justify-start px-0 py-2.5 text-left font-body font-normal text-foreground no-underline hover:underline disabled:opacity-100;
   }
 
-  .bucket-desk .editable-text {
-    @apply px-1;
-  }
-
-  .bucket-notes .editable-text {
-    @apply py-3 leading-relaxed;
-  }
-
   .editable-row[data-completed="true"] .editable-text {
     @apply text-muted line-through;
   }
@@ -2045,14 +1909,6 @@
   /* More about an item, on its own line under the text and the actions. */
   .editable-detail {
     @apply col-start-1 -col-end-1 -mt-1.5 min-w-0 pb-2.5;
-  }
-
-  .bucket-tasks .editable-detail {
-    @apply ps-1;
-  }
-
-  .bucket-ideas .editable-detail {
-    @apply mt-0 pb-1 ps-7;
   }
 
   .editable-row:has(.editable-check) > .editable-detail {
@@ -2136,182 +1992,8 @@
     @apply basis-full pb-2 text-sm;
   }
 
-  .tasks-done > summary {
-    min-block-size: var(--target-size);
-    list-style: none;
-    @apply flex cursor-pointer items-center gap-2 self-start text-muted text-sm hover:text-foreground;
-  }
-
-  .tasks-done > summary::-webkit-details-marker {
-    display: none;
-  }
-
-  /* Without its list-item display, a summary loses its marker: draw it, as
-     the editor's settings do. */
-  .tasks-done > summary::before {
-    content: "▸";
-  }
-
-  .tasks-done[open] > summary::before {
-    content: "▾";
-  }
-
-  /* Control desk buckets share a toolbar and ledger rules. Domain wrappers
-     give agreed work, possibilities and dated notes their own structure. */
-  .bucket-desk {
-    @apply min-w-0 gap-0;
-  }
-
-  .bucket-toolbar {
-    @apply flex min-w-0 flex-wrap items-center justify-between border border-primary bg-primary text-on-primary;
-  }
-
-  .bucket-summary {
-    @apply min-w-0 flex-1 px-3 py-2 font-medium text-xs;
-  }
-
-  .bucket-toolbar .editable-add {
-    @apply w-auto min-w-0 shrink-0 rounded-none border-on-primary border-s text-on-primary hover:bg-on-primary/10;
-  }
-
-  .bucket-toolbar:has(.editable-add-form) {
-    @apply bg-field text-foreground;
-  }
-
-  .bucket-toolbar .editable-add-form {
-    @apply w-full rounded-none border-primary border-t bg-field;
-  }
-
-  .bucket-desk .editable-list {
-    @apply border border-line border-t-0 bg-surface;
-  }
-
-  .bucket-desk .editable-list:empty {
-    @apply border-0;
-  }
-
-  .bucket-desk .editable-row {
-    @apply rounded-none border-line border-b px-1 last:border-b-0;
-  }
-
-  .bucket-desk .editable-row:has(.editable-leading) {
-    @apply grid-cols-[auto_minmax(0,1fr)_auto];
-  }
-
   .editable-leading {
     @apply min-w-0;
-  }
-
-  .bucket-ideas .editable-leading {
-    min-block-size: var(--target-size);
-    @apply flex w-7 items-center justify-center text-primary;
-  }
-
-  .bucket-desk .editable-grip,
-  .bucket-desk .editable-more {
-    min-inline-size: calc(var(--target-size) * 0.75);
-  }
-
-  .bucket-tasks > .editable-list > .editable-row:first-child {
-    @apply border-primary border-s-4;
-  }
-
-  .bucket-tasks .editable-check input::before {
-    @apply rounded-none;
-  }
-
-  .bucket-desk .tasks-done {
-    @apply mt-3 border-line border-t;
-  }
-
-  .bucket-desk .tasks-done .editable-list {
-    @apply border-t;
-  }
-
-  .idea-decision {
-    @apply flex min-w-0 flex-wrap items-center justify-between gap-x-2 text-muted text-xs;
-  }
-
-  .bucket-empty {
-    @apply border border-line border-t-0 bg-surface px-4 py-5 text-muted text-sm;
-  }
-
-  .bucket-notes .editable-row:has(.editable-leading) {
-    @apply grid-cols-[auto_minmax(0,1fr)_auto];
-  }
-
-  .bucket-notes .editable-leading {
-    @apply my-3 me-2 self-stretch border-line border-e px-2 py-1 text-xs;
-  }
-
-  .bucket-notes .bucket-toolbar {
-    @apply mt-4;
-  }
-
-  .bucket-toolbar[data-empty="true"] {
-    @apply flex-col items-stretch gap-4 border-line border-dashed bg-surface px-4 py-6 text-foreground;
-  }
-
-  .bucket-toolbar[data-empty="true"] .editable-add {
-    @apply justify-center border border-line text-primary hover:bg-field;
-  }
-
-  .bucket-toolbar[data-empty="true"] .editable-add-form {
-    @apply border border-line;
-  }
-
-  .bucket-empty-copy {
-    @apply flex flex-col items-center gap-2 text-center text-muted text-sm;
-  }
-
-  .bucket-empty-copy > .icon {
-    @apply text-2xl;
-  }
-
-  .bucket-empty-heading {
-    @apply font-heading text-foreground text-xl;
-  }
-
-  /* A tasks change in a conversation (src/components/chat/tasks-change-part.tsx):
-     what the construct or a person changed, set apart from the words around
-     it as the conversation's other notes are (.card), with Undo. */
-  .tasks-change {
-    @apply flex flex-col gap-2 rounded-box border border-line bg-surface/70 px-4 py-3 text-sm shadow-control;
-  }
-
-  .tasks-change-heading {
-    @apply flex flex-wrap items-center justify-between gap-x-3;
-  }
-
-  /* Undo keeps its 44 px target without making the title's row taller than
-     a line. */
-  .tasks-change-heading .button-quiet {
-    margin-block: calc((1lh - var(--target-size)) / 2);
-  }
-
-  .tasks-change-lines {
-    @apply flex flex-col gap-1;
-  }
-
-  .tasks-change-lines > li {
-    @apply wrap-anywhere;
-  }
-
-  /* A person's tasks message, inside their message's own frame: the command
-     they typed, ruled off from the change or card it made, which need no
-     frame of their own there. */
-  .tasks-message {
-    @apply flex min-w-0 flex-col gap-2;
-  }
-
-  .tasks-message .tasks-change {
-    @apply rounded-none border-0 bg-transparent p-0 shadow-none;
-  }
-
-  /* The command a person typed, ruled off from the change or card it
-     made. */
-  .tasks-command {
-    @apply wrap-anywhere border-line/40 border-b pb-2 text-muted text-sm;
   }
 
   .quest-overview {
@@ -2319,8 +2001,7 @@
   }
 
   .quest-overview-hero,
-  .quest-section-body,
-  .quest-active-spell {
+  .quest-section-body {
     @apply rounded-box border border-line/70 bg-surface p-4 sm:p-6;
     background-image: var(--frame-decoration);
   }
@@ -2405,27 +2086,8 @@
     @apply mt-1 text-primary;
   }
 
-  .quest-section-body,
-  .quest-active-spell {
+  .quest-section-body {
     @apply flex min-w-0 flex-col gap-4;
-  }
-
-  .quest-active-spell .chat-thread {
-    @apply min-h-0;
-  }
-
-  .quest-active-spell .chat-composer-dock {
-    position: static;
-    @apply bg-none p-0;
-  }
-
-  .quest-active-spell .chat-composer-dock::before {
-    display: none;
-  }
-
-  .quest-active-spell .chat-transcript {
-    max-block-size: 24rem;
-    overflow-y: auto;
   }
 
   .quest-timer {
@@ -2474,16 +2136,16 @@
   }
 
   /* The quest sidebar docks to the viewport edge. On phones it becomes a
-     modal drawer, keeping the conversation in place behind it. */
+     modal drawer, keeping the quest in place behind it. */
   .page-column.page-frame-quest {
     @apply max-w-none;
   }
 
-  .conversation-layout {
+  .quest-layout {
     @apply flex min-w-0 flex-1 flex-col;
   }
 
-  .conversation-main {
+  .quest-main {
     @apply mx-auto flex w-full min-w-0 max-w-3xl flex-1 flex-col gap-8;
   }
 
@@ -2517,17 +2179,6 @@
     --sidebar-tab-pad: --spacing(2);
     margin-inline: calc(-1 * var(--header-gutter));
     @apply gap-0 border-line/40 border-t-0 px-2;
-  }
-
-  .quest-sidebar .workspace-tablist {
-    overflow-x: visible;
-    animation: none;
-    @apply w-full flex-wrap gap-x-0;
-  }
-
-  .quest-sidebar .workspace-tab {
-    padding-inline: var(--sidebar-tab-pad);
-    @apply gap-1;
   }
 
   .dailies-day-controls {
@@ -2627,22 +2278,6 @@
     @apply flex text-primary;
   }
 
-  .bucket-panel {
-    @apply flex min-w-0 flex-col gap-3;
-  }
-
-  .bucket-heading {
-    @apply font-heading font-semibold text-foreground text-lg;
-  }
-
-  .bucket-panel:has(.bucket-desk) > .bucket-heading {
-    @apply flex items-center justify-between gap-3 border-foreground border-t-4 pt-3 text-end font-body font-bold;
-  }
-
-  .bucket-description {
-    @apply text-muted text-xs;
-  }
-
   .quest-sidebar .workspace-content {
     @apply px-0 py-4;
   }
@@ -2712,10 +2347,6 @@
     @apply min-w-0 flex-[1_1_8rem] rounded-none border-0 bg-transparent px-0 py-2.5 text-sm shadow-none disabled:cursor-not-allowed disabled:opacity-60;
   }
 
-  .bucket-toolbar[data-empty="true"] .editable-form .input-field {
-    @apply basis-full;
-  }
-
   .quest-sidebar .notice {
     @apply rounded-none border-0 bg-transparent p-0 text-sm shadow-none;
   }
@@ -2724,13 +2355,9 @@
     @apply gap-3;
   }
 
-  .quest-sidebar .bucket-desk {
-    @apply gap-0;
-  }
-
   @media (width >= --theme(--breakpoint-lg)) {
     /* Reserve the default dock before the browser hydrates the dialog. */
-    .conversation-layout:is(
+    .quest-layout:is(
         [data-sidebar-open="true"],
         [data-sidebar-open="auto"]
       ) {

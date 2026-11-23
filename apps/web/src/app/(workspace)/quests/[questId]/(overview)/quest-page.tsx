@@ -2,42 +2,35 @@ import type { Route } from "next";
 import Link from "next/link";
 import type { JSX, ReactNode } from "react";
 import { z } from "zod";
-import { listMessages, readStoppedReply } from "@/chats/store.ts";
-import { ChatScreen } from "@/components/chat-screen.tsx";
+import { readUserName } from "@/accounts/users-store.ts";
 import { ConstructAvatar } from "@/components/constructs/construct-visual.tsx";
-import { ConversationPanel } from "@/components/conversation-panel.tsx";
 import { DayGrid } from "@/components/dailies/day-grid.tsx";
 import { LocalTime } from "@/components/local-time.tsx";
 import { NextTask } from "@/components/next-task.tsx";
 import { Conjure, PerformRite } from "@/components/performance-controls.tsx";
 import { PerformanceTranscript } from "@/components/performance-transcript.tsx";
-import { QuestIdeas } from "@/components/quest-ideas.tsx";
 import { QuestMembers } from "@/components/quest-members.tsx";
-import { QuestNotes } from "@/components/quest-notes.tsx";
 import { QuestPerformances } from "@/components/quest-performances.tsx";
 import { QuestSharingMark } from "@/components/quest-sharing-mark.tsx";
+import { QuestSidePanel } from "@/components/quest-side-panel.tsx";
 import {
   QuestStatusControls,
   QuestStatusFeedback,
 } from "@/components/quest-status-controls.tsx";
-import { QuestTasks } from "@/components/quest-tasks.tsx";
 import { SpaceMurmlings } from "@/components/space-murmlings.tsx";
 import { SpaceSettings } from "@/components/space-settings.tsx";
-import { SpellPicker } from "@/components/spell-picker.tsx";
 import { StartDay } from "@/components/start-day.tsx";
-import { TaskRows } from "@/components/tasks/task-rows.tsx";
-import type { TasksActions } from "@/components/tasks/use-tasks.ts";
 import { QuestTimer } from "@/components/timer/quest-timer.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { Notice } from "@/components/ui/form-message.tsx";
 import { Icon } from "@/components/ui/icon.tsx";
-import { DEFAULT_CONSTRUCT_ID, getConstruct } from "@/constructs/index.ts";
-import { findConversation } from "@/conversations/conversation-store.ts";
+import { getConstruct } from "@/constructs/index.ts";
 import type { DailiesRecord } from "@/dailies/dailies.ts";
-import { readDailiesRecord } from "@/dailies/day-store.ts";
-import { listIdeas } from "@/ideas/idea-store.ts";
-import type { ChatId, QuestId, UserId } from "@/ids.ts";
-import { listNotes } from "@/notes/note-store.ts";
+import {
+  readQuestDays,
+  readRecurringTasks,
+} from "@/dailies/quest-day-store.ts";
+import type { QuestId, UserId } from "@/ids.ts";
 import {
   listPerformances,
   readConjurations,
@@ -47,50 +40,17 @@ import { getQuest, type Quest } from "@/quests/store.ts";
 import { listRites } from "@/rites/rite-store.ts";
 import { listMurmlings, readNextMurmling } from "@/spaces/murmling-store.ts";
 import { SPACE_ID } from "@/spaces/space.ts";
-import { listSpaces } from "@/spaces/space-store.ts";
-import { listOwnSpells } from "@/spells/own-spell-store.ts";
-import { getSpell, listSpells } from "@/spells/spell.ts";
-import type { SpellSnapshot } from "@/spells/spell-definition.ts";
-import { doneTasks, EMPTY_TASKS, openTasks } from "@/tasks/tasks.ts";
-import {
-  changeTasksAction,
-  runChatCommandAction,
-  undoTasksChangeAction,
-} from "@/tasks/tasks-actions.ts";
-import { readTasksState } from "@/tasks/tasks-store.ts";
-import { IDEAS_COPY } from "@/ui/copy/ideas.ts";
-import { QUEST_NOTES_COPY } from "@/ui/copy/notes.ts";
+import { listSpaces, type Space } from "@/spaces/space-store.ts";
 import { PERFORMANCE_COPY } from "@/ui/copy/performances.ts";
 import { QUEST_MEMBERS_COPY } from "@/ui/copy/quest-members.ts";
 import { QUEST_OVERVIEW_COPY } from "@/ui/copy/quest-overview.ts";
 import { QUEST_SIDEBAR_COPY } from "@/ui/copy/quest-sidebar.ts";
 import { QUEST_STATUS_COPY } from "@/ui/copy/quest-status.ts";
 import { SPACES_COPY } from "@/ui/copy/spaces.ts";
-import { TASKS_COPY } from "@/ui/copy/tasks.ts";
 import { TIMER_COPY } from "@/ui/copy/timer.ts";
 
-const SECTION = z.enum([
-  "tasks",
-  "ideas",
-  "notes",
-  "spells",
-  "members",
-  "days",
-]);
+const SECTION = z.enum(["members", "days", "rites", "performances"]);
 type Section = z.infer<typeof SECTION>;
-
-interface SectionLink {
-  readonly label: string;
-  readonly icon: Parameters<typeof Icon>[0]["name"];
-  readonly summary: string;
-  readonly content: ReactNode;
-}
-
-const TASK_ACTIONS: TasksActions = {
-  change: changeTasksAction,
-  undo: undoTasksChangeAction,
-  command: runChatCommandAction,
-};
 
 function sectionPath(id: QuestId, section?: Section): Route {
   if (section === undefined) {
@@ -103,7 +63,7 @@ function dayControls(
   quest: Quest,
   record: DailiesRecord | undefined,
   today: Date,
-  chatId: ChatId | undefined,
+  spaces: readonly Space[],
 ): JSX.Element {
   const gridLink = (
     <Button asChild={true} variant="quiet">
@@ -123,7 +83,7 @@ function dayControls(
     controls = (
       <StartDay
         questId={quest.id}
-        chatId={chatId}
+        spaces={spaces}
         lastStartedAt={record?.days.at(-1)?.startedAt}
         undoable={record?.undoable === true}
       >
@@ -145,37 +105,14 @@ function dayControls(
   );
 }
 
-function sectionLinks(
-  id: QuestId,
-  sections: Record<Section, SectionLink>,
-): JSX.Element {
-  return (
-    <nav aria-label={QUEST_OVERVIEW_COPY.sections}>
-      <h2 className="section-heading">{QUEST_OVERVIEW_COPY.sections}</h2>
-      <ul className="quest-overview-links">
-        {SECTION.options
-          .filter((section) => section !== "days")
-          .map((section) => {
-            const { icon, label, summary } = sections[section];
-            return (
-              <li key={section}>
-                <Link
-                  href={sectionPath(id, section)}
-                  className="quest-overview-link"
-                >
-                  <Icon name={icon} />
-                  <span className="min-w-0">
-                    <strong className="font-heading text-lg">{label}</strong>
-                    <span className="block text-muted text-sm">{summary}</span>
-                  </span>
-                  <Icon name="chevron-right" />
-                </Link>
-              </li>
-            );
-          })}
-      </ul>
-    </nav>
-  );
+function dailiesRecord(
+  user: UserId,
+  quest: Quest,
+): Promise<DailiesRecord | undefined> {
+  if (quest.dailies) {
+    return readQuestDays(user, quest.id);
+  }
+  return Promise.resolve(undefined);
 }
 
 async function questPage(
@@ -188,42 +125,45 @@ async function questPage(
   if (quest === undefined) {
     return undefined;
   }
-  const [conversation, tasks, ideas, notes, people, days, spaces] =
-    await Promise.all([
-      findConversation(user, quest.id),
-      readTasksState(user, quest.id),
-      listIdeas(user, quest.id),
-      listNotes(user, quest.id),
-      listQuestPeople(user, quest.id),
-      quest.dailies && readDailiesRecord(user, quest.id),
-      listSpaces(user, quest.id),
-    ]);
+  const [people, record, spaces, performances] = await Promise.all([
+    listQuestPeople(user, quest.id),
+    dailiesRecord(user, quest),
+    listSpaces(user, quest.id),
+    listPerformances(user, quest.id),
+  ]);
   const spaceId = SPACE_ID.safeParse(section).data;
   const space = spaces.find(({ id }) => id === spaceId);
   let contents: Awaited<ReturnType<typeof listMurmlings>> = [];
   if (space !== undefined) {
     contents = await listMurmlings(user, quest.id, space.id);
   }
-  const performances = await listPerformances(user, quest.id);
   const running = performances.find(({ endedAt }) => endedAt === null);
   const selected = performances.find(({ id }) => id === performanceParam);
-  const construct =
-    conversation?.construct ?? getConstruct(DEFAULT_CONSTRUCT_ID);
+  const construct = getConstruct(quest.constructId);
   let runningContent: ReactNode;
   if (running !== undefined) {
+    const [entries, author] = await Promise.all([
+      readConjurations(user, running.id),
+      readUserName(user),
+    ]);
     runningContent = (
       <section aria-label={running.rite.name} className="quest-section-body">
         <h2 className="section-heading">{running.rite.name}</h2>
-        <PerformanceTranscript
-          performance={running}
-          entries={await readConjurations(user, running.id)}
-          construct={construct}
-        />
         <Conjure
           key={running.id}
           questId={quest.id}
           performanceId={running.id}
-        />
+          viewer={user}
+          author={author ?? PERFORMANCE_COPY.unnamed}
+          construct={construct}
+          answered={entries.map(({ id }) => id)}
+        >
+          <PerformanceTranscript
+            performance={running}
+            entries={entries}
+            construct={construct}
+          />
+        </Conjure>
       </section>
     );
   }
@@ -242,44 +182,10 @@ async function questPage(
       );
     }
   }
-  const record = days || undefined;
   const today = new Date();
   let current = SECTION.safeParse(section).data;
   if (current === "days" && !quest.dailies) {
     current = undefined;
-  }
-
-  let spell: SpellSnapshot | undefined;
-  if (conversation?.spellStartedAt !== undefined) {
-    spell = conversation.activeSpell;
-    if (spell === undefined && conversation.spell !== undefined) {
-      spell = getSpell(conversation.spell);
-    }
-  }
-  let active: JSX.Element | undefined;
-  if (conversation !== undefined && spell !== undefined) {
-    const [messages, stoppedReplyId] = await Promise.all([
-      listMessages(user, conversation.id, conversation.spellStartedAt),
-      readStoppedReply(user, conversation.id, conversation.spellStartedAt),
-    ]);
-    active = (
-      <ChatScreen
-        conversation={conversation}
-        messages={messages}
-        stoppedReplyId={stoppedReplyId}
-        viewer={user}
-        spellOnly={true}
-      />
-    );
-  }
-
-  let spellSummary = QUEST_OVERVIEW_COPY.spellOptions;
-  if (spell !== undefined) {
-    spellSummary = QUEST_OVERVIEW_COPY.activeSpell(spell.name);
-  }
-  let membersSummary = QUEST_OVERVIEW_COPY.onlyYou;
-  if (people !== undefined && people.members.length > 0) {
-    membersSummary = QUEST_OVERVIEW_COPY.people(people.members.length + 1);
   }
 
   let riteContent: ReactNode;
@@ -309,239 +215,152 @@ async function questPage(
   if (onOverview && !quest.dailies) {
     nextTask = await readNextMurmling(user, quest.id);
   }
-  const shownTasks = tasks?.tasks ?? EMPTY_TASKS;
-  let spellsContent: ReactNode;
-  if (current === "spells") {
-    const own = await listOwnSpells(user);
-    spellsContent = (
-      <>
-        <h3 data-quest-spells="" tabIndex={-1} className="section-heading">
-          {QUEST_SIDEBAR_COPY.spells}
-        </h3>
-        <SpellPicker
-          questId={quest.id}
-          spells={[...listSpells(), ...own]}
-          activeSpell={spell}
-        />
-        <h3 className="section-heading">{QUEST_OVERVIEW_COPY.status}</h3>
-        <div className="flex flex-wrap items-center gap-3">
-          <span className="quest-status-mark">
-            {QUEST_STATUS_COPY.labels[quest.status]}
-          </span>
-          <QuestStatusControls quest={quest} />
-        </div>
-      </>
+  let dayGrid: JSX.Element | undefined;
+  if (current === "days" && record !== undefined) {
+    dayGrid = (
+      <DayGrid
+        days={record.days}
+        tasks={await readRecurringTasks(user, quest.id)}
+      />
     );
   }
-  const sections: Record<Section, SectionLink> = {
-    tasks: {
-      label: TASKS_COPY.heading,
-      icon: "checklist",
-      summary: QUEST_OVERVIEW_COPY.tasks(
-        openTasks(shownTasks).length,
-        doneTasks(shownTasks).length,
-      ),
-      content: <TaskRows />,
-    },
-    ideas: {
-      label: IDEAS_COPY.heading,
-      icon: "sparkle",
-      summary: QUEST_OVERVIEW_COPY.ideas(ideas.length),
-      content: <QuestIdeas questId={quest.id} ideas={ideas} embedded={true} />,
-    },
-    notes: {
-      label: QUEST_NOTES_COPY.heading,
-      icon: "note",
-      summary: QUEST_OVERVIEW_COPY.notes(notes.length),
-      content: <QuestNotes notes={notes} quest={quest} />,
-    },
-    spells: {
-      label: QUEST_OVERVIEW_COPY.spells,
-      icon: "sparkle",
-      summary: spellSummary,
-      content: spellsContent,
-    },
-    members: {
-      label: QUEST_MEMBERS_COPY.heading,
-      icon: "people",
-      summary: membersSummary,
-      content: people !== undefined && (
-        <QuestMembers viewer={user} people={people} quest={quest} />
-      ),
-    },
-    days: {
-      label: QUEST_SIDEBAR_COPY.dayGrid,
-      icon: "sun",
-      summary: "",
-      content: <DayGrid />,
-    },
-  };
   return (
-    <ConversationPanel
+    <QuestSidePanel
       title={TIMER_COPY.heading}
       icon="hourglass"
       labels={TIMER_COPY.panel}
       panel={<QuestTimer />}
     >
-      <QuestTasks
-        key={quest.id}
-        questId={quest.id}
-        state={tasks}
-        days={record?.days}
-        actions={TASK_ACTIONS}
-      >
-        <div className="quest-workspace quest-overview">
-          <QuestStatusFeedback>
-            {onOverview === true && (
-              <section className="quest-overview-hero" aria-label={quest.name}>
-                <div className="quest-overview-heading">
-                  <div className="min-w-0">
-                    <div className="quest-overview-meta">
-                      <span className="quest-status-mark">
-                        {QUEST_STATUS_COPY.labels[quest.status]}
-                      </span>
-                      {quest.sharing.kind === "personal" && (
-                        <span>{QUEST_OVERVIEW_COPY.personal}</span>
-                      )}
-                      <QuestSharingMark sharing={quest.sharing} />
-                    </div>
-                    <h2
-                      data-quest-overview-heading=""
-                      className="quest-overview-title"
-                      tabIndex={-1}
-                    >
-                      {quest.name}
-                    </h2>
+      <div className="quest-workspace quest-overview">
+        <QuestStatusFeedback>
+          {onOverview === true && (
+            <section className="quest-overview-hero" aria-label={quest.name}>
+              <div className="quest-overview-heading">
+                <div className="min-w-0">
+                  <div className="quest-overview-meta">
+                    <span className="quest-status-mark">
+                      {QUEST_STATUS_COPY.labels[quest.status]}
+                    </span>
+                    {quest.sharing.kind === "personal" && (
+                      <span>{QUEST_OVERVIEW_COPY.personal}</span>
+                    )}
+                    <QuestSharingMark sharing={quest.sharing} />
                   </div>
-                  {conversation !== undefined && (
-                    <ConstructAvatar construct={conversation.construct} />
-                  )}
+                  <h2
+                    data-quest-overview-heading=""
+                    className="quest-overview-title"
+                    tabIndex={-1}
+                  >
+                    {quest.name}
+                  </h2>
                 </div>
-                {quest.startingContext !== undefined &&
-                  quest.startingContext !== "" && (
-                    <p className="quest-overview-summary">
-                      {quest.startingContext}
-                    </p>
-                  )}
-                {quest.dailies === true &&
-                  dayControls(quest, record, today, conversation?.id)}
-                {!quest.dailies && <NextTask task={nextTask} />}
-              </section>
-            )}
-            {current !== undefined && (
-              <div>
-                <Button asChild={true} variant="quiet">
-                  <Link href={sectionPath(quest.id)}>
-                    <Icon name="arrow-left" />
-                    {QUEST_OVERVIEW_COPY.back}
-                  </Link>
-                </Button>
-                <h2
-                  data-quest-overview-heading=""
-                  tabIndex={-1}
-                  className="quest-overview-title"
-                >
-                  {sections[current].label}
-                </h2>
+                <ConstructAvatar construct={construct} />
               </div>
-            )}
-            {quest.status !== "active" && (
-              <Notice>{QUEST_STATUS_COPY.effects}</Notice>
-            )}
-            {active}
-            {onOverview === true && (
-              <>
-                <nav aria-label={SPACES_COPY.heading}>
-                  <h2 className="section-heading">{SPACES_COPY.heading}</h2>
-                  <ul className="quest-overview-links">
-                    {spaces.map((entry) => (
-                      <li key={entry.id}>
-                        <Link
-                          href={`/quests/${quest.id}?section=${entry.id}`}
-                          className="quest-overview-link"
-                        >
-                          {entry.name}
-                          <Icon name="chevron-right" />
-                        </Link>
-                      </li>
-                    ))}
-                  </ul>
-                  <SpaceSettings questId={quest.id} />
-                </nav>
+              {quest.startingContext !== undefined &&
+                quest.startingContext !== "" && (
+                  <p className="quest-overview-summary">
+                    {quest.startingContext}
+                  </p>
+                )}
+              {quest.dailies === true &&
+                dayControls(quest, record, today, spaces)}
+              {!quest.dailies && <NextTask task={nextTask} />}
+            </section>
+          )}
+          {quest.status !== "active" && (
+            <Notice>{QUEST_STATUS_COPY.effects}</Notice>
+          )}
+          {onOverview === true && (
+            <>
+              <nav aria-label={SPACES_COPY.heading}>
+                <h2 className="section-heading">{SPACES_COPY.heading}</h2>
                 <ul className="quest-overview-links">
-                  <li>
-                    <Link
-                      href={`/quests/${quest.id}?section=rites`}
-                      className="quest-overview-link"
-                    >
-                      {PERFORMANCE_COPY.ritesAndStatus}
-                    </Link>
-                  </li>
-                  <li>
-                    <Link
-                      href={`/quests/${quest.id}?section=performances`}
-                      className="quest-overview-link"
-                    >
-                      {PERFORMANCE_COPY.heading}
-                    </Link>
-                  </li>
+                  {spaces.map((entry) => (
+                    <li key={entry.id}>
+                      <Link
+                        href={`/quests/${quest.id}?section=${entry.id}`}
+                        className="quest-overview-link"
+                      >
+                        {entry.name}
+                        <Icon name="chevron-right" />
+                      </Link>
+                    </li>
+                  ))}
                 </ul>
-                {sectionLinks(quest.id, sections)}
-              </>
-            )}
-            {space !== undefined && (
-              <section className="quest-section-body" aria-label={space.name}>
-                <Button asChild={true} variant="quiet">
-                  <Link href={sectionPath(quest.id)}>
-                    <Icon name="arrow-left" />
-                    {QUEST_OVERVIEW_COPY.back}
+                <SpaceSettings questId={quest.id} />
+              </nav>
+              <ul className="quest-overview-links">
+                <li>
+                  <Link
+                    href={`/quests/${quest.id}?section=rites`}
+                    className="quest-overview-link"
+                  >
+                    {PERFORMANCE_COPY.ritesAndStatus}
                   </Link>
-                </Button>
-                <h2 className="quest-overview-title">{space.name}</h2>
-                <SpaceMurmlings
-                  key={space.id}
-                  space={space}
-                  questId={quest.id}
-                  contents={contents}
-                  destinations={spaces.filter(({ id }) => id !== space.id)}
-                />
-                <SpaceSettings
-                  key={space.id}
-                  questId={quest.id}
-                  space={space}
-                />
-              </section>
-            )}
-            {current !== undefined && (
-              <section
-                className="quest-section-body"
-                aria-label={sections[current].label}
+                </li>
+                <li>
+                  <Link
+                    href={`/quests/${quest.id}?section=performances`}
+                    className="quest-overview-link"
+                  >
+                    {PERFORMANCE_COPY.heading}
+                  </Link>
+                </li>
+              </ul>
+              <Link
+                href={sectionPath(quest.id, "members")}
+                className="quest-overview-link"
               >
-                {sections[current].content}
-              </section>
-            )}
-            {(section === "rites" || section === "performances") && (
+                {QUEST_MEMBERS_COPY.heading}
+              </Link>
+            </>
+          )}
+          {space !== undefined && (
+            <section className="quest-section-body" aria-label={space.name}>
               <Button asChild={true} variant="quiet">
                 <Link href={sectionPath(quest.id)}>
+                  <Icon name="arrow-left" />
                   {QUEST_OVERVIEW_COPY.back}
                 </Link>
               </Button>
-            )}
-            {riteContent}
-            {historyContent !== undefined && (
-              <section
-                aria-label={PERFORMANCE_COPY.heading}
-                className="quest-section-body"
-              >
-                <h2 className="section-heading">{PERFORMANCE_COPY.heading}</h2>
-                {historyContent}
-              </section>
-            )}
-            {section !== "performances" && runningContent}
-          </QuestStatusFeedback>
-        </div>
-      </QuestTasks>
-    </ConversationPanel>
+              <h2 className="quest-overview-title">{space.name}</h2>
+              <SpaceMurmlings
+                key={space.id}
+                space={space}
+                questId={quest.id}
+                contents={contents}
+                days={record?.days}
+                destinations={spaces.filter(({ id }) => id !== space.id)}
+              />
+              <SpaceSettings key={space.id} questId={quest.id} space={space} />
+            </section>
+          )}
+          {current !== undefined && (
+            <Button asChild={true} variant="quiet">
+              <Link href={sectionPath(quest.id)}>
+                <Icon name="arrow-left" />
+                {QUEST_OVERVIEW_COPY.back}
+              </Link>
+            </Button>
+          )}
+          {current === "members" && people !== undefined && (
+            <QuestMembers viewer={user} people={people} quest={quest} />
+          )}
+          {dayGrid}
+          {riteContent}
+          {historyContent !== undefined && (
+            <section
+              aria-label={PERFORMANCE_COPY.heading}
+              className="quest-section-body"
+            >
+              <h2 className="section-heading">{PERFORMANCE_COPY.heading}</h2>
+              {historyContent}
+            </section>
+          )}
+          {section !== "performances" && runningContent}
+        </QuestStatusFeedback>
+      </div>
+    </QuestSidePanel>
   );
 }
 

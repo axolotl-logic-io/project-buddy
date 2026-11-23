@@ -9,6 +9,12 @@ const MURMLING_CHANGE = z.discriminatedUnion("kind", [
     text: z.string(),
     type: MURMLING_TYPE.optional(),
   }),
+  z.object({ kind: z.literal("undo"), version: z.number().int().positive() }),
+  z.object({
+    kind: z.literal("recurring"),
+    id: MURMLING_ID,
+    recurring: z.boolean(),
+  }),
   z.object({ kind: z.literal("edit"), id: MURMLING_ID, text: z.string() }),
   z.object({ kind: z.literal("type"), id: MURMLING_ID, type: MURMLING_TYPE }),
   z.object({

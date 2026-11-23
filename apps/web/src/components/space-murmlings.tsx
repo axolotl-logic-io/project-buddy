@@ -13,7 +13,13 @@ import {
 import type { EditorOptions } from "@/components/ui/editable-list-contract.ts";
 import { SelectField } from "@/components/ui/field.tsx";
 import { Alert, FormStatus } from "@/components/ui/form-message.tsx";
+import { Icon } from "@/components/ui/icon.tsx";
 import { useQuestAction } from "@/components/use-quest-action.ts";
+import {
+  type DailiesDay,
+  type StreakChain,
+  streakChains,
+} from "@/dailies/dailies.ts";
 import type { QuestId } from "@/ids.ts";
 import { MURMLING_CHANGE, type MurmlingChange } from "@/spaces/murmling.ts";
 import { changeMurmlingAction } from "@/spaces/murmling-actions.ts";
@@ -33,6 +39,7 @@ interface SpaceMurmlingsProps {
   readonly space: Space;
   readonly contents: readonly Murmling[];
   readonly destinations: readonly Space[];
+  readonly days?: readonly DailiesDay[] | undefined;
 }
 
 type RunChange = (change: MurmlingChange) => Promise<boolean>;
@@ -80,10 +87,13 @@ function MurmlingRow({
   destinations,
   run,
   busy,
+  days,
+  chain,
 }: Omit<SpaceMurmlingsProps, "contents" | "questId"> & {
   readonly item: Murmling;
   readonly run: RunChange;
   readonly busy: boolean;
+  readonly chain?: StreakChain | undefined;
 }): JSX.Element {
   const { id, checkedOff } = item;
   const save = useCallback(
@@ -102,6 +112,9 @@ function MurmlingRow({
   const toggle = useCallback(async (): Promise<void> => {
     await run({ kind: "check", id, checkedOff: !checkedOff });
   }, [id, run, checkedOff]);
+  const recurring = useCallback(async (): Promise<void> => {
+    await run({ kind: "recurring", id, recurring: !item.recurring });
+  }, [id, item.recurring, run]);
   const move = useCallback(
     async (event: SubmitEvent<HTMLFormElement>): Promise<void> => {
       event.preventDefault();
@@ -114,6 +127,18 @@ function MurmlingRow({
     },
     [id, run],
   );
+  let recurringLabel = SPACES_COPY.makeRecurring;
+  if (item.recurring) {
+    ({ makeOneOff: recurringLabel } = SPACES_COPY);
+  }
+  let badge: JSX.Element | undefined;
+  if (item.recurring) {
+    badge = (
+      <span role="img" aria-label={SPACES_COPY.recurring}>
+        <Icon name="repeat" />
+      </span>
+    );
+  }
   let checked: boolean | undefined;
   let toggleLabel = space.checkOff;
   let menuLabel: string | undefined;
@@ -163,7 +188,13 @@ function MurmlingRow({
       onToggle={toggle}
       disabled={busy}
       onSave={save}
-      detail={detail}
+      detail={
+        <>
+          {chain !== undefined && <Streak chain={chain} />}
+          {detail}
+        </>
+      }
+      badge={badge}
       leading={leading}
     >
       <EditableListAction icon="arrow-up" onSelect={up}>
@@ -177,10 +208,36 @@ function MurmlingRow({
         .map((type) => (
           <MarkType key={type} type={type} id={id} run={run} />
         ))}
+      {days !== undefined && item.type === "task" && (
+        <EditableListAction icon="repeat" onSelect={recurring}>
+          {recurringLabel}
+        </EditableListAction>
+      )}
       <EditableListAction icon="trash" onSelect={remove}>
         {SPACES_COPY.removeMurmling(space.singular)}
       </EditableListAction>
     </EditableListRow>
+  );
+}
+
+function Streak({ chain }: { readonly chain: StreakChain }): JSX.Element {
+  return (
+    <span className="streak-chain">
+      <span className="streak-links" aria-hidden="true">
+        {Array.from({ length: chain.links }, (_, index) => index).map(
+          (index) => {
+            let mark = "today";
+            if (index < chain.earned || chain.doneToday) {
+              mark = "earned";
+            }
+            return (
+              <span key={index} className="streak-link" data-link={mark} />
+            );
+          },
+        )}
+      </span>
+      <span className="streak-note">{SPACES_COPY.streakNote(chain)}</span>
+    </span>
   );
 }
 
@@ -189,9 +246,11 @@ function SpaceMurmlings({
   space,
   contents,
   destinations,
+  days,
 }: SpaceMurmlingsProps): JSX.Element {
   const {
     run: save,
+    undoVersion,
     busy,
     status,
     problem,
@@ -202,6 +261,11 @@ function SpaceMurmlings({
       save({ questId, spaceId, change }),
     [questId, save, spaceId],
   );
+  const undo = useCallback(async (): Promise<void> => {
+    if (undoVersion !== undefined) {
+      await run({ kind: "undo", version: undoVersion });
+    }
+  }, [run, undoVersion]);
   const add = useCallback(
     (text: string): Promise<boolean> => run({ kind: "add", text }),
     [run],
@@ -220,11 +284,22 @@ function SpaceMurmlings({
     },
     [run],
   );
+  const chains = streakChains(days ?? [], {
+    items: contents.flatMap(({ taskNumber, text, checkedOff, recurring }) => {
+      if (taskNumber === null) {
+        return [];
+      }
+      return [{ number: taskNumber, text, done: checkedOff, recurring }];
+    }),
+  });
   function row(item: Murmling): JSX.Element {
+    const chain = chains.get(item.taskNumber ?? 0);
     return (
       <MurmlingRow
         key={item.id}
         item={item}
+        days={days}
+        chain={chain}
         space={space}
         destinations={destinations}
         run={run}
@@ -238,6 +313,11 @@ function SpaceMurmlings({
     <EditableListScope blocked={busy}>
       <div className="grid gap-3">
         <FormStatus>{status}</FormStatus>
+        {undoVersion !== undefined && (
+          <Button variant="quiet" onClick={undo} disabled={busy}>
+            {SPACES_COPY.undo}
+          </Button>
+        )}
         {problem !== undefined && <Alert>{problem}</Alert>}
         <AddListItem
           label={addLabel}

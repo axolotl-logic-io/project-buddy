@@ -9,7 +9,7 @@ import {
   uuid,
 } from "drizzle-orm/pg-core";
 // Relative imports: drizzle-kit loads this file without the @/ alias.
-import { quests } from "./quests-and-chats.ts";
+import { quests } from "./quests.ts";
 import { users } from "./users.ts";
 
 // A quest's accepted members: users other than its owner who accepted an

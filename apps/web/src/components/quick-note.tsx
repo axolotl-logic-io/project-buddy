@@ -18,7 +18,7 @@ import { Button } from "@/components/ui/button.tsx";
 import { SelectField, TextAreaField } from "@/components/ui/field.tsx";
 import { Alert, FormStatus, Notice } from "@/components/ui/form-message.tsx";
 import { Icon } from "@/components/ui/icon.tsx";
-import { checkNoteText } from "@/notes/note.ts";
+import { checkNoteText } from "@/spaces/quick-note.ts";
 import {
   listQuickNoteQuests,
   type QuickNoteQuest,

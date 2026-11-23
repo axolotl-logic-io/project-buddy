@@ -8,7 +8,7 @@ import { AppError } from "@/errors/app-error.ts";
 import { QUEST_ID } from "@/ids.ts";
 import { SPACES_COPY } from "@/ui/copy/spaces.ts";
 import { MURMLING_CHANGE } from "./murmling.ts";
-import { changeMurmling } from "./murmling-store.ts";
+import { writeSpaceContents } from "./murmling-store.ts";
 import { SPACE_ID } from "./space.ts";
 
 const REQUEST = z.object({
@@ -27,10 +27,22 @@ async function changeMurmlingAction(
   }
   try {
     const { questId, spaceId, change } = input.data;
-    const result = await changeMurmling(user.id, questId, spaceId, change);
+    const { result, space } = await writeSpaceContents(
+      user.id,
+      questId,
+      spaceId,
+      change,
+    );
     if (result === "saved") {
       refresh();
-      return { kind: "saved", message: SPACES_COPY.savedChange };
+      let message = SPACES_COPY.savedChange;
+      if (change.kind === "check" && space !== undefined) {
+        message = SPACES_COPY.checked(space, change.checkedOff);
+      }
+      if (change.kind === "undo" || space === undefined) {
+        return { kind: "saved", message };
+      }
+      return { kind: "saved", message, undoVersion: space.version };
     }
     return { kind: "problem", text: SPACES_COPY.changeProblems[result] };
   } catch (error) {

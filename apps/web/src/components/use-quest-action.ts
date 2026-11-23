@@ -1,13 +1,18 @@
 import { useCallback, useState } from "react";
-import { PANEL_COMMANDS_COPY } from "@/ui/copy/commands.ts";
+import { SPACES_COPY } from "@/ui/copy/spaces.ts";
 
 type QuestActionResult =
-  | { readonly kind: "saved"; readonly message?: string }
+  | {
+      readonly kind: "saved";
+      readonly message?: string;
+      readonly undoVersion?: number;
+    }
   | { readonly kind: "problem"; readonly text: string };
 
 interface QuestAction<Request> {
   readonly run: (request: Request) => Promise<boolean>;
   readonly busy: boolean;
+  readonly undoVersion: number | undefined;
   readonly status: string | undefined;
   readonly problem: string | undefined;
 }
@@ -16,6 +21,7 @@ function useQuestAction<Request>(
   action: (request: Request) => Promise<QuestActionResult>,
 ): QuestAction<Request> {
   const [busy, setBusy] = useState(false);
+  const [undoVersion, setUndoVersion] = useState<number>();
   const [status, setStatus] = useState<string>();
   const [problem, setProblem] = useState<string>();
   const run = useCallback(
@@ -30,9 +36,10 @@ function useQuestAction<Request>(
           return false;
         }
         setStatus(result.message);
+        setUndoVersion(result.undoVersion);
         return true;
       } catch {
-        setProblem(PANEL_COMMANDS_COPY.problems.failed);
+        setProblem(SPACES_COPY.saveFailed);
         return false;
       } finally {
         setBusy(false);
@@ -40,7 +47,7 @@ function useQuestAction<Request>(
     },
     [action],
   );
-  return { run, busy, status, problem };
+  return { run, busy, undoVersion, status, problem };
 }
 
 export type { QuestActionResult };

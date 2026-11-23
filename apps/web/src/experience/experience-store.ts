@@ -12,9 +12,7 @@ import {
   experienceOf,
   NO_EVENTS,
 } from "@/experience/experience.ts";
-import { taskPointChanges } from "@/experience/task-points.ts";
 import type { QuestId, UserId } from "@/ids.ts";
-import type { Tasks } from "@/tasks/tasks.ts";
 
 // Who gains counts, and the quest they did it in.
 interface PointGainer {
@@ -64,23 +62,24 @@ async function takeBackEvents(
   await database.delete(events).where(inArray(events.id, newest));
 }
 
-// The counts a change to the quest's Tasks gains the user, or takes back
-// for each task it reopened.
-async function changeTaskPoints(
-  database: Database,
-  gainer: PointGainer,
-  before: Tasks,
-  after: Tasks,
-): Promise<void> {
-  const { added, completed, reopened } = taskPointChanges(before, after);
-  await recordEvents(database, gainer, "adding", added.map(String));
-  await recordEvents(database, gainer, "checking-off", completed.map(String));
-  await takeBackEvents(
-    database,
-    "checking-off",
-    gainer.questId,
-    reopened.map(String),
-  );
+async function latestCheckOff(
+  db: Database,
+  questId: QuestId,
+  taskNumber: number,
+): Promise<typeof events.$inferSelect | undefined> {
+  const [row] = await db
+    .select()
+    .from(events)
+    .where(
+      and(
+        eq(events.questId, questId),
+        eq(events.event, "checking-off"),
+        eq(events.source, String(taskNumber)),
+      ),
+    )
+    .orderBy(desc(events.gainedAt), desc(events.id))
+    .limit(1);
+  return row;
 }
 
 // The user's counts in each event and where they put them.
@@ -106,4 +105,4 @@ function readExperience(user: UserId): Promise<Experience> {
 }
 
 export type { PointGainer };
-export { changeTaskPoints, readExperience, recordEvents, takeBackEvents };
+export { latestCheckOff, readExperience, recordEvents, takeBackEvents };

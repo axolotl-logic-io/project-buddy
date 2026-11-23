@@ -14,6 +14,12 @@ export const QUEST_MEMBERS_COPY = {
   listLabel: "People in this quest",
   owner: "Owner",
   member: "Member",
+  invalidEmail: "Enter an email address.",
+  invitationResult: {
+    invited: (email: string): string => `Invited ${email} to this quest.`,
+    unsent: (email: string): string =>
+      `Saved the invitation for ${email}. The email could not be sent.`,
+  },
   invited: "Invited, not accepted yet",
   you: (name: string): string => `${name} (you)`,
   intro:
@@ -30,7 +36,7 @@ export const QUEST_MEMBERS_COPY = {
   remove: "Remove",
   removeLabel: (name: string): string => `Remove ${name} from this quest`,
   removeConfirm: (name: string): string =>
-    `${name} loses access to this quest's conversation, Tasks and everything else in it. What they wrote stays. Anyone in the quest can invite them again.`,
+    `${name} loses access to this quest's spaces and performances. What they wrote stays. Anyone in the quest can invite them again.`,
   removeCancel: "Keep member",
   withdraw: "Withdraw",
   withdrawLabel: (name: string): string => `Withdraw ${name}'s invitation`,

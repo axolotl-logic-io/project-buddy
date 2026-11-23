@@ -1,6 +1,6 @@
 import { index, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
 // Relative imports: drizzle-kit loads this file without the @/ alias.
-import { quests } from "./quests-and-chats.ts";
+import { quests } from "./quests.ts";
 import { users } from "./users.ts";
 
 // Each row records an event for its acting user. Removing a quest keeps

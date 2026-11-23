@@ -2,7 +2,8 @@
 
 import { refresh } from "next/cache";
 import { z } from "zod";
-import { requireUser } from "@/auth/current-user.ts";
+import { currentUser, requireUser } from "@/auth/current-user.ts";
+import { AppError } from "@/errors/app-error.ts";
 import { QUEST_ID } from "@/ids.ts";
 import { SPACE_ID } from "@/spaces/space.ts";
 import { PERFORMANCE_COPY } from "@/ui/copy/performances.ts";
@@ -55,19 +56,27 @@ async function stopPerformanceAction(
   return undefined;
 }
 
-async function conjureAction(
-  request: unknown,
-): Promise<typeof PERFORMANCE_COPY.required | undefined> {
-  const user = await requireUser();
+async function conjureAction(request: unknown): Promise<string | undefined> {
+  const user = await currentUser();
+  if (user === undefined) {
+    return PERFORMANCE_COPY.signedOut;
+  }
   const input = CONJURE_INPUT.safeParse(request).data;
-  if (
-    input === undefined ||
-    (await conjure(user.id, input.questId, input)) === undefined
-  ) {
+  if (input === undefined) {
     return PERFORMANCE_COPY.required;
   }
-  refresh();
-  return undefined;
+  try {
+    if ((await conjure(user.id, input.questId, input)) === undefined) {
+      return PERFORMANCE_COPY.required;
+    }
+    refresh();
+    return undefined;
+  } catch (error) {
+    if (error instanceof AppError) {
+      return error.message;
+    }
+    throw error;
+  }
 }
 
 export { conjureAction, startPerformanceAction, stopPerformanceAction };

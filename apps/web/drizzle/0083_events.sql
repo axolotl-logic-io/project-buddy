@@ -1,16 +1,24 @@
-ALTER TABLE "ability_points" RENAME TO "events";--> statement-breakpoint
-ALTER TABLE "events" RENAME COLUMN "ability" TO "event";--> statement-breakpoint
-ALTER TABLE "events" DROP CONSTRAINT "ability_points_user_id_users_id_fk";
+CREATE TABLE "events" (
+  "id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+  "user_id" uuid NOT NULL REFERENCES "users" ("id") ON DELETE CASCADE,
+  "event" text NOT NULL,
+  "quest_id" uuid REFERENCES "quests" ("id") ON DELETE SET NULL,
+  "source" text NOT NULL,
+  "gained_at" timestamp with time zone DEFAULT now() NOT NULL
+);
 --> statement-breakpoint
-ALTER TABLE "events" DROP CONSTRAINT "ability_points_quest_id_quests_id_fk";
+CREATE INDEX "events_user_id_event_idx" ON "events" ("user_id", "event");
 --> statement-breakpoint
-DROP INDEX "ability_points_user_id_ability_idx";--> statement-breakpoint
-DROP INDEX "ability_points_quest_id_ability_source_idx";--> statement-breakpoint
-ALTER TABLE "events" ADD CONSTRAINT "events_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "events" ADD CONSTRAINT "events_quest_id_quests_id_fk" FOREIGN KEY ("quest_id") REFERENCES "public"."quests"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
-CREATE INDEX "events_user_id_event_idx" ON "events" USING btree ("user_id","event");--> statement-breakpoint
-CREATE INDEX "events_quest_id_event_source_idx" ON "events" USING btree ("quest_id","event","source");
+CREATE INDEX "events_quest_id_event_source_idx" ON "events" ("quest_id", "event", "source");
 --> statement-breakpoint
-UPDATE events SET event = 'adding' WHERE event IN ('adding-tasks', 'ideating', 'noting');
---> statement-breakpoint
-UPDATE events SET event = 'checking-off' WHERE event = 'completing-tasks';
+INSERT INTO events (id, user_id, event, quest_id, source, gained_at)
+SELECT id, user_id,
+       CASE ability
+         WHEN 'adding-tasks' THEN 'adding'
+         WHEN 'ideating' THEN 'adding'
+         WHEN 'noting' THEN 'adding'
+         WHEN 'completing-tasks' THEN 'checking-off'
+         ELSE ability
+       END,
+       quest_id, source, gained_at
+FROM ability_points;

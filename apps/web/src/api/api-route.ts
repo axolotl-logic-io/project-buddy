@@ -19,13 +19,9 @@ import { getQuest, type Quest } from "@/quests/store.ts";
 const API_PROBLEM_CODES = [
   "invalid_input",
   "authorization_required",
-  "spell_required",
   "performance_required",
   "not_found",
   "conflict",
-  "reply_in_progress",
-  "rate_limited",
-  "reply_failed",
   "server_error",
 ] as const;
 
@@ -44,19 +40,12 @@ function problemKind(code: ApiProblemCode): ProblemKind {
       return { status: HTTP_STATUS.badRequest, retryable: false };
     case "authorization_required":
       return { status: HTTP_STATUS.unauthorized, retryable: false };
-    case "spell_required":
     case "performance_required":
       return { status: HTTP_STATUS.forbidden, retryable: false };
     case "not_found":
       return { status: HTTP_STATUS.notFound, retryable: false };
     case "conflict":
       return { status: HTTP_STATUS.conflict, retryable: false };
-    case "reply_in_progress":
-      return { status: HTTP_STATUS.conflict, retryable: true };
-    case "rate_limited":
-      return { status: HTTP_STATUS.tooManyRequests, retryable: true };
-    case "reply_failed":
-      return { status: HTTP_STATUS.badGateway, retryable: true };
     case "server_error":
       return { status: HTTP_STATUS.internalServerError, retryable: true };
     default:
@@ -110,8 +99,6 @@ const NOT_FOUND_MESSAGE =
 type CaseProblemCode = Extract<
   ApiProblemCode,
   | "not_found"
-  | "reply_in_progress"
-  | "rate_limited"
   | "authorization_required"
   | "server_error"
 >;
@@ -121,10 +108,6 @@ function problemOfCase(errorCase: AppErrorCase): CaseProblemCode {
   switch (errorCase) {
     case "not-found":
       return "not_found";
-    case "already-answered":
-      return "reply_in_progress";
-    case "rate-limited":
-      return "rate_limited";
     case "signed-out":
       return "authorization_required";
     default:
@@ -138,7 +121,7 @@ function apiData(data: unknown): Response {
 }
 
 // A list, in its domain's order, with anything else the list has, such as
-// the Tasks version.
+// the space version.
 function apiItems(
   items: readonly unknown[],
   meta: Readonly<Record<string, unknown>> = {},

@@ -12,7 +12,7 @@ import {
   uniqueIndex,
   uuid,
 } from "drizzle-orm/pg-core";
-import { quests } from "./quests-and-chats.ts";
+import { quests } from "./quests.ts";
 
 const spaces = pgTable(
   "spaces",
