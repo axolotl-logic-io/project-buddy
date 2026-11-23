@@ -1,9 +1,7 @@
 // use_case_private_data on the pages, with two users side by side, each
-// signed in as their own account: another user's quest, memory and chat
-// pages are not found, exactly as an unknown id's are, and the quests
-// list and the New Chat picker show each user only their own quests. The
-// other private-data*.server.test.ts files cover constructs, chats, Server
-// Actions and the stores.
+// signed in as their own account: another user's quest page is not found,
+// exactly as an unknown id's is, and the quests list shows each user only
+// their own quests.
 
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, test } from "vitest";

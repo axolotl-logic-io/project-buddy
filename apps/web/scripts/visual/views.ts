@@ -62,7 +62,6 @@ const MINUTE_MS = 60_000;
 const WORK_MINUTES = 50;
 const BREAK_MINUTES = 10;
 const MINUTES_IN = 18;
-// The chat requests that ask the construct for a reply.
 
 // The typical account's rite and quests (review-content.ts).
 const RITE: string = TYPICAL.rites[0]?.name ?? "";
@@ -203,8 +202,8 @@ const VIEWS: readonly VisualView[] = [
     },
   },
 
-  // 3. Quest workspace: the conversation, with the construct's avatar, the
-  // performance and spaces.
+  // 3. Quest workspace: the performance, with the construct's avatar, and
+  // the spaces.
   {
     view: "quest",
     state: "performance",

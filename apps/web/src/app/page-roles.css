@@ -290,7 +290,7 @@
     @apply font-heading font-semibold text-page-heading-phone tracking-tight sm:text-page-heading;
   }
 
-  /* A heading inside a page, such as a project's chat list. */
+  /* A heading inside a page, such as a quest's list of spaces. */
   .section-heading {
     @apply font-heading font-semibold text-section-heading;
   }
@@ -307,8 +307,8 @@
     @apply font-heading font-semibold text-card-title;
   }
 
-  /* A link inside text or a list, such as the footer's or the chat's link to
-     sign in again. */
+  /* A link inside text or a list, such as the footer's or the performance's
+     link to sign in again. */
   .text-link {
     @apply rounded-control underline decoration-(length:--line-width) decoration-line underline-offset-4 hover:text-primary hover:decoration-primary;
   }
@@ -435,51 +435,15 @@
     @apply font-medium text-sm;
   }
 
-  /* A read-only prompt's rendered Markdown, such as a built-in construct's
-     instructions: set on the field surface, as the editable text is, so it
-     reads as one document rather than as part of the page. */
-  .prompt-sheet {
-    @apply min-w-0 rounded-box border border-line bg-field px-4 py-3;
-  }
-
   /* A field's hint: what to write, or what the value does. */
   .field-hint {
     @apply text-muted text-sm;
   }
 
   /* A field the user types into or picks from: an input, a textarea or a
-     select. A field box looks the same, but holds a borderless control (its
-     field-box-control) beside actions, such as the chat's message and its
-     Send button. */
-  .input-field,
-  .field-box {
-    @apply w-full border border-line bg-field text-foreground shadow-control;
-  }
-
+     select. */
   .input-field {
-    @apply rounded-control px-3 py-2 placeholder:text-muted aria-[invalid=true]:border-danger;
-  }
-
-  .field-box {
-    @apply flex items-end gap-2 rounded-box p-2;
-  }
-
-  .field-box-control {
-    @apply min-w-0 flex-1 resize-none bg-transparent px-2 py-1.5 leading-relaxed placeholder:text-muted;
-  }
-
-  /* The box shows its control's focus, with the contract's focus ring and
-     glow (src/themes/contract.css), so the control itself draws neither. The
-     glow is a layer of the box's shadow-control box-shadow. */
-  .field-box:has(.field-box-control:focus-visible) {
-    outline: var(--focus-outline);
-    outline-offset: var(--focus-offset);
-    --tw-ring-offset-shadow: var(--focus-glow);
-  }
-
-  .field-box-control:focus-visible {
-    outline: none;
-    box-shadow: none;
+    @apply w-full rounded-control border border-line bg-field px-3 py-2 text-foreground shadow-control placeholder:text-muted aria-[invalid=true]:border-danger;
   }
 
   /* An icon (the Icon building block in src/components/ui/icon.tsx): a box
@@ -546,7 +510,7 @@
   }
 
   /* One item of a list, such as an activity. Cards that sit on the page
-     (this, .current-quest, .quest-start-tile and .tasks-change) let the
+     (this, .current-quest and .quest-start-tile) let the
      page's decoration show faintly through a slightly translucent
      surface; notices, panels and dialogs stay opaque. */
   .card {
@@ -685,12 +649,6 @@
      when the row runs out of room. */
   .divided-rows > .divided-row-action {
     @apply flex-row flex-wrap items-center justify-between gap-x-3;
-  }
-
-  /* A card's actions, in a row along its foot: cards in a grid row share
-     a height, so their action rows line up. */
-  .card-actions {
-    @apply mt-auto flex flex-wrap items-center gap-x-3 gap-y-1;
   }
 
   /* A shape that stands in for content while it loads: an empty card, in
@@ -1184,7 +1142,7 @@
     letter-spacing: var(--display-tracking);
   }
 
-  /* The site panel (src/components/site-panel.tsx), the chat panel's
+  /* The site panel (src/components/site-panel.tsx), the quest side panel's
      mirror on the left: under the header, for the rest of the screen's
      height. Its expand button starts the breadcrumb row; the close button
      lines up with it inside the open panel. It opens over the page's left edge and never
@@ -1410,10 +1368,6 @@
 
   .workspace-intro {
     @apply text-muted text-sm;
-  }
-
-  .workspace-rail {
-    @apply flex min-w-0 flex-wrap items-center justify-between gap-x-4 border-line border-y px-4 sm:px-6;
   }
 
   .workspace-content {
@@ -1733,25 +1687,6 @@
     @apply rounded-none border-0 bg-transparent p-0 shadow-none;
   }
 
-  .workspace-rows > ul {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  /* A construct in a list: its avatar, then a column with its name,
-     temperament and actions, so actions never squeeze the name. The column
-     takes the card's height, so its card-actions row sits at the foot. */
-  .construct-card {
-    @apply grid grid-cols-[auto_minmax(0,1fr)] gap-3;
-  }
-
-  .construct-card > :first-child {
-    @apply self-start;
-  }
-
-  .workspace-rows > ul > .card {
-    @apply rounded-none border-0 border-line border-b bg-transparent px-0 py-4 shadow-none last:border-b-0;
-  }
-
   .appearance-settings .panel-modes {
     @apply mx-0;
   }
@@ -1867,10 +1802,6 @@
 
   .day-grid-day[data-mark="untracked"] .day-grid-square {
     @apply border-line;
-  }
-
-  .editable-badge {
-    @apply inline-flex shrink-0 items-center gap-1 px-1 text-muted text-sm tabular-nums;
   }
 
   /* More about an item, on its own line under the text and the actions. */
@@ -2036,10 +1967,6 @@
     @apply text-sm font-semibold;
   }
 
-  .quest-next-task-row {
-    @apply flex w-full flex-wrap items-center justify-between gap-2;
-  }
-
   .quest-overview-links {
     @apply mt-2 grid gap-2 sm:grid-cols-2;
   }
@@ -2142,20 +2069,6 @@
     @apply sticky top-0 z-10 flex items-center justify-between border-line/40 border-b bg-sidebar-surface;
   }
 
-  .quest-sidebar .workspace-rail {
-    --sidebar-tab-pad: --spacing(2);
-    margin-inline: calc(-1 * var(--header-gutter));
-    @apply gap-0 border-line/40 border-t-0 px-2;
-  }
-
-  .dailies-day-controls {
-    @apply flex flex-col items-start gap-2 py-4;
-  }
-
-  .quest-next-task {
-    @apply my-4 flex flex-col gap-2 border-primary border-s-2 ps-3;
-  }
-
   .quest-member-invite {
     @apply flex flex-col gap-2;
   }
@@ -2196,61 +2109,12 @@
     }
   }
 
-  .workspace-menu-tab {
-    position: relative;
-  }
-
-  .workspace-menu-tab .icon > svg {
-    @apply size-3.5;
-  }
-
-  .workspace-menu-tab[aria-expanded="true"] .icon {
-    rotate: 180deg;
-  }
-
-  /* An open menu's tab: the menu's fill and border, with no bottom edge,
-     dropping through the row's line into the menu under it, so the two
-     read as one shape. The tab sits over the menu's top edge. */
-  .workspace-menu-tab[aria-expanded="true"] {
-    z-index: 1;
-    @apply text-foreground;
-  }
-
-  .workspace-menu-tab[aria-expanded="true"]::after {
-    display: none;
-  }
-
-  .workspace-menu-tab[aria-expanded="true"]::before {
-    content: "";
-    position: absolute;
-    z-index: -1;
-    inset-inline: 0;
-    inset-block-start: --spacing(2);
-    inset-block-end: calc(-1 * var(--line-width));
-    @apply rounded-t-control border border-line border-b-0 bg-secondary-surface;
-  }
-
-  /* The menu's top edge lies on the row's line, so the line runs on into it. */
-  .workspace-menu {
-    z-index: 0;
-    margin-block-start: calc(-1 * var(--line-width));
-    @apply min-w-44 rounded-control rounded-ss-none border border-line bg-secondary-surface p-1 text-sm shadow-raised;
-  }
-
-  .workspace-menu-item {
-    @apply justify-between;
-  }
-
-  .workspace-menu-check {
-    @apply flex text-primary;
-  }
-
   .quest-sidebar .workspace-content {
     @apply px-0 py-4;
   }
 
-  /* The button that opens or closes a side panel: the chat panel's and the
-     site panel's. */
+  /* The button that opens or closes a side panel: the quest side panel's
+     and the site panel's. */
   .panel-toggle {
     inline-size: var(--target-size);
     block-size: var(--target-size);
@@ -2331,46 +2195,6 @@
     .quest-sidebar-frame {
       @apply z-20;
     }
-  }
-
-  /* The composer's command list (src/components/chat/command-menu.tsx),
-     above the message box: the commands scroll, and the hint under them
-     stays in view. Each command's usage sits over its description on a
-     phone, and from sm in a column of its own, so the descriptions line
-     up. */
-  .command-menu {
-    @apply absolute inset-x-0 bottom-full z-10 mb-2 flex max-h-72 flex-col gap-2 rounded-box border border-line bg-surface p-2 shadow-raised;
-  }
-
-  .command-list {
-    @apply grid min-h-0 grid-cols-[minmax(0,1fr)] gap-y-1 overflow-y-auto sm:grid-cols-[auto_minmax(0,1fr)];
-  }
-
-  .command-option {
-    min-block-size: var(--target-size);
-    @apply col-span-full flex w-full flex-col justify-center rounded-action px-2 py-1 text-left text-sm hover:bg-field aria-selected:bg-field aria-selected:font-semibold sm:grid sm:grid-cols-subgrid sm:items-baseline sm:gap-x-4;
-  }
-
-  .command-option > code {
-    @apply font-semibold text-primary;
-  }
-
-  .command-hint {
-    @apply shrink-0 border-line/40 border-t px-2 pt-2 text-muted text-xs;
-  }
-}
-
-@layer components {
-  .quest-note-composer {
-    @apply flex min-w-0 flex-col gap-3 rounded-control border border-line bg-field p-3;
-  }
-
-  .quest-note-composer .input-field {
-    @apply min-h-30 text-base;
-  }
-
-  .quest-note-hint {
-    @apply flex flex-wrap justify-between gap-2;
   }
 }
 

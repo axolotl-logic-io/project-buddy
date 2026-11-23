@@ -73,7 +73,7 @@ describe("a server test's request", () => {
     const user = await testUser();
     await signIn(user);
 
-    const request = requestWithSession("http://localhost/api/chat", {
+    const request = requestWithSession("http://localhost/api/v1/me", {
       method: "POST",
       headers: { "content-type": "application/json" },
     });
@@ -89,7 +89,7 @@ describe("a server test's request", () => {
 
   test("carries no cookie when signed out", () => {
     expect(
-      requestWithSession("http://localhost/api/chat").headers.get("cookie"),
+      requestWithSession("http://localhost/api/v1/me").headers.get("cookie"),
     ).toBeNull();
   });
 });

@@ -42,7 +42,8 @@ interface Site {
   readonly session: string;
 }
 
-// A quest being filled: its owner, its id and its conversation's id.
+// A quest being filled: its owner, its id, its first two spaces, its
+// rites by name and its active performance.
 interface Scene {
   readonly owner: string;
   readonly questId: string;

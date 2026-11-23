@@ -1,5 +1,5 @@
-// Stored quests for the page tests, shaped as the quest and chat
-// stores return them, with fixed canonical UUID ids from the id fixtures.
+// Stored quests for the page tests, shaped as the quest store returns
+// them, with fixed canonical UUID ids from the id fixtures.
 
 import type { Quest } from "@/quests/store.ts";
 import { questIdFixture } from "../../../support/id-fixtures.ts";

@@ -1,7 +1,6 @@
-// Starting quests, in the test database with the local construct engine: what the
-// one start action makes from each of the four starting points, as the
-// stores give it to the pages. Concurrent Dailies starts and their
-// isolation are conversations.server.test.ts's.
+// Starting quests, in the test database: what the one start action makes
+// from each of the four starting points, as the stores give it to the
+// pages.
 
 import { describe, expect, test } from "vitest";
 import type { User } from "@/accounts/users-store.ts";
@@ -54,7 +53,7 @@ function startForm(
 }
 
 // Starts a quest from form as the signed-in user, checks the action opened
-// the quest it made, the newest of theirs, and returns its conversation.
+// the quest it made, the newest of theirs, and returns it.
 async function startQuest(user: User, form: FormData): Promise<Quest> {
   const starting = startQuestAction(IDLE, form);
   await Promise.allSettled([starting]);
@@ -96,14 +95,12 @@ describe("use_case_new_quest", () => {
       const user = await testUser();
       await signIn(user);
 
-      const conversation = await startQuest(user, startForm(id));
+      const started = await startQuest(user, startForm(id));
 
-      expect(conversation.constructId).toBe(premade(id).constructId);
-      expect(await listPerformances(user.id, conversation.id)).toEqual([]);
+      expect(started.constructId).toBe(premade(id).constructId);
+      expect(await listPerformances(user.id, started.id)).toEqual([]);
       expect(
-        (await listSpaces(user.id, conversation.id)).map(
-          ({ newType }) => newType,
-        ),
+        (await listSpaces(user.id, started.id)).map(({ newType }) => newType),
       ).toEqual(["task", "plain"]);
     },
   );
@@ -113,11 +110,11 @@ describe("use_case_new_quest", () => {
     async (id) => {
       const user = await testUser();
       await signIn(user);
-      const conversation = await startQuest(
+      const started = await startQuest(
         user,
         startForm(id, { motivation: "  Make time for myself.  " }),
       );
-      expect(conversation.startingContext).toBe("Make time for myself.");
+      expect(started.startingContext).toBe("Make time for myself.");
     },
   );
 
@@ -175,11 +172,11 @@ describe("use_case_new_quest_with_construct", () => {
       if (other === undefined) {
         throw new Error("No other construct");
       }
-      const conversation = await startQuest(
+      const started = await startQuest(
         user,
         startForm(id, { constructId: other.id }),
       );
-      expect(conversation.constructId).toBe(assigned.id);
+      expect(started.constructId).toBe(assigned.id);
     },
   );
 });
@@ -214,12 +211,12 @@ describe("use_case_new_quest_name_too_long", () => {
     await signIn(user);
     const name = "f".repeat(QUEST_NAME_MAX_LENGTH);
 
-    const conversation = await startQuest(
+    const started = await startQuest(
       user,
       startForm("make", { name: `  ${name}  ` }),
     );
 
-    expect(conversation.name).toBe(name);
+    expect(started.name).toBe(name);
   });
 
   test("the limit counts UTF-16 code units, as the name field does, so a fox emoji counts as 2", async () => {
@@ -232,11 +229,11 @@ describe("use_case_new_quest_name_too_long", () => {
     ).toMatchObject({ kind: "invalid" });
     expect(await listQuests(user.id)).toEqual([]);
 
-    const conversation = await startQuest(
+    const started = await startQuest(
       user,
       startForm("make", { name: atLimit }),
     );
 
-    expect(conversation.name).toBe(atLimit);
+    expect(started.name).toBe(atLimit);
   });
 });

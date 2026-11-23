@@ -235,7 +235,7 @@
     --header-title-size: 1.25rem;
     --card-title-size: 1.125rem;
 
-    /* The fixed page image also aligns with the conversation composer. */
+    /* The fixed page image also aligns with the performance composer. */
     --panel-decoration: linear-gradient(
       110deg,
       transparent,
