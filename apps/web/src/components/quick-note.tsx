@@ -18,8 +18,12 @@ import { Button } from "@/components/ui/button.tsx";
 import { SelectField, TextAreaField } from "@/components/ui/field.tsx";
 import { Alert, FormStatus, Notice } from "@/components/ui/form-message.tsx";
 import { Icon } from "@/components/ui/icon.tsx";
-import { checkNoteText, type NoteQuest } from "@/notes/note.ts";
-import { listNoteQuestsAction, saveNoteAction } from "@/notes/note-actions.ts";
+import { checkNoteText } from "@/spaces/quick-note.ts";
+import {
+  listQuickNoteQuests,
+  type QuickNoteQuest,
+  saveQuickNote,
+} from "@/spaces/quick-note-actions.ts";
 import { QUICK_NOTE_COPY } from "@/ui/copy/notes.ts";
 import { QUEST_SHARING_COPY } from "@/ui/copy/quest-members.ts";
 
@@ -27,7 +31,10 @@ const QUEST_PATH = /^\/quests\/(?<questId>[^/]+)$/u;
 
 // The quest a new Quick Note goes to: the quest whose page is open, if it is
 // one of the offered quests, or else the newest.
-function chosenQuest(quests: readonly NoteQuest[], pathname: string): string {
+function chosenQuest(
+  quests: readonly QuickNoteQuest[],
+  pathname: string,
+): string {
   const { questId } = QUEST_PATH.exec(pathname)?.groups ?? {};
   if (quests.some((quest) => quest.id === questId) && questId !== undefined) {
     return questId;
@@ -44,8 +51,10 @@ function chosenQuest(quests: readonly NoteQuest[], pathname: string): string {
 function QuickNote(): JSX.Element {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
-  const [quests, setQuests] = useState<readonly NoteQuest[] | undefined>();
+  const [quests, setQuests] = useState<readonly QuickNoteQuest[] | undefined>();
   const [questId, setQuestId] = useState("");
+  const [spaceId, setSpaceId] = useState("");
+  const spaces = quests?.find(({ id }) => id === questId)?.spaces ?? [];
   const [text, setText] = useState("");
   const [textProblem, setTextProblem] = useState<string | undefined>();
   const [failure, setFailure] = useState<string | undefined>();
@@ -72,10 +81,14 @@ function QuickNote(): JSX.Element {
       setFailure(undefined);
       setStatus(undefined);
       setOpen(true);
-      listNoteQuestsAction()
+      listQuickNoteQuests()
         .then((offered) => {
           setQuests(offered);
-          setQuestId(chosenQuest(offered, pathname));
+          const id = chosenQuest(offered, pathname);
+          setQuestId(id);
+          setSpaceId(
+            offered.find((quest) => quest.id === id)?.spaces[0]?.id ?? "",
+          );
         })
         .catch(() => setFailure(QUICK_NOTE_COPY.failed));
     },
@@ -87,8 +100,17 @@ function QuickNote(): JSX.Element {
   }, []);
   const closeDialog = useCallback((): void => setOpen(false), []);
   const chooseQuest = useCallback(
-    (event: ChangeEvent<HTMLSelectElement>): void =>
-      setQuestId(event.target.value),
+    (event: ChangeEvent<HTMLSelectElement>): void => {
+      const id = event.target.value;
+      setQuestId(id);
+      setSpaceId(quests?.find((quest) => quest.id === id)?.spaces[0]?.id ?? "");
+    },
+    [quests],
+  );
+  const chooseSpace = useCallback(
+    (event: ChangeEvent<HTMLSelectElement>): void => {
+      setSpaceId(event.target.value);
+    },
     [],
   );
   const changeText = useCallback(
@@ -110,19 +132,20 @@ function QuickNote(): JSX.Element {
       setPending(true);
       const questName =
         quests?.find((quest) => quest.id === questId)?.name ?? "";
-      saveNoteAction({ questId, text })
+      const spaceName = spaces.find(({ id }) => id === spaceId)?.name ?? "";
+      saveQuickNote({ questId, spaceId, text })
         .then((result) => {
           if (result.kind === "problem") {
             setFailure(result.text);
             return;
           }
           setText("");
-          setStatus(QUICK_NOTE_COPY.saved(questName));
+          setStatus(QUICK_NOTE_COPY.savedToSpace(questName, spaceName));
         })
         .catch(() => setFailure(QUICK_NOTE_COPY.failed))
         .finally(() => setPending(false));
     },
-    [questId, quests, text],
+    [questId, quests, spaceId, spaces, text],
   );
 
   let saveLabel: string = QUICK_NOTE_COPY.save;
@@ -185,6 +208,18 @@ function QuickNote(): JSX.Element {
                 {quests.map((quest) => (
                   <option key={quest.id} value={quest.id}>
                     {QUEST_SHARING_COPY.option(quest.name, quest.sharing)}
+                  </option>
+                ))}
+              </SelectField>
+              <SelectField
+                label={QUICK_NOTE_COPY.spaceLabel}
+                name="spaceId"
+                value={spaceId}
+                onChange={chooseSpace}
+              >
+                {spaces.map(({ id, name }) => (
+                  <option key={id} value={id}>
+                    {name}
                   </option>
                 ))}
               </SelectField>

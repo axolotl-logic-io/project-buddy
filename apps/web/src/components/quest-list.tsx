@@ -10,7 +10,7 @@ import { QUESTS_COPY } from "@/ui/copy/quests.ts";
 
 // The quests as compact rows, each named by the quest, with a marker on a
 // multi-user one; the whole row is the link's target, the quest's
-// conversation.
+// overview.
 export function QuestList({
   quests,
   emptyMessage = QUESTS_COPY.none,

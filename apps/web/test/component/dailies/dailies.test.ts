@@ -3,6 +3,7 @@
 // Progress grid.
 
 import { describe, expect, test } from "vitest";
+import type { DayTasks } from "@/dailies/dailies.ts";
 import {
   type DailiesDay,
   dayDate,
@@ -11,7 +12,6 @@ import {
   streakChains,
   todayHere,
 } from "@/dailies/dailies.ts";
-import type { Tasks } from "@/tasks/tasks.ts";
 
 // The task numbers, and the grid's usual week.
 const STRETCH = 1;
@@ -23,32 +23,18 @@ const TWICE_RUN = 3;
 const SHOWN = 3;
 const DAY_MS = 86_400_000;
 
-// How many days in a row Sketch was done before today, done again today,
-// and the milestone its chain leads to.
-const MILESTONE_CASES: readonly { run: number; milestone: number }[] = [
-  { run: 2, milestone: 3 },
-  { run: 3, milestone: 7 },
-  { run: 6, milestone: 7 },
-  { run: 13, milestone: 14 },
-  { run: 29, milestone: 30 },
-  { run: 30, milestone: 60 },
-  { run: 59, milestone: 60 },
-  { run: 60, milestone: 90 },
-];
-
-// A 45-day streak's chain, from the 30th day to the 60th.
+// A 45-day streak displays its 30 most recent links.
 const LONG = {
   run: 44,
-  chain: { streak: 45, doneToday: true, milestone: 60, links: 30, earned: 14 },
+  chain: { streak: 45, doneToday: true, links: 30, earned: 29 },
 };
 
-const TASKS: Tasks = {
+const TASKS: DayTasks = {
   items: [
     { number: 1, text: "Stretch", done: false, recurring: true },
     { number: 2, text: "Sketch", done: true, recurring: true },
     { number: 3, text: "Book the vet", done: true },
   ],
-  nextNumber: 4,
 };
 
 // An ended day on date, with the recurring tasks done that are listed.
@@ -70,7 +56,7 @@ function going(date: string): DailiesDay {
 // Each recurring task's streak, by its number, leaving out those at 0.
 function streaks(
   days: readonly DailiesDay[],
-  tasks: Tasks,
+  tasks: DayTasks,
 ): ReadonlyMap<number, number> {
   const found = new Map<number, number>();
   for (const [number, chain] of streakChains(days, tasks)) {
@@ -171,52 +157,41 @@ describe("Dailies days", () => {
     expect(streaks([going("2026-11-14")], TASKS).has(VET)).toBe(false);
   });
 
-  test("a streak chain leads to the next milestone, with today's link after the earned ones", () => {
+  test("today's link follows the earned ones", () => {
     const days = [
       ended("2026-11-12", [1, 2]),
       ended("2026-11-13", [1, 2]),
       going("2026-11-14"),
     ];
     const chains = streakChains(days, TASKS);
-    // Stretch is open today: two links earned, today's next, toward 3.
+    // Stretch is open today: two links earned, today's next.
     expect(chains.get(STRETCH)).toEqual({
       streak: 2,
       doneToday: false,
-      milestone: 3,
       links: 3,
       earned: 2,
     });
-    // Sketch is done today, which reaches the milestone.
+    // Sketch is done today, which fills its link.
     expect(chains.get(SKETCH)).toEqual({
       streak: 3,
       doneToday: true,
-      milestone: 3,
       links: 3,
       earned: 2,
     });
   });
 
-  test("a recurring task with no streak still has a chain toward 3", () => {
+  test("a recurring task with no streak has only its current-day link", () => {
     const chains = streakChains([going("2026-11-14")], TASKS);
     expect(chains.get(STRETCH)).toEqual({
       streak: 0,
       doneToday: false,
-      milestone: 3,
-      links: 3,
+      links: 1,
       earned: 0,
     });
     expect(chains.has(VET)).toBe(false);
   });
 
-  test("milestones run 3, 7, 14 and 30 days, then every 30", () => {
-    for (const { run, milestone } of MILESTONE_CASES) {
-      expect(streakChains(sketchRun(run), TASKS).get(SKETCH)?.milestone).toBe(
-        milestone,
-      );
-    }
-  });
-
-  test("past 30 days a chain starts at the last multiple of 30", () => {
+  test("a long streak shows only its 30 most recent links", () => {
     const chain = streakChains(sketchRun(LONG.run), TASKS).get(SKETCH);
     expect(chain).toEqual(LONG.chain);
   });

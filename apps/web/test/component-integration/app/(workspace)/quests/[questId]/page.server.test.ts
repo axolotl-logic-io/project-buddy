@@ -1,13 +1,8 @@
-// A quest's page, in the test database: opening a quest that has no
-// conversation yet offers to start it and starts nothing; another user's
-// quest is not found. What the page shows in the browser is
-// conversation.browser.test.tsx's and page.browser.test.tsx's.
-
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, test } from "vitest";
 import QuestPage from "@/app/(workspace)/quests/[questId]/(overview)/page.tsx";
-import { readQuestConversation } from "@/conversations/start-quest.ts";
-import { CHAT_COPY } from "@/ui/copy/chat.ts";
+import { listPerformances } from "@/performances/performance-store.ts";
+import { PERFORMANCE_COPY } from "@/ui/copy/performances.ts";
 import { expectNotFound } from "../../../../test-database/navigation-test-kit.ts";
 import { twoUsers } from "../../../../test-database/two-users-test-kit.ts";
 
@@ -21,16 +16,16 @@ async function pageHtml(questId: string): Promise<string> {
   );
 }
 
-describe("conversation initialization fallback", () => {
-  test("a quest without a conversation still shows its workspace", async () => {
+describe("quest without a performance", () => {
+  test("a quest without a performance still shows its workspace", async () => {
     const { her, herData } = await twoUsers();
     const quest = await herData.quest("Own fox");
 
     const html = await pageHtml(quest.id);
 
     expect(html).toContain(quest.name);
-    expect(html).not.toContain(CHAT_COPY.messageLabel);
-    expect(await readQuestConversation(her.id, quest.id)).toBeUndefined();
+    expect(html).not.toContain(PERFORMANCE_COPY.conjuration);
+    expect(await listPerformances(her.id, quest.id)).toEqual([]);
   });
 });
 
@@ -40,7 +35,7 @@ describe("use_case_open_quest", () => {
     const foreign = await otherData.quest("Private den");
 
     await expectNotFound(() => pageHtml(foreign.id));
-    expect(await readQuestConversation(her.id, foreign.id)).toBeUndefined();
-    expect(await readQuestConversation(other.id, foreign.id)).toBeUndefined();
+    expect(await listPerformances(her.id, foreign.id)).toEqual([]);
+    expect(await listPerformances(other.id, foreign.id)).toEqual([]);
   });
 });

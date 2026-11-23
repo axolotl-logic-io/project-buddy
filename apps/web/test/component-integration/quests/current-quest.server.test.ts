@@ -1,120 +1,135 @@
-// What Quests reads to offer Continue, against the test database
-// ("use_case_continue_quest"): the user's own Active quest whose
-// conversation was most recently active, with its next task. How the next
-// task is chosen between the tasks and the Journal is
-// tasks/tasks.server.test.ts's.
-
 import { and, eq } from "drizzle-orm";
 import { describe, expect, test } from "vitest";
-import { chatOpenTo } from "@/accounts/owner-scope.ts";
+import { questOwnedBy } from "@/accounts/owner-scope.ts";
 import { getDb } from "@/db/client.ts";
-import { chats } from "@/db/tables/quests-and-chats.ts";
-import type { ChatId, UserId } from "@/ids.ts";
+import { quests } from "@/db/tables/quests.ts";
+import type { QuestId, UserId } from "@/ids.ts";
+import {
+  CONJURATION,
+  conjure,
+  startPerformance,
+} from "@/performances/performance-store.ts";
 import { readCurrentQuest } from "@/quests/current-quest-store.ts";
 import { changeQuestStatus } from "@/quests/quest-status-store.ts";
-import { changeTasks } from "@/tasks/tasks-store.ts";
+import {
+  changeMurmling,
+  listMurmlings,
+  readNextMurmling,
+} from "@/spaces/murmling-store.ts";
+import { listSpaces } from "@/spaces/space-store.ts";
 import { testData } from "../../support/test-database/data-test-kit.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
 
-// Explicit start times, oldest first, decide the order of conversations
-// with no messages; a message saved now is newer than any of them.
 const STARTED_AT = [
   new Date("2026-01-01T00:00:00Z"),
   new Date("2026-01-02T00:00:00Z"),
-  new Date("2026-01-03T00:00:00Z"),
-] as const;
-
-const HELLO = [
-  { message: "Hello", reply: [{ type: "text", text: "Hi!" }] },
 ] as const;
 
 async function setStartedAt(
   owner: UserId,
-  id: ChatId,
+  id: QuestId,
   createdAt: Date,
 ): Promise<void> {
   await getDb()
-    .update(chats)
+    .update(quests)
     .set({ createdAt })
-    .where(and(eq(chats.id, id), chatOpenTo(owner)));
+    .where(and(eq(quests.id, id), questOwnedBy(owner)));
 }
 
 describe("use_case_continue_quest", () => {
   test("a new user has nothing to continue", async () => {
     const fresh = await testUser();
-
     expect(await readCurrentQuest(fresh.id)).toBeUndefined();
   });
 
-  test("continues the quest whose conversation was most recently active, with its next task", async () => {
+  test("uses the newest conjuration, or the newest quest when nobody has conjured", async () => {
     const [user, other] = await Promise.all([testUser(), testUser()]);
     const data = testData(user);
-    const [turtle, garden, idle] = await Promise.all([
+    const [turtle, garden] = await Promise.all([
       data.quest("Sea turtle model"),
       data.quest("Garden planner"),
-      data.quest("Idle project"),
     ]);
-    const [turtleChat, gardenChat, idleChat] = await Promise.all([
-      data.chat(turtle),
-      data.chat(garden),
-      data.chat(idle),
-    ]);
-    // Another user's newer conversation is never theirs to continue.
-    const otherData = testData(other);
-    await otherData.chat(await otherData.quest("Private project"));
     await Promise.all([
-      setStartedAt(user.id, idleChat.id, STARTED_AT[0]),
-      setStartedAt(user.id, turtleChat.id, STARTED_AT[1]),
-      setStartedAt(user.id, gardenChat.id, STARTED_AT[2]),
-      changeTasks(user.id, { questId: turtle.id, author: "person" }, [
-        { op: "add", text: "retopo the flipper" },
-      ]),
+      setStartedAt(user.id, turtle.id, STARTED_AT[0]),
+      setStartedAt(user.id, garden.id, STARTED_AT[1]),
+      testData(other).quest("Private quest"),
     ]);
-    expect(await readCurrentQuest(user.id)).toEqual({
-      quest: { id: garden.id, name: "Garden planner" },
-      sharing: { kind: "personal" },
-      nextTask: undefined,
+    expect((await readCurrentQuest(user.id))?.quest.id).toBe(garden.id);
+    const [space] = await listSpaces(user.id, turtle.id);
+    if (space === undefined) {
+      throw new Error("The quest has no starting space");
+    }
+    const performance = await startPerformance(user.id, turtle.id, {
+      spaceId: space.id,
+      riteId: "capture",
     });
-
-    // A message makes the turtle's conversation the most recently active.
-    await data.exchanges(turtleChat, HELLO);
-
-    expect(await readCurrentQuest(user.id)).toEqual({
+    if (performance === undefined) {
+      throw new Error("The performance did not start");
+    }
+    await conjure(
+      user.id,
+      turtle.id,
+      CONJURATION.parse({
+        id: crypto.randomUUID(),
+        performanceId: performance.id,
+        text: "Retopologize the flipper",
+      }),
+    );
+    expect(await readCurrentQuest(user.id)).toMatchObject({
       quest: { id: turtle.id, name: "Sea turtle model" },
-      sharing: { kind: "personal" },
-      nextTask: "retopo the flipper",
+      nextTask: "Retopologize the flipper",
     });
-  });
-
-  test("continues only an Active quest, and none once every quest is finished", async () => {
-    const user = await testUser();
-    const data = testData(user);
-    const [finished, active] = await Promise.all([
-      data.quest("Finished"),
-      data.quest("Still going"),
-    ]);
-    const [finishedChat, activeChat] = await Promise.all([
-      data.chat(finished),
-      data.chat(active),
-    ]);
-    await setStartedAt(user.id, activeChat.id, STARTED_AT[0]);
-    await data.exchanges(finishedChat, HELLO);
     await changeQuestStatus(user.id, {
-      questId: finished.id,
+      questId: turtle.id,
       fromStatus: "active",
       toStatus: "completed",
       revision: 0,
     });
-
-    expect((await readCurrentQuest(user.id))?.quest.id).toBe(active.id);
-
+    expect((await readCurrentQuest(user.id))?.quest.id).toBe(garden.id);
     await changeQuestStatus(user.id, {
-      questId: active.id,
+      questId: garden.id,
       fromStatus: "active",
       toStatus: "abandoned",
       revision: 0,
     });
-
     expect(await readCurrentQuest(user.id)).toBeUndefined();
   });
+});
+
+test("use_case_ask_whats_next", async () => {
+  const user = await testUser();
+  const quest = await testData(user).quest();
+  const [first, second] = await listSpaces(user.id, quest.id);
+  if (first === undefined || second === undefined) {
+    throw new Error("The quest has no starting spaces");
+  }
+  await changeMurmling(user.id, quest.id, second.id, {
+    kind: "add",
+    type: "task",
+    text: "In a later space",
+  });
+  await changeMurmling(user.id, quest.id, first.id, {
+    kind: "add",
+    type: "plain",
+    text: "A possibility",
+  });
+  await changeMurmling(user.id, quest.id, first.id, {
+    kind: "add",
+    text: "In the first space",
+  });
+  const firstTask = (await listMurmlings(user.id, quest.id, first.id)).find(
+    ({ type }) => type === "task",
+  );
+  if (firstTask === undefined) {
+    throw new Error("The task was not saved");
+  }
+  expect((await readCurrentQuest(user.id))?.nextTask).toBe(firstTask.text);
+  await changeMurmling(user.id, quest.id, first.id, {
+    kind: "check",
+    id: firstTask.id,
+    checkedOff: true,
+  });
+  expect((await readNextMurmling(user.id, quest.id))?.text).toBe(
+    "In a later space",
+  );
 });

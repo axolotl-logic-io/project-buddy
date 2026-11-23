@@ -20,10 +20,10 @@ type ViewFrame = "page" | "window" | "sidebar";
 // The site lays itself out for a phone below its 64rem breakpoint.
 type Layout = "phone" | "desktop";
 
-// Finds a review account's quests and spells by name, as paths to open.
+// Finds a review account's quests and rites by name, as paths to open.
 interface ViewFinder {
   readonly quest: (name: string) => string;
-  readonly spell: (name: string) => string;
+  readonly rite: (name: string) => string;
 }
 
 // Where a view's preparation runs: the page, and the layout of its width.
@@ -39,7 +39,7 @@ interface VisualView {
   readonly state: string;
   readonly account: ViewAccount;
   // The path to open, or how to find it among the account's quests and
-  // spells.
+  // rites.
   readonly path: ViewPath;
   readonly frame: ViewFrame;
   // The desktop site panel is docked open; otherwise it is closed.
@@ -62,19 +62,14 @@ const MINUTE_MS = 60_000;
 const WORK_MINUTES = 50;
 const BREAK_MINUTES = 10;
 const MINUTES_IN = 18;
-const ACTIONS = /^Actions for/u;
-const DELETE_MILESTONE = /^Delete the milestone/u;
-const YOURS = /^Yours/u;
-// The chat requests that ask the construct for a reply.
-const CHAT_REQUESTS = "**/api/chat**";
 
-// The typical account's spell and quests (review-content.ts).
-const SPELL: string = TYPICAL.spells[0]?.name ?? "";
+// The typical account's rite and quests (review-content.ts).
+const RITE: string = TYPICAL.rites[0]?.name ?? "";
 const QUEST_DONE: string = TYPICAL.quests[0]?.name ?? "";
 const QUEST_LEARN: string = TYPICAL.quests.at(-1)?.name ?? "";
-// The crowded account's main quest, the newest, and its first spell.
+// The crowded account's main quest, the newest, and its first rite.
 const CROWDED_QUEST: string = CROWDED.quests.at(-1)?.name ?? "";
-const CROWDED_SPELL: string = CROWDED.spells[0]?.name ?? "";
+const CROWDED_RITE: string = CROWDED.rites[0]?.name ?? "";
 
 function layoutOf(width: number): Layout {
   if (width < PHONE_BELOW) {
@@ -94,11 +89,11 @@ function quest(name: string): (find: ViewFinder) => string {
   return questPath;
 }
 
-function spell(name: string): (find: ViewFinder) => string {
-  function spellPath(find: ViewFinder): string {
-    return find.spell(name);
+function rite(name: string): (find: ViewFinder) => string {
+  function ritePath(find: ViewFinder): string {
+    return find.rite(name);
   }
-  return spellPath;
+  return ritePath;
 }
 
 function runningTimer(): string {
@@ -107,32 +102,16 @@ function runningTimer(): string {
 }
 
 // On a phone, opens the quest sidebar drawer; on a desktop it is open.
-async function openQuestSidebar({ page, layout }: ViewPage): Promise<void> {
+async function openTimerPanel({ page, layout }: ViewPage): Promise<void> {
   if (layout === "phone") {
-    await page.getByRole("button", { name: "Open quest sidebar" }).click();
+    await page.getByRole("button", { name: "Open timer" }).click();
   }
-}
-
-function sidebarTab(name: string): (at: ViewPage) => Promise<void> {
-  async function openTab(at: ViewPage): Promise<void> {
-    await openQuestSidebar(at);
-    await at.page.getByRole("tab", { name, exact: true }).click();
-  }
-  return openTab;
 }
 
 async function openSitePanel({ page }: ViewPage): Promise<void> {
   await page.getByRole("button", { name: "Site panel" }).click();
 }
 
-async function sendInComposer(page: Page, text: string): Promise<void> {
-  const box = page.getByRole("textbox", { name: "Message" });
-  await box.fill(text);
-  await box.press("Enter");
-}
-
-// Presses Tab until the focused element matches selector, so it has
-// keyboard focus, as a keyboard user would reach it.
 async function tabTo(
   page: Page,
   selector: string,
@@ -223,11 +202,11 @@ const VIEWS: readonly VisualView[] = [
     },
   },
 
-  // 3. Quest workspace: the conversation, with the construct's avatar, the
-  // composer and command replies, and the sidebar's tabs.
+  // 3. Quest workspace: the performance, with the construct's avatar, and
+  // the spaces.
   {
     view: "quest",
-    state: "conversation",
+    state: "performance",
     account: "typical",
     path: quest(QUEST_LEARN),
     frame: "page",
@@ -235,35 +214,23 @@ const VIEWS: readonly VisualView[] = [
   },
   {
     view: "quest",
-    state: "tasks",
+    state: "task-space",
     account: "typical",
     path: quest(QUEST_LEARN),
-    frame: "sidebar",
-    prepare: sidebarTab("Tasks"),
+    frame: "page",
+    async prepare({ page }: ViewPage): Promise<void> {
+      await page.getByRole("link", { name: "Tasks", exact: true }).click();
+    },
   },
   {
     view: "quest",
-    state: "ideas",
+    state: "plain-space",
     account: "typical",
     path: quest(QUEST_LEARN),
-    frame: "sidebar",
-    prepare: sidebarTab("Ideas"),
-  },
-  {
-    view: "quest",
-    state: "quick-notes",
-    account: "typical",
-    path: quest(QUEST_LEARN),
-    frame: "sidebar",
-    prepare: sidebarTab("Quick Notes"),
-  },
-  {
-    view: "quest",
-    state: "progress",
-    account: "typical",
-    path: quest(QUEST_LEARN),
-    frame: "sidebar",
-    prepare: sidebarTab("Progress"),
+    frame: "page",
+    async prepare({ page }: ViewPage): Promise<void> {
+      await page.getByRole("link", { name: "Ideas", exact: true }).click();
+    },
   },
   {
     view: "quest",
@@ -279,128 +246,41 @@ const VIEWS: readonly VisualView[] = [
     path: quest(CROWDED_QUEST),
     frame: "page",
   },
-  {
-    view: "quest",
-    state: "composer-commands",
-    account: "typical",
-    path: quest(QUEST_LEARN),
-    frame: "window",
-    async prepare({ page }: ViewPage): Promise<void> {
-      await page
-        .getByRole("textbox", { name: "Message" })
-        .pressSequentially("/");
-    },
-  },
-
-  // 8. States: a command the site refuses (there is no ninth task), and the
-  // construct's reply loading. The empty list states are quests--empty and
-  // spellbook--yours-empty, and sign-in--link-sent is a notice.
-  {
-    view: "quest",
-    state: "command-error",
-    account: "typical",
-    path: quest(QUEST_LEARN),
-    frame: "window",
-    async prepare({ page }: ViewPage): Promise<void> {
-      await sendInComposer(page, "/done 9");
-    },
-  },
-  {
-    // The reply is held: the chat request never reaches the site, so
-    // nothing is saved and the page keeps waiting.
-    view: "quest",
-    state: "loading-reply",
-    account: "typical",
-    path: quest(QUEST_LEARN),
-    frame: "window",
-    async prepare({ page }: ViewPage): Promise<void> {
-      await page.route(CHAT_REQUESTS, (): void => undefined);
-      await sendInComposer(page, "look");
-    },
-  },
 
   // 7. Overlays: the row action menu, a destructive confirmation dialog and
   // the phone drawer.
   {
     view: "quest",
-    state: "row-menu",
-    account: "typical",
-    path: quest(QUEST_LEARN),
-    frame: "window",
-    async prepare(at: ViewPage): Promise<void> {
-      await openQuestSidebar(at);
-      await at.page.getByRole("button", { name: ACTIONS }).first().click();
-    },
-  },
-  {
-    view: "quest",
-    state: "confirm-dialog",
-    account: "typical",
-    path: quest(QUEST_LEARN),
-    frame: "window",
-    async prepare(at: ViewPage): Promise<void> {
-      await sidebarTab("Progress")(at);
-      await at.page
-        .getByRole("button", { name: DELETE_MILESTONE })
-        .first()
-        .click();
-    },
-  },
-  {
-    view: "quest",
-    state: "sidebar-drawer",
+    state: "timer-drawer",
     account: "typical",
     path: quest(QUEST_LEARN),
     frame: "window",
     only: "phone",
-    prepare: openQuestSidebar,
+    prepare: openTimerPanel,
   },
 
-  // 4. Spellbook list and the spell editor.
+  // 4. Ritebook list and the rite editor.
   {
-    view: "spellbook",
+    view: "grimoire",
     state: "list",
     account: "typical",
-    path: "/spellbook",
+    path: "/grimoire",
     frame: "page",
     measure: true,
   },
   {
-    view: "spellbook",
-    state: "yours-empty",
-    account: "empty",
-    path: "/spellbook",
-    frame: "page",
-    async prepare({ page }: ViewPage): Promise<void> {
-      await page.getByRole("button", { name: YOURS }).click();
-    },
-  },
-  {
-    view: "spell",
+    view: "rite",
     state: "editor",
     account: "typical",
-    path: spell(SPELL),
+    path: rite(RITE),
     frame: "page",
     measure: true,
   },
   {
-    // The draft stays in this browser context: the empty name is refused,
-    // so nothing is saved.
-    view: "spell",
-    state: "invalid-field",
-    account: "typical",
-    path: spell(SPELL),
-    frame: "page",
-    async prepare({ page }: ViewPage): Promise<void> {
-      await page.getByRole("textbox", { name: "Name" }).fill("");
-      await page.getByRole("button", { name: "Save", exact: true }).click();
-    },
-  },
-  {
-    view: "spell",
+    view: "rite",
     state: "crowded",
     account: "crowded",
-    path: spell(CROWDED_SPELL),
+    path: rite(CROWDED_RITE),
     frame: "page",
   },
 

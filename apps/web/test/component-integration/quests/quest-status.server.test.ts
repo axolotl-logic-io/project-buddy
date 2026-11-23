@@ -1,448 +1,220 @@
-import { describe, expect, test, vi } from "vitest";
+import { expect, test, vi } from "vitest";
+import type { User } from "@/accounts/users-store.ts";
+import { changeQuestStatusAction } from "@/app/(workspace)/quests/status-actions.ts";
+import { readExperience } from "@/experience/experience-store.ts";
 import {
-  answerQuestStatusAction,
-  changeQuestStatusAction,
-  readQuestStatusApprovalAction,
-} from "@/app/(workspace)/quests/status-actions.ts";
-import { getConstruct } from "@/constructs/index.ts";
-import type { UserId } from "@/ids.ts";
-import {
-  STATUS_APPROVAL_ID,
-  type StatusApproval,
-  type StatusChange,
-} from "@/quests/quest-status.ts";
-import {
-  answerStatusApproval,
-  changeQuestStatus,
-  readLatestStatusApproval,
-  readStatusApproval,
-  requestQuestStatus,
-} from "@/quests/quest-status-store.ts";
-import { getQuest, listQuests, type Quest } from "@/quests/store.ts";
-import { buildReplyInstructions } from "@/replies/system-prompt.ts";
-import { questStatusTool } from "@/replies/tools/quest-status.ts";
-import { QUEST_STATUS_OUTPUT } from "@/replies/tools/quest-status-contract.ts";
-import { runChatCommandAction } from "@/tasks/tasks-actions.ts";
-import { PANEL_COMMANDS_COPY } from "@/ui/copy/commands.ts";
+  listPerformances,
+  startPerformance,
+} from "@/performances/performance-store.ts";
+import type { QuestStatus, StatusActionState } from "@/quests/quest-status.ts";
+import { changeQuestStatus } from "@/quests/quest-status-store.ts";
+import { getQuest, type Quest } from "@/quests/store.ts";
+import { listSpaces } from "@/spaces/space-store.ts";
+import { QUEST_STATUS_COPY } from "@/ui/copy/quest-status.ts";
 import { testData } from "../../support/test-database/data-test-kit.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
-import {
-  formerMemberQuest,
-  NOTHING,
-  seenBy,
-} from "../accounts/former-member-quest-test-kit.ts";
-import { commandNotes } from "../commands/command-test-kit.ts";
-import { newMessageId } from "../test-database/chat-test-kit.ts";
+import { formOf } from "../test-database/form-test-kit.ts";
 import { signIn } from "../test-database/session-test-kit.ts";
+import {
+  addInvitee,
+  addMember,
+  addRemovedMember,
+} from "./quest-members-test-kit.ts";
 
 vi.mock("next/cache", () => ({ refresh: vi.fn() }));
 
-// The user's Active quests, which the Quick Note dialog offers.
-async function activeQuests(user: UserId): Promise<Quest[]> {
-  return (await listQuests(user)).filter((quest) => quest.status === "active");
-}
+const INVALID: StatusActionState = {
+  kind: "invalid",
+  message: QUEST_STATUS_COPY.failed,
+};
 
-function form(values: Readonly<Record<string, string | number>>): FormData {
-  const data = new FormData();
-  for (const [key, value] of Object.entries(values)) {
-    data.set(key, String(value));
-  }
-  return data;
-}
-function required<T>(value: T | undefined): T {
-  if (value === undefined) {
-    throw new Error("Expected a result");
-  }
-  return value;
-}
-
-async function questFixture(): Promise<{
-  user: Awaited<ReturnType<typeof testUser>>;
-  quest: Awaited<ReturnType<ReturnType<typeof testData>["quest"]>>;
-  chat: Awaited<ReturnType<ReturnType<typeof testData>["chat"]>>;
-}> {
-  const user = await testUser();
-  const data = testData(user);
-  const quest = await data.quest();
-  const chat = await data.chat(quest);
-  return { user, quest, chat };
-}
-
-describe("quest status commands", () => {
-  test.each([
-    ["/complete", "completed"],
-    ["/abandon", "abandoned"],
-  ] as const)(
-    "%s changes only the owner's quest and can be restored",
-    async (text, status) => {
-      const { user, quest, chat } = await questFixture();
-      await signIn(user);
-      expect(
-        await runChatCommandAction({ chatId: chat.id, text }),
-      ).toMatchObject({ kind: "quest-status" });
-      expect(await getQuest(user.id, quest.id)).toMatchObject({ status });
-      expect(
-        await runChatCommandAction({ chatId: chat.id, text: "/restore" }),
-      ).toMatchObject({ kind: "quest-status" });
-      expect(await getQuest(user.id, quest.id)).toMatchObject({
-        status: "active",
-      });
-      expect(await commandNotes(user.id, chat.id)).toEqual([
-        { command: text, note: PANEL_COMMANDS_COPY.notes.status[status] },
-        { command: "/restore", note: PANEL_COMMANDS_COPY.notes.status.active },
-      ]);
-      const stranger = await testUser();
-      await signIn(stranger);
-      expect(await runChatCommandAction({ chatId: chat.id, text })).toEqual({
-        kind: "not-found",
-      });
-      expect(await getQuest(user.id, quest.id)).toMatchObject({
-        status: "active",
-      });
-    },
+// Asks, as the signed-in user, to move the quest from one status to
+// another at the revision their page shows, as Rites & status and its Undo
+// do.
+function askStatus(
+  quest: Quest,
+  fromStatus: QuestStatus,
+  toStatus: QuestStatus,
+  revision: number,
+): ReturnType<typeof changeQuestStatusAction> {
+  return changeQuestStatusAction(
+    { kind: "idle" },
+    formOf({
+      questId: quest.id,
+      fromStatus,
+      toStatus,
+      revision: String(revision),
+    }),
   );
-  test("status commands reject arguments", async () => {
-    const { user, quest, chat } = await questFixture();
-    await signIn(user);
-    expect(
-      await runChatCommandAction({ chatId: chat.id, text: "/complete 1" }),
-    ).toMatchObject({ kind: "problem" });
-    expect(await getQuest(user.id, quest.id)).toMatchObject({
-      status: "active",
-    });
-    expect(await commandNotes(user.id, chat.id)).toEqual([]);
-  });
-});
+}
 
-describe("use_case_change_quest_status", () => {
-  test.each(["completed", "abandoned"] as const)(
-    "the owner can mark %s and undo without losing quest contents",
-    async (target) => {
-      const team = await formerMemberQuest();
-      const before = await seenBy(team.owner, team);
-      expect(await activeQuests(team.owner.id)).toEqual(
-        expect.arrayContaining([
-          expect.objectContaining({ id: team.quest.id }),
-        ]),
-      );
-      expect(await activeQuests(team.member.id)).not.toEqual(
-        expect.arrayContaining([
-          expect.objectContaining({ id: team.quest.id }),
-        ]),
-      );
-      await signIn(team.owner);
-      const result = await changeQuestStatusAction(
-        { kind: "idle" },
-        form({
-          questId: team.quest.id,
-          fromStatus: "active",
-          toStatus: target,
-          revision: 0,
-        }),
-      );
-      expect(result.kind).toBe("saved");
-      expect(await seenBy(team.owner, team)).toEqual(before);
-      expect(await getQuest(team.owner.id, team.quest.id)).toMatchObject({
-        status: target,
-      });
-      expect(await activeQuests(team.owner.id)).not.toEqual(
-        expect.arrayContaining([
-          expect.objectContaining({ id: team.quest.id }),
-        ]),
-      );
-      const change = required(result.change);
-      expect(
-        await changeQuestStatus(team.owner.id, {
-          ...change,
-          fromStatus: target,
-          toStatus: "active",
-        }),
-      ).toMatchObject({ revision: 2 });
-      expect(await seenBy(team.owner, team)).toEqual(before);
-      expect(await seenBy(team.member, team)).toEqual(NOTHING);
-      expect(await activeQuests(team.owner.id)).toEqual(
-        expect.arrayContaining([
-          expect.objectContaining({ id: team.quest.id }),
-        ]),
-      );
-    },
+test("use_case_change_quest_status", async () => {
+  const [owner, member, outsider] = await Promise.all([
+    testUser(),
+    testUser(),
+    testUser(),
+  ]);
+  const quest = await testData(owner).quest();
+  const before = await listSpaces(owner.id, quest.id);
+  await addMember(owner, quest.id, member);
+  await signIn(member);
+  const finished = await changeQuestStatusAction(
+    { kind: "idle" },
+    formOf({
+      questId: quest.id,
+      fromStatus: "active",
+      toStatus: "completed",
+      revision: "0",
+    }),
   );
-  test.each(["former member", "outsider"] as const)(
-    "a %s cannot change or restore a quest",
-    async (role) => {
-      const team = await formerMemberQuest();
-      const outsider = await testUser();
-      const change: StatusChange = {
-        questId: team.quest.id,
-        fromStatus: "active",
-        toStatus: "completed",
-        revision: 0,
-      };
-      let user = team.member;
-      if (role === "outsider") {
-        user = outsider;
-      }
-      await signIn(user);
-      expect(
-        await changeQuestStatusAction({ kind: "idle" }, form({ ...change })),
-      ).toMatchObject({ kind: "invalid" });
-      expect(
-        await requestQuestStatus(
-          user.id,
-          team.chat.id,
-          team.quest.id,
-          "completed",
-        ),
-      ).toBeUndefined();
-      expect(await getQuest(team.owner.id, team.quest.id)).toMatchObject({
-        status: "active",
-        statusRevision: 0,
-      });
-    },
-  );
-  test("stale changes and undo cannot overwrite a later change", async () => {
-    const { user, quest } = await questFixture();
-    const change = required(
-      await changeQuestStatus(user.id, {
-        questId: quest.id,
-        fromStatus: "active",
-        toStatus: "completed",
-        revision: 0,
-      }),
-    );
-    await changeQuestStatus(user.id, {
-      ...change,
-      fromStatus: "completed",
-      toStatus: "abandoned",
-    });
-    expect(
-      await changeQuestStatus(user.id, {
-        ...change,
-        fromStatus: "completed",
-        toStatus: "active",
-      }),
-    ).toBeUndefined();
-    expect(await getQuest(user.id, quest.id)).toMatchObject({
-      status: "abandoned",
-    });
-  });
-});
-
-describe("quest status proposal contract", () => {
-  test("the registered tool creates a card without changing status; explicit approval executes once", async () => {
-    const { user, quest, chat } = await questFixture();
-    await signIn(user);
-    const output = await Promise.resolve(
-      questStatusTool.execute?.(
-        { status: "completed" },
-        {
-          toolCallId: "status",
-          messages: [],
-          context: {
-            answeredId: newMessageId(),
-            actingUser: user.id,
-            chatId: chat.id,
-            questId: quest.id,
-          },
-        },
-      ),
-    );
-    const { approval } = QUEST_STATUS_OUTPUT.parse(output);
-    expect(await getQuest(user.id, quest.id)).toMatchObject({
-      status: "active",
-    });
-    expect(await readQuestStatusApprovalAction(approval.id)).toMatchObject({
-      decision: "pending",
-    });
-    const result = await answerQuestStatusAction(
-      { kind: "idle" },
-      form({ id: approval.id, decision: "approve", toStatus: "abandoned" }),
-    );
-    expect(result.change).toMatchObject({ toStatus: "completed", revision: 1 });
-    expect(
-      await answerStatusApproval(user.id, approval.id, true),
-    ).toBeUndefined();
-    expect(await getQuest(user.id, quest.id)).toMatchObject({
-      status: "completed",
-      statusRevision: 1,
-    });
-    expect(await readStatusApproval(user.id, approval.id)).toMatchObject({
-      decision: "approved",
-    });
-  });
-  test("declining persists, and a declined card cannot execute", async () => {
-    const { user, quest, chat } = await questFixture();
-    const approval = required(
-      await requestQuestStatus(user.id, chat.id, quest.id, "abandoned"),
-    );
-    await answerStatusApproval(user.id, approval.id, false);
-    expect(
-      await answerStatusApproval(user.id, approval.id, true),
-    ).toBeUndefined();
-    expect(await readStatusApproval(user.id, approval.id)).toMatchObject({
-      decision: "declined",
-    });
-    expect(await getQuest(user.id, quest.id)).toMatchObject({
-      status: "active",
-    });
-  });
-  test("a stale card stays invalid even after the quest returns to the same status", async () => {
-    const { user, quest, chat } = await questFixture();
-    const approval = required(
-      await requestQuestStatus(user.id, chat.id, quest.id, "abandoned"),
-    );
-    const changed = required(
-      await changeQuestStatus(user.id, {
-        questId: quest.id,
-        fromStatus: "active",
-        toStatus: "completed",
-        revision: 0,
-      }),
-    );
-    await changeQuestStatus(user.id, {
-      ...changed,
+  expect(finished).toMatchObject({ kind: "saved", change: { revision: 1 } });
+  expect((await getQuest(owner.id, quest.id))?.status).toBe("completed");
+  expect(await listSpaces(member.id, quest.id)).toEqual(before);
+  expect(await getQuest(outsider.id, quest.id)).toBeUndefined();
+  expect(
+    await changeQuestStatus(member.id, {
+      questId: quest.id,
       fromStatus: "completed",
       toStatus: "active",
-    });
-    expect(
-      await answerStatusApproval(user.id, approval.id, true),
-    ).toBeUndefined();
-    expect(await readStatusApproval(user.id, approval.id)).toMatchObject({
-      decision: "outdated",
-    });
-  });
-  test("only the requesting owner can read or answer a card; a mismatched conversation cannot propose", async () => {
-    const team = await formerMemberQuest();
-    const outsider = await testUser();
-    const approval = required(
-      await requestQuestStatus(
-        team.owner.id,
-        team.chat.id,
-        team.quest.id,
-        "abandoned",
-      ),
-    );
-    await Promise.all(
-      [team.member, outsider].map(async (user) => {
-        expect(await readStatusApproval(user.id, approval.id)).toBeUndefined();
-        expect(
-          await answerStatusApproval(user.id, approval.id, true),
-        ).toBeUndefined();
-      }),
-    );
-    const otherQuest = await testData(team.owner).quest();
-    expect(
-      await requestQuestStatus(
-        team.owner.id,
-        team.chat.id,
-        otherQuest.id,
-        "completed",
-      ),
-    ).toBeUndefined();
-    expect(
-      await readStatusApproval(
-        team.owner.id,
-        STATUS_APPROVAL_ID.parse(crypto.randomUUID()),
-      ),
-    ).toBeUndefined();
-  });
-  test("two conflicting approvals apply at most one change", async () => {
-    const { user, quest, chat } = await questFixture();
-    const first: StatusApproval = required(
-      await requestQuestStatus(user.id, chat.id, quest.id, "completed"),
-    );
-    const second = required(
-      await requestQuestStatus(user.id, chat.id, quest.id, "abandoned"),
-    );
-    const results = await Promise.all([
-      answerStatusApproval(user.id, first.id, true),
-      answerStatusApproval(user.id, second.id, true),
-    ]);
-    expect(results.filter((result) => result !== undefined)).toHaveLength(1);
-    expect(await getQuest(user.id, quest.id)).toMatchObject({
-      statusRevision: 1,
-    });
-  });
+      revision: 0,
+    }),
+  ).toBeUndefined();
 });
 
-describe("use_case_restore_quest", () => {
-  test.each(["completed", "abandoned"] as const)(
-    "a %s quest stays listed and can be restored later",
-    async (status) => {
-      const { user, quest, chat } = await questFixture();
-      await changeQuestStatus(user.id, {
+test("use_case_restore_quest", async () => {
+  const owner = await testUser();
+  const quest = await testData(owner).quest();
+  const before = await listSpaces(owner.id, quest.id);
+  await changeQuestStatus(owner.id, {
+    questId: quest.id,
+    fromStatus: "active",
+    toStatus: "completed",
+    revision: 0,
+  });
+  expect((await readExperience(owner.id)).counts["completing-quests"]).toBe(1);
+  await signIn(owner);
+  expect(
+    await changeQuestStatusAction(
+      { kind: "idle" },
+      formOf({
         questId: quest.id,
-        fromStatus: "active",
-        toStatus: status,
-        revision: 0,
-      });
-      expect(await listQuests(user.id)).toContainEqual(
-        expect.objectContaining({ id: quest.id, status }),
-      );
-      const approval = required(
-        await requestQuestStatus(user.id, chat.id, quest.id, "active"),
-      );
-      expect(
-        await answerStatusApproval(user.id, approval.id, true),
-      ).toMatchObject({ toStatus: "active" });
-      expect(await getQuest(user.id, quest.id)).toMatchObject({
-        status: "active",
-      });
-    },
-  );
+        fromStatus: "completed",
+        toStatus: "active",
+        revision: "1",
+      }),
+    ),
+  ).toMatchObject({ kind: "saved", change: { revision: 2 } });
+  expect(await listSpaces(owner.id, quest.id)).toEqual(before);
+  expect((await readExperience(owner.id)).counts["completing-quests"]).toBe(0);
 });
 
-test.each(["pending", "declined", "approved", "outdated"] as const)(
-  "reply context supplies the live %s proposal only to its requesting owner",
-  async (decision) => {
-    const team = await formerMemberQuest();
-    const stranger = await testUser();
-    const proposal = required(
-      await requestQuestStatus(
-        team.owner.id,
-        team.chat.id,
-        team.quest.id,
-        "abandoned",
-      ),
-    );
-    if (decision === "approved" || decision === "declined") {
-      await answerStatusApproval(
-        team.owner.id,
-        proposal.id,
-        decision === "approved",
-      );
+test("use_case_change_quest_status: Abandon keeps the work and earns nothing", async () => {
+  const owner = await testUser();
+  const quest = await testData(owner).quest();
+  const before = await listSpaces(owner.id, quest.id);
+  await signIn(owner);
+
+  expect(await askStatus(quest, "active", "abandoned", 0)).toEqual({
+    kind: "saved",
+    change: {
+      questId: quest.id,
+      fromStatus: "active",
+      toStatus: "abandoned",
+      revision: 1,
+    },
+    message: QUEST_STATUS_COPY.saved.abandoned,
+  });
+  expect(await getQuest(owner.id, quest.id)).toMatchObject({
+    status: "abandoned",
+    statusRevision: 1,
+  });
+  expect(await listSpaces(owner.id, quest.id)).toEqual(before);
+  expect((await readExperience(owner.id)).experience).toBe(0);
+
+  expect(await askStatus(quest, "abandoned", "active", 1)).toMatchObject({
+    kind: "saved",
+    change: { toStatus: "active", revision: 2 },
+  });
+  expect((await getQuest(owner.id, quest.id))?.status).toBe("active");
+});
+
+test("use_case_change_quest_status: Undo of a completion is refused once the quest is abandoned", async () => {
+  const owner = await testUser();
+  const quest = await testData(owner).quest();
+  await signIn(owner);
+  const completed = await askStatus(quest, "active", "completed", 0);
+  expect(completed).toMatchObject({ kind: "saved", change: { revision: 1 } });
+
+  expect(await askStatus(quest, "completed", "abandoned", 1)).toMatchObject({
+    kind: "saved",
+    change: { revision: 2 },
+  });
+  expect((await readExperience(owner.id)).counts["completing-quests"]).toBe(0);
+
+  // Undo sends the completion back: from Completed to Active at revision 1.
+  expect(await askStatus(quest, "completed", "active", 1)).toEqual(INVALID);
+  expect(await getQuest(owner.id, quest.id)).toMatchObject({
+    status: "abandoned",
+    statusRevision: 2,
+  });
+});
+
+test.each([
+  ["pending invitee", addInvitee],
+  ["removed member", addRemovedMember],
+  ["stranger", (): Promise<void> => Promise.resolve()],
+] as const)(
+  "use_case_change_quest_status: a %s's status change is invalid and changes nothing",
+  async (_role, join) => {
+    const [owner, outsider] = await Promise.all([testUser(), testUser()]);
+    const quest = await testData(owner).quest();
+    await join(owner, quest.id, outsider);
+    await signIn(outsider);
+
+    expect(await askStatus(quest, "active", "completed", 0)).toEqual(INVALID);
+    expect(await askStatus(quest, "active", "abandoned", 0)).toEqual(INVALID);
+    expect(await getQuest(owner.id, quest.id)).toMatchObject({
+      status: "active",
+      statusRevision: 0,
+    });
+    expect((await readExperience(outsider.id)).experience).toBe(0);
+  },
+);
+
+test.each(["owner", "member"] as const)(
+  "use_case_change_quest_status: the %s changes status during an active performance",
+  async (role) => {
+    const [owner, member] = await Promise.all([testUser(), testUser()]);
+    const quest = await testData(owner).quest();
+    await addMember(owner, quest.id, member);
+    const users: Readonly<Record<typeof role, User>> = { owner, member };
+    const [space] = await listSpaces(owner.id, quest.id);
+    if (space === undefined) {
+      throw new Error("Missing space");
     }
-    if (decision === "outdated") {
-      await changeQuestStatus(team.owner.id, {
-        questId: team.quest.id,
-        fromStatus: "active",
-        toStatus: "completed",
-        revision: 0,
-      });
+    const performance = await startPerformance(owner.id, quest.id, {
+      spaceId: space.id,
+      riteId: "capture",
+    });
+    if (performance === undefined) {
+      throw new Error("The performance did not start");
     }
-    const before = await getQuest(team.owner.id, team.quest.id);
-    const [latest, member, foreign] = await Promise.all([
-      readLatestStatusApproval(team.owner.id, team.chat.id),
-      readLatestStatusApproval(team.member.id, team.chat.id),
-      readLatestStatusApproval(stranger.id, team.chat.id),
+    await signIn(users[role]);
+
+    expect(await askStatus(quest, "active", "completed", 0)).toMatchObject({
+      kind: "saved",
+      change: { revision: 1 },
+    });
+    expect(await askStatus(quest, "completed", "active", 1)).toMatchObject({
+      kind: "saved",
+      change: { revision: 2 },
+    });
+    expect(await askStatus(quest, "active", "abandoned", 2)).toMatchObject({
+      kind: "saved",
+      change: { revision: 3 },
+    });
+    expect(await listPerformances(owner.id, quest.id)).toMatchObject([
+      { id: performance.id, endedAt: null },
     ]);
-    expect(latest).toMatchObject({ id: proposal.id, decision });
-    expect(member).toBeUndefined();
-    expect(foreign).toBeUndefined();
-    const prompt = (
-      await buildReplyInstructions({
-        actingUser: team.owner.id,
-        chat: team.chat,
-        construct: getConstruct("vellum"),
-      })
-    )
-      .map(({ content }) => content)
-      .join("\n");
-    expect(prompt).toContain(`decision: ${decision}`);
-    expect(prompt).toContain(
-      "This live decision supersedes the original tool result",
-    );
-    expect(prompt).toContain("create a fresh proposal");
-    expect(await getQuest(team.owner.id, team.quest.id)).toEqual(before);
   },
 );

@@ -19,7 +19,7 @@ These names describe design decisions, not product labels. The action palette ha
 
 Use `Button` for actions and `Button asChild` for a navigation link that needs action emphasis. Keep the child's anchor and destination. A form button explicitly requests `type="submit"`. A class name adds layout, not another color, font, radius or shadow.
 
-Use one primary action per form where possible. Stopping a reply or spell is a secondary action with a square icon, not a destructive action. Reversible retirement and abandonment do not need the filled danger treatment. A destructive confirmation includes an explicit label and removal icon, and its cancel button receives initial focus.
+Use one primary action per form where possible. Stop, which ends a performance, is a secondary action, not a destructive action. Reversible retirement and abandonment do not need the filled danger treatment. A destructive confirmation includes an explicit label and removal icon, and its cancel button receives initial focus.
 
 Set `aria-busy` when an action is running and keep the form's existing live status wording. An unavailable sibling action is disabled, not busy. A disabled control never gains a hover shadow.
 

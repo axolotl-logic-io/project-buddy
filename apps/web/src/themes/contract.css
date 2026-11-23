@@ -8,7 +8,7 @@
    and font families (--font-*) are cleared, so bg-red-500, shadow-md,
    drop-shadow-md and font-serif don't compile, and the contract's utilities
    below take their place. The one exception is Streamdown's names: a few
-   colour, corner and shadow classes that src/components/chat/chat.css
+   colour, corner and shadow classes that src/components/performances.css
    declares and maps to the contract for the Markdown only. They compile
    anywhere, so streamdown-names.test.ts checks that nothing else writes
    them. Text sizes, font weights and the scales the contract doesn't cover
@@ -295,12 +295,12 @@
     --display-weight: 600;
     /* Extra letter spacing for display text, as an em length. */
     --display-tracking: 0em;
-    /* Small labels: a chat speaker, the current quest label, a menu's
+    /* Small labels: the current quest label, a menu's
        label, a date in a dated list, the progress ring's caption. The site
        panel's group labels also use label-font, label-ink and label-caps,
        and keep the existing panel-label-case and panel-label-tracking. */
     --label-font: var(--heading-font);
-    /* The colour of labels other than chat speakers. A theme may set the
+    /* The colour of labels. A theme may set the
        rubric here for red-letter labels; it must reach 4.5:1. */
     --label-ink: var(--muted);
     /* text-transform: none, uppercase or lowercase. */
@@ -314,7 +314,7 @@
     --label-weight: 400;
 
     /* Numerals set as figures: the circle in the progress ring, an
-       ability's points, a collection tab's count. The Timer keeps its own
+       event's points, a collection tab's count. The Timer keeps its own
        timer-numeral-font. */
     --numeral-font: var(--heading-font);
 
@@ -481,7 +481,8 @@
     font-family: var(--body-font);
   }
 
-  /* Align the paper grain with the pinned chat controls where supported. */
+  /* Align the paper grain with the pinned performance controls where
+     supported. */
   @supports (background-attachment: fixed) {
     body {
       background-attachment: fixed;
@@ -497,8 +498,7 @@
     font-family: var(--heading-font);
   }
 
-  /* The focus ring, declared once: read below, and by a box that shows its
-     control's focus instead (src/app/page-roles.css's .field-box). */
+  /* The focus ring, declared once and read below. */
   :root {
     --hud-ink: var(--header-ink);
     --hud-paper: var(--header-paper);

@@ -14,8 +14,8 @@ A case written before its test is listed in `test/component-integration/use-case
 - **Signing up** is open to anyone. An emailed verification link lasts 30 minutes; confirmation creates the account and signs the browser in. Existing accounts receive normal sign-in links. Both flows share request limits.
 - **Signing in** is by a link the site emails them. There are no passwords.
 - **Invitations:** anyone in a quest can invite an address; one with no account gets an invited account at once, which completes sign-up the first time its user continues from an emailed link with a name ([Quest members](quest-members.md)).
-- **Private data:** each user's quests, conversations, Tasks and milestones are open to them and the members they invite alone ([`use_case_private_data`](accounts.md#use_case_private_data), [`use_case_quest_member_access`](quest-members.md#use_case_quest_member_access)). A quest or conversation not open to them looks exactly like one that doesn't exist.
-- **Local constructs:** replies use deterministic commands without requests to model companies.
+- **Private data:** each user's quests, with their spaces and performances, are open to them and the members they invite alone ([`use_case_private_data`](accounts.md#use_case_private_data), [`use_case_quest_member_access`](quest-members.md#use_case_quest_member_access)). A quest not open to them looks exactly like one that doesn't exist.
+- **Local replies:** each reply is picked from the rite's reply list, without requests to model companies.
 
 ## Conventions
 
@@ -29,9 +29,9 @@ A case written before its test is listed in `test/component-integration/use-case
 - The use cases describe the current product contract: Describe only currently available user workflows. Keep feature history, migration details and internal tool contracts outside this directory.
 - Update cases in the relevant area files and their tests in the PR that changes the behaviour. Connect related cases through Prerequisites or Next, updating the other area's case when a back-link is needed.
 
-## Local construct tests
+## Local reply tests
 
-Every environment uses deterministic local commands. Tests exercise those commands directly. Browser tests cover visible behavior. Server tests check data access and persistence, and use event barriers for in-flight behavior. Fault tests inject only the stream or storage failure they need. Internal contracts can have regression tests without a corresponding user workflow.
+Every environment picks replies locally from the rite's reply list. Tests fix the pick so replies are deterministic. Browser tests cover visible behavior. Server tests check data access and persistence, and use event barriers for in-flight behavior. Fault tests inject only the stream or storage failure they need. Internal contracts can have regression tests without a corresponding user workflow.
 
 ## Areas
 
@@ -42,18 +42,16 @@ Each area's cases are in their own file:
 - [Quests](quests.md)
 - [Quest status](quest-status.md)
 - [Quest members](quest-members.md): invite people, join by link or from Pending, and remove members.
-- [Conversations](chats.md)
+- [Spaces](spaces.md): spaces, murmlings and their types, and quick notes.
 - [Tasks](tasks.md)
-- [Ideas](ideas.md)
-- [Experience](experience.md): ability points, experience and circles.
+- [Performances](performances.md): perform a rite on a space and make conjurations.
+- [Experience](experience.md): events, experience and circles.
 - [Profile](profile.md): distinct days signed in.
-- [Quick Notes](quick-notes.md)
 - [Timer](timer.md): a repeating work and break timer, shared by its link.
 - [Command line](command-line.md): work with quests through the `project-buddy` command.
 - [Constructs](constructs.md)
-- [Spellbook](spellbook.md): find, create and edit private spells.
-- [Retirement](retirement.md): put aside own definitions, restore them, or delete them forever.
-- [Spells](spellbook.md)
+- [Grimoire](grimoire.md): find, create and edit own rites.
+- [Retirement](retirement.md): put aside own rites, restore them, or delete them forever.
 - [When things go wrong](when-things-go-wrong.md)
 - [Appearance](appearance.md)
 - [Installed app](notifications.md)

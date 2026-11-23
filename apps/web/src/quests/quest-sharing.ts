@@ -5,7 +5,7 @@
 
 import { type SQL, sql } from "drizzle-orm";
 import { questMembers } from "@/db/tables/quest-members.ts";
-import { quests } from "@/db/tables/quests-and-chats.ts";
+import { quests } from "@/db/tables/quests.ts";
 import { users } from "@/db/tables/users.ts";
 import type { UserId } from "@/ids.ts";
 import type { QuestSharing } from "@/quests/membership.ts";

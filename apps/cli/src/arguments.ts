@@ -16,7 +16,10 @@ const COMMAND_OPTIONS = [
   "text-file",
   "revision",
   "before",
-  "spell",
+  "type",
+  "to",
+  "rite",
+  "space",
 ] as const;
 
 type CommandOption = (typeof COMMAND_OPTIONS)[number];
@@ -37,7 +40,10 @@ const PARSE_OPTIONS = {
   "text-file": { type: "string" },
   revision: { type: "string" },
   before: { type: "string" },
-  spell: { type: "string" },
+  type: { type: "string" },
+  to: { type: "string" },
+  rite: { type: "string" },
+  space: { type: "string" },
 } as const;
 
 // An invocation as given: its positionals, the shared options, and each

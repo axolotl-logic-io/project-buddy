@@ -10,12 +10,11 @@ import {
   readApiBody,
 } from "@/api/api-route.ts";
 import { questView } from "@/api/api-views.ts";
-import { startPremadeQuest } from "@/conversations/start-premade-quest.ts";
 import { PREMADE_QUEST_ID, PREMADE_QUESTS } from "@/quests/premade-quests.ts";
 import { QUEST_NAME } from "@/quests/quest-name.ts";
 import { QUEST_STATUS } from "@/quests/quest-status.ts";
-import { getQuest, listQuests } from "@/quests/store.ts";
-import { OPENING_COPY } from "@/ui/copy/chat.ts";
+import { startPremadeQuest } from "@/quests/start-premade-quest.ts";
+import { listQuests } from "@/quests/store.ts";
 
 const LIST_QUERY = z.object({ status: QUEST_STATUS.optional() });
 
@@ -66,20 +65,6 @@ export const POST = apiRoute(
       context: body.context ?? premade.context,
       motivation: body.why,
     });
-    if (started.kind === "claudeUnavailable") {
-      return apiProblem("reply_failed", OPENING_COPY.claudeUnavailable);
-    }
-    const quest = await getQuest(user.id, started.chat.quest.id);
-    if (quest === undefined) {
-      return apiProblem(
-        "not_found",
-        "The quest was started but can't be read.",
-      );
-    }
-    return apiData({
-      ...questView(quest),
-      conversationId: started.chat.id,
-      resumed: started.kind === "resumed",
-    });
+    return apiData({ ...questView(started.quest), resumed: started.resumed });
   },
 );

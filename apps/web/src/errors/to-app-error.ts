@@ -1,10 +1,6 @@
-// The server's entry point to the errors module: whatever a call to Claude
-// or the database throws becomes an AppError with its case, logged once.
-// Which case an error is, and what of it is logged, is left to the provider
-// modules (anthropic-errors.ts, neon-errors.ts).
+// Turn a storage or application failure into a logged, user-facing error.
 
 import { unstable_rethrow } from "next/navigation";
-import { anthropicErrorCase } from "@/errors/anthropic-errors.ts";
 import { AppError, type AppErrorCase } from "@/errors/app-error.ts";
 import { logAppError } from "@/errors/error-log.ts";
 import {
@@ -16,12 +12,11 @@ import {
 // control-flow errors.
 const MAX_CAUSE_DEPTH = 5;
 
-// Errors already logged, so that each is logged once however often it is
-// turned into an AppError, such as by both copies of a reply's stream.
+// Errors already logged, so that each is logged once even if more than one caller handles it.
 const loggedErrors: WeakSet<object> = new WeakSet();
 
 function classifyError(error: unknown): AppErrorCase {
-  return anthropicErrorCase(error) ?? databaseErrorCase(error) ?? "unknown";
+  return databaseErrorCase(error) ?? "unknown";
 }
 
 // The next link of an error chain: Neon keeps the original error in

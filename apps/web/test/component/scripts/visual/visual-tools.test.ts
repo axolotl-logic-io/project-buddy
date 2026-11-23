@@ -62,7 +62,7 @@ describe("visual tool options", () => {
     );
     expect(options.site).toStrictEqual({ kind: "dev" });
     expect(options.widths).toStrictEqual([DESKTOP, SMALL_PHONE]);
-    expect(takesView(options, "quest--conversation")).toBe(true);
+    expect(takesView(options, "quest--performance")).toBe(true);
     expect(takesView(options, "settings--default")).toBe(true);
     expect(takesView(options, "quests--list")).toBe(false);
   });

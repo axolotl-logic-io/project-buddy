@@ -252,7 +252,7 @@
     @apply mx-auto flex w-full max-w-3xl flex-1 flex-col gap-8 px-4 py-8 sm:px-6 sm:py-10;
   }
 
-  .page-column:has(.chat-thread) {
+  .page-column:has(.performance-thread) {
     @apply pb-0;
   }
 
@@ -273,71 +273,7 @@
     @apply flex min-w-0 flex-col gap-6;
   }
 
-  /* Save, with the hint that says what it costs above it and the status
-     line below: what the editor pins while the form scrolls. The other
-     actions, Reset and Discard changes, follow it at the form's end, so
-     the pinned bar is one short row on a phone. */
-  .prompt-editor-actions {
-    @apply sticky bottom-0 z-10 flex flex-col gap-2 border-line border-t bg-background py-2;
-  }
-
-  .prompt-editor-save-hint {
-    @apply text-sm sm:text-base;
-  }
-
-  .prompt-editor-more {
-    @apply flex flex-wrap items-center gap-x-5;
-  }
-
-  .prompt-editor {
-    @apply grid min-w-0 gap-4;
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .prompt-editor-name,
-  .prompt-editor-replies {
-    @apply grid min-w-0 gap-4;
-  }
-
-  .prompt-editor-name > * {
-    max-inline-size: 36rem;
-  }
-
-  .prompt-editor-nav {
-    @apply flex flex-col items-stretch gap-1;
-  }
-
-  /* The chosen section is marked, not filled: Save stays the editor's
-     strongest control. */
-  .prompt-editor-nav button {
-    @apply rounded-none border-transparent border-l-2 ps-3 text-left;
-  }
-
-  .prompt-editor-nav [aria-pressed="true"] {
-    @apply border-primary bg-surface text-foreground;
-  }
-
-  .prompt-editor-field textarea {
-    block-size: 40dvh;
-  }
-
   /* Short windows need editing space more than pinned form controls. */
-  @media (max-height: 32rem) {
-    .prompt-editor-actions {
-      position: static;
-    }
-  }
-
-  @media (min-width: 48rem) {
-    .prompt-editor-replies {
-      grid-template-columns: minmax(0, 12rem) minmax(0, 1fr);
-      align-items: start;
-    }
-
-    .prompt-editor-heading {
-      grid-column: 1 / -1;
-    }
-  }
 
   /* The headings take their sizes from the theme (src/themes/contract.css).
      The site's name, as the heading of the home and login pages, has a
@@ -354,7 +290,7 @@
     @apply font-heading font-semibold text-page-heading-phone tracking-tight sm:text-page-heading;
   }
 
-  /* A heading inside a page, such as a project's chat list. */
+  /* A heading inside a page, such as a quest's list of spaces. */
   .section-heading {
     @apply font-heading font-semibold text-section-heading;
   }
@@ -371,8 +307,8 @@
     @apply font-heading font-semibold text-card-title;
   }
 
-  /* A link inside text or a list, such as the footer's or the chat's link to
-     sign in again. */
+  /* A link inside text or a list, such as the footer's or the performance's
+     link to sign in again. */
   .text-link {
     @apply rounded-control underline decoration-(length:--line-width) decoration-line underline-offset-4 hover:text-primary hover:decoration-primary;
   }
@@ -499,51 +435,15 @@
     @apply font-medium text-sm;
   }
 
-  /* A read-only prompt's rendered Markdown, such as a built-in construct's
-     instructions: set on the field surface, as the editable text is, so it
-     reads as one document rather than as part of the page. */
-  .prompt-sheet {
-    @apply min-w-0 rounded-box border border-line bg-field px-4 py-3;
-  }
-
   /* A field's hint: what to write, or what the value does. */
   .field-hint {
     @apply text-muted text-sm;
   }
 
   /* A field the user types into or picks from: an input, a textarea or a
-     select. A field box looks the same, but holds a borderless control (its
-     field-box-control) beside actions, such as the chat's message and its
-     Send button. */
-  .input-field,
-  .field-box {
-    @apply w-full border border-line bg-field text-foreground shadow-control;
-  }
-
+     select. */
   .input-field {
-    @apply rounded-control px-3 py-2 placeholder:text-muted aria-[invalid=true]:border-danger;
-  }
-
-  .field-box {
-    @apply flex items-end gap-2 rounded-box p-2;
-  }
-
-  .field-box-control {
-    @apply min-w-0 flex-1 resize-none bg-transparent px-2 py-1.5 leading-relaxed placeholder:text-muted;
-  }
-
-  /* The box shows its control's focus, with the contract's focus ring and
-     glow (src/themes/contract.css), so the control itself draws neither. The
-     glow is a layer of the box's shadow-control box-shadow. */
-  .field-box:has(.field-box-control:focus-visible) {
-    outline: var(--focus-outline);
-    outline-offset: var(--focus-offset);
-    --tw-ring-offset-shadow: var(--focus-glow);
-  }
-
-  .field-box-control:focus-visible {
-    outline: none;
-    box-shadow: none;
+    @apply w-full rounded-control border border-line bg-field px-3 py-2 text-foreground shadow-control placeholder:text-muted aria-[invalid=true]:border-danger;
   }
 
   /* An icon (the Icon building block in src/components/ui/icon.tsx): a box
@@ -610,7 +510,7 @@
   }
 
   /* One item of a list, such as an activity. Cards that sit on the page
-     (this, .current-quest, .quest-start-tile and .tasks-change) let the
+     (this, .current-quest and .quest-start-tile) let the
      page's decoration show faintly through a slightly translucent
      surface; notices, panels and dialogs stay opaque. */
   .card {
@@ -732,8 +632,8 @@
   }
 
   /* A list whose items are rows divided by rules rather than cards, as the
-     Quests index lists its quests: a quest's milestones, its Quick Notes,
-     and every other list of conversations. Inside
+     Quests index lists its quests, with Quick Notes,
+     and other lists of records. Inside
      a framed workspace, a card for each item would stack a second layer of
      borders. */
   .divided-rows {
@@ -749,12 +649,6 @@
      when the row runs out of room. */
   .divided-rows > .divided-row-action {
     @apply flex-row flex-wrap items-center justify-between gap-x-3;
-  }
-
-  /* A card's actions, in a row along its foot: cards in a grid row share
-     a height, so their action rows line up. */
-  .card-actions {
-    @apply mt-auto flex flex-wrap items-center gap-x-3 gap-y-1;
   }
 
   /* A shape that stands in for content while it loads: an empty card, in
@@ -803,12 +697,7 @@
     }
   }
 
-  /* A quest's conversation below its section links and actions. */
-  .quest-conversation {
-    @apply flex min-w-0 flex-1 flex-col gap-4;
-  }
-
-  /* Leave room under the pinned trail band when jumping to a message. */
+  /* Leave room under the pinned trail band when jumping to a conjuration. */
   html:has(.quest-workspace) {
     scroll-padding-top: calc(var(--site-header-height) + --spacing(4));
   }
@@ -1014,13 +903,13 @@
     @apply text-muted text-sm;
   }
 
-  /* The abilities: full-width rows on a phone, tiles side by side from sm,
+  /* The events: full-width rows on a phone, tiles side by side from sm,
      the most experience first. A badge sits on its tile's top edge. */
-  .ability-tiles {
+  .event-tiles {
     @apply mt-3 grid gap-3 pt-2 sm:grid-cols-[repeat(auto-fill,minmax(15rem,1fr))];
   }
 
-  .ability-tile {
+  .event-tile {
     @apply relative grid items-center gap-x-3 rounded-box border-2 bg-field px-3 py-2.5 sm:gap-y-2 sm:p-3.5;
     border-color: color-mix(in oklab, var(--line) 40%, transparent);
     grid-template-columns: auto 1fr auto;
@@ -1029,7 +918,7 @@
       "icon name worth";
   }
 
-  .ability-tile-untried {
+  .event-tile-untried {
     @apply border-dashed bg-transparent;
     border-color: color-mix(in oklab, var(--line) 60%, transparent);
     grid-template-areas:
@@ -1037,71 +926,71 @@
       "icon hint count";
   }
 
-  .ability-tile-most {
+  .event-tile-most {
     @apply mt-1.5;
     border-color: var(--hud-gold);
   }
 
   @media (width >= 40rem) {
-    .ability-tile {
+    .event-tile {
       grid-template-areas:
         "icon name name"
         "count count worth";
     }
 
-    .ability-tile-untried {
+    .event-tile-untried {
       grid-template-areas:
         "icon name count"
         "hint hint hint";
     }
 
-    .ability-tile-most {
+    .event-tile-most {
       @apply mt-0;
     }
   }
 
-  .ability-badge {
+  .event-badge {
     @apply absolute start-3 -top-2.5 rounded-full px-2 py-px font-extrabold text-[0.6875rem] uppercase tracking-wider sm:start-auto sm:end-3;
     background: var(--hud-gold);
     color: var(--hud-ink);
   }
 
-  .ability-icon {
+  .event-icon {
     @apply grid size-9 place-items-center rounded-full;
     grid-area: icon;
     background: var(--hud-ink);
     color: var(--hud-gold);
   }
 
-  .ability-icon > .icon > svg {
+  .event-icon > .icon > svg {
     @apply size-4.5;
   }
 
-  .ability-tile-untried > .ability-icon {
+  .event-tile-untried > .event-icon {
     @apply border-2 border-line border-dashed bg-transparent text-muted;
   }
 
-  .ability-name {
+  .event-name {
     @apply font-bold leading-tight;
     grid-area: name;
   }
 
-  .ability-count {
+  .event-count {
     @apply text-end text-muted text-sm leading-none sm:text-start;
     grid-area: count;
   }
 
-  .ability-number {
+  .event-number {
     @apply font-bold font-heading text-2xl text-foreground sm:text-3xl;
   }
 
-  .ability-worth {
+  .event-worth {
     @apply self-center justify-self-end rounded-full px-2 py-0.5 font-extrabold text-accent text-xs;
     grid-area: worth;
     background: color-mix(in oklab, var(--accent) 12%, transparent);
   }
 
-  .ability-hint {
+  .event-hint {
     @apply text-muted text-sm leading-snug;
     grid-area: hint;
   }
@@ -1253,7 +1142,7 @@
     letter-spacing: var(--display-tracking);
   }
 
-  /* The site panel (src/components/site-panel.tsx), the chat panel's
+  /* The site panel (src/components/site-panel.tsx), the quest side panel's
      mirror on the left: under the header, for the rest of the screen's
      height. Its expand button starts the breadcrumb row; the close button
      lines up with it inside the open panel. It opens over the page's left edge and never
@@ -1479,102 +1368,6 @@
 
   .workspace-intro {
     @apply text-muted text-sm;
-  }
-
-  .workspace-rail {
-    @apply flex min-w-0 flex-wrap items-center justify-between gap-x-4 border-line border-y px-4 sm:px-6;
-  }
-
-  /* A row of tabs: the shared workspace tabs, a quest's sections and an
-     conversation's. It stays one row, and on a narrow screen scrolls sideways
-     inside itself rather than wrapping. Where tabs lie past an edge, that
-     edge fades (scroll-driven, where the browser supports it), so the row
-     shows there is more of it. A focused tab scrolls clear of the fade. The
-     quest sidebar is the exception: its tabs wrap (see .quest-sidebar). */
-  .workspace-tablist {
-    --tablist-fade: --spacing(8);
-    scroll-padding-inline: var(--tablist-fade);
-    overscroll-behavior-inline: contain;
-    @apply flex min-w-0 max-w-full gap-x-4 overflow-x-auto;
-  }
-
-  @supports (scrollbar-width: none) {
-    .workspace-tablist {
-      scrollbar-width: none;
-    }
-  }
-
-  .workspace-tablist > * {
-    @apply shrink-0;
-  }
-
-  /* The scrolling row would clip a ring drawn outside a tab, so a tab's
-     ring sits just inside its own edge. */
-  .workspace-tablist :focus-visible {
-    outline-offset: calc(-1 * var(--focus-offset));
-  }
-
-  /* The fades, by how far the row has scrolled: the end edge at the start,
-     both edges in between and the start edge at the end. A row with
-     nothing to scroll has no timeline, so it never fades. */
-  @supports (animation-timeline: scroll()) and (mask-image: none) {
-    .workspace-tablist {
-      animation: tablist-fade linear both;
-      animation-timeline: scroll(self inline);
-    }
-
-    @keyframes tablist-fade {
-      0% {
-        mask-image: linear-gradient(
-          to right,
-          black calc(100% - var(--tablist-fade)),
-          transparent
-        );
-      }
-      2%,
-      98% {
-        mask-image: linear-gradient(
-          to right,
-          transparent,
-          black var(--tablist-fade),
-          black calc(100% - var(--tablist-fade)),
-          transparent
-        );
-      }
-      100% {
-        mask-image: linear-gradient(
-          to right,
-          transparent,
-          black var(--tablist-fade)
-        );
-      }
-    }
-  }
-
-  .workspace-tab {
-    min-inline-size: var(--target-size);
-    min-block-size: var(--target-size);
-    @apply inline-flex items-center justify-center gap-2 whitespace-nowrap border-transparent border-b-2 py-3 text-left text-muted text-sm;
-  }
-
-  .workspace-tab[data-state="active"],
-  .workspace-tab[aria-current="page"] {
-    @apply border-action-fill font-semibold text-foreground;
-  }
-
-  /* A tab focused by a click shows no focus ring beside its underline;
-     keyboard focus keeps it (src/components/tab-pointer-focus.ts). */
-  .workspace-tab:focus-visible {
-    outline-style: dashed;
-  }
-
-  .workspace-tab:hover {
-    @apply text-action-ink underline underline-offset-4;
-  }
-
-  .workspace-tab[data-pointer-focus]:focus-visible {
-    outline: none;
-    box-shadow: none;
   }
 
   .workspace-content {
@@ -1894,25 +1687,6 @@
     @apply rounded-none border-0 bg-transparent p-0 shadow-none;
   }
 
-  .workspace-rows > ul {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  /* A construct in a list: its avatar, then a column with its name,
-     temperament and actions, so actions never squeeze the name. The column
-     takes the card's height, so its card-actions row sits at the foot. */
-  .construct-card {
-    @apply grid grid-cols-[auto_minmax(0,1fr)] gap-3;
-  }
-
-  .construct-card > :first-child {
-    @apply self-start;
-  }
-
-  .workspace-rows > ul > .card {
-    @apply rounded-none border-0 border-line border-b bg-transparent px-0 py-4 shadow-none last:border-b-0;
-  }
-
   .appearance-settings .panel-modes {
     @apply mx-0;
   }
@@ -1984,14 +1758,6 @@
     @apply wrap-anywhere whitespace-pre-wrap min-w-0 justify-start px-0 py-2.5 text-left font-body font-normal text-foreground no-underline hover:underline disabled:opacity-100;
   }
 
-  .bucket-desk .editable-text {
-    @apply px-1;
-  }
-
-  .bucket-notes .editable-text {
-    @apply py-3 leading-relaxed;
-  }
-
   .editable-row[data-completed="true"] .editable-text {
     @apply text-muted line-through;
   }
@@ -2038,29 +1804,16 @@
     @apply border-line;
   }
 
-  .editable-badge {
-    @apply inline-flex shrink-0 items-center gap-1 px-1 text-muted text-sm tabular-nums;
-  }
-
   /* More about an item, on its own line under the text and the actions. */
   .editable-detail {
     @apply col-start-1 -col-end-1 -mt-1.5 min-w-0 pb-2.5;
-  }
-
-  .bucket-tasks .editable-detail {
-    @apply ps-1;
-  }
-
-  .bucket-ideas .editable-detail {
-    @apply mt-0 pb-1 ps-7;
   }
 
   .editable-row:has(.editable-check) > .editable-detail {
     @apply col-start-2;
   }
 
-  /* A recurring task's streak chain: a row of links toward its next
-     milestone, and a line that says what they show. */
+  /* A recurring task's recent streak and its current day. */
   .streak-chain {
     @apply flex flex-col gap-1;
   }
@@ -2079,10 +1832,6 @@
 
   .streak-link[data-link="today"] {
     @apply border border-primary border-dashed bg-transparent;
-  }
-
-  .streak-link[data-link="milestone"] {
-    @apply border border-accent;
   }
 
   .streak-note {
@@ -2141,182 +1890,8 @@
     @apply basis-full pb-2 text-sm;
   }
 
-  .tasks-done > summary {
-    min-block-size: var(--target-size);
-    list-style: none;
-    @apply flex cursor-pointer items-center gap-2 self-start text-muted text-sm hover:text-foreground;
-  }
-
-  .tasks-done > summary::-webkit-details-marker {
-    display: none;
-  }
-
-  /* Without its list-item display, a summary loses its marker: draw it, as
-     the editor's settings do. */
-  .tasks-done > summary::before {
-    content: "▸";
-  }
-
-  .tasks-done[open] > summary::before {
-    content: "▾";
-  }
-
-  /* Control desk buckets share a toolbar and ledger rules. Domain wrappers
-     give agreed work, possibilities and dated notes their own structure. */
-  .bucket-desk {
-    @apply min-w-0 gap-0;
-  }
-
-  .bucket-toolbar {
-    @apply flex min-w-0 flex-wrap items-center justify-between border border-primary bg-primary text-on-primary;
-  }
-
-  .bucket-summary {
-    @apply min-w-0 flex-1 px-3 py-2 font-medium text-xs;
-  }
-
-  .bucket-toolbar .editable-add {
-    @apply w-auto min-w-0 shrink-0 rounded-none border-on-primary border-s text-on-primary hover:bg-on-primary/10;
-  }
-
-  .bucket-toolbar:has(.editable-add-form) {
-    @apply bg-field text-foreground;
-  }
-
-  .bucket-toolbar .editable-add-form {
-    @apply w-full rounded-none border-primary border-t bg-field;
-  }
-
-  .bucket-desk .editable-list {
-    @apply border border-line border-t-0 bg-surface;
-  }
-
-  .bucket-desk .editable-list:empty {
-    @apply border-0;
-  }
-
-  .bucket-desk .editable-row {
-    @apply rounded-none border-line border-b px-1 last:border-b-0;
-  }
-
-  .bucket-desk .editable-row:has(.editable-leading) {
-    @apply grid-cols-[auto_minmax(0,1fr)_auto];
-  }
-
   .editable-leading {
     @apply min-w-0;
-  }
-
-  .bucket-ideas .editable-leading {
-    min-block-size: var(--target-size);
-    @apply flex w-7 items-center justify-center text-primary;
-  }
-
-  .bucket-desk .editable-grip,
-  .bucket-desk .editable-more {
-    min-inline-size: calc(var(--target-size) * 0.75);
-  }
-
-  .bucket-tasks > .editable-list > .editable-row:first-child {
-    @apply border-primary border-s-4;
-  }
-
-  .bucket-tasks .editable-check input::before {
-    @apply rounded-none;
-  }
-
-  .bucket-desk .tasks-done {
-    @apply mt-3 border-line border-t;
-  }
-
-  .bucket-desk .tasks-done .editable-list {
-    @apply border-t;
-  }
-
-  .idea-decision {
-    @apply flex min-w-0 flex-wrap items-center justify-between gap-x-2 text-muted text-xs;
-  }
-
-  .bucket-empty {
-    @apply border border-line border-t-0 bg-surface px-4 py-5 text-muted text-sm;
-  }
-
-  .bucket-notes .editable-row:has(.editable-leading) {
-    @apply grid-cols-[auto_minmax(0,1fr)_auto];
-  }
-
-  .bucket-notes .editable-leading {
-    @apply my-3 me-2 self-stretch border-line border-e px-2 py-1 text-xs;
-  }
-
-  .bucket-notes .bucket-toolbar {
-    @apply mt-4;
-  }
-
-  .bucket-toolbar[data-empty="true"] {
-    @apply flex-col items-stretch gap-4 border-line border-dashed bg-surface px-4 py-6 text-foreground;
-  }
-
-  .bucket-toolbar[data-empty="true"] .editable-add {
-    @apply justify-center border border-line text-primary hover:bg-field;
-  }
-
-  .bucket-toolbar[data-empty="true"] .editable-add-form {
-    @apply border border-line;
-  }
-
-  .bucket-empty-copy {
-    @apply flex flex-col items-center gap-2 text-center text-muted text-sm;
-  }
-
-  .bucket-empty-copy > .icon {
-    @apply text-2xl;
-  }
-
-  .bucket-empty-heading {
-    @apply font-heading text-foreground text-xl;
-  }
-
-  /* A tasks change in a conversation (src/components/chat/tasks-change-part.tsx):
-     what the construct or a person changed, set apart from the words around
-     it as the conversation's other notes are (.card), with Undo. */
-  .tasks-change {
-    @apply flex flex-col gap-2 rounded-box border border-line bg-surface/70 px-4 py-3 text-sm shadow-control;
-  }
-
-  .tasks-change-heading {
-    @apply flex flex-wrap items-center justify-between gap-x-3;
-  }
-
-  /* Undo keeps its 44 px target without making the title's row taller than
-     a line. */
-  .tasks-change-heading .button-quiet {
-    margin-block: calc((1lh - var(--target-size)) / 2);
-  }
-
-  .tasks-change-lines {
-    @apply flex flex-col gap-1;
-  }
-
-  .tasks-change-lines > li {
-    @apply wrap-anywhere;
-  }
-
-  /* A person's tasks message, inside their message's own frame: the command
-     they typed, ruled off from the change or card it made, which need no
-     frame of their own there. */
-  .tasks-message {
-    @apply flex min-w-0 flex-col gap-2;
-  }
-
-  .tasks-message .tasks-change {
-    @apply rounded-none border-0 bg-transparent p-0 shadow-none;
-  }
-
-  /* The command a person typed, ruled off from the change or card it
-     made. */
-  .tasks-command {
-    @apply wrap-anywhere border-line/40 border-b pb-2 text-muted text-sm;
   }
 
   .quest-overview {
@@ -2324,8 +1899,7 @@
   }
 
   .quest-overview-hero,
-  .quest-section-body,
-  .quest-active-spell {
+  .quest-section-body {
     @apply rounded-box border border-line/70 bg-surface p-4 sm:p-6;
     background-image: var(--frame-decoration);
   }
@@ -2393,10 +1967,6 @@
     @apply text-sm font-semibold;
   }
 
-  .quest-next-task-row {
-    @apply flex w-full flex-wrap items-center justify-between gap-2;
-  }
-
   .quest-overview-links {
     @apply mt-2 grid gap-2 sm:grid-cols-2;
   }
@@ -2410,27 +1980,8 @@
     @apply mt-1 text-primary;
   }
 
-  .quest-section-body,
-  .quest-active-spell {
+  .quest-section-body {
     @apply flex min-w-0 flex-col gap-4;
-  }
-
-  .quest-active-spell .chat-thread {
-    @apply min-h-0;
-  }
-
-  .quest-active-spell .chat-composer-dock {
-    position: static;
-    @apply bg-none p-0;
-  }
-
-  .quest-active-spell .chat-composer-dock::before {
-    display: none;
-  }
-
-  .quest-active-spell .chat-transcript {
-    max-block-size: 24rem;
-    overflow-y: auto;
   }
 
   .quest-timer {
@@ -2479,16 +2030,16 @@
   }
 
   /* The quest sidebar docks to the viewport edge. On phones it becomes a
-     modal drawer, keeping the conversation in place behind it. */
+     modal drawer, keeping the quest in place behind it. */
   .page-column.page-frame-quest {
     @apply max-w-none;
   }
 
-  .conversation-layout {
+  .quest-layout {
     @apply flex min-w-0 flex-1 flex-col;
   }
 
-  .conversation-main {
+  .quest-main {
     @apply mx-auto flex w-full min-w-0 max-w-3xl flex-1 flex-col gap-8;
   }
 
@@ -2516,31 +2067,6 @@
     margin-inline: calc(-1 * var(--header-gutter));
     padding-inline-start: var(--header-gutter);
     @apply sticky top-0 z-10 flex items-center justify-between border-line/40 border-b bg-sidebar-surface;
-  }
-
-  .quest-sidebar .workspace-rail {
-    --sidebar-tab-pad: --spacing(2);
-    margin-inline: calc(-1 * var(--header-gutter));
-    @apply gap-0 border-line/40 border-t-0 px-2;
-  }
-
-  .quest-sidebar .workspace-tablist {
-    overflow-x: visible;
-    animation: none;
-    @apply w-full flex-wrap gap-x-0;
-  }
-
-  .quest-sidebar .workspace-tab {
-    padding-inline: var(--sidebar-tab-pad);
-    @apply gap-1;
-  }
-
-  .dailies-day-controls {
-    @apply flex flex-col items-start gap-2 py-4;
-  }
-
-  .quest-next-task {
-    @apply my-4 flex flex-col gap-2 border-primary border-s-2 ps-3;
   }
 
   .quest-member-invite {
@@ -2583,77 +2109,12 @@
     }
   }
 
-  .workspace-menu-tab {
-    position: relative;
-  }
-
-  .workspace-menu-tab .icon > svg {
-    @apply size-3.5;
-  }
-
-  .workspace-menu-tab[aria-expanded="true"] .icon {
-    rotate: 180deg;
-  }
-
-  /* An open menu's tab: the menu's fill and border, with no bottom edge,
-     dropping through the row's line into the menu under it, so the two
-     read as one shape. The tab sits over the menu's top edge. */
-  .workspace-menu-tab[aria-expanded="true"] {
-    z-index: 1;
-    @apply text-foreground;
-  }
-
-  .workspace-menu-tab[aria-expanded="true"]::after {
-    display: none;
-  }
-
-  .workspace-menu-tab[aria-expanded="true"]::before {
-    content: "";
-    position: absolute;
-    z-index: -1;
-    inset-inline: 0;
-    inset-block-start: --spacing(2);
-    inset-block-end: calc(-1 * var(--line-width));
-    @apply rounded-t-control border border-line border-b-0 bg-secondary-surface;
-  }
-
-  /* The menu's top edge lies on the row's line, so the line runs on into it. */
-  .workspace-menu {
-    z-index: 0;
-    margin-block-start: calc(-1 * var(--line-width));
-    @apply min-w-44 rounded-control rounded-ss-none border border-line bg-secondary-surface p-1 text-sm shadow-raised;
-  }
-
-  .workspace-menu-item {
-    @apply justify-between;
-  }
-
-  .workspace-menu-check {
-    @apply flex text-primary;
-  }
-
-  .bucket-panel {
-    @apply flex min-w-0 flex-col gap-3;
-  }
-
-  .bucket-heading {
-    @apply font-heading font-semibold text-foreground text-lg;
-  }
-
-  .bucket-panel:has(.bucket-desk) > .bucket-heading {
-    @apply flex items-center justify-between gap-3 border-foreground border-t-4 pt-3 text-end font-body font-bold;
-  }
-
-  .bucket-description {
-    @apply text-muted text-xs;
-  }
-
   .quest-sidebar .workspace-content {
     @apply px-0 py-4;
   }
 
-  /* The button that opens or closes a side panel: the chat panel's and the
-     site panel's. */
+  /* The button that opens or closes a side panel: the quest side panel's
+     and the site panel's. */
   .panel-toggle {
     inline-size: var(--target-size);
     block-size: var(--target-size);
@@ -2717,10 +2178,6 @@
     @apply min-w-0 flex-[1_1_8rem] rounded-none border-0 bg-transparent px-0 py-2.5 text-sm shadow-none disabled:cursor-not-allowed disabled:opacity-60;
   }
 
-  .bucket-toolbar[data-empty="true"] .editable-form .input-field {
-    @apply basis-full;
-  }
-
   .quest-sidebar .notice {
     @apply rounded-none border-0 bg-transparent p-0 text-sm shadow-none;
   }
@@ -2729,62 +2186,15 @@
     @apply gap-3;
   }
 
-  .quest-sidebar .bucket-desk {
-    @apply gap-0;
-  }
-
   @media (width >= --theme(--breakpoint-lg)) {
     /* Reserve the default dock before the browser hydrates the dialog. */
-    .conversation-layout:is(
-        [data-sidebar-open="true"],
-        [data-sidebar-open="auto"]
-      ) {
+    .quest-layout:is([data-sidebar-open="true"], [data-sidebar-open="auto"]) {
       padding-inline-end: var(--quest-panel-width);
     }
 
     .quest-sidebar-frame {
       @apply z-20;
     }
-  }
-
-  /* The composer's command list (src/components/chat/command-menu.tsx),
-     above the message box: the commands scroll, and the hint under them
-     stays in view. Each command's usage sits over its description on a
-     phone, and from sm in a column of its own, so the descriptions line
-     up. */
-  .command-menu {
-    @apply absolute inset-x-0 bottom-full z-10 mb-2 flex max-h-72 flex-col gap-2 rounded-box border border-line bg-surface p-2 shadow-raised;
-  }
-
-  .command-list {
-    @apply grid min-h-0 grid-cols-[minmax(0,1fr)] gap-y-1 overflow-y-auto sm:grid-cols-[auto_minmax(0,1fr)];
-  }
-
-  .command-option {
-    min-block-size: var(--target-size);
-    @apply col-span-full flex w-full flex-col justify-center rounded-action px-2 py-1 text-left text-sm hover:bg-field aria-selected:bg-field aria-selected:font-semibold sm:grid sm:grid-cols-subgrid sm:items-baseline sm:gap-x-4;
-  }
-
-  .command-option > code {
-    @apply font-semibold text-primary;
-  }
-
-  .command-hint {
-    @apply shrink-0 border-line/40 border-t px-2 pt-2 text-muted text-xs;
-  }
-}
-
-@layer components {
-  .quest-note-composer {
-    @apply flex min-w-0 flex-col gap-3 rounded-control border border-line bg-field p-3;
-  }
-
-  .quest-note-composer .input-field {
-    @apply min-h-30 text-base;
-  }
-
-  .quest-note-hint {
-    @apply flex flex-wrap justify-between gap-2;
   }
 }
 

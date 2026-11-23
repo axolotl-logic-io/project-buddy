@@ -6,11 +6,11 @@ Use these terms in code, copy, prompts, docs and issues so the same words descri
 
 ### Quest
 
-A workspace for something the user wants to learn, make or do, or for their daily work. A quest has an owner, a status and a continuing quest conversation. Tasks, Ideas, Quick Notes and milestones belong to the quest and persist across spell casts. [Quest use cases](../apps/web/use-cases/quests.md)
+A workspace for something the user wants to learn, make or do, or for their daily work. A quest has an owner, a status and its spaces. Murmlings belong to the quest's spaces and persist across performances. [Quest use cases](../apps/web/use-cases/quests.md)
 
 ### Quest starting point
 
-A reusable preset that supplies the initial quest name, starting context and construct. The four starting points are Dailies, Learn a thing, Make a thing and Do a thing. Dailies and Learn a thing assign Vellum. Make a thing and Do a thing assign Lumen. Starting Dailies again opens the account's existing Dailies quest. [Starting point use case](../apps/web/use-cases/quests.md#use_case_browse_premade_quests)
+A reusable preset that supplies the initial quest name, starting context, construct and spaces. Every starting point creates a Tasks space, which adds tasks, and an Ideas space, which adds plain murmlings. The four starting points are Dailies, Learn a thing, Make a thing and Do a thing. Dailies and Learn a thing assign Vellum. Make a thing and Do a thing assign Lumen. Starting Dailies again opens the account's existing Dailies quest. [Starting point use case](../apps/web/use-cases/quests.md#use_case_browse_premade_quests)
 
 ### Quest status
 
@@ -18,7 +18,7 @@ The state of a quest: **Active** for ongoing work, **Completed** for finished wo
 
 ### Current quest
 
-The Active quest offered under **Continue** on Quests. Among quests open to the user, it is the one with the most recent conversation activity, using the conversation start time when it has no messages. Continue also shows its next task when one exists. [Continue use case](../apps/web/use-cases/quests.md#use_case_continue_quest)
+The Active quest offered under **Continue** on Quests. Among quests open to the user, it is the one with the most recent performance activity. A quest with no performances ranks by the time it started. Continue also shows its next task when one exists. [Continue use case](../apps/web/use-cases/quests.md#use_case_continue_quest)
 
 ### Quest owner
 
@@ -26,7 +26,7 @@ The account that started the quest. The owner can work in the quest and manage s
 
 ### Quest member
 
-An account that has accepted an invitation to the quest. Members share the quest's records and conversation with the owner. They can rename the quest, change its status, cast or stop its spell, invite others and remove other members. A member's own spells and other quests keep their existing access rules. [Quest member access](../apps/web/use-cases/quest-members.md#use_case_quest_member_access)
+An account that has accepted an invitation to the quest. Members share the quest's spaces and performances with the owner. They can rename the quest, change its status, start or stop a performance, invite others and remove other members. A member's own rites and other quests keep their existing access rules. [Quest member access](../apps/web/use-cases/quest-members.md#use_case_quest_member_access)
 
 ### Quest invitation
 
@@ -36,27 +36,27 @@ An offer sent to an email address to join a specific quest. A **pending invitee*
 
 A quest the user owns or has joined as a quest member. Use **open to** for access and **Active** for quest status. A quest that is closed to the user behaves like a missing quest. [Private data use case](../apps/web/use-cases/accounts.md#use_case_private_data)
 
-## Quest work
+## Spaces and murmlings
+
+### Space
+
+A named, ordered collection of murmlings in a quest. Every space belongs to one quest. A space sets the words shown for its contents: a singular and plural noun for its murmlings, and the verbs for checking off and unchecking its tasks. It also sets the type a conjuration gives each new murmling. Themed wording, such as spooky verbs, belongs in a space's words and a rite's replies rather than in the glossary. [Space use cases](../apps/web/use-cases/spaces.md)
+
+### Murmling
+
+Anything in a space. Each murmling has one type: **plain**, **task** or **quick note**. On screen, the space's noun names it. To **move** a murmling is to place it in another space of the same quest, keeping its type and contents. [Murmling types use case](../apps/web/use-cases/spaces.md#use_case_murmling_types)
 
 ### Task
 
-A piece of work the user has committed to in a quest. **Tasks** is the quest's ordered collection of open and done tasks and the section where users work with them. A task number identifies a task within its quest and stays the same when the task moves. To **complete** a task is to mark it done. To **reopen** it is to make it open again. [Task use cases](../apps/web/use-cases/tasks.md)
+A murmling marked as a task: a piece of work the user has committed to. To **check off** a task is to mark it done. To **uncheck** it is to make it open again. The space's verbs name these actions on screen. A task number identifies a task within its quest and stays the same when the task moves. [Task use cases](../apps/web/use-cases/tasks.md)
 
 ### Next task
 
-The first open task in the quest's saved Tasks order. A quest with no open tasks has no next task. [Next task use case](../apps/web/use-cases/tasks.md#use_case_ask_whats_next)
+The first open task in the quest, taking its spaces in order and each space's murmlings in their saved order. A quest with no open tasks has no next task. [Next task use case](../apps/web/use-cases/tasks.md#use_case_ask_whats_next)
 
-### Idea
+### Quick note
 
-A possibility the user is considering. **Ideas** is the quest's ordered collection of these possibilities. **Move to Tasks** turns an idea into one open task and removes the idea in the same change. [Ideas use cases](../apps/web/use-cases/ideas.md)
-
-### Quick Note
-
-A short, dated thought saved to a quest. **Quick Notes** lists the quest's notes newest first. An Active quest can receive new notes. Completed and Abandoned quests allow their existing notes to be read, edited and deleted. [Quick Note use case](../apps/web/use-cases/quick-notes.md)
-
-### Milestone
-
-A dated record of what the user did or achieved in a quest. **Progress** shows the quest's milestones newest first. Editing a milestone keeps its recorded date. Use **streak milestone** for a recurring task's streak threshold. [Progress timeline use case](../apps/web/use-cases/quests.md#use_case_view_progress_timeline)
+A murmling marked as a quick note: a short thought that shows the date it was added. [Quick note use case](../apps/web/use-cases/spaces.md#use_case_quick_note)
 
 ## Dailies
 
@@ -66,53 +66,45 @@ The user's one ongoing, private quest for daily work, created from the Dailies s
 
 ### Dailies day
 
-A day the owner explicitly begins with **Start Day** in an Active Dailies quest. It takes the browser's calendar date under normal conditions. Start Day records the previous day's recurring task results, ends the active spell and reopens done recurring tasks. One-off tasks keep their state unless the owner chooses to remove all tasks. **Undo Start Day** is available until a message is sent in the new day's conversation. [Start Day use case](../apps/web/use-cases/quests.md#use_case_start_day) and [Undo Start Day use case](../apps/web/use-cases/quests.md#use_case_undo_start_day)
+A day the owner explicitly begins with **Start Day** in an Active Dailies quest. It takes the browser's calendar date under normal conditions. Start Day records the previous day's recurring task results, ends the active performance and unchecks recurring tasks that are checked off. One-off tasks keep their state, and other murmlings remain, unless the owner chooses spaces to empty. **Undo Start Day** is available until the next conjuration in the quest. [Start Day use case](../apps/web/use-cases/quests.md#use_case_start_day) and [Undo Start Day use case](../apps/web/use-cases/quests.md#use_case_undo_start_day)
 
 ### Recurring task
 
-A Dailies task marked to do every day. Start Day reopens it if it is done, keeping its task number and place in Tasks. A **one-off task** has no daily reset. [Recurring task use case](../apps/web/use-cases/tasks.md#use_case_recurring_tasks)
+A Dailies task marked to do every day. Start Day unchecks it if it is checked off, keeping its task number and place in its space. A **one-off task** has no daily reset. [Recurring task use case](../apps/web/use-cases/tasks.md#use_case_recurring_tasks)
 
 ### Streak
 
-A run of consecutive calendar dates on which a recurring task was done. A missed date or a **gap**, a date with no Dailies day started, breaks the run. Multiple starts on the same date count as one date. A **streak milestone** is reached at 3, 7, 14 or 30 days, then at each multiple of 30 days. **Day grid** shows each recurring task's marks for up to seven recent dates. [Daily streak use case](../apps/web/use-cases/tasks.md#use_case_daily_streaks)
+A run of consecutive calendar dates on which a recurring task was checked off. A missed date or a **gap**, a date with no Dailies day started, breaks the run. Multiple starts on the same date count as one date. **Day grid** shows each recurring task's marks for up to seven recent dates. [Daily streak use case](../apps/web/use-cases/tasks.md#use_case_daily_streaks)
 
-## Conversations and spells
+## Rites and performances
 
-### Quest conversation
+### Rite
 
-The continuing exchange between people in a quest and its saved construct. A user needs an active spell to send a message. User messages retain their authors. Use **quest conversation** in product language. Existing storage and protocol names such as `ChatId` refer to the conversation at those boundaries. [Conversation use cases](../apps/web/use-cases/chats.md)
+A named way to add murmlings to a space and reply to the user. A **rite definition** supplies the name and a list of replies. The site writes the messages for starting and stopping a performance, and for a failed conjuration, from the rite's name and the space's words. The built-in rites are **Capture**, which confirms each conjuration, and **Brainstorm**, which replies with brainstorming cues. Either can be performed on any space. [Customize rite use case](../apps/web/use-cases/grimoire.md#use_case_customize_rite)
 
 ### Reply
 
-The construct's answer to a message. **Stop reply** cancels the in-progress answer and leaves the active spell available for the next message. Saved text and completed actions may remain. [Stop reply use case](../apps/web/use-cases/chats.md#use_case_stop_reply)
+The rite's answer to a conjuration, picked at random from the rite's reply list. A reply can prompt the user with a brainstorming or planning cue that helps them think of more, based on their goals or what they just wrote. Replies can use the rite's name and the space's words.
+
+### Performance
+
+A rite performed on one space of a quest, from start to stop. Starting a performance saves a **rite snapshot**, a copy of the definition, so editing or forgetting the rite leaves the performance unchanged. The **active performance** is the one in effect for everyone in the quest, and a quest has at most one. **Stop** or Start Day ends it. **Performances** is the quest's record of its past and active performances. [Performance use cases](../apps/web/use-cases/performances.md)
+
+### Conjuration
+
+A message a user writes during the active performance. Each conjuration adds one murmling to the performance's space, with the type the space sets, and the rite replies. A conjuration keeps its author. A user needs an active performance to make a conjuration. [Conjuration use case](../apps/web/use-cases/performances.md#use_case_send_message)
 
 ### Construct
 
-The character that replies in a quest conversation. The built-in constructs are Vellum and Lumen. A conversation keeps a snapshot of its construct, including the character shown with replies. Constructs answer through local commands and spell replies. [Construct use cases](../apps/web/use-cases/constructs.md)
+The character shown with a performance's replies. The built-in constructs are Vellum and Lumen. A quest's starting point assigns its construct, and the quest keeps it. [Construct use cases](../apps/web/use-cases/constructs.md)
 
-### Command
+### Grimoire
 
-A supported instruction sent as a conversation message, such as `help`, `look` or `exp`. The construct handles recognized commands through local rules. Use **CLI command** for an invocation of the `project-buddy` terminal program. [Conversation use cases](../apps/web/use-cases/chats.md) and [command-line use cases](../apps/web/use-cases/command-line.md)
+The collection where a user finds built-in rites and manages their own rites. A **built-in rite** is a read-only definition supplied by the site. An **own rite** is a private definition that its owner creates or copies and can edit. Quest members share the performances in a quest according to quest access. They do not acquire access to the original private definition. [Grimoire use cases](../apps/web/use-cases/grimoire.md)
 
-### Spell
+### Forgotten rite
 
-A named way to capture messages in a quest and reply to the user. A **spell definition** supplies the name, message destination and reply text. The **message destination** is Tasks or Ideas. In spell reply templates, `{{bucket}}` inserts the destination name. The built-in **Tasks spell** creates open tasks, and **Brainstorm** adds ideas. Use **Tasks spell** when both the spell and its destination appear in the same sentence. [Spellbook use cases](../apps/web/use-cases/spellbook.md)
-
-### Cast
-
-To activate a spell in a quest conversation. A cast saves a **spell snapshot**, a copy of the definition used by that cast, and opens a fresh transcript. The **active spell** is the cast currently in effect for everyone in that quest. Editing or forgetting the original definition leaves the cast in effect. **Stop** ends the active spell and closes its conversation view. Captured tasks and ideas stay in the quest. [Cast a spell](../apps/web/use-cases/spellbook.md#use_case_construct_casts_spell) and [message capture](../apps/web/use-cases/ideas.md#use_case_spell_buckets)
-
-### Spell transcript
-
-The messages and replies shown for a particular cast. The transcript starts fresh with each cast. Use **quest conversation** for the continuing exchange and **spell transcript** when referring to the messages of one cast. [Continue a conversation](../apps/web/use-cases/chats.md#use_case_continue_chat)
-
-### Spellbook
-
-The collection where a user finds built-in spells and manages their own spells. A **built-in spell** is a read-only definition supplied by the site. An **own spell** is a private definition that its owner creates or copies and can edit. Quest members share the result of a cast according to quest access. They do not acquire access to the original private definition. [Spellbook use cases](../apps/web/use-cases/spellbook.md)
-
-### Forgotten spell
-
-An own spell put aside with **Forget**. It appears in Spellbook's **Forgotten** tab and is unavailable for new casts. **Restore** makes the same definition available again. **Delete forever** permanently removes the definition. Both actions preserve existing cast snapshots. [Forgotten spell use cases](../apps/web/use-cases/retirement.md)
+An own rite put aside with **Forget**. It appears in the Grimoire's **Forgotten** tab and is unavailable for new performances. **Restore** makes the same definition available again. **Delete forever** permanently removes the definition. Both actions preserve existing rite snapshots. [Retirement use cases](../apps/web/use-cases/retirement.md)
 
 ## Accounts and personal progress
 
@@ -124,13 +116,13 @@ A user's identity and saved data, tied to their email address. Public sign-up cr
 
 The signed-in state established when a user confirms an emailed link. Signing out ends the current browser's session. Signing out everywhere ends the account's sessions across browsers and devices. [Account use cases](../apps/web/use-cases/accounts.md)
 
-### Ability
+### Event
 
-A category of action tracked for a user. Adding tasks, Ideating, Quick Notes, Completing tasks and Completing quests each award one **ability point** for a qualifying action. Points belong to the user who performed it, including in a shared quest. [Experience use cases](../apps/web/use-cases/experience.md)
+A tracked action that earns experience: adding a murmling, checking off a task or completing a quest. An event belongs to the user who performed it, including in a shared quest. Unchecking a task or restoring a completed quest takes its event back. [Experience use case](../apps/web/use-cases/experience.md#use_case_experience)
 
 ### Experience
 
-The weighted sum of a user's ability points. Adding a task, idea or Quick Note earns 1 experience. Completing a task earns 3, and completing a quest earns 9. Reopening a completed task or quest takes back its completion point. The recurring task reset on Start Day preserves points. [Experience use case](../apps/web/use-cases/experience.md#use_case_experience)
+The weighted sum of a user's events. Adding a murmling earns 1 experience. Checking off a task earns 3, and completing a quest earns 9. Start Day's recurring task reset preserves experience.
 
 ### Circle
 

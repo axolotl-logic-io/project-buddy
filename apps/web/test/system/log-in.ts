@@ -27,8 +27,7 @@ async function testSessionCookie(
   };
 }
 
-// Signs the page's browser in as account, and opens "/", which is the new
-// chat page.
+// Signs the page's browser in as account, and opens "/".
 export async function logIn(page: Page, account: SessionUser): Promise<void> {
   const { baseURL } = test.info().project.use;
   if (baseURL === undefined) {

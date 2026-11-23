@@ -56,6 +56,8 @@ test("use_case_sign_up_existing_email", async ({ account, page, testData }) => {
   const [email] = await waitForEmailsTo(account.email, 1);
   await continueSignIn(page, signInLinkIn(email));
   await page.goto("/quests");
-  await expect(page.getByText(quest.name)).toBeVisible();
+  await expect(
+    page.getByRole("link", { name: quest.name, exact: true }),
+  ).toBeVisible();
   expect(await findUserByEmail(account.email)).toEqual(before);
 });

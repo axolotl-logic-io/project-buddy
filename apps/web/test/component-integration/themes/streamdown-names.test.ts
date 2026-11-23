@@ -1,7 +1,7 @@
 /// <reference types="vite/client" />
-// Streamdown's names (chat.css's reference theme) compile anywhere, but only
+// Streamdown's names (performances.css's reference theme) compile anywhere, but only
 // the Markdown may use them: outside it, they style nothing or stand in for
-// a contract utility. So no file in src/ but chat.css writes one as a class.
+// a contract utility. So no file in src/ but performances.css writes one as a class.
 // This file is left out too: it names Tailwind's utilities, not classes.
 import ts from "typescript";
 import { describe, expect, test } from "vitest";
@@ -12,7 +12,7 @@ const SOURCES = import.meta.glob<string>(
     "/src/**/*.{ts,tsx,css}",
     "/test/**/*.{ts,tsx,css}",
     "!/test/system/**",
-    "!/src/components/chat/chat.css",
+    "!/src/components/performances.css",
     "!/test/component-integration/themes/streamdown-names.test.ts",
   ],
   { query: "?raw", import: "default", eager: true },
@@ -134,14 +134,14 @@ describe("Streamdown's names", () => {
     ]);
   });
 
-  test("are read from chat.css, each with its utilities", () => {
+  test("are read from performances.css, each with its utilities", () => {
     expect(NAMES).toContain("color-border");
     expect(NAMES).toContain("radius");
     expect(NAMES).toContain("shadow-lg");
     expect(PATTERNS).not.toContain(undefined);
   });
 
-  test("are written as classes nowhere in src/ but chat.css", () => {
+  test("are written as classes nowhere in src/ but performances.css", () => {
     const written = Object.entries(SOURCES).flatMap(([path, source]) =>
       streamdownClassesIn(classText(path, source)).map(
         (name) => `${path}: ${name}`,

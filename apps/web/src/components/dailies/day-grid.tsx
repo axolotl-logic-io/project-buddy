@@ -1,8 +1,10 @@
-"use client";
-
-import { type JSX, useMemo } from "react";
-import { useTasks } from "@/components/tasks/use-tasks.ts";
-import { dayGrid, type LocalDate } from "@/dailies/dailies.ts";
+import type { JSX } from "react";
+import {
+  type DailiesDay,
+  type DayTasks,
+  dayGrid,
+  type LocalDate,
+} from "@/dailies/dailies.ts";
 import { DAY_GRID_COPY } from "@/ui/copy/dailies.ts";
 
 // How many calendar dates the grid shows.
@@ -24,19 +26,14 @@ function weekdayOf(date: LocalDate): string {
 // and dashed on a gap, a date with no day started. It follows the tasks as
 // they change, so checking off a task fills today's square at once. Outside
 // the Dailies quest it shows nothing.
-function DayGrid(): JSX.Element | null {
-  const tasks = useTasks();
-  const days = tasks?.days;
-  const current = tasks?.state.tasks;
-  const grid = useMemo(() => {
-    if (days === undefined || current === undefined) {
-      return;
-    }
-    return dayGrid(days, current, DAYS_SHOWN);
-  }, [days, current]);
-  if (grid === undefined) {
-    return null;
-  }
+function DayGrid({
+  days,
+  tasks,
+}: {
+  readonly days: readonly DailiesDay[];
+  readonly tasks: DayTasks;
+}): JSX.Element {
+  const grid = dayGrid(days, tasks, DAYS_SHOWN);
   let body: JSX.Element;
   if (grid.dates.length === 0) {
     body = <p className="text-muted text-sm">{DAY_GRID_COPY.noDays}</p>;

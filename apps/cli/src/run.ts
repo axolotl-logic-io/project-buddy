@@ -50,6 +50,8 @@ type Plan =
 
 const DEFAULT_URL = "http://localhost:3000";
 
+const DEFAULT_TIMEOUT_SECONDS = 30;
+
 const MILLISECONDS_PER_SECOND = 1000;
 
 const ITEMS = z.array(z.unknown());
@@ -219,9 +221,9 @@ function originOf(invocation: Invocation, io: Io): URL {
   }
 }
 
-function deadlineOf(found: Command, invocation: Invocation): AbortSignal {
+function deadlineOf(invocation: Invocation): AbortSignal {
   const { timeout } = invocation;
-  let seconds = found.timeoutSeconds;
+  let seconds = DEFAULT_TIMEOUT_SECONDS;
   if (timeout !== undefined) {
     seconds = Number(timeout);
     if (!POSITIVE_SECONDS.test(timeout) || seconds <= 0) {
@@ -292,7 +294,7 @@ async function runCommand(
       requestId: writer.requestId,
       fetch: io.fetch,
       interrupt: io.interrupt,
-      deadline: deadlineOf(found, invocation),
+      deadline: deadlineOf(invocation),
     };
   } catch (error: unknown) {
     return writeProblem(writer, problemOf(error));

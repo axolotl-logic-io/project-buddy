@@ -4,7 +4,7 @@
 // of the site and share its helpers, whichever area's file they
 // are in: when-things-go-wrong.spec.ts, for example, holds Access's
 // lapsed-session case. `logIn` in log-in.ts signs a page in as
-// the test's account, and chat-page.ts reads and writes a chat.
+// the test's account.
 //
 // The accounts and their data come from the server tests' kit in
 // src/test-database/, so both kinds of test make them one way.
@@ -22,7 +22,7 @@
 // - `newAddress` is an email address no account has, for a test that signs
 //   up through the site. The account the site makes for it is deleted when
 //   the test ends.
-// - `testData` makes the account's quests and chats through the app's
+// - `testData` makes the account's quests through the app's
 //   stores, and adds manual sections through the manual index, in the test
 //   database (testData in data-test-kit.ts). The sections are removed when
 //   the test ends.
@@ -47,7 +47,7 @@ import {
   testUser,
 } from "../support/test-database/user-test-kit.ts";
 
-// Quests and chats of one account that a test needs before it starts, and
+// Quests of one account that a test needs before it starts, and
 // the account they are made for.
 interface TestData extends AccountData {
   readonly account: User;
@@ -56,7 +56,7 @@ interface TestData extends AccountData {
 interface Fixtures {
   // The test's account, which logIn signs in as.
   readonly account: User;
-  // The account's quests and chats.
+  // The account's quests.
   readonly testData: TestData;
   // A second account, for tests of more than one account.
   readonly otherAccount: User;
@@ -88,7 +88,7 @@ function uniqueClientAddress(testInfo: TestInfo): string {
 }
 
 // A new account, under an address no other test uses, deleted with its
-// quests, chats, memory and rate-limit rows when the test ends, together
+// quests and rate-limit rows when the test ends, together
 // with any other account the test made. It needs no other fixture, but
 // Playwright reads a fixture's first argument as a destructured object.
 async function useAccount(

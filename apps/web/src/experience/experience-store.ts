@@ -1,49 +1,48 @@
-// Each user's ability points, one row per point (src/db/tables/ability-points.ts).
-// The stores that save what a user does gain and lose points in the same
+// Each user's event counts, one row per point (src/db/tables/events.ts).
+// The stores that save what a user does gain and lose counts in the same
 // transaction, so a point is there exactly while what gave it stands.
 import { and, desc, eq, inArray, sql } from "drizzle-orm";
+import { eventOwnedBy } from "@/accounts/owner-scope.ts";
 import { type Database, getDb } from "@/db/client.ts";
-import { abilityPoints } from "@/db/tables/ability-points.ts";
+import { events } from "@/db/tables/events.ts";
 import { withAppErrors } from "@/errors/to-app-error.ts";
 import {
-  ABILITY,
-  type Ability,
+  EVENT_KIND,
+  type Event,
   type Experience,
   experienceOf,
-  NO_POINTS,
+  NO_EVENTS,
 } from "@/experience/experience.ts";
-import { taskPointChanges } from "@/experience/task-points.ts";
 import type { QuestId, UserId } from "@/ids.ts";
-import type { Tasks } from "@/tasks/tasks.ts";
 
-// Who gains points, and the quest they did it in.
+// Who gains counts, and the quest they did it in.
 interface PointGainer {
   readonly user: UserId;
   readonly questId: QuestId;
 }
 
-// Gives the user a point in the ability for each source.
-async function gainPoints(
+// Gives the user a point in the event for each source.
+async function recordEvents(
   database: Database,
   { user, questId }: PointGainer,
-  ability: Ability,
+  event: Event,
   sources: readonly string[],
 ): Promise<void> {
   if (sources.length === 0) {
     return;
   }
   await database
-    .insert(abilityPoints)
+    .insert(events)
     .values(
-      sources.map((source) => ({ userId: user, ability, questId, source })),
+      sources.map((source) => ({ userId: user, event, questId, source })),
     );
 }
 
-// Takes back the newest point the ability gained from each source, whoever
+// Takes back the newest point the event gained from each source, whoever
 // gained it.
-async function losePoints(
+async function takeBackEvents(
   database: Database,
-  ability: Ability,
+  event: Event,
   questId: QuestId,
   sources: readonly string[],
 ): Promise<void> {
@@ -51,63 +50,60 @@ async function losePoints(
     return;
   }
   const newest = database
-    .selectDistinctOn([abilityPoints.source], { id: abilityPoints.id })
-    .from(abilityPoints)
+    .selectDistinctOn([events.source], { id: events.id })
+    .from(events)
     .where(
       and(
-        eq(abilityPoints.questId, questId),
-        eq(abilityPoints.ability, ability),
-        inArray(abilityPoints.source, [...sources]),
+        eq(events.questId, questId),
+        eq(events.event, event),
+        inArray(events.source, [...sources]),
       ),
     )
-    .orderBy(
-      abilityPoints.source,
-      desc(abilityPoints.gainedAt),
-      desc(abilityPoints.id),
-    );
-  await database.delete(abilityPoints).where(inArray(abilityPoints.id, newest));
+    .orderBy(events.source, desc(events.gainedAt), desc(events.id));
+  await database.delete(events).where(inArray(events.id, newest));
 }
 
-// The points a change to the quest's Tasks gains the user, or takes back
-// for each task it reopened.
-async function changeTaskPoints(
-  database: Database,
-  gainer: PointGainer,
-  before: Tasks,
-  after: Tasks,
-): Promise<void> {
-  const { added, completed, reopened } = taskPointChanges(before, after);
-  await gainPoints(database, gainer, "adding-tasks", added.map(String));
-  await gainPoints(database, gainer, "completing-tasks", completed.map(String));
-  await losePoints(
-    database,
-    "completing-tasks",
-    gainer.questId,
-    reopened.map(String),
-  );
+async function latestCheckOff(
+  db: Database,
+  questId: QuestId,
+  taskNumber: number,
+): Promise<typeof events.$inferSelect | undefined> {
+  const [row] = await db
+    .select()
+    .from(events)
+    .where(
+      and(
+        eq(events.questId, questId),
+        eq(events.event, "checking-off"),
+        eq(events.source, String(taskNumber)),
+      ),
+    )
+    .orderBy(desc(events.gainedAt), desc(events.id))
+    .limit(1);
+  return row;
 }
 
-// The user's points in each ability and where they put them.
+// The user's counts in each event and where they put them.
 function readExperience(user: UserId): Promise<Experience> {
   return withAppErrors("readExperience", async () => {
     const rows = await getDb()
       .select({
-        ability: abilityPoints.ability,
-        points: sql<number>`count(*)::int`,
+        event: events.event,
+        counts: sql<number>`count(*)::int`,
       })
-      .from(abilityPoints)
-      .where(eq(abilityPoints.userId, user))
-      .groupBy(abilityPoints.ability);
-    const points: Record<Ability, number> = { ...NO_POINTS };
+      .from(events)
+      .where(eventOwnedBy(user))
+      .groupBy(events.event);
+    const counts: Record<Event, number> = { ...NO_EVENTS };
     for (const row of rows) {
-      const ability = ABILITY.safeParse(row.ability).data;
-      if (ability !== undefined) {
-        points[ability] = row.points;
+      const event = EVENT_KIND.safeParse(row.event).data;
+      if (event !== undefined) {
+        counts[event] = row.counts;
       }
     }
-    return experienceOf(points);
+    return experienceOf(counts);
   });
 }
 
 export type { PointGainer };
-export { changeTaskPoints, gainPoints, losePoints, readExperience };
+export { latestCheckOff, readExperience, recordEvents, takeBackEvents };

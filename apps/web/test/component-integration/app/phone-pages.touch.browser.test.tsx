@@ -14,11 +14,10 @@ import { beforeAll, beforeEach, describe, expect, test, vi } from "vitest";
 import { page } from "vitest/browser";
 import { render } from "vitest-browser-react";
 import type { readSignInLinkUser } from "@/accounts/sign-in-links.ts";
-import type { getChat, listMessages } from "@/chats/store.ts";
-import type { listMilestones } from "@/milestones/milestone-store.ts";
+
 import type { readCurrentQuest } from "@/quests/current-quest-store.ts";
 import type { getQuest, listQuests } from "@/quests/store.ts";
-import { listRetiredDefinitions } from "@/retirement/retirement-store.ts";
+
 import { THEME_IDS, type ThemeId } from "@/themes/themes.ts";
 import { QUEST_STATUS_COPY } from "@/ui/copy/quest-status.ts";
 import { TIMER_COPY } from "@/ui/copy/timer.ts";
@@ -50,21 +49,11 @@ vi.mock(
   "@/experience/experience-store.ts",
   () => import("../experience/experience-store-test-kit.ts"),
 );
-vi.mock("@/ideas/idea-store.ts", () => ({
-  listIdeas: vi.fn().mockResolvedValue([]),
-}));
-vi.mock(
-  "@/tasks/tasks-actions.ts",
-  () => import("../tasks/tasks-actions-test-kit.ts"),
-);
+
 vi.mock(
   "@/auth/current-user.ts",
   () => import("../auth/current-user-test-kit.ts"),
 );
-
-vi.mock("@/images/generation-store.ts", () => ({
-  listGeneratedImages: vi.fn(),
-}));
 
 // The stores the pages read, whose answers each PHONE_PAGES entry sets.
 vi.mock("@/quests/store.ts", () => ({
@@ -74,26 +63,7 @@ vi.mock("@/quests/store.ts", () => ({
 vi.mock("@/quests/current-quest-store.ts", () => ({
   readCurrentQuest: vi.fn<typeof readCurrentQuest>(),
 }));
-vi.mock("@/chats/store.ts", () => ({
-  getChat: vi.fn<typeof getChat>(),
-  listMessages: vi.fn<typeof listMessages>(),
-  readStoppedReply: vi.fn().mockResolvedValue(undefined),
-}));
-vi.mock("@/conversations/start-quest.ts", () => ({
-  readQuestConversation: vi.fn(),
-  startQuestConversation: vi.fn(),
-}));
-vi.mock("@/milestones/milestone-store.ts", () => ({
-  listMilestones: vi.fn<typeof listMilestones>(),
-}));
-vi.mock(
-  "@/tasks/tasks-store.ts",
-  () => import("../tasks/tasks-store-test-kit.ts"),
-);
-vi.mock(
-  "@/dailies/day-store.ts",
-  () => import("../dailies/day-store-test-kit.ts"),
-);
+
 vi.mock("@/accounts/sign-in-links.ts", () => ({
   readSignInLinkUser: vi.fn<typeof readSignInLinkUser>(),
 }));
@@ -114,17 +84,6 @@ vi.mock("@/app/login/link/actions.ts", () => ({
 }));
 vi.mock("@/app/(workspace)/quests/actions.ts", () => ({
   startQuestAction: vi.fn(),
-}));
-vi.mock("@/app/(workspace)/quests/[questId]/(overview)/actions.ts", () => ({
-  startConversationAction: vi.fn(),
-}));
-vi.mock("@/app/(workspace)/constructs/actions.ts", () => ({
-  retireConstructAction: vi.fn(),
-  cloneConstructAction: vi.fn(),
-  editBuiltInConstructAction: vi.fn(),
-  newConstructAction: vi.fn(),
-  resetConstructPromptAction: vi.fn(),
-  saveConstructAction: vi.fn(),
 }));
 vi.mock("@/app/(workspace)/profile/actions.ts", () => ({
   setNameAction: vi.fn(),
@@ -249,7 +208,6 @@ beforeAll(async () => {
 });
 
 beforeEach(() => {
-  vi.mocked(listRetiredDefinitions).mockResolvedValue([]);
   document.documentElement.classList.add("h-full");
   document.body.classList.add("flex", "min-h-full", "flex-col");
 });
@@ -308,16 +266,6 @@ describe("use_case_use_on_phone", () => {
     });
   }
 });
-
-vi.mock("@/retirement/retirement-store.ts", () => ({
-  getRetiredDefinition: vi.fn(),
-  listRetiredDefinitions: vi.fn(),
-}));
-
-vi.mock("@/app/(workspace)/spellbook/forgotten-actions.ts", () => ({
-  restoreDefinitionAction: vi.fn(),
-  deleteRetiredDefinitionAction: vi.fn(),
-}));
 
 vi.mock(
   "@/visits/signed-in-days-store.ts",

@@ -6,7 +6,7 @@ import { defineConfig } from "vitest/config";
 // configured in .env.test before running these tests. `npm test` needs no database.
 
 // The longest a server test, or a hook such as the setup file's afterEach
-// cleanup, may take: their database round trips and POST /api/chat calls,
+// cleanup, may take: their database round trips,
 // which have no event to wait for in place of this clock. The worst test
 // measured took 12 742 ms, its afterEach cleanup included, at 1-minute load
 // averages of 38-50 on 10 cores (other suites running beside it, plus one

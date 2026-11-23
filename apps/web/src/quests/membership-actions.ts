@@ -14,7 +14,6 @@ import {
   inviteToQuest,
   removeFromQuest,
 } from "@/quests/membership-store.ts";
-import { PANEL_COMMANDS_COPY } from "@/ui/copy/commands.ts";
 import { QUEST_MEMBERS_COPY } from "@/ui/copy/quest-members.ts";
 
 const ANSWER_REQUEST = z.object({ questId: QUEST_ID, accept: z.boolean() });
@@ -52,7 +51,7 @@ async function inviteToQuestAction(
   const user = await requireUser();
   const invite = INVITE_REQUEST.safeParse(request).data;
   if (invite === undefined) {
-    return { kind: "problem", text: PANEL_COMMANDS_COPY.problems.noEmail };
+    return { kind: "problem", text: QUEST_MEMBERS_COPY.invalidEmail };
   }
   const result = await inviteToQuest(
     user.id,
@@ -68,7 +67,7 @@ async function inviteToQuestAction(
       refresh();
       return {
         kind: "saved",
-        message: PANEL_COMMANDS_COPY.notes[result.kind](invite.email),
+        message: QUEST_MEMBERS_COPY.invitationResult[result.kind](invite.email),
       };
     case "in-quest":
       return {
