@@ -6,8 +6,7 @@
     "count": "node src/cli.ts",
     "test": "vitest run",
     "typecheck": "tsc -p .",
-    "lint": "biome check --error-on-warnings",
-    "check": "npm run typecheck && npm run lint && npm test"
+    "lint": "npm run typecheck && biome check --error-on-warnings"
   },
   "dependencies": {
     "zod": "^4.6.7"

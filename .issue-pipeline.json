@@ -2,7 +2,7 @@
   "resources": { "modelSessions": 1 },
   "commands": {
     "setup": "npm ci --no-audit --no-fund && bash apps/web/scripts/test-env/setup.sh",
-    "test": "npm run check --workspaces && npm run test:integration --workspace @project-buddy/web && npm run test:e2e --workspace @project-buddy/web",
+    "test": "npm run lint && npm test && npm run test:e2e",
     "prune": "bash apps/web/scripts/test-env/prune.sh"
   },
   "practices": [

@@ -14,7 +14,7 @@ import { signIn, signOut } from "../test-database/session-test-kit.ts";
 import { twoUsers } from "../test-database/two-users-test-kit.ts";
 import { callApi, dataOf } from "./api-test-kit.ts";
 
-describe("use_case_cli_api_quests", () => {
+describe("use_case_api_quests", () => {
   test("a request without a session answers 401 with a problem, never a redirect", async () => {
     signOut();
     const answer = await callApi(listQuests, { params: {} });
@@ -29,7 +29,7 @@ describe("use_case_cli_api_quests", () => {
     });
   });
 
-  test("whoami names the signed-in user", async () => {
+  test("me names the signed-in user", async () => {
     const { her } = await twoUsers();
     await signIn(her);
     const answer = await callApi(getMe, { params: {} });

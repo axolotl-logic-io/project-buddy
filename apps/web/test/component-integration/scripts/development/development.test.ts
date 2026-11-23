@@ -105,7 +105,6 @@ describe("development setup and diagnosis", () => {
     const commands = readFileSync(join(web, "commands"), "utf8");
     expect(commands).toContain("up --detach --wait");
     expect(commands).toContain("npm run --silent dev:database");
-    expect(commands).toContain("npm run dev:cli-session");
     const lines = commands.split("\n");
     expect(lines.indexOf("npm run test-env:init")).toBeLessThan(
       lines.indexOf("npm run test-db:up"),
