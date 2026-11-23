@@ -1243,8 +1243,15 @@
     box-shadow: none;
   }
 
+  /* WebKit draws a scaled image at low quality for 500 ms after its box is
+     painted at another size, such as while the site panel slides in or the
+     window resizes, and every later paint restarts that wait. The swatch's
+     texture is drawn at about an eighth of its size, so low quality sharpens
+     it visibly; optimizeQuality keeps WebKit's high quality every time.
+     Chromium and Firefox treat the value as auto. */
   .theme-swatch {
     @apply pointer-events-none relative block h-16 w-full rounded-control bg-background bg-(image:--page-decoration) bg-cover;
+    image-rendering: optimizeQuality;
   }
 
   @supports (mask: none) {
