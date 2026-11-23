@@ -1,6 +1,6 @@
-// The records the API answers with, as the command-line interface reads
-// them: only the fields a caller acts on, with dates as ISO 8601 text in UTC
-// once serialized, and no model-only instructions or private definitions.
+// The records the API answers with, as its callers read them: only the
+// fields a caller acts on, with dates as ISO 8601 text in UTC once
+// serialized, and no model-only instructions or private definitions.
 
 import type { QuestSharing } from "@/quests/membership.ts";
 import type { QuestStatus } from "@/quests/quest-status.ts";

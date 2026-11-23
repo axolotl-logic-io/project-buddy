@@ -148,7 +148,7 @@ test("use_case_view_performances", async () => {
   expect(await readConjurations(stranger.id, performance.id)).toEqual([]);
 });
 
-test("use_case_cli_api_performance", async () => {
+test("use_case_api_performance", async () => {
   const {
     user,
     questId,

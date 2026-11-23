@@ -1,9 +1,8 @@
 // Makes a sign-in link in the development database for `mise run
 // sign-in-link [EMAIL]`, without the site or the email outbox. EMAIL defaults
-// to the developer account that the project-buddy command uses. An address
-// with no account gets one: the developer account is signed up and named
-// Developer; any other is invited, so continuing from the link asks for a
-// name, as sign-up does.
+// to the developer account. An address with no account gets one: the
+// developer account is signed up and named Developer; any other is invited,
+// so continuing from the link asks for a name, as sign-up does.
 //
 // The link is saved as src/accounts/sign-in-links.ts saves one: its token's
 // hash in login_links, working for 30 minutes, with the user's expired links
