@@ -22,11 +22,13 @@ function PerformanceTranscript({
 }): JSX.Element {
   return (
     <div className="grid gap-3">
-      <ConstructIllustration
-        construct={construct}
-        visualRole="opening"
-        decorative={true}
-      />
+      <div className="performance-opening">
+        <ConstructIllustration
+          construct={construct}
+          visualRole="opening"
+          decorative={true}
+        />
+      </div>
       <p>
         {PERFORMANCE_COPY.opening(performance.rite.name, performance.spaceName)}
       </p>

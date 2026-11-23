@@ -190,6 +190,57 @@
     padding-block-end: var(--performance-keyboard-inset, 0px);
   }
 
+  /* The scroll controller (use-performance-scroll.ts) owns following and
+     keeping the reading place. The browser's own scroll anchoring must not
+     move the reader when content arrives after they scroll up. */
+  @supports (overflow-anchor: none) {
+    :root:has(.performance-thread) {
+      overflow-anchor: none;
+    }
+  }
+
+  /* The construct's illustration at the start of a performance: larger
+     than a reply's portrait, and small enough that the opening line beside
+     it stays on the first screen. */
+  .performance-opening {
+    inline-size: min(100%, 14rem);
+  }
+
+  /* The construct while a reply is coming (performance-controls.tsx):
+     Lumen's light gently glows and Vellum works, only when motion is
+     welcome. With reduced motion the portrait stays still, and the busy
+     text beside it says a reply is coming. Once the reply arrives or fails
+     the portrait goes, and nothing keeps moving. */
+  .performance-working .construct-avatar {
+    border-radius: 50%;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .performance-working[data-construct="lumen"] .construct-avatar {
+      animation: construct-glow 2s ease-in-out infinite;
+    }
+
+    .performance-working[data-construct="vellum"] .construct-avatar {
+      animation: construct-working 2s ease-in-out infinite;
+    }
+  }
+
+  @keyframes construct-glow {
+    50% {
+      box-shadow: 0 0 calc(var(--space-unit) * 2) var(--construct-glow);
+    }
+  }
+
+  @keyframes construct-working {
+    25% {
+      transform: rotate(3deg);
+    }
+
+    75% {
+      transform: rotate(-3deg);
+    }
+  }
+
   .performance-composer {
     position: sticky;
     inset-block-end: var(--performance-keyboard-inset, 0px);
