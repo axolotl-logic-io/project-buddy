@@ -1,6 +1,6 @@
 # Runs on each PR and on each push to integration: `npm run lint` (Biome and
-# the type check in every workspace), the site's unit tests and the other
-# workspaces' tests. It needs no secrets and no services. The Full suite
+# the type check in every workspace), the site's unit tests and the
+# instruction counter's tests. It needs no secrets and no services. The Full suite
 # workflow runs the rest of `npm test` and the end-to-end tests. Branch
 # protection on integration requires this job, and requires a PR's branch
 # to be up to date with integration before it merges.
@@ -36,4 +36,4 @@ jobs:
       - run: npm ci --no-audit --no-fund
       - run: npm run lint
       - run: npm run test:unit --workspace @project-buddy/web
-      - run: npm test --workspace @project-buddy/cli --workspace @project-buddy/instruction-counter
+      - run: npm test --workspace @project-buddy/instruction-counter

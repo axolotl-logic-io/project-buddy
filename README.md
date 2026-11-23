@@ -9,7 +9,6 @@ Before changing the code, read `AGENTS.md`, which links the rules for code, test
 The repo is a monorepo of npm workspaces with mise tasks:
 
 - `apps/web/`: the site, a Next.js app. Everything below describes it, and its paths are relative to this folder.
-- `apps/cli/`: `project-buddy`, a command-line client for the site's `/api/v1` routes that writes JSONL; run `project-buddy --help` for its commands.
 - `apps/instruction-counter/`: a pi-backed text-file measurement tool that emits one JSON line; see its `README.md`.
 - `docs/`: domain reference, style guides, practices and operating notes, starting at `docs/README.md`.
 - The root holds the shared tooling (`package.json` with the workspaces, the one `package-lock.json`, `mise.toml`, `biome.jsonc`) and the top-level docs (`AGENTS.md` and this README).
@@ -27,7 +26,7 @@ mise //apps/web:dev
 
 Setup stops a Next.js development server already running in this checkout before it reinstalls dependencies. To check the environment on its own, run `mise run doctor`. `mise doctor` is mise's own diagnostic command, not this repository's.
 
-`mise setup` runs in this order: it installs dependencies, writes the local settings, starts the persistent development database server and gives this worktree its own database on it, writes a CLI session for a local developer account to `apps/cli/.env.local`, then prepares the test environment (the test database server, this worktree's test database, and Playwright's browsers). It fills missing or empty local settings and keeps existing nonempty values, so repeat runs change nothing more.
+`mise setup` runs in this order: it installs dependencies, writes the local settings, starts the persistent development database server and gives this worktree its own database on it, then prepares the test environment (the test database server, this worktree's test database, and Playwright's browsers). It fills missing or empty local settings and keeps existing nonempty values, so repeat runs change nothing more.
 
 If `apps/web/.env.local` names a hosted PostgreSQL database, setup keeps that file and writes the local database and missing defaults to `apps/web/.env.development.local`. Next.js development and the development commands use that override, so the hosted database is never contacted. Setup and doctor refuse any other effective database URL, including hosted databases and the test database. An explicit `DATABASE_URL` in the shell or `.env.development.local` takes precedence and must name this worktree's local database. Conflicting explicit settings are reported for you to fix.
 
@@ -35,9 +34,7 @@ Open `http://localhost:3000` and request a sign-up or sign-in link. With the gen
 
 To skip the email, run `mise run sign-in-link EMAIL`, where `EMAIL` is the address to sign in as. It prints a new 30-minute sign-in link. If no account has that address, it makes one, and the link asks for a name as sign-up does. Without `EMAIL`, it signs in the developer account, `developer@project-buddy.test`.
 
-With the site running, `project-buddy` works with no further setup. The root `mise.toml` puts it on the PATH and loads `PROJECT_BUDDY_SESSION` from `apps/cli/.env.local`, so each command acts as the developer account. To check, run `project-buddy whoami`. Setup renews the session when it has a week or less left, and doctor reports when it needs renewing.
-
-Each worktree has its own development database, named from its path, so one branch's migrations never reach another's. A database can still drift within a worktree, as when a rebase renumbers or edits a migration: Drizzle's migrator applies only migrations newer than the last one applied and skips the rest without an error. Setup compares the recorded migration hashes with the checkout before and after migrating. When they differ, it drops the database, migrates it afresh and makes the developer account again, so its data is lost. Setup resets only this worktree's own database on the local development server and refuses any other URL.
+Each worktree has its own development database, named from its path, so one branch's migrations never reach another's. A database can still drift within a worktree, as when a rebase renumbers or edits a migration: Drizzle's migrator applies only migrations newer than the last one applied and skips the rest without an error. Setup compares the recorded migration hashes with the checkout before and after migrating. When they differ, it drops the database and migrates it afresh, so its data is lost. Setup resets only this worktree's own database on the local development server and refuses any other URL.
 
 After setup, every test command runs with no further preparation. The test database is disposable, and the test server keeps its data in memory. After a restart, run `mise setup` again or `npm run test-db:up --workspace apps/web`. The test database commands read only `.env.test`.
 
@@ -59,7 +56,7 @@ The app uses local PostgreSQL through the native `pg` driver, or hosted Neon thr
 docker compose --file compose.dev-db.yml up --detach --wait
 ```
 
-Then run `npm run dev:database` with this worktree's `DATABASE_URL`, which `mise setup` writes to `.env.local`, in the environment. Restart the development app after changing its database connection. A new worktree's database starts with only the developer account. The server's Docker volume keeps accounts and quests across container restarts, and `docker compose --file compose.dev-db.yml down` stops it while keeping data. It is separate from the disposable test database and the hosted database.
+Then run `npm run dev:database` with this worktree's `DATABASE_URL`, which `mise setup` writes to `.env.local`, in the environment. Restart the development app after changing its database connection. A new worktree's database starts empty, and `mise run sign-in-link` makes the developer account the first time it signs in. The server's Docker volume keeps accounts and quests across container restarts, and `docker compose --file compose.dev-db.yml down` stops it while keeping data. It is separate from the disposable test database and the hosted database.
 
 ### Branches and deploys
 
@@ -83,7 +80,7 @@ Quests at `/quests` is the signed-in landing page. Start a quest offers Dailies,
 
 Each starting point assigns its quest's construct, which speaks the rites' replies in its performances. Grimoire at `/grimoire` lists built-in and own rites. Profile at `/profile` holds the user's name and experience; Settings at `/settings` holds appearance and security.
 
-Spaces and their murmlings are in `src/db/tables/spaces.ts`, and each change to a space is recorded in `space-changes.ts` so it can be undone. Rites, performances and conjurations are in `src/db/tables/performances.ts`. `conjure` in `src/performances/performance-store.ts` adds the conjuration's murmling, picks the rite's reply with `riteReply` in `src/rites/rite.ts`, and saves both in one transaction. The `/api/v1` routes under `src/app/api/v1/` serve the same stores to the [`project-buddy` command](apps/cli/).
+Spaces and their murmlings are in `src/db/tables/spaces.ts`, and each change to a space is recorded in `space-changes.ts` so it can be undone. Rites, performances and conjurations are in `src/db/tables/performances.ts`. `conjure` in `src/performances/performance-store.ts` adds the conjuration's murmling, picks the rite's reply with `riteReply` in `src/rites/rite.ts`, and saves both in one transaction. The `/api/v1` routes under `src/app/api/v1/` serve the same stores to scripts and other programs; see the [API use cases](apps/web/use-cases/api.md).
 
 ### Errors
 

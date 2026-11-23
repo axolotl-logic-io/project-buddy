@@ -48,7 +48,7 @@ Each area's cases are in their own file:
 - [Experience](experience.md): events, experience and circles.
 - [Profile](profile.md): distinct days signed in.
 - [Timer](timer.md): a repeating work and break timer, shared by its link.
-- [Command line](command-line.md): work with quests through the `project-buddy` command.
+- [API](api.md): work with quests through the `/api/v1` routes.
 - [Constructs](constructs.md)
 - [Grimoire](grimoire.md): find, create and edit own rites.
 - [Retirement](retirement.md): put aside own rites, restore them, or delete them forever.
