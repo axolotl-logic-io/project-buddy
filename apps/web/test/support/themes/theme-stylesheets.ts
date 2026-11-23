@@ -16,7 +16,7 @@ const STYLESHEETS = import.meta.glob<string>("./**/*.css", {
   eager: true,
 });
 
-const { "../components/performances.css": CHAT_STYLESHEET = "" } =
+const { "../components/performances.css": PERFORMANCE_STYLESHEET = "" } =
   import.meta.glob<string>("../components/performances.css", {
     base: "/src/themes",
     query: "?raw",
@@ -230,7 +230,7 @@ function themeReads(themeId: string): ReadonlySet<string> {
 function streamdownThemeNames(): readonly string[] {
   return [
     ...customProperties(
-      ruleBody(CHAT_STYLESHEET.replace(COMMENT, ""), REFERENCE_THEME),
+      ruleBody(PERFORMANCE_STYLESHEET.replace(COMMENT, ""), REFERENCE_THEME),
     ).keys(),
   ];
 }
