@@ -13,7 +13,7 @@ The rite's reply to a conjuration doesn't arrive.
     - the site cannot reach its storage;
     - the site's storage refused a request;
     - something unexpected went wrong.
-- **Outcome:** the performance shows the fixed message for that kind of problem and no reply, with Retry reply when retry can help. A conjuration too long to read asks them to shorten it, and a missing performance offers no reply retry. A saved conjuration is still in the performance after the user reloads the page or reopens it, and the performance then says the rite didn't reply to it, with Retry reply, which asks for the reply to that same conjuration without adding its murmling again. Either Retry reply leaves the keyboard's focus in the composer, so the user can carry on writing. While a reply to the last conjuration is still being made, such as from another tab, the performance offers no retry. The site's log records the problem, and the performance shows none of those details.
+- **Outcome:** a conjuration and its reply are saved together or not at all, so a failed conjuration leaves nothing in the performance or the space. The performance shows the fixed message for that kind of problem and still shows the conjuration's text, with Retry reply, which sends the same conjuration again: if it was saved after all, nothing is added twice. If the performance has ended, the message asks the user to start one. Retry reply leaves the keyboard's focus in the composer, so the user can carry on writing. The site's log records the problem, and the performance shows none of those details.
 - **Next:**
   - [`use_case_send_message`](performances.md#use_case_send_message): try again once the problem is fixed.
 
