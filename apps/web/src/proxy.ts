@@ -66,7 +66,7 @@ function nextPage(request: NextRequest): Response {
 // and unexpired. The proxy reads no database: whether the session's user
 // and epoch are still current is checked by src/auth/current-user.ts. Without
 // one, a page redirects to the sign-in page and an API route answers 401
-// with the signed-out case, which the chat shows as such.
+// with the signed-out case, which the client reports.
 //
 // Every page it lets through also gets a `Link` header that preloads the
 // fonts of the theme saved in the theme cookie (themeFontPreloadLinks), so

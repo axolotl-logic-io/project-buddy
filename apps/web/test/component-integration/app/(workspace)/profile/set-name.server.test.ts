@@ -1,15 +1,17 @@
 import { expect, test, vi } from "vitest";
 import { readUserName } from "@/accounts/users-store.ts";
 import { setNameAction } from "@/app/(workspace)/profile/actions.ts";
-import { createSpell } from "@/spells/own-spell-store.ts";
-import { setSpell } from "@/spells/spell-store.ts";
+import {
+  CONJURATION,
+  conjure,
+  startPerformance,
+} from "@/performances/performance-store.ts";
+import { saveRite } from "@/rites/rite-store.ts";
+import { listSpaces } from "@/spaces/space-store.ts";
 import { ACCOUNT_COPY } from "@/ui/copy/account.ts";
 import { testData } from "../../../../support/test-database/data-test-kit.ts";
 import { testUser } from "../../../../support/test-database/user-test-kit.ts";
-import {
-  constructReply,
-  messageText,
-} from "../../../test-database/chat-test-kit.ts";
+
 import { signIn } from "../../../test-database/session-test-kit.ts";
 
 vi.mock("next/cache", () => ({ refresh: vi.fn() }));
@@ -19,12 +21,21 @@ test("use_case_set_name", async () => {
   const other = await testUser();
   const data = testData(user);
   const quest = await data.quest();
-  const chat = await data.chat(quest);
-  const spell = await createSpell(user.id, {
+  const rite = await saveRite(user.id, {
     name: "Named replies",
-    definition: { destination: "brainstorm", savedReply: "Hi {{name}}" },
+    replies: ["Hi {user}"],
   });
-  await setSpell(user.id, { chatId: chat.id, spell: spell.id });
+  const [space] = await listSpaces(user.id, quest.id);
+  if (rite === undefined || space === undefined) {
+    throw new Error("The performance could not be prepared");
+  }
+  const performance = await startPerformance(user.id, quest.id, {
+    spaceId: space.id,
+    riteId: rite.id,
+  });
+  if (performance === undefined) {
+    throw new Error("The performance could not start");
+  }
   await signIn(user);
   const form = new FormData();
   form.set("name", "  Mabel ");
@@ -34,9 +45,19 @@ test("use_case_set_name", async () => {
   });
   expect(await readUserName(user.id)).toBe("Mabel");
   expect(await readUserName(other.id)).toBeUndefined();
-  expect(messageText(await constructReply(chat.id, "An idea"))).toBe(
-    "Hi Mabel",
-  );
+  expect(
+    (
+      await conjure(
+        user.id,
+        quest.id,
+        CONJURATION.parse({
+          id: crypto.randomUUID(),
+          performanceId: performance.id,
+          text: "An idea",
+        }),
+      )
+    )?.reply,
+  ).toBe("Hi Mabel");
   form.set("name", "{x}");
   expect(await setNameAction({ kind: "idle" }, form)).toEqual({
     kind: "invalid",
@@ -48,7 +69,17 @@ test("use_case_set_name", async () => {
     kind: "invalid",
     message: ACCOUNT_COPY.nameRequired,
   });
-  expect(messageText(await constructReply(chat.id, "Another idea"))).toBe(
-    "Hi Mabel",
-  );
+  expect(
+    (
+      await conjure(
+        user.id,
+        quest.id,
+        CONJURATION.parse({
+          id: crypto.randomUUID(),
+          performanceId: performance.id,
+          text: "Another idea",
+        }),
+      )
+    )?.reply,
+  ).toBe("Hi Mabel");
 });

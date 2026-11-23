@@ -16,8 +16,8 @@ const STYLESHEETS = import.meta.glob<string>("./**/*.css", {
   eager: true,
 });
 
-const { "../components/chat/chat.css": CHAT_STYLESHEET = "" } =
-  import.meta.glob<string>("../components/chat/chat.css", {
+const { "../components/performances.css": PERFORMANCE_STYLESHEET = "" } =
+  import.meta.glob<string>("../components/performances.css", {
     base: "/src/themes",
     query: "?raw",
     import: "default",
@@ -42,7 +42,7 @@ const COLOR_UTILITY = /^color-[\w-]+$/u;
 const TOKEN_READ = /^var\(--(?<token>[\w-]+)\)$/u;
 const DEPTH_CHANGE: Readonly<Record<string, number>> = { "{": 1, "}": -1 };
 
-// The at-rule that declares Streamdown's names in chat.css.
+// The at-rule that declares Streamdown's names in performances.css.
 const REFERENCE_THEME = "@theme reference";
 // The stylesheet the site imports, which loads every other one.
 const ENTRY = "themes";
@@ -225,12 +225,12 @@ function themeReads(themeId: string): ReadonlySet<string> {
   );
 }
 
-// The theme variables chat.css's reference theme declares for Streamdown's
+// The theme variables performances.css's reference theme declares for Streamdown's
 // classes, by name without "--", such as "color-border" or "radius-md".
 function streamdownThemeNames(): readonly string[] {
   return [
     ...customProperties(
-      ruleBody(CHAT_STYLESHEET.replace(COMMENT, ""), REFERENCE_THEME),
+      ruleBody(PERFORMANCE_STYLESHEET.replace(COMMENT, ""), REFERENCE_THEME),
     ).keys(),
   ];
 }

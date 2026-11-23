@@ -1,0 +1,4 @@
+[Desktop Entry]
+Name=Project Buddy
+Exec=/usr/local/bin/project-buddy-session
+Type=Application

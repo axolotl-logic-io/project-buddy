@@ -1,4 +1,4 @@
-// The text of the error and not-found pages, and of a chat's failed reply. The
+// The text of the error and not-found pages, and of a rite's failed reply. The
 // messages for error cases live in src/errors/app-error.ts, next to the errors
 // they describe.
 export const PROBLEMS_COPY = {
@@ -8,7 +8,7 @@ export const PROBLEMS_COPY = {
   unknownError: "Please try again later.",
   retry: "Try again",
   notFoundHeading: "Not found",
-  // Any page that isn't found; a missing quest or adventure has the
+  // Any page that isn't found; a missing quest has the
   // not-found case's own message (src/errors/app-error.ts).
   pageNotFound:
     "That page can't be found. The link may be wrong, or it may have been deleted.",

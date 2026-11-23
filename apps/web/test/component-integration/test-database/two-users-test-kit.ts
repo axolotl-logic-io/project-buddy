@@ -34,8 +34,8 @@ async function twoUsers(): Promise<TwoUsers> {
   return { her, herData: testData(her), other, otherData: testData(other) };
 }
 
-// Deletes the user's account and everything of theirs: quests, chats,
-// memory and constructs go with the row. The stores have no delete, so this
+// Deletes the user's account and everything of theirs: quests and what
+// they hold go with the row. The stores have no delete, so this
 // names the table, as the user kit does.
 async function deleteAccount(user: User): Promise<void> {
   await getDb().delete(users).where(eq(users.id, user.id));

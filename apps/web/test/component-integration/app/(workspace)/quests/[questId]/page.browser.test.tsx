@@ -1,29 +1,28 @@
-import { beforeEach, describe, expect, test, vi } from "vitest";
-import { page, userEvent } from "vitest/browser";
+import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
+import { page } from "vitest/browser";
 import { render } from "vitest-browser-react";
 import QuestLayout from "@/app/(workspace)/quests/[questId]/(overview)/layout.tsx";
 import QuestPage from "@/app/(workspace)/quests/[questId]/(overview)/page.tsx";
-import { changeQuestStatusAction } from "@/app/(workspace)/quests/status-actions.ts";
-import { listMessages } from "@/chats/store.ts";
-import { findConversation } from "@/conversations/conversation-store.ts";
-import { changeDayAction } from "@/dailies/day-actions.ts";
-import { readDailiesRecord } from "@/dailies/day-store.ts";
-import { getQuest } from "@/quests/store.ts";
-import { changeQuestSpellAction } from "@/spells/quest-spell-action.ts";
-import { getSpell } from "@/spells/spell.ts";
-import { CHAT_COPY } from "@/ui/copy/chat.ts";
-import { QUEST_CONVERSATION_COPY } from "@/ui/copy/conversation.ts";
-import { QUEST_OVERVIEW_COPY } from "@/ui/copy/quest-overview.ts";
+import { type DailiesDay, LOCAL_DATE } from "@/dailies/dailies.ts";
+import { changeQuestDay } from "@/dailies/quest-day-actions.ts";
+import {
+  readQuestDays,
+  readRecurringTasks,
+} from "@/dailies/quest-day-store.ts";
+import { listPerformances } from "@/performances/performance-store.ts";
+import { listQuestPeople } from "@/quests/membership-store.ts";
+import { getQuest, type Quest } from "@/quests/store.ts";
+import { SPACE_ID } from "@/spaces/space.ts";
+import { listSpaces, type Space } from "@/spaces/space-store.ts";
+import { DAY_GRID_COPY } from "@/ui/copy/dailies.ts";
+import { PERFORMANCE_COPY } from "@/ui/copy/performances.ts";
 import { QUEST_SIDEBAR_COPY } from "@/ui/copy/quest-sidebar.ts";
-import { QUEST_STATUS_COPY } from "@/ui/copy/quest-status.ts";
-import { SPELL_MODE_COPY, SPELLBOOK_COPY } from "@/ui/copy/spells.ts";
-import { TASKS_COPY } from "@/ui/copy/tasks.ts";
 import { TIMER_COPY } from "@/ui/copy/timer.ts";
 import {
   SIGNED_IN_USER,
   signInAs,
 } from "../../../../auth/current-user-test-kit.ts";
-import { changeTasksAction } from "../../../../tasks/tasks-actions-test-kit.ts";
+import { PERFORMANCE } from "../../../../performances/performance-test-kit.tsx";
 import { applyTheme } from "../../../../themes/theme-test-kit.ts";
 import {
   LAPTOP_VIEWPORT,
@@ -31,282 +30,206 @@ import {
   setViewport,
 } from "../../../../viewports-test-kit.ts";
 import { inWorkspace } from "../../../workspace-test-kit.tsx";
-import { FOX_CONVERSATION, FOX_QUEST } from "../../page-fixtures.ts";
+import { FOX_QUEST } from "../../page-fixtures.ts";
 
 vi.mock(
   "@/auth/current-user.ts",
   () => import("../../../../auth/current-user-test-kit.ts"),
 );
 vi.mock("@/quests/store.ts", () => ({ getQuest: vi.fn() }));
-vi.mock("@/chats/store.ts", () => ({
-  listMessages: vi.fn(),
-  readStoppedReply: vi.fn(),
-}));
-vi.mock("@/ideas/idea-store.ts", () => ({
-  listIdeas: vi.fn().mockResolvedValue([]),
-}));
-vi.mock("@/milestones/milestone-store.ts", () => ({
-  listMilestones: vi.fn().mockResolvedValue([]),
-}));
-vi.mock(
-  "@/tasks/tasks-actions.ts",
-  () => import("../../../../tasks/tasks-actions-test-kit.ts"),
-);
-vi.mock(
-  "@/tasks/tasks-store.ts",
-  () => import("../../../../tasks/tasks-store-test-kit.ts"),
-);
-vi.mock(
-  "@/dailies/day-store.ts",
-  () => import("../../../../dailies/day-store-test-kit.ts"),
-);
 vi.mock(
   "next/navigation",
   () => import("../../../../components/router-test-kit.ts"),
 );
 
-const PATH = `/quests/${FOX_QUEST.id}`;
-const PARAMS = Promise.resolve({ questId: FOX_QUEST.id });
-
-async function questPage(section?: string): Promise<React.JSX.Element> {
-  const content = await QuestPage({
-    params: PARAMS,
-    searchParams: Promise.resolve({ section }),
-  });
-  return inWorkspace(<QuestLayout params={PARAMS}>{content}</QuestLayout>);
-}
-
-function composer(): ReturnType<typeof page.getByRole> {
-  return page.getByRole("textbox", { name: CHAT_COPY.messageLabel });
-}
+const SPACE: Space = {
+  id: SPACE_ID.parse("a0c7c952-9f82-4640-9584-45e01b0c2513"),
+  position: 0,
+  name: "Bench",
+  singular: "piece",
+  plural: "pieces",
+  checkOff: "Finish",
+  uncheck: "Resume",
+  newType: "task",
+  version: 0,
+};
 
 beforeEach(() => {
-  vi.clearAllMocks();
   signInAs(SIGNED_IN_USER);
-  vi.mocked(getQuest).mockResolvedValue(FOX_QUEST);
-  vi.mocked(findConversation).mockResolvedValue(undefined);
-  vi.mocked(listMessages).mockResolvedValue([]);
-  vi.mocked(readDailiesRecord).mockResolvedValue({ days: [], undoable: false });
+  vi.mocked(listSpaces).mockResolvedValue([SPACE]);
+  vi.mocked(listQuestPeople).mockResolvedValue(undefined);
+  vi.mocked(listPerformances).mockResolvedValue([]);
+  vi.mocked(readQuestDays).mockResolvedValue({ days: [], undoable: false });
+  vi.mocked(readRecurringTasks).mockResolvedValue({ items: [] });
 });
 
-describe("use_case_open_quest", () => {
-  test("opens on an overview with section links and no conversation entry point", async () => {
-    await render(await questPage());
-    await expect
-      .element(page.getByRole("heading", { name: FOX_QUEST.name }))
-      .toBeVisible();
-    await expect
-      .element(page.getByRole("heading", { name: QUEST_SIDEBAR_COPY.nextTask }))
-      .toBeVisible();
-    const links = page
-      .getByRole("navigation", { name: QUEST_OVERVIEW_COPY.sections })
-      .getByRole("link")
-      .all();
-    expect(links.map((link) => link.element().getAttribute("href"))).toEqual(
-      ["tasks", "ideas", "notes", "progress", "spells", "members"].map(
-        (section) => `${PATH}?section=${section}`,
-      ),
-    );
-    await expect.element(composer()).not.toBeInTheDocument();
-    expect(listMessages).not.toHaveBeenCalled();
-  });
-
-  test("use_case_tasks_panel", async () => {
-    changeTasksAction.mockResolvedValue({
-      kind: "changed",
-      version: 4,
-      lines: [],
-      state: {
-        version: 4,
-        tasks: {
-          items: [{ number: 1, text: "Make a sketch", done: false }],
-          nextNumber: 2,
-        },
-        undone: [],
-      },
-    });
-    await render(await questPage("tasks"));
-    await expect
-      .element(page.getByRole("link", { name: QUEST_OVERVIEW_COPY.back }))
-      .toHaveAttribute("href", PATH);
-    await page.getByRole("button", { name: TASKS_COPY.addPlaceholder }).click();
-    await page
-      .getByRole("textbox", { name: TASKS_COPY.addLabel })
-      .fill("Make a sketch");
-    await userEvent.keyboard("{Enter}");
-    await expect.element(page.getByText("Make a sketch")).toBeVisible();
-    expect(changeTasksAction).toHaveBeenCalledWith(
-      expect.objectContaining({ questId: FOX_QUEST.id, chatId: undefined }),
-    );
-    await expect.element(composer()).not.toBeInTheDocument();
-  });
-
-  test("status actions work with an active spell", async () => {
-    vi.mocked(findConversation).mockResolvedValue({
-      ...FOX_CONVERSATION,
-      spellStartedAt: "2026-11-18T12:00:00Z",
-      activeSpell: getSpell("tasks"),
-    });
-    vi.mocked(changeQuestStatusAction).mockResolvedValue({
-      kind: "saved",
-      message: QUEST_STATUS_COPY.saved.completed,
-    });
-    await render(await questPage("spells"));
-    await page
-      .getByRole("button", { name: QUEST_STATUS_COPY.complete, exact: true })
-      .click();
-    await expect
-      .element(page.getByText(QUEST_STATUS_COPY.saved.completed))
-      .toBeVisible();
-    await expect.element(composer()).toBeVisible();
-  });
+afterEach(async () => {
+  await setViewport(LAPTOP_VIEWPORT);
 });
 
-describe("use_case_dailies", () => {
-  test("offers Day grid and runs Start Day and Undo from the overview", async () => {
-    vi.mocked(getQuest).mockResolvedValue({ ...FOX_QUEST, dailies: true });
-    vi.mocked(findConversation).mockResolvedValue(FOX_CONVERSATION);
-    vi.mocked(changeDayAction).mockResolvedValue({ kind: "saved" });
-    const view = await render(await questPage());
-    await expect
-      .element(page.getByRole("link", { name: QUEST_SIDEBAR_COPY.dayGrid }))
-      .toHaveAttribute("href", `${PATH}?section=days`);
-    await expect
-      .element(page.getByRole("heading", { name: QUEST_SIDEBAR_COPY.nextTask }))
-      .not.toBeInTheDocument();
-    await page
-      .getByRole("button", { name: QUEST_CONVERSATION_COPY.startDay })
-      .click();
-    const dialog = page.getByRole("dialog", {
-      name: QUEST_CONVERSATION_COPY.startDay,
-    });
-    await dialog
-      .getByRole("checkbox", { name: QUEST_CONVERSATION_COPY.clearIdeas })
-      .click();
-    await dialog
-      .getByRole("button", { name: QUEST_CONVERSATION_COPY.startDay })
-      .click();
-    await expect.element(dialog).not.toBeInTheDocument();
-    expect(changeDayAction).toHaveBeenCalledWith(
-      expect.objectContaining({
-        op: "start",
-        questId: FOX_QUEST.id,
-        clearIdeas: true,
-        clearTasks: false,
-      }),
-    );
+// A Dailies quest's days: a missed day, a gap, and the day still going.
+const STRETCH = "Stretch";
+function endedDay(date: string, done: boolean): DailiesDay {
+  return {
+    date: LOCAL_DATE.parse(date),
+    startedAt: new Date(`${date}T07:00:00Z`),
+    tasks: [{ number: 1, text: STRETCH, done }],
+  };
+}
+const DAYS: readonly DailiesDay[] = [
+  endedDay("2026-11-10", true),
+  endedDay("2026-11-11", true),
+  endedDay("2026-11-12", true),
+  endedDay("2026-11-13", true),
+  endedDay("2026-11-15", true),
+  endedDay("2026-11-16", false),
+  endedDay("2026-11-17", true),
+  {
+    date: LOCAL_DATE.parse("2026-11-18"),
+    startedAt: new Date("2026-11-18T07:00:00Z"),
+  },
+];
 
-    vi.mocked(readDailiesRecord).mockResolvedValue({
-      days: [],
-      undoable: true,
-    });
-    await view.rerender(await questPage());
-    await page
-      .getByRole("button", { name: QUEST_CONVERSATION_COPY.undoStartDay })
-      .click();
-    expect(changeDayAction).toHaveBeenLastCalledWith({
-      op: "undo",
-      questId: FOX_QUEST.id,
-      chatId: FOX_CONVERSATION.id,
-    });
-    await view.rerender(await questPage("days"));
-    await expect
-      .element(page.getByRole("link", { name: QUEST_OVERVIEW_COPY.back }))
-      .toBeVisible();
+// The quest page with and without an active performance.
+const PERFORMANCE_STATES = [
+  { name: "with an active performance", performances: [PERFORMANCE] },
+  { name: "with no active performance", performances: [] },
+] as const;
+
+async function open(quest: Quest, section?: string): Promise<void> {
+  vi.mocked(getQuest).mockResolvedValue(quest);
+  const params = Promise.resolve({ questId: quest.id });
+  const content = await QuestPage({
+    params,
+    searchParams: Promise.resolve({ section }),
   });
+  await render(
+    inWorkspace(<QuestLayout params={params}>{content}</QuestLayout>),
+  );
+}
+
+test("use_case_open_quest", async () => {
+  await open(FOX_QUEST);
+  await expect
+    .element(page.getByRole("heading", { name: "Next task" }))
+    .toBeVisible();
+  await expect
+    .element(page.getByRole("link", { name: SPACE.name }))
+    .toHaveAttribute("href", `/quests/${FOX_QUEST.id}?section=${SPACE.id}`);
+  await expect
+    .element(page.getByRole("link", { name: "Rites & status" }))
+    .toBeVisible();
+  await expect
+    .element(page.getByRole("link", { name: "Performances" }))
+    .toBeVisible();
+  await expect
+    .element(page.getByRole("textbox", { name: "Conjuration" }))
+    .not.toBeInTheDocument();
+});
+
+test("use_case_dailies", async () => {
+  vi.mocked(changeQuestDay).mockResolvedValue({ kind: "saved" });
+  await open({ ...FOX_QUEST, dailies: true });
+  await page.getByRole("button", { name: "Start Day" }).click();
+  const dialog = page.getByRole("dialog", { name: "Start Day" });
+  const space = dialog.getByRole("checkbox", { name: SPACE.name });
+  await expect.element(space).not.toBeChecked();
+  await space.click();
+  await dialog.getByRole("button", { name: "Start Day", exact: true }).click();
+  expect(changeQuestDay).toHaveBeenCalledWith(
+    expect.objectContaining({ emptySpaces: [SPACE.id], questId: FOX_QUEST.id }),
+  );
 });
 
 test("use_case_tailored_quest_overviews", async () => {
-  const view = await render(await questPage());
-  vi.mocked(getQuest).mockResolvedValue({
+  await open({
     ...FOX_QUEST,
-    name: "Morning work",
+    name: "Morning",
     dailies: true,
+    status: "completed",
   });
-  await view.rerender(await questPage());
   await expect
-    .element(
-      page.getByRole("button", { name: QUEST_CONVERSATION_COPY.startDay }),
-    )
+    .element(page.getByRole("link", { name: "Day grid" }))
     .toBeVisible();
   await expect
-    .element(page.getByRole("link", { name: QUEST_SIDEBAR_COPY.dayGrid }))
-    .toBeVisible();
-
-  vi.mocked(getQuest).mockResolvedValue({
-    ...FOX_QUEST,
-    dailies: true,
-    status: "abandoned",
-  });
-  await view.rerender(await questPage());
-  await expect
-    .element(page.getByText(QUEST_SIDEBAR_COPY.restoreDay))
-    .toBeVisible();
-  await expect
-    .element(
-      page.getByRole("button", { name: QUEST_CONVERSATION_COPY.startDay }),
-    )
-    .not.toBeInTheDocument();
-
-  vi.mocked(getQuest).mockResolvedValue({ ...FOX_QUEST, name: "Dailies" });
-  await view.rerender(await questPage());
-  await expect
-    .element(page.getByRole("heading", { name: QUEST_SIDEBAR_COPY.nextTask }))
-    .toBeVisible();
-  await expect
-    .element(page.getByRole("link", { name: QUEST_SIDEBAR_COPY.dayGrid }))
+    .element(page.getByRole("button", { name: "Start Day" }))
     .not.toBeInTheDocument();
 });
 
-test("casting opens the composer and stopping removes the whole conversation", async () => {
-  vi.mocked(changeQuestSpellAction).mockResolvedValue({ kind: "saved" });
-  const view = await render(await questPage("spells"));
-  await expect.element(composer()).not.toBeInTheDocument();
-  await page
-    .getByRole("button", { name: SPELLBOOK_COPY.castNamed("Brainstorm") })
-    .click();
-  expect(changeQuestSpellAction).toHaveBeenLastCalledWith({
-    questId: FOX_QUEST.id,
-    spell: "brainstorm",
-  });
-  vi.mocked(findConversation).mockResolvedValue({
-    ...FOX_CONVERSATION,
-    spellStartedAt: "2026-11-18T12:00:00Z",
-    activeSpell: getSpell("brainstorm"),
-  });
-  await view.rerender(await questPage("tasks"));
-  await expect.element(composer()).toBeVisible();
+test("use_case_tasks_panel", async () => {
+  await open(FOX_QUEST, SPACE.id);
   await expect
-    .element(page.getByRole("button", { name: TASKS_COPY.addPlaceholder }))
-    .toBeEnabled();
-  await page
-    .getByRole("button", { name: SPELL_MODE_COPY.stop("Brainstorm") })
-    .click();
-  expect(changeQuestSpellAction).toHaveBeenLastCalledWith({
-    questId: FOX_QUEST.id,
-  });
-  vi.mocked(findConversation).mockResolvedValue(FOX_CONVERSATION);
-  await view.rerender(await questPage("tasks"));
-  await expect.element(composer()).not.toBeInTheDocument();
+    .element(page.getByRole("heading", { name: "Bench" }))
+    .toBeVisible();
   await expect
-    .element(page.getByRole("list", { name: CHAT_COPY.conversationLabel }))
-    .not.toBeInTheDocument();
+    .element(page.getByRole("button", { name: "Add piece" }))
+    .toBeVisible();
+  await expect
+    .element(page.getByRole("link", { name: "Back to overview" }))
+    .toHaveAttribute("href", `/quests/${FOX_QUEST.id}`);
+});
+
+describe("use_case_daily_streaks", () => {
+  test("Day grid shows each recurring task's last seven dates, named for screen readers", async () => {
+    vi.mocked(readQuestDays).mockResolvedValue({ undoable: false, days: DAYS });
+    vi.mocked(readRecurringTasks).mockResolvedValue({
+      items: [{ number: 1, text: STRETCH, done: true, recurring: true }],
+    });
+    await open({ ...FOX_QUEST, dailies: true }, "days");
+    const grid = page.getByRole("listitem").filter({ hasText: STRETCH });
+    await expect
+      .element(page.getByRole("heading", { name: DAY_GRID_COPY.heading }))
+      .toBeVisible();
+    const days = grid.getByRole("listitem");
+    expect(days.elements().map((day) => day.textContent)).toEqual([
+      expect.stringContaining("Thu 2026-11-12: done"),
+      expect.stringContaining("Fri 2026-11-13: done"),
+      expect.stringContaining("Sat 2026-11-14: no day started"),
+      expect.stringContaining("Sun 2026-11-15: done"),
+      expect.stringContaining("Mon 2026-11-16: not done"),
+      expect.stringContaining("Tue 2026-11-17: done"),
+      expect.stringContaining("Wed 2026-11-18: done"),
+    ]);
+    await expect.element(page.getByText(DAY_GRID_COPY.legend)).toBeVisible();
+  });
+
+  test("before the first Start Day, Day grid says Start Day begins counting", async () => {
+    await open({ ...FOX_QUEST, dailies: true }, "days");
+    await expect.element(page.getByText(DAY_GRID_COPY.noDays)).toBeVisible();
+  });
+
+  test("with no recurring tasks, Day grid says how to make one", async () => {
+    vi.mocked(readQuestDays).mockResolvedValue({ undoable: false, days: DAYS });
+    await open({ ...FOX_QUEST, dailies: true }, "days");
+    await expect
+      .element(page.getByText(DAY_GRID_COPY.noRecurring))
+      .toBeVisible();
+  });
+
+  test("a quest not started as Dailies has no Day grid", async () => {
+    await open(FOX_QUEST, "days");
+    await expect
+      .element(page.getByRole("heading", { name: DAY_GRID_COPY.heading }))
+      .not.toBeInTheDocument();
+    await expect
+      .element(page.getByRole("link", { name: QUEST_SIDEBAR_COPY.dayGrid }))
+      .not.toBeInTheDocument();
+  });
 });
 
 describe("use_case_timer_quest_panel", () => {
   for (const viewport of [LAPTOP_VIEWPORT, NARROWEST_VIEWPORT]) {
-    for (const active of [true, false]) {
-      test(`starts in place at ${viewport.width} px with spell ${active}`, async () => {
+    for (const { name, performances } of PERFORMANCE_STATES) {
+      test(`starts in place at ${viewport.width} px, ${name}`, async () => {
         await setViewport(viewport);
         applyTheme("parchment", "dark");
-        if (active) {
-          vi.mocked(findConversation).mockResolvedValue({
-            ...FOX_CONVERSATION,
-            spellStartedAt: "2026-11-18T12:00:00Z",
-            activeSpell: getSpell("tasks"),
-          });
-        }
-        await render(await questPage());
+        vi.mocked(listPerformances).mockResolvedValue([...performances]);
+        await open(FOX_QUEST);
+        expect(
+          page
+            .getByRole("textbox", { name: PERFORMANCE_COPY.conjuration })
+            .elements(),
+        ).toHaveLength(performances.length);
         if (viewport === NARROWEST_VIEWPORT) {
           await page
             .getByRole("button", { name: TIMER_COPY.panel.expand })

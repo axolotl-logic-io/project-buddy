@@ -25,7 +25,6 @@ interface Command {
   readonly options: readonly CommandOption[];
   readonly target: boolean;
   readonly list: boolean;
-  readonly timeoutSeconds: number;
   readonly request: (input: CommandInput) => ApiRequest;
 }
 
@@ -35,25 +34,18 @@ interface Resource {
   readonly summary: string;
 }
 
-const DEFAULT_TIMEOUT_SECONDS = 30;
-
-// A reply can take a while: as long as the site lets it run.
-const REPLY_TIMEOUT_SECONDS = 300;
-
 const WHOLE_NUMBER = /^\d+$/u;
 
 const RESOURCES: readonly Resource[] = [
   { name: "whoami", summary: "Show the signed-in user." },
   { name: "quest", summary: "List, start, rename and finish quests." },
-  { name: "task", summary: "Read and change a quest's Tasks." },
-  { name: "idea", summary: "Read and change a quest's Ideas." },
-  { name: "note", summary: "Read, add and remove a quest's Quick Notes." },
-  { name: "milestone", summary: "Read, edit and remove a quest's milestones." },
+  { name: "space", summary: "List and read spaces and undo changes." },
+  { name: "murmling", summary: "Add and change a space's murmlings." },
   { name: "construct", summary: "List the constructs open to you." },
-  { name: "spell", summary: "List spells, and cast or stop one in a quest." },
+  { name: "rite", summary: "List the rites open to you." },
   {
-    name: "conversation",
-    summary: "Read a quest's conversation and send it a message.",
+    name: "performance",
+    summary: "Start and stop performances and make conjurations.",
   },
 ];
 
@@ -89,7 +81,7 @@ function wholeNumber(value: string, field: string): number {
   return Number(value);
 }
 
-// A number counted from 1, such as a task number or a Tasks version.
+// A number counted from 1, such as a space version.
 function countingNumber(value: string, field: string): number {
   const number = wholeNumber(value, field);
   if (number < 1) {
@@ -100,16 +92,6 @@ function countingNumber(value: string, field: string): number {
   return number;
 }
 
-// The task the optional --before names.
-function beforeTask(input: CommandInput): number | undefined {
-  const before = input.options.get("before");
-  if (before === undefined) {
-    return undefined;
-  }
-  return countingNumber(before, "before");
-}
-
-// An ID as one path segment.
 function segment(id: string): string {
   return encodeURIComponent(id);
 }
@@ -128,7 +110,6 @@ function command(
     options: [],
     target: false,
     list: false,
-    timeoutSeconds: DEFAULT_TIMEOUT_SECONDS,
     ...spec,
   };
 }
@@ -157,38 +138,6 @@ function statusCommand(
   });
 }
 
-// One change to the quest's Tasks.
-function tasksChange(input: CommandInput, operation: unknown): ApiRequest {
-  return {
-    method: "POST",
-    path: `${questPath(input)}/tasks`,
-    body: { operations: [operation] },
-  };
-}
-
-// A change to one task that names only the task: complete, reopen or
-// remove.
-function taskCommand(action: string, summary: string): Command {
-  return command({
-    resource: "task",
-    action,
-    usage: `task ${action} TASK --quest QUEST_ID`,
-    summary,
-    target: true,
-    options: ["quest"],
-    request: (input: CommandInput): ApiRequest =>
-      tasksChange(input, {
-        op: action,
-        task: countingNumber(targetOf(input, "task"), "task"),
-      }),
-  });
-}
-
-// One change to the quest's Ideas.
-function ideaChange(input: CommandInput, change: object): ApiRequest {
-  return { method: "POST", path: `${questPath(input)}/ideas`, body: change };
-}
-
 // A list under a quest.
 function questList(resource: string, path: string, summary: string): Command {
   return command({
@@ -205,7 +154,7 @@ function questList(resource: string, path: string, summary: string): Command {
   });
 }
 
-// List the definitions of a kind, constructs or spells, and get one by ID.
+// List the definitions of a kind, constructs or rites, and get one by ID.
 function definitionCommands(resource: string, path: string): Command[] {
   return [
     command({
@@ -250,7 +199,7 @@ const QUEST_COMMANDS: readonly Command[] = [
     resource: "quest",
     action: "get",
     usage: "quest get QUEST_ID",
-    summary: "Show a quest, with its status revision and conversation ID.",
+    summary: "Show a quest, with its status revision.",
     target: true,
     request: (input: CommandInput): ApiRequest => ({
       method: "GET",
@@ -265,7 +214,6 @@ const QUEST_COMMANDS: readonly Command[] = [
     summary:
       "Start a quest from a starting point, as the site does. Dailies resumes your Dailies quest if you have one.",
     options: ["from", "name", "why", "context"],
-    timeoutSeconds: REPLY_TIMEOUT_SECONDS,
     request: (input: CommandInput): ApiRequest => ({
       method: "POST",
       path: "/quests",
@@ -295,257 +243,216 @@ const QUEST_COMMANDS: readonly Command[] = [
   statusCommand("restore", "active", "Make a finished quest active again."),
 ];
 
-const TASK_COMMANDS: readonly Command[] = [
+function spacePath(input: CommandInput, id: string): string {
+  return `${questPath(input)}/spaces/${segment(id)}`;
+}
+
+function writeSpace(input: CommandInput, body: object): ApiRequest {
+  return {
+    method: "POST",
+    path: spacePath(input, required(input, "space")),
+    body,
+  };
+}
+
+interface MurmlingChange {
+  readonly kind: string;
+  readonly [field: string]: unknown;
+}
+
+interface MurmlingCommand {
+  readonly action: string;
+  readonly summary: string;
+  readonly options?: readonly CommandOption[];
+  readonly extra?: string;
+  readonly body: (input: CommandInput) => MurmlingChange;
+}
+
+function murmlingCommand({
+  action,
+  summary,
+  options = [],
+  extra = "",
+  body,
+}: MurmlingCommand): Command {
+  return command({
+    resource: "murmling",
+    action,
+    summary,
+    target: true,
+    usage: `murmling ${action} MURMLING_ID --quest QUEST_ID --space SPACE_ID${extra}`,
+    options: ["quest", "space", ...options],
+    request: (input: CommandInput): ApiRequest =>
+      writeSpace(input, { id: targetOf(input, "murmling"), ...body(input) }),
+  });
+}
+
+const SPACE_COMMANDS: readonly Command[] = [
+  questList("space", "spaces", "List the quest's spaces in order."),
   command({
-    resource: "task",
+    resource: "space",
+    action: "get",
+    summary: "Read a space and its murmlings.",
+    usage: "space get SPACE_ID --quest QUEST_ID",
+    target: true,
+    options: ["quest"],
+    request: (input: CommandInput): ApiRequest => ({
+      method: "GET",
+      path: spacePath(input, targetOf(input, "space")),
+    }),
+  }),
+  command({
+    resource: "space",
+    action: "undo",
+    summary: "Undo the change recorded at a space version.",
+    usage: "space undo VERSION --quest QUEST_ID --space SPACE_ID",
+    target: true,
+    options: ["quest", "space"],
+    request: (input: CommandInput): ApiRequest =>
+      writeSpace(input, {
+        kind: "undo",
+        version: countingNumber(targetOf(input, "version"), "version"),
+      }),
+  }),
+  command({
+    resource: "murmling",
+    action: "add",
+    summary: "Add a murmling to a space.",
+    usage:
+      "murmling add --quest QUEST_ID --space SPACE_ID (--text TEXT | --text-file PATH | --stdin) [--type TYPE]",
+    options: ["quest", "space", "text", "type"],
+    request: (input: CommandInput): ApiRequest =>
+      writeSpace(input, {
+        kind: "add",
+        text: textOf(input),
+        type: input.options.get("type"),
+      }),
+  }),
+  murmlingCommand({
+    action: "edit",
+    summary: "Change a murmling's text.",
+    options: ["text"],
+    extra: " (--text TEXT | --text-file PATH | --stdin)",
+    body: (input: CommandInput): MurmlingChange => ({
+      kind: "edit",
+      text: textOf(input),
+    }),
+  }),
+  murmlingCommand({
+    action: "check",
+    summary: "Check off a task.",
+    body: (): MurmlingChange => ({ kind: "check", checkedOff: true }),
+  }),
+  murmlingCommand({
+    action: "uncheck",
+    summary: "Uncheck a task.",
+    body: (): MurmlingChange => ({ kind: "check", checkedOff: false }),
+  }),
+  murmlingCommand({
+    action: "reorder",
+    summary: "Place a murmling before another or at the end.",
+    options: ["before"],
+    extra: " [--before MURMLING_ID]",
+    body: (input: CommandInput): MurmlingChange => ({
+      kind: "place",
+      before: input.options.get("before"),
+    }),
+  }),
+  murmlingCommand({
+    action: "move",
+    summary: "Move a murmling to another space.",
+    options: ["to"],
+    extra: " --to SPACE_ID",
+    body: (input: CommandInput): MurmlingChange => ({
+      kind: "move",
+      destination: required(input, "to"),
+    }),
+  }),
+  murmlingCommand({
+    action: "mark",
+    summary: "Mark a murmling as plain, task or quick-note.",
+    options: ["type"],
+    extra: " --type TYPE",
+    body: (input: CommandInput): MurmlingChange => ({
+      kind: "type",
+      type: required(input, "type"),
+    }),
+  }),
+  murmlingCommand({
+    action: "remove",
+    summary: "Remove a murmling.",
+    body: (): MurmlingChange => ({ kind: "remove" }),
+  }),
+];
+
+function performancePath(input: CommandInput): string {
+  return `${questPath(input)}/performances/${encodeURIComponent(targetOf(input, "performance"))}`;
+}
+
+const PERFORMANCE_COMMANDS: readonly Command[] = [
+  command({
+    resource: "performance",
     action: "list",
-    usage: "task list --quest QUEST_ID",
-    summary: "List the quest's tasks in order, with the Tasks version.",
+    usage: "performance list --quest QUEST_ID",
+    summary: "List the quest's performances.",
     options: ["quest"],
     list: true,
     request: (input: CommandInput): ApiRequest => ({
       method: "GET",
-      path: `${questPath(input)}/tasks`,
+      path: `${questPath(input)}/performances`,
     }),
   }),
   command({
-    resource: "task",
-    action: "add",
-    usage:
-      "task add --quest QUEST_ID (--text TEXT | --text-file PATH | --stdin) [--before TASK]",
-    summary: "Add a task, at the end or before another task.",
-    options: ["quest", "text", "before"],
-    request: (input: CommandInput): ApiRequest =>
-      tasksChange(input, {
-        op: "add",
-        text: textOf(input),
-        before: beforeTask(input),
-      }),
-  }),
-  command({
-    resource: "task",
-    action: "edit",
-    usage:
-      "task edit TASK --quest QUEST_ID (--text TEXT | --text-file PATH | --stdin)",
-    summary: "Change a task's text.",
-    target: true,
-    options: ["quest", "text"],
-    request: (input: CommandInput): ApiRequest =>
-      tasksChange(input, {
-        op: "change",
-        task: countingNumber(targetOf(input, "task"), "task"),
-        text: textOf(input),
-      }),
-  }),
-  taskCommand("complete", "Mark a task done."),
-  taskCommand("reopen", "Mark a done task not done."),
-  command({
-    resource: "task",
-    action: "move",
-    usage: "task move TASK --quest QUEST_ID [--before TASK]",
-    summary: "Move a task to the end, or before another task.",
-    target: true,
-    options: ["quest", "before"],
-    request: (input: CommandInput): ApiRequest =>
-      tasksChange(input, {
-        op: "move",
-        task: countingNumber(targetOf(input, "task"), "task"),
-        before: beforeTask(input),
-      }),
-  }),
-  taskCommand("remove", "Remove a task."),
-  command({
-    resource: "task",
-    action: "undo",
-    usage: "task undo CHANGE_VERSION --quest QUEST_ID",
-    summary:
-      "Undo the change that made a Tasks version, as the site's undo does.",
-    target: true,
+    resource: "performance",
+    action: "get",
+    usage: "performance get PERFORMANCE_ID --quest QUEST_ID",
+    summary: "Read a performance and its conjurations.",
     options: ["quest"],
+    target: true,
+    request: (input: CommandInput): ApiRequest => ({
+      method: "GET",
+      path: performancePath(input),
+    }),
+  }),
+  command({
+    resource: "performance",
+    action: "start",
+    usage: "performance start --quest QUEST_ID --rite RITE_ID --space SPACE_ID",
+    summary: "Perform a rite on a space.",
+    options: ["quest", "rite", "space"],
     request: (input: CommandInput): ApiRequest => ({
       method: "POST",
-      path: `${questPath(input)}/tasks/undo`,
+      path: `${questPath(input)}/performances`,
       body: {
-        version: countingNumber(targetOf(input, "change version"), "version"),
+        riteId: required(input, "rite"),
+        spaceId: required(input, "space"),
       },
     }),
   }),
-];
-
-const IDEA_COMMANDS: readonly Command[] = [
-  questList("idea", "ideas", "List the quest's ideas in order."),
   command({
-    resource: "idea",
-    action: "add",
+    resource: "performance",
+    action: "conjure",
     usage:
-      "idea add --quest QUEST_ID (--text TEXT | --text-file PATH | --stdin)",
-    summary: "Add an idea.",
+      "performance conjure PERFORMANCE_ID --quest QUEST_ID (--text TEXT | --text-file PATH | --stdin)",
+    summary: "Make a conjuration and receive its reply.",
     options: ["quest", "text"],
-    request: (input: CommandInput): ApiRequest =>
-      ideaChange(input, { op: "add", text: textOf(input) }),
-  }),
-  command({
-    resource: "idea",
-    action: "edit",
-    usage:
-      "idea edit IDEA_ID --quest QUEST_ID (--text TEXT | --text-file PATH | --stdin)",
-    summary: "Change an idea's text.",
     target: true,
-    options: ["quest", "text"],
-    request: (input: CommandInput): ApiRequest =>
-      ideaChange(input, {
-        op: "edit",
-        id: targetOf(input, "idea"),
-        text: textOf(input),
-      }),
-  }),
-  command({
-    resource: "idea",
-    action: "move",
-    usage: "idea move IDEA_ID --quest QUEST_ID [--before IDEA_ID]",
-    summary: "Move an idea to the end, or before another idea.",
-    target: true,
-    options: ["quest", "before"],
-    request: (input: CommandInput): ApiRequest =>
-      ideaChange(input, {
-        op: "reorder",
-        id: targetOf(input, "idea"),
-        before: input.options.get("before"),
-      }),
-  }),
-  command({
-    resource: "idea",
-    action: "remove",
-    usage: "idea remove IDEA_ID --quest QUEST_ID",
-    summary: "Remove an idea.",
-    target: true,
-    options: ["quest"],
-    request: (input: CommandInput): ApiRequest =>
-      ideaChange(input, { op: "remove", id: targetOf(input, "idea") }),
-  }),
-  command({
-    resource: "idea",
-    action: "to-tasks",
-    usage: "idea to-tasks IDEA_ID --quest QUEST_ID",
-    summary: "Move an idea to the end of Tasks, in one change.",
-    target: true,
-    options: ["quest"],
-    request: (input: CommandInput): ApiRequest =>
-      ideaChange(input, { op: "move", id: targetOf(input, "idea") }),
-  }),
-];
-
-const NOTE_COMMANDS: readonly Command[] = [
-  questList("note", "notes", "List the quest's Quick Notes."),
-  command({
-    resource: "note",
-    action: "add",
-    usage:
-      "note add --quest QUEST_ID (--text TEXT | --text-file PATH | --stdin)",
-    summary: "Add a Quick Note to an active quest.",
-    options: ["quest", "text"],
     request: (input: CommandInput): ApiRequest => ({
       method: "POST",
-      path: `${questPath(input)}/notes`,
-      body: { text: textOf(input) },
+      path: performancePath(input),
+      body: { id: crypto.randomUUID(), text: textOf(input) },
     }),
   }),
   command({
-    resource: "note",
-    action: "remove",
-    usage: "note remove NOTE_ID --quest QUEST_ID",
-    summary: "Remove a Quick Note. Removing it again changes nothing.",
-    target: true,
-    options: ["quest"],
-    request: (input: CommandInput): ApiRequest => ({
-      method: "DELETE",
-      path: `${questPath(input)}/notes/${segment(targetOf(input, "note"))}`,
-    }),
-  }),
-];
-
-const MILESTONE_COMMANDS: readonly Command[] = [
-  questList("milestone", "milestones", "List the quest's milestones."),
-  command({
-    resource: "milestone",
-    action: "edit",
-    usage:
-      "milestone edit MILESTONE_ID (--text TEXT | --text-file PATH | --stdin)",
-    summary: "Change a milestone's text.",
-    target: true,
-    options: ["text"],
-    request: (input: CommandInput): ApiRequest => ({
-      method: "PATCH",
-      path: `/milestones/${segment(targetOf(input, "milestone"))}`,
-      body: { text: textOf(input) },
-    }),
-  }),
-  command({
-    resource: "milestone",
-    action: "remove",
-    usage: "milestone remove MILESTONE_ID",
-    summary: "Remove a milestone. Removing it again changes nothing.",
-    target: true,
-    request: (input: CommandInput): ApiRequest => ({
-      method: "DELETE",
-      path: `/milestones/${segment(targetOf(input, "milestone"))}`,
-    }),
-  }),
-];
-
-const SPELL_COMMANDS: readonly Command[] = [
-  ...definitionCommands("spell", "spells"),
-  command({
-    resource: "spell",
-    action: "cast",
-    usage: "spell cast --quest QUEST_ID --spell SPELL_ID",
-    summary: "Cast a spell in the quest's conversation.",
-    options: ["quest", "spell"],
-    request: (input: CommandInput): ApiRequest => ({
-      method: "PUT",
-      path: `${questPath(input)}/conversation/spell`,
-      body: { spell: required(input, "spell") },
-    }),
-  }),
-  command({
-    resource: "spell",
+    resource: "performance",
     action: "stop",
-    usage: "spell stop --quest QUEST_ID",
-    summary: "Stop the spell active in the quest's conversation.",
+    usage: "performance stop PERFORMANCE_ID --quest QUEST_ID",
+    summary: "End the active performance.",
     options: ["quest"],
+    target: true,
     request: (input: CommandInput): ApiRequest => ({
       method: "DELETE",
-      path: `${questPath(input)}/conversation/spell`,
-    }),
-  }),
-];
-
-const CONVERSATION_COMMANDS: readonly Command[] = [
-  command({
-    resource: "conversation",
-    action: "get",
-    usage: "conversation get --quest QUEST_ID",
-    summary:
-      "Show the quest's conversation: its messages, active spell and whether it awaits a reply.",
-    options: ["quest"],
-    request: (input: CommandInput): ApiRequest => ({
-      method: "GET",
-      path: `${questPath(input)}/conversation`,
-    }),
-  }),
-  command({
-    resource: "conversation",
-    action: "send",
-    usage:
-      "conversation send --quest QUEST_ID (--text TEXT | --text-file PATH | --stdin)",
-    summary:
-      "Send the quest's construct a message and wait for its reply. Starts the conversation if the quest has none.",
-    options: ["quest", "text"],
-    timeoutSeconds: REPLY_TIMEOUT_SECONDS,
-    request: (input: CommandInput): ApiRequest => ({
-      method: "POST",
-      path: `${questPath(input)}/conversation/messages`,
-      body: { text: textOf(input) },
+      path: performancePath(input),
     }),
   }),
 ];
@@ -559,13 +466,10 @@ const COMMANDS: readonly Command[] = [
     request: (): ApiRequest => ({ method: "GET", path: "/me" }),
   }),
   ...QUEST_COMMANDS,
-  ...TASK_COMMANDS,
-  ...IDEA_COMMANDS,
-  ...NOTE_COMMANDS,
-  ...MILESTONE_COMMANDS,
+  ...SPACE_COMMANDS,
   ...definitionCommands("construct", "constructs"),
-  ...SPELL_COMMANDS,
-  ...CONVERSATION_COMMANDS,
+  ...definitionCommands("rite", "rites"),
+  ...PERFORMANCE_COMMANDS,
 ];
 
 // The command's name as records give it, such as "quest list".

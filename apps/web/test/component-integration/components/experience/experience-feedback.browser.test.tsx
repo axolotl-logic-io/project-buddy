@@ -24,13 +24,11 @@ vi.mock(
 vi.mock("next/navigation", () => import("../router-test-kit.ts"));
 
 const BEFORE = experienceOf({
-  "adding-tasks": 2,
-  ideating: 0,
-  noting: 0,
-  "completing-tasks": 0,
+  adding: 2,
+  "checking-off": 0,
   "completing-quests": 0,
 });
-const AFTER = experienceOf({ ...BEFORE.points, "completing-tasks": 1 });
+const AFTER = experienceOf({ ...BEFORE.counts, "checking-off": 1 });
 const NEXT_CIRCLE = /Circle 2 · Initiate/u;
 
 async function frame(

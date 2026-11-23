@@ -2,19 +2,9 @@
 
 How users use Project Buddy, described from the user's side of the screen. Tests are derived from these cases.
 
-Playwright e2e tests in `test/system/` cover only the auth workflows. The auth workflows are sign-up, sign-in, sign-out, the sign-in limits, and the signed-out access gate. Every other case is tested in Vitest:
+Playwright e2e tests in `test/system/` cover only the auth workflows: sign-up, sign-in, sign-out, the sign-in limits, and the signed-out access gate. Every other case is tested in Vitest, as `apps/web/AGENTS.md` describes: a server test for a case that needs a real server or database, and a browser-mode component integration or feature-entrypoint test (`*.browser.test.tsx`) for a case that needs only the UI.
 
-- A case that needs a real server or database gets a server test against the local test database supplied in `.env.test`, pinned to the orchestrator's lane or configured manually. It calls the Server Action, route handler or store with real users and sessions. A server test is a `test/component-integration/**/*.server.test.ts` file, run by `npm run test:server`, which needs Docker; it makes its users, data and sessions with the kit in `test/support/test-database/` (see `apps/web/AGENTS.md`).
-- A case that needs only the UI gets a browser-mode component integration or feature-entrypoint test in `test/` (`*.browser.test.tsx`, run in Chromium and WebKit). It need not cover a whole application flow.
-
-`test/component-integration/use-cases/use-cases.test.ts` enforces this rule against the auth cases listed in `auth-cases.ts`: an e2e test that names any other case fails it.
-
-The use case guard checks that:
-
-- Each slug is unique and titles a test or group of tests in an e2e file, a `test/**/*.test.tsx` file or a `test/component-integration/**/*.server.test.ts` file.
-- Each slug named in the cases or e2e files, and each slug title in Vitest, is a known case. Only titles are checked in Vitest files.
-- Every e2e test belongs to an auth case in `auth-cases.ts`, and each auth case exists.
-- Every area file appears in the Areas index, and every relative link in the cases leads to an existing file and heading.
+`test/component-integration/use-cases/use-cases.test.ts` guards this rule and the use cases themselves: slugs are unique and known, each titles a test, only the auth cases listed in `auth-cases.ts` have e2e tests, every area file is in the Areas index, and every relative link in the cases leads to an existing file and heading.
 
 A case written before its test is listed in `test/component-integration/use-cases/pending-cases.ts` with the lane that will write the test. Once a real test names the case, that lane removes the entry.
 
@@ -24,8 +14,8 @@ A case written before its test is listed in `test/component-integration/use-case
 - **Signing up** is open to anyone. An emailed verification link lasts 30 minutes; confirmation creates the account and signs the browser in. Existing accounts receive normal sign-in links. Both flows share request limits.
 - **Signing in** is by a link the site emails them. There are no passwords.
 - **Invitations:** anyone in a quest can invite an address; one with no account gets an invited account at once, which completes sign-up the first time its user continues from an emailed link with a name ([Quest members](quest-members.md)).
-- **Private data:** each user's quests, conversations, Tasks and milestones are open to them and the members they invite alone ([`use_case_private_data`](accounts.md#use_case_private_data), [`use_case_quest_member_access`](quest-members.md#use_case_quest_member_access)). A quest or conversation not open to them looks exactly like one that doesn't exist.
-- **Local constructs:** replies use deterministic commands without requests to model companies.
+- **Private data:** each user's quests, with their spaces and performances, are open to them and the members they invite alone ([`use_case_private_data`](accounts.md#use_case_private_data), [`use_case_quest_member_access`](quest-members.md#use_case_quest_member_access)). A quest not open to them looks exactly like one that doesn't exist.
+- **Local replies:** each reply is picked from the rite's reply list, without requests to model companies.
 
 ## Conventions
 
@@ -36,12 +26,12 @@ A case written before its test is listed in `test/component-integration/use-case
 - **Steps** is the interaction, in order, from the user's point of view.
 - **Outcome** is what is true when the case ends. It names things the user can see or do on the site, so that a test can check each one.
 - **Next** lists cases the user might go on to, each with a hint about why the user would.
-- The use cases describe the current product contract. Describe only currently available user workflows. Keep feature history, migration details and internal tool contracts outside this directory.
+- The use cases describe the current product contract: Describe only currently available user workflows. Keep feature history, migration details and internal tool contracts outside this directory.
 - Update cases in the relevant area files and their tests in the PR that changes the behaviour. Connect related cases through Prerequisites or Next, updating the other area's case when a back-link is needed.
 
-## Local construct tests
+## Local reply tests
 
-Every environment uses deterministic local commands. Tests exercise those commands directly. Browser tests cover visible behavior. Server tests check data access and persistence, and use event barriers for in-flight behavior. Fault tests inject only the stream or storage failure they need. Internal contracts can have regression tests without a corresponding user workflow.
+Every environment picks replies locally from the rite's reply list. Tests fix the pick so replies are deterministic. Browser tests cover visible behavior. Server tests check data access and persistence, and use event barriers for in-flight behavior. Fault tests inject only the stream or storage failure they need. Internal contracts can have regression tests without a corresponding user workflow.
 
 ## Areas
 
@@ -52,18 +42,16 @@ Each area's cases are in their own file:
 - [Quests](quests.md)
 - [Quest status](quest-status.md)
 - [Quest members](quest-members.md): invite people, join by link or from Pending, and remove members.
-- [Conversations](chats.md)
+- [Spaces](spaces.md): spaces, murmlings and their types, and quick notes.
 - [Tasks](tasks.md)
-- [Ideas](ideas.md)
-- [Experience](experience.md): ability points, experience and circles.
+- [Performances](performances.md): perform a rite on a space and make conjurations.
+- [Experience](experience.md): events, experience and circles.
 - [Profile](profile.md): distinct days signed in.
-- [Quick Notes](quick-notes.md)
 - [Timer](timer.md): a repeating work and break timer, shared by its link.
 - [Command line](command-line.md): work with quests through the `project-buddy` command.
 - [Constructs](constructs.md)
-- [Spellbook](spellbook.md): find, create and edit private spells.
-- [Retirement](retirement.md): put aside own definitions, restore them, or delete them forever.
-- [Spells](spellbook.md)
+- [Grimoire](grimoire.md): find, create and edit own rites.
+- [Retirement](retirement.md): put aside own rites, restore them, or delete them forever.
 - [When things go wrong](when-things-go-wrong.md)
 - [Appearance](appearance.md)
 - [Installed app](notifications.md)

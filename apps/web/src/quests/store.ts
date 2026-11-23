@@ -4,10 +4,15 @@
 // route parameter, is looked up as a string; anything malformed, unknown or
 // another user's is not found.
 
-import { and, desc, eq } from "drizzle-orm";
-import { questOpenTo } from "@/accounts/owner-scope.ts";
-import { getDb } from "@/db/client.ts";
-import { quests } from "@/db/tables/quests-and-chats.ts";
+import { and, desc, eq, sql } from "drizzle-orm";
+import { questOpenTo, questOwnedBy } from "@/accounts/owner-scope.ts";
+import {
+  type ConstructId,
+  DEFAULT_CONSTRUCT_ID,
+  isConstructId,
+} from "@/constructs/index.ts";
+import { getDb, inTransaction } from "@/db/client.ts";
+import { quests } from "@/db/tables/quests.ts";
 import { withAppErrors } from "@/errors/to-app-error.ts";
 import { parseQuestId, type QuestId, type UserId } from "@/ids.ts";
 import type { QuestSharing } from "@/quests/membership.ts";
@@ -18,6 +23,7 @@ import {
   sharingOf,
 } from "@/quests/quest-sharing.ts";
 import { QUEST_STATUS, type QuestStatus } from "@/quests/quest-status.ts";
+import { seedSpaces } from "@/spaces/space-store.ts";
 
 interface Quest {
   id: QuestId;
@@ -26,8 +32,9 @@ interface Quest {
   status: QuestStatus;
   statusRevision: number;
   startingContext?: string | undefined;
-  // Whether it is the user's Dailies quest (src/conversations/dailies.ts).
+  // Whether it is the user’s Dailies quest.
   dailies: boolean;
+  constructId: ConstructId;
   // How it is shared, as the user reading it sees it.
   sharing: QuestSharing;
 }
@@ -39,12 +46,11 @@ interface QuestRow {
   readonly status: string;
   readonly statusRevision: number;
   readonly dailies: boolean;
+  readonly constructId: string;
   readonly startingContext: string | null;
 }
 
-// The columns a quest is read from. Select only the fields this store
-// uses, so a later release can drop retired columns while this build is
-// still live.
+// The columns a quest is read from: only the fields this store uses.
 const QUEST_COLUMNS: {
   readonly startingContext: typeof quests.startingContext;
   readonly status: typeof quests.status;
@@ -53,6 +59,7 @@ const QUEST_COLUMNS: {
   readonly name: typeof quests.name;
   readonly createdAt: typeof quests.createdAt;
   readonly dailies: typeof quests.dailies;
+  readonly constructId: typeof quests.constructId;
 } = {
   startingContext: quests.startingContext,
   status: quests.status,
@@ -61,6 +68,7 @@ const QUEST_COLUMNS: {
   name: quests.name,
   createdAt: quests.createdAt,
   dailies: quests.dailies,
+  constructId: quests.constructId,
 };
 
 // Rows as quests, as viewer reads them. A row whose id is not a UUID is
@@ -74,6 +82,10 @@ function toQuests(
     if (questId === undefined) {
       return [];
     }
+    let constructId = DEFAULT_CONSTRUCT_ID;
+    if (isConstructId(row.constructId)) {
+      ({ constructId } = row);
+    }
     return [
       {
         id: questId,
@@ -83,17 +95,16 @@ function toQuests(
         status: QUEST_STATUS.parse(row.status),
         statusRevision: row.statusRevision,
         dailies: row.dailies,
+        constructId,
         sharing: sharingOf(viewer, row),
       },
     ];
   });
 }
 
-export type { Quest };
-
 // The quests open to the user, their own and those they are a member of,
 // newest first.
-export function listQuests(user: UserId): Promise<Quest[]> {
+function listQuests(user: UserId): Promise<Quest[]> {
   return withAppErrors("listQuests", async () =>
     toQuests(
       user,
@@ -108,10 +119,7 @@ export function listQuests(user: UserId): Promise<Quest[]> {
 
 // The quest with this id, or undefined if the id is malformed, unknown or
 // not open to the user.
-export async function getQuest(
-  user: UserId,
-  id: string,
-): Promise<Quest | undefined> {
+async function getQuest(user: UserId, id: string): Promise<Quest | undefined> {
   const questId = parseQuestId(id);
   if (questId === undefined) {
     return undefined;
@@ -128,43 +136,70 @@ export async function getQuest(
   return quest;
 }
 
-// A new quest of the owner's, with no conversation. The site starts every
-// quest with its conversation (src/conversations/start-quest.ts); tests make
-// empty ones.
-export function createQuest(owner: UserId, name: QuestName): Promise<Quest> {
-  return withAppErrors("createQuest", async () => {
-    const inserted = await getDb()
-      .insert(quests)
-      .values({ userId: owner, name })
-      .returning({
-        startingContext: quests.startingContext,
-        status: quests.status,
-        statusRevision: quests.statusRevision,
-        id: quests.id,
-        name: quests.name,
-        createdAt: quests.createdAt,
-        dailies: quests.dailies,
-      });
-    // A new quest is its owner's own, with no members yet.
-    const [quest] = toQuests(
-      owner,
-      inserted.map((row) => ({
-        ...row,
-        ownerId: owner,
-        ownerName: null,
-        hasMembers: false,
-      })),
-    );
-    if (quest === undefined) {
-      throw new Error("Inserting a quest returned no quest");
-    }
-    return quest;
-  });
+interface QuestStartOptions {
+  readonly constructId?: ConstructId;
+  readonly startingContext?: string;
+  readonly dailies?: boolean;
+}
+
+interface StartedQuest {
+  readonly quest: Quest;
+  readonly resumed: boolean;
+}
+
+// A new quest with its starting spaces, or the owner's Dailies quest when
+// they start Dailies again: a user has one Dailies quest, so a second start
+// resumes it.
+function createOrResumeQuest(
+  owner: UserId,
+  name: QuestName,
+  options: QuestStartOptions,
+): Promise<StartedQuest> {
+  return withAppErrors("createOrResumeQuest", () =>
+    inTransaction(async (tx) => {
+      const inserted = await tx
+        .insert(quests)
+        .values({ ...options, userId: owner, name })
+        .onConflictDoNothing({ target: quests.userId, where: sql`dailies` })
+        .returning(QUEST_COLUMNS);
+      // A new quest is its owner's own, with no members yet.
+      const [quest] = toQuests(
+        owner,
+        inserted.map((row) => ({
+          ...row,
+          ownerId: owner,
+          ownerName: null,
+          hasMembers: false,
+        })),
+      );
+      if (quest !== undefined) {
+        await seedSpaces(tx, quest.id);
+        return { quest, resumed: false };
+      }
+      const [existing] = toQuests(
+        owner,
+        await tx
+          .select({ ...QUEST_COLUMNS, ...SHARING_COLUMNS })
+          .from(quests)
+          .where(and(questOwnedBy(owner), eq(quests.dailies, true))),
+      );
+      if (existing === undefined) {
+        throw new Error("The active Dailies quest could not be read");
+      }
+      return { quest: existing, resumed: true };
+    }),
+  );
+}
+
+// A new quest with its starting spaces.
+async function createQuest(owner: UserId, name: QuestName): Promise<Quest> {
+  const { quest } = await createOrResumeQuest(owner, name, {});
+  return quest;
 }
 
 // The owner or a member can rename a quest. Unknown or inaccessible ids
 // change nothing.
-export function renameQuest(
+function renameQuest(
   owner: UserId,
   id: QuestId,
   name: QuestName,
@@ -178,3 +213,6 @@ export function renameQuest(
     return changed.length > 0;
   });
 }
+
+export type { Quest, StartedQuest };
+export { createOrResumeQuest, createQuest, getQuest, listQuests, renameQuest };

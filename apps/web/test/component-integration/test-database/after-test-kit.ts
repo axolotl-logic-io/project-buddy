@@ -2,7 +2,7 @@
 // request's scope, which a server test that calls a route handler or Server
 // Action has none of. This one starts each task at once and keeps its
 // promise, so a test can await afterTasksDone() before it reads what the
-// tasks save, such as a chat reply, and the setup file (vitest.server-setup.ts)
+// tasks save, such as a sign-in email, and the setup file (vitest.server-setup.ts)
 // awaits it before cleanup, so no task outlives its test.
 
 // What `after()` takes: a task to run, or a promise already running.

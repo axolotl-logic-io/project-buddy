@@ -1,4 +1,4 @@
-// Quest starting dialogs and the inline start used inside Chat.
+// The starting points' dialogs on Quests.
 
 import { afterEach, describe, expect, test, vi } from "vitest";
 import { page, userEvent } from "vitest/browser";
@@ -112,7 +112,7 @@ describe("use_case_browse_premade_quests", () => {
 
   test("a refused start keeps the Why in the dialog", async () => {
     actions.startQuestAction.mockResolvedValue({
-      kind: "claudeUnavailable",
+      kind: "invalid",
       message: "Try again later.",
     });
     await render(<QuestStartChoices />);
@@ -144,7 +144,7 @@ describe("use_case_browse_premade_quests", () => {
     await expect.element(choose("Dailies")).not.toBeInTheDocument();
   });
 
-  test("a preset Journal opens its choice at once, and isn't offered to Dailies", async () => {
+  test("a preset starting context opens its choice at once, and isn't offered to Dailies", async () => {
     const summary = "- a balcony herb garden";
     await render(
       <QuestStartChoices

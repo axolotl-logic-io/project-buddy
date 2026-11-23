@@ -1,8 +1,8 @@
 // The release and integration workflows' smoke test: a few
 // signed-out requests to the live site that show the new build is serving.
-// Only GET requests and one signed-out POST, so it never writes to the
-// database or calls Claude. Imports use relative paths so Node can run it
-// directly, without the app's alias resolver.
+// Only signed-out GET requests, so it never writes to the database.
+// Imports use relative paths so Node can run it directly, without the
+// app's alias resolver.
 import { SIGNUP_COPY } from "../../src/ui/copy/signup.ts";
 
 // The part of fetch the checks use, so a test can pass a fake.
@@ -121,7 +121,7 @@ function checkHome(
   return Promise.resolve(`redirected to ${location}, expected /login`);
 }
 
-function checkChat(response: Response): Promise<string | undefined> {
+function checkSignedOutApi(response: Response): Promise<string | undefined> {
   return Promise.resolve(statusProblem(response, UNAUTHORIZED));
 }
 
@@ -148,14 +148,10 @@ const CHECKS: readonly SmokeCheck[] = [
   },
   { name: "GET /", path: "/", init: {}, check: checkHome },
   {
-    name: "POST /api/chat",
-    path: "/api/chat",
-    init: {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: "{}",
-    },
-    check: checkChat,
+    name: "GET /api/v1/me",
+    path: "/api/v1/me",
+    init: {},
+    check: checkSignedOutApi,
   },
 ];
 

@@ -12,7 +12,7 @@ import { CODE_HIGHLIGHTER } from "@/components/code-highlighting.ts";
 
 const STREAMDOWN_PLUGINS: PluginConfig = { code: CODE_HIGHLIGHTER };
 
-// Ask before opening links from conversation text.
+// Ask before opening links from rite replies.
 const LINK_SAFETY: LinkSafetyConfig = {
   enabled: true,
 };
@@ -35,7 +35,7 @@ const HEADING_COMPONENTS = HEADING_TAGS.map((_, index) =>
 );
 
 // Text as Markdown, with GitHub's extensions and highlighted code, styled
-// from the token contract (chat.css). While the text is still streaming,
+// from the token contract (performances.css). While the text is still streaming,
 // unfinished Markdown, such as an open code fence, renders as if it were
 // closed, and a caret marks where the text will continue. Links open in a
 // new tab. Inside a page that already has headings, topHeadingLevel puts
@@ -45,17 +45,15 @@ function MarkdownContent({
   text,
   running,
   topHeadingLevel = 1,
-  className = "",
 }: {
   text: string;
   running: boolean;
   topHeadingLevel?: number;
-  className?: string;
 }): JSX.Element {
   return (
     <Streamdown
       caret="block"
-      className={`markdown ${className}`}
+      className="markdown"
       codeBlockMaxHeight={0}
       components={
         HEADING_COMPONENTS[topHeadingLevel - 1] ??

@@ -5,45 +5,35 @@
 //
 // A quest belongs to its owner, the user who made it, and is open to its
 // owner and its accepted members (quest_members). Everything reached
-// through a quest is open to everyone the quest is open to: its
-// conversation, the conversation's messages, images, spell results and
-// reply runs, its Tasks, Ideas, milestones and Quick Notes, and the quest's
-// members and pending invitations, which any of them may see, add to or
-// remove. The owner is never a member row, so no one can remove them. The
-// one action left to the owner alone is finding a quest as their Dailies,
-// with its days (dailies_days) and the conversations Start Day parks for
-// Undo.
+// through a quest is open to everyone the quest is open to: its spaces and
+// their murmlings and changes, its performances and their conjurations, and
+// the quest's members and pending invitations, which any of them may see,
+// add to or remove. The owner is never a member row, so no one can remove
+// them. The one action left to the owner alone is finding a quest as their
+// Dailies, with its days (quest_days).
 //
 // A pending quest invitation is not membership: it opens nothing of the
 // quest to its invitee but the quest's name, the inviter's name and the
 // invitation itself, which the invitee alone may accept or decline.
 //
-// Own prompts (constructs and spells) and image generation claims belong to
-// their user alone. So does a timer presence report; the one read across
-// users is how many other accounts follow a schedule, a count that names no
-// one and reaches no quest (src/timer/presence-store.ts).
-//
-// A conversation keeps a snapshot of its construct and its active spell, so
-// a member sees the snapshot of an own construct or spell used in the
-// quest, never the definition itself.
+// Own rites belong to their user alone, and so do events and a timer
+// presence report. The one read across users is how many other accounts
+// follow a schedule, a count that names no one and reaches no quest
+// (src/timer/presence-store.ts). A performance keeps a snapshot of its
+// rite, so a member sees the snapshot of an own rite used in the quest,
+// never the rite itself.
 //
 // Each predicate is SQL for a where clause or a join, on the table it names.
 import { and, eq, exists, inArray, type SQL, sql } from "drizzle-orm";
 import { QueryBuilder } from "drizzle-orm/pg-core";
-import { constructGenerations } from "@/db/tables/construct-visuals.ts";
-import { dailiesDays } from "@/db/tables/dailies-days.ts";
-import { imageGenerations } from "@/db/tables/image-generations.ts";
-import { images } from "@/db/tables/images.ts";
-import { milestones } from "@/db/tables/milestones.ts";
-import { ownPrompts } from "@/db/tables/own-prompts.ts";
-import { questIdeas } from "@/db/tables/quest-ideas.ts";
+import { events } from "@/db/tables/events.ts";
+import { conjurations, performances, rites } from "@/db/tables/performances.ts";
+import { questDays } from "@/db/tables/quest-days.ts";
 import { questInvitations, questMembers } from "@/db/tables/quest-members.ts";
-import { questNotes } from "@/db/tables/quest-notes.ts";
-import { chats, messages, quests } from "@/db/tables/quests-and-chats.ts";
-import { replyRuns } from "@/db/tables/reply-runs.ts";
+import { quests } from "@/db/tables/quests.ts";
 import { signedInDays } from "@/db/tables/signed-in-days.ts";
-import { spellMessageResults } from "@/db/tables/spell-message-results.ts";
-import { tasksVersions } from "@/db/tables/tasks-versions.ts";
+import { spaceChanges } from "@/db/tables/space-changes.ts";
+import { murmlings, spaces } from "@/db/tables/spaces.ts";
 import { timerPresence } from "@/db/tables/timer-presence.ts";
 import type { QuestId, UserId } from "@/ids.ts";
 
@@ -51,25 +41,6 @@ import type { QuestId, UserId } from "@/ids.ts";
 // their Dailies.
 function questOwnedBy(owner: UserId): SQL {
   return eq(quests.userId, owner);
-}
-
-// A `dailies_days` row of a quest owner made: Dailies is always personal,
-// so its days are its owner's alone.
-function dailiesDayOwnedBy(owner: UserId): SQL {
-  return inArray(
-    dailiesDays.questId,
-    new QueryBuilder()
-      .select({ id: quests.id })
-      .from(quests)
-      .where(questOwnedBy(owner)),
-  );
-}
-
-// A `chats` row that Start Day parked outside its Dailies quest for Undo:
-// it has its owner's user id instead of a quest, so no one can open, read
-// or write to it until Undo puts it back.
-function parkedChatOwnedBy(owner: UserId): SQL {
-  return eq(chats.userId, owner);
 }
 
 // A `quests` row open to user: their own, or one they accepted an
@@ -110,52 +81,50 @@ function questPendingFor(invitee: UserId): SQL {
   );
 }
 
-// A `chats` row open to user: a chat in a quest open to them. A standalone
-// chat that an older build made is open to no one.
-function chatOpenTo(user: UserId): SQL {
-  return inArray(chats.questId, openQuestIds(user));
+function spaceOpenTo(user: UserId): SQL {
+  return inArray(spaces.questId, openQuestIds(user));
 }
 
-// The ids of the chats open to user, as a subquery.
-function openChatIds(user: UserId): SQL {
-  return sql`${new QueryBuilder()
-    .select({ id: chats.id })
-    .from(chats)
-    .where(chatOpenTo(user))}`;
+function murmlingOpenTo(user: UserId): SQL {
+  return inArray(murmlings.questId, openQuestIds(user));
 }
 
-// A `messages` row in a chat open to user.
-function messageOpenTo(user: UserId): SQL {
-  return inArray(messages.chatId, openChatIds(user));
+function performanceOpenTo(user: UserId): SQL {
+  return inArray(performances.questId, openQuestIds(user));
 }
 
-function spellResultOpenTo(user: UserId): SQL {
-  return inArray(spellMessageResults.chatId, openChatIds(user));
+function conjurationOpenTo(user: UserId): SQL {
+  return inArray(
+    conjurations.performanceId,
+    new QueryBuilder()
+      .select({ id: performances.id })
+      .from(performances)
+      .where(performanceOpenTo(user)),
+  );
 }
 
-// An `images` row of a chat open to user.
-function imageOpenTo(user: UserId): SQL {
-  return inArray(images.chatId, openChatIds(user));
+function riteOwnedBy(user: UserId): SQL {
+  return eq(rites.userId, user);
 }
 
-// A `milestones` row of a quest open to user.
-function milestoneOpenTo(user: UserId): SQL {
-  return inArray(milestones.questId, openQuestIds(user));
+function spaceChangeOpenTo(user: UserId): SQL {
+  return inArray(
+    spaceChanges.spaceId,
+    new QueryBuilder()
+      .select({ id: spaces.id })
+      .from(spaces)
+      .where(spaceOpenTo(user)),
+  );
 }
 
-// A `tasks_versions` row of a quest open to user.
-function tasksVersionOpenTo(user: UserId): SQL {
-  return inArray(tasksVersions.questId, openQuestIds(user));
-}
-
-// A `quest_ideas` row of a quest open to user.
-function ideaOpenTo(user: UserId): SQL {
-  return inArray(questIdeas.questId, openQuestIds(user));
-}
-
-// A `quest_notes` row of a quest open to user.
-function noteOpenTo(user: UserId): SQL {
-  return inArray(questNotes.questId, openQuestIds(user));
+function questDayOwnedBy(user: UserId): SQL {
+  return inArray(
+    questDays.questId,
+    new QueryBuilder()
+      .select({ id: quests.id })
+      .from(quests)
+      .where(questOwnedBy(user)),
+  );
 }
 
 // True when the quest is open to user, whatever table the query reads: for
@@ -187,34 +156,15 @@ function questInvitationTo(invitee: UserId): SQL {
   return eq(questInvitations.inviteeId, invitee);
 }
 
-function ownPromptOwnedBy(owner: UserId): SQL {
-  return eq(ownPrompts.userId, owner);
-}
-
-// An `image_generations` row that owner claimed, whose cost is owner's.
-function constructGenerationOwnedBy(owner: UserId): SQL {
-  return eq(constructGenerations.userId, owner);
-}
-
-// An `image_generations` row of a chat open to user, whose image they may
-// see, whoever claimed it.
-function generationOpenTo(user: UserId): SQL {
-  return inArray(imageGenerations.chatId, openChatIds(user));
-}
-
-function replyRunOpenTo(user: UserId): SQL {
-  return inArray(
-    replyRuns.chatId,
-    new QueryBuilder()
-      .select({ id: chats.id })
-      .from(chats)
-      .where(chatOpenTo(user)),
-  );
-}
-
 // A `timer_presence` row of owner's: their own report.
 function timerPresenceOwnedBy(owner: UserId): SQL {
   return eq(timerPresence.userId, owner);
+}
+
+// An event's counts belong to the user who gained them, whatever quest
+// they gained them in.
+function eventOwnedBy(owner: UserId): SQL {
+  return eq(events.userId, owner);
 }
 
 // A visiting date belongs to its account alone, regardless of membership.
@@ -222,33 +172,22 @@ function signedInDayOwnedBy(owner: UserId): SQL {
   return eq(signedInDays.userId, owner);
 }
 
-function replyRunOwnedBy(user: UserId): SQL {
-  return and(replyRunOpenTo(user), eq(replyRuns.userId, user)) ?? sql`false`;
-}
-
 export {
-  chatOpenTo,
-  constructGenerationOwnedBy,
-  dailiesDayOwnedBy,
-  generationOpenTo,
-  ideaOpenTo,
-  imageOpenTo,
-  messageOpenTo,
-  milestoneOpenTo,
-  noteOpenTo,
+  conjurationOpenTo,
+  eventOwnedBy,
+  murmlingOpenTo,
   opensQuest,
-  ownPromptOwnedBy,
-  parkedChatOwnedBy,
+  performanceOpenTo,
+  questDayOwnedBy,
   questInvitationOpenTo,
   questInvitationTo,
   questMemberOpenTo,
   questOpenTo,
   questOwnedBy,
   questPendingFor,
-  replyRunOpenTo,
-  replyRunOwnedBy,
+  riteOwnedBy,
   signedInDayOwnedBy,
-  spellResultOpenTo,
-  tasksVersionOpenTo,
+  spaceChangeOpenTo,
+  spaceOpenTo,
   timerPresenceOwnedBy,
 };

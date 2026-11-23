@@ -10,6 +10,7 @@ const HTTP_OK = 200;
 const HTTP_NOT_FOUND = 404;
 
 const QUEST = "8d2f63c4-5e2b-4a6f-9d61-3b7b0d6a1c11";
+const SPACE = "5b0e6f1a-7c3d-4e2b-9a8f-1d2c3b4a5e6f";
 
 let site: FakeSite | undefined;
 
@@ -28,9 +29,9 @@ test("no arguments prints help and succeeds", async () => {
 test("sends the session to the site in the environment, and writes JSONL", async () => {
   site = await startSite({
     status: HTTP_OK,
-    body: { version: 2, items: [{ number: 1, text: "Sketch", done: false }] },
+    body: { version: 2, items: [{ id: "s1", name: "Inbox" }] },
   });
-  const outcome = await runProcess(["task", "list", "--quest", QUEST], {
+  const outcome = await runProcess(["space", "list", "--quest", QUEST], {
     url: site.url,
     session: "cli-session",
   });
@@ -38,7 +39,7 @@ test("sends the session to the site in the environment, and writes JSONL", async
   expect(site.requests).toEqual([
     expect.objectContaining({
       method: "GET",
-      url: `/api/v1/quests/${QUEST}/tasks`,
+      url: `/api/v1/quests/${QUEST}/spaces`,
       cookie: "session=cli-session",
     }),
   ]);
@@ -57,12 +58,13 @@ test("sends the session to the site in the environment, and writes JSONL", async
 test("reads multiline text from stdin into one request", async () => {
   site = await startSite({ status: HTTP_OK, body: { items: [] } });
   const outcome = await runProcess(
-    ["note", "add", "--quest", QUEST, "--stdin"],
+    ["murmling", "add", "--quest", QUEST, "--space", SPACE, "--stdin"],
     { url: site.url, session: "s" },
     "First line\nSecond line\n",
   );
   expect(outcome.status).toBe(EXIT_STATUS.ok);
   expect(JSON.parse(site.requests[0]?.body ?? "")).toEqual({
+    kind: "add",
     text: "First line\nSecond line\n",
   });
 });
@@ -92,7 +94,18 @@ test("exits with the status of the site's problem", async () => {
 test("a change past its deadline ends with an unknown outcome", async () => {
   site = await startSite({ hang: true });
   const outcome = await runProcess(
-    ["note", "add", "--quest", QUEST, "--text", "Hi", "--timeout", "0.3"],
+    [
+      "murmling",
+      "add",
+      "--quest",
+      QUEST,
+      "--space",
+      SPACE,
+      "--text",
+      "Hi",
+      "--timeout",
+      "0.3",
+    ],
     { url: site.url, session: "s" },
   );
   expect(outcome.status).toBe(EXIT_STATUS.network);

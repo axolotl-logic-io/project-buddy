@@ -7,11 +7,11 @@ import { QuickNote } from "@/components/quick-note.tsx";
 import { PanelLink, SitePanel } from "@/components/site-panel.tsx";
 import { Icon } from "@/components/ui/icon.tsx";
 import { HOME_PATH } from "@/routes.ts";
+import { GRIMOIRE_COPY } from "@/ui/copy/grimoire.ts";
 import { PROFILE_COPY } from "@/ui/copy/profile.ts";
 import { QUESTS_COPY } from "@/ui/copy/quests.ts";
 import { SETTINGS_COPY } from "@/ui/copy/settings.ts";
 import { SITE_COPY, SITE_PANEL_COPY } from "@/ui/copy/site.ts";
-import { SPELLBOOK_COPY } from "@/ui/copy/spells.ts";
 import { TIMER_COPY } from "@/ui/copy/timer.ts";
 
 // The header's parts, free of server code, so a client component such as the
@@ -86,7 +86,7 @@ function AccountLinks(): JSX.Element {
         </li>
 
         <li>
-          <PanelLink href="/spellbook">{SPELLBOOK_COPY.heading}</PanelLink>
+          <PanelLink href="/grimoire">{GRIMOIRE_COPY.heading}</PanelLink>
         </li>
         <li>
           <PanelLink href="/timer">{TIMER_COPY.panelLink}</PanelLink>

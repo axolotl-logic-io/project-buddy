@@ -1,40 +1,19 @@
-import { findConversation } from "@/conversations/conversation-store.ts";
-import { getSpell } from "@/spells/spell.ts";
-import { TIMER_COPY } from "@/ui/copy/timer.ts";
-// "use_case_choose_theme", signed in, in Chromium and WebKit: each theme on
-// the pages it styles beyond its colours. A long quest name, the trail
-// band's heading, shares its row with the quest's section controls, the memory's
-// checkboxes take the theme's colours, and a reply's heading stays smaller
-// than the page's. Each page is rendered from fixed data, in its layouts
-// and under the site header the @header slot gives it, with the site's
-// stylesheet
-// (vitest.browser-setup.ts) and the theme's fonts (theme-fonts-test-kit.ts).
-// theme-layout.server.test.ts covers the theme's first paint,
-// test/component-integration/components/appearance-choices.browser.test.tsx choosing it, and
-// test/component-integration/components/focus.browser.test.tsx how each theme draws focus.
-
 import { beforeAll, beforeEach, describe, expect, test, vi } from "vitest";
 import { page } from "vitest/browser";
 import { render } from "vitest-browser-react";
 import QuestLayout from "@/app/(workspace)/quests/[questId]/(overview)/layout.tsx";
 import QuestPage from "@/app/(workspace)/quests/[questId]/(overview)/page.tsx";
-import type { ChatMessage } from "@/chats/message-author.ts";
-import type { getChat, listMessages } from "@/chats/store.ts";
-import type { readQuestConversation } from "@/conversations/start-quest.ts";
-import type { listMilestones } from "@/milestones/milestone-store.ts";
+import { Markdown } from "@/components/markdown.tsx";
+import { getConstruct } from "@/constructs/index.ts";
 import type { getQuest, listQuests } from "@/quests/store.ts";
 import { THEMES } from "@/themes/themes.ts";
-import { CHAT_COPY } from "@/ui/copy/chat.ts";
 import { SITE_COPY } from "@/ui/copy/site.ts";
-import {
-  FOX_CONVERSATION,
-  FOX_QUEST,
-} from "../app/(workspace)/page-fixtures.ts";
+import { TIMER_COPY } from "@/ui/copy/timer.ts";
+import { FOX_QUEST } from "../app/(workspace)/page-fixtures.ts";
 import { siteHeaderAt } from "../app/site-header-test-kit.tsx";
 import { inWorkspace } from "../app/workspace-test-kit.tsx";
 import { SIGNED_IN_USER, signInAs } from "../auth/current-user-test-kit.ts";
 import { loadCodeHighlighting } from "../components/code-highlighting-test-kit.ts";
-import { markdownReplyText } from "../replies/rich-message-test-kit.ts";
 import { LAPTOP_VIEWPORT } from "../viewports-test-kit.ts";
 import { fontSize } from "./signed-in-pages-test-kit.ts";
 import { installThemeFonts, loadFonts } from "./theme-fonts-test-kit.ts";
@@ -46,57 +25,20 @@ vi.mock(
   () => import("../experience/experience-store-test-kit.ts"),
 );
 
-vi.mock("@/ideas/idea-store.ts", () => ({
-  listIdeas: vi.fn().mockResolvedValue([]),
-}));
-vi.mock(
-  "@/tasks/tasks-actions.ts",
-  () => import("../tasks/tasks-actions-test-kit.ts"),
-);
 vi.mock(
   "@/auth/current-user.ts",
   () => import("../auth/current-user-test-kit.ts"),
 );
 // The header slot reads the balance and resolves the trail's names.
-vi.mock("@/retirement/retirement-store.ts", () => ({
-  getRetiredDefinition: vi.fn(),
-}));
 
 const stores = vi.hoisted(() => ({
   quests: {
     getQuest: vi.fn<typeof getQuest>(),
     listQuests: vi.fn<typeof listQuests>(),
   },
-  chats: {
-    getChat: vi.fn<typeof getChat>(),
-    listMessages: vi.fn<typeof listMessages>(),
-    readStoppedReply: vi.fn().mockResolvedValue(undefined),
-  },
-  conversations: {
-    readQuestConversation: vi.fn<typeof readQuestConversation>(),
-    startQuestConversation: vi.fn(),
-  },
-  milestones: {
-    listMilestones: vi.fn<typeof listMilestones>(() => Promise.resolve([])),
-  },
 }));
 vi.mock("@/quests/store.ts", () => stores.quests);
-vi.mock("@/chats/store.ts", () => stores.chats);
-vi.mock("@/conversations/start-quest.ts", () => stores.conversations);
-vi.mock("@/milestones/milestone-store.ts", () => stores.milestones);
-vi.mock(
-  "@/tasks/tasks-store.ts",
-  () => import("../tasks/tasks-store-test-kit.ts"),
-);
-vi.mock(
-  "@/dailies/day-store.ts",
-  () => import("../dailies/day-store-test-kit.ts"),
-);
-vi.mock("@/app/(workspace)/quests/[questId]/(overview)/actions.ts", () => ({
-  startConversationAction: vi.fn(),
-}));
-
-// ChatView refreshes the page through the App Router.
+// The performance refreshes the page through the App Router.
 vi.mock("next/navigation", () => import("../components/router-test-kit.ts"));
 
 // The pages' forms post to Server Actions, which these tests never run.
@@ -104,22 +46,6 @@ vi.mock("next/navigation", () => import("../components/router-test-kit.ts"));
 // A long quest name, which the trail band's heading wraps.
 const LONG_NAME = "Hangar door panel with hazard stripe rim and rivets";
 const QUEST_PATH = ["quests", FOX_QUEST.id] as const;
-
-// Her question and the construct's Markdown reply.
-function markdownExchange(): ChatMessage[] {
-  return [
-    {
-      id: "m0",
-      role: "user",
-      parts: [{ type: "text", text: "Show the saved example" }],
-    },
-    {
-      id: "r0",
-      role: "assistant",
-      parts: [{ type: "text", text: markdownReplyText() }],
-    },
-  ];
-}
 
 // Renders the page of a quest named name, in its layout.
 async function renderQuest(name: string): Promise<void> {
@@ -138,24 +64,18 @@ async function renderQuest(name: string): Promise<void> {
   );
 }
 
-// Renders a quest whose conversation's reply is the construct's
-// Markdown.
-async function renderMarkdownChat(): Promise<void> {
+async function renderMarkdownReply(): Promise<void> {
   stores.quests.getQuest.mockResolvedValue(FOX_QUEST);
-  stores.chats.listMessages.mockResolvedValue(markdownExchange());
-  vi.mocked(findConversation).mockResolvedValue({
-    ...FOX_CONVERSATION,
-    spellStartedAt: "2026-11-18T12:00:00Z",
-    activeSpell: getSpell("tasks"),
-  });
-  const content = await QuestPage({
-    params: Promise.resolve({ questId: FOX_QUEST.id }),
-    searchParams: Promise.resolve({}),
-  });
   await render(
     <>
       {await siteHeaderAt(QUEST_PATH)}
-      {inWorkspace(content)}
+      <section aria-label={getConstruct("vellum").name}>
+        <Markdown
+          text="## Print a sample"
+          running={false}
+          topHeadingLevel={3}
+        />
+      </section>
     </>,
   );
 }
@@ -180,13 +100,11 @@ async function sectionsAlongsideLongName(): Promise<boolean> {
   );
 }
 
-// The font sizes of the chat page's heading and of its reply's level-2
+// The font sizes of the quest page's heading and of its reply's level-2
 // heading.
 async function headingSizes(): Promise<{ page: number; reply: number }> {
-  await renderMarkdownChat();
-  const replyHeading = page
-    .getByRole("list", { name: CHAT_COPY.conversationLabel })
-    .getByRole("heading", { level: 2 });
+  await renderMarkdownReply();
+  const replyHeading = page.getByRole("heading", { name: "Print a sample" });
   await vi.waitFor(() => replyHeading.element());
   await loadFonts();
   return {
@@ -204,11 +122,6 @@ beforeEach(async () => {
   document.documentElement.classList.add("h-full");
   document.body.classList.add("flex", "min-h-full", "flex-col");
   signInAs(SIGNED_IN_USER);
-  stores.conversations.readQuestConversation.mockResolvedValue(
-    FOX_CONVERSATION,
-  );
-  stores.chats.listMessages.mockResolvedValue([]);
-  vi.mocked(findConversation).mockResolvedValue(undefined);
   await page.viewport(LAPTOP_VIEWPORT.width, LAPTOP_VIEWPORT.height);
   await vi.waitFor(() => {
     if (window.innerWidth !== LAPTOP_VIEWPORT.width) {

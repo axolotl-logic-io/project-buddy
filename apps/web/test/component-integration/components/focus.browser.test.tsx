@@ -12,24 +12,14 @@ import type { JSX } from "react";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { type Locator, page, userEvent } from "vitest/browser";
 import { render } from "vitest-browser-react";
-import { ChatView } from "@/components/chat-view.tsx";
-import { QuestList } from "@/components/quest-list.tsx";
-import { getConstruct } from "@/constructs/index.ts";
-import { THEMES, type ThemeId } from "@/themes/themes.ts";
-import { CHAT_COPY } from "@/ui/copy/chat.ts";
-import {
-  chatIdFixture,
-  questIdFixture,
-  userIdFixture,
-} from "../../support/id-fixtures.ts";
-import { applyTheme } from "../themes/theme-test-kit.ts";
-import {
-  focusLook,
-  type ShadowLayer,
-  showsGlow,
-} from "./focus-look-test-kit.ts";
 
-// ChatView refreshes the page through the App Router.
+import { QuestList } from "@/components/quest-list.tsx";
+import { THEMES, type ThemeId } from "@/themes/themes.ts";
+
+import { questIdFixture } from "../../support/id-fixtures.ts";
+import { applyTheme } from "../themes/theme-test-kit.ts";
+import { focusLook, showsGlow } from "./focus-look-test-kit.ts";
+
 vi.mock("next/navigation", () => import("./router-test-kit.ts"));
 
 // How far, in pixels, a link card's overlay may be from the card's size.
@@ -122,6 +112,7 @@ async function linkCardFocus(): Promise<
             status: "active",
             statusRevision: 0,
             dailies: false,
+            constructId: "lumen",
             sharing: { kind: "personal" },
           },
         ]}
@@ -143,37 +134,6 @@ async function linkCardFocus(): Promise<
   };
 }
 
-// Focuses an open chat's message and reads how its field box draws the
-// focus, and the box-shadow the message itself draws.
-async function fieldBoxFocus(): Promise<
-  DrawnFocus & {
-    readonly outlined: boolean;
-    readonly controlShadows: readonly ShadowLayer[];
-  }
-> {
-  await render(
-    <ChatView
-      questId={questIdFixture()}
-      viewer={userIdFixture()}
-      chatId={chatIdFixture()}
-      initialMessages={[]}
-      constructName={getConstruct("lumen").name}
-    />,
-  );
-  const control = page.getByRole("textbox", { name: CHAT_COPY.messageLabel });
-  control.element().focus();
-  const node = await focused(control);
-  const box = node.parentElement;
-  if (box === null) {
-    throw new Error("The message is not in a field box");
-  }
-  return {
-    ...drawnFocus(node, box),
-    outlined: focusLook(box).outline !== "none",
-    controlShadows: focusLook(node).shadows,
-  };
-}
-
 describe("use_case_choose_theme", () => {
   for (const { id, name } of THEMES) {
     describe(`the ${name} theme`, () => {
@@ -187,14 +147,6 @@ describe("use_case_choose_theme", () => {
         expect({ ...focus, overlayOff: 0 }).toEqual({
           ...expectedFocus(FOCUS_SHADOWS[id]),
           overlayOff: 0,
-        });
-      });
-
-      test("the message's field box shows its focus without a filter", async () => {
-        expect(await fieldBoxFocus()).toEqual({
-          ...expectedFocus(FOCUS_SHADOWS[id]),
-          outlined: true,
-          controlShadows: [],
         });
       });
     });

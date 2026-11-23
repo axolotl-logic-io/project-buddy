@@ -1,24 +1,9 @@
-// What can go wrong, in the user's terms, and how a failure travels to the
-// browser. A failure travels as its case name alone: as the body of a failed
-// response, as a reply stream's error text, and as the `digest` of an error
-// that reaches a Next error boundary. The browser and the proxy import this
-// module, so it imports nothing.
+// A failure reaches the browser by its case name.
 const APP_ERROR_CASES = [
-  "out-of-credits",
-  "invalid-api-key",
-  "rate-limited",
-  "overloaded",
-  "request-too-large",
-  "invalid-request",
-  "invalid-image",
-  "model-server-error",
-  "model-unreachable",
   "database-unreachable",
   "database-query-failed",
   "signed-out",
   "not-found",
-  "already-answered",
-  "spell-required",
   "unknown",
 ] as const;
 
@@ -26,40 +11,17 @@ type AppErrorCase = (typeof APP_ERROR_CASES)[number];
 
 // Static text shown to the user, never the upstream message.
 const USER_MESSAGES: Readonly<Record<AppErrorCase, string>> = {
-  // The site's Anthropic account has run out of credits, which only the
-  // site's owner can fix: an invited user can only wait.
-  "out-of-credits":
-    "The construct is unavailable right now. Please try again later.",
-  "invalid-api-key":
-    "The construct is unavailable right now. Please try again later.",
-  "rate-limited":
-    "Too many requests to Claude right now. Wait a minute, then try again.",
-  overloaded: "Claude is overloaded right now. Try again in a few minutes.",
-  "request-too-large":
-    "This message is too long for Claude to read in one go. Shorten it, or send fewer images, and try again.",
-  "invalid-image":
-    "An image saved in this conversation is no longer available.",
-  "invalid-request":
-    "The construct could not answer this request. Try again, or try again later if it keeps failing.",
-  "model-server-error":
-    "Claude's service had an internal error. Try again in a few minutes.",
-  "model-unreachable": "The site couldn't reach Claude. Try again in a moment.",
   "database-unreachable":
     "The database can't be reached right now. Try again in a few minutes.",
   "database-query-failed":
     "Your changes could not be saved. Please try again later.",
   "signed-out": "You have been signed out. Sign in again to continue.",
   "not-found":
-    "That quest or conversation can't be found. The link may be wrong, or the quest isn't open to you.",
-  // The chat reloads to show the answer, so this shows only if it can't.
-  "already-answered":
-    "That message has been answered already. Reload the page to see the answer.",
-  "spell-required": "Cast a spell from the quest to send messages.",
+    "That quest or performance can't be found. The link may be wrong, or the quest isn't open to you.",
   unknown: "Something went wrong. Please try again later.",
 };
 
-// The case that text from the server names: a response body, a stream's
-// error text or an error's digest. Any other text, such as a raw upstream
+// The case that text from the server names: a response body or an error's digest. Any other text, such as a raw upstream
 // message or a digest Next made, is the unknown case.
 function readAppErrorCase(text: string | undefined): AppErrorCase {
   return APP_ERROR_CASES.find((errorCase) => errorCase === text) ?? "unknown";

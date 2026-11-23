@@ -1,0 +1,5 @@
+#!/bin/sh
+tint2 -c /etc/xdg/tint2/project-buddy.conf &
+lxpolkit &
+nm-applet &
+exec firefox-esr

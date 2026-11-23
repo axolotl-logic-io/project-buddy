@@ -1,12 +1,10 @@
-// The name she asks the construct to call her: one line of text, trimmed, short,
-// with no braces, so a name never holds the {{name}} placeholder it fills
-// in. withUserName puts it in place of every NAME_PLACEHOLDER, in the
-// construct's system prompt (src/replies/system-prompt.ts) and the spells the
-// construct casts (src/spells/cast-spell.ts). The browser imports this module, so it
+// The name the user goes by: one line of text, trimmed, short, with no
+// braces, so a name never holds the {user} placeholder it fills in rite
+// replies (riteReply in rite.ts). The browser imports this module, so it
 // imports nothing server-only. The users table's users_name_normalized check
 // holds the same rule.
 
-// Sixty characters hold any name she is likely to give, and the column's
+// Sixty characters hold any name the user is likely to give, and the column's
 // check refuses longer ones.
 const USER_NAME_MAX_LENGTH = 60;
 
@@ -20,7 +18,7 @@ const BRACE = /[{}]/u;
 // than one problem gets the first in this order.
 type UserNameProblem = "multi-line" | "too-long" | "braces";
 
-// What checkUserName found: a name, no name (she cleared it), or why the
+// What checkUserName found: a name, no name (the user cleared it), or why the
 // value isn't one.
 type UserNameCheck =
   | { readonly kind: "valid"; readonly name: string }

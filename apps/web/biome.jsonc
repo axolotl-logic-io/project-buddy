@@ -7,7 +7,7 @@
   "files": {
     "ignoreUnknown": true,
     // drizzle/meta is rewritten by drizzle-kit on every generate.
-    "includes": ["**", "!AGENTS.md", "!drizzle/meta"]
+    "includes": ["**", "!AGENTS.md", "!drizzle/meta", "!design"]
   },
   "overrides": [
     // Subprocess fixtures use the platform's environment variable names.
@@ -105,7 +105,7 @@
         "src/components/ui/field.tsx",
         "src/components/ui/form-message.tsx",
         "src/app/page-roles.css",
-        "src/components/chat/chat.css",
+        "src/components/performances.css",
         "src/components/constructs/construct-discovery.css",
         "src/components/constructs/construct-art.css"
       ],
@@ -229,17 +229,6 @@
           "suspicious": {
             "noConsole": "off"
           }
-        }
-      }
-    },
-
-    // The copy export command reads TypeScript sources, writes a CSV and prints totals.
-    {
-      "includes": ["scripts/export-copy.ts"],
-      "linter": {
-        "rules": {
-          "correctness": { "noNodejsModules": "off" },
-          "suspicious": { "noConsole": "off" }
         }
       }
     },

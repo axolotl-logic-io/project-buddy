@@ -11,7 +11,7 @@ import QuestPage from "@/app/(workspace)/quests/[questId]/(overview)/page.tsx";
 import { startQuestAction } from "@/app/(workspace)/quests/actions.ts";
 import { PREMADE_QUESTS } from "@/quests/premade-quests.ts";
 import { spyOnErrorLog } from "../../../errors/error-log-spy.ts";
-import { formOf } from "../../../test-database/chat-test-kit.ts";
+import { formOf } from "../../../test-database/form-test-kit.ts";
 import { signIn } from "../../../test-database/session-test-kit.ts";
 import {
   restoreStorage,

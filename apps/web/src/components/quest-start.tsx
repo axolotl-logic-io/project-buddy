@@ -51,7 +51,7 @@ function submitQuest(
 
 // Starts the selected quest with its assigned construct and, except for Dailies,
 // optional Why. Its name and starting context come from the starting
-// point or Chat's preset.
+// point.
 function QuestStartForm({
   quest,
   preset,
@@ -178,9 +178,9 @@ function QuestStartTile({
   );
 }
 
-// Starting points open a form dialog by default. Inside Chat's existing
+// Starting points open a form dialog by default. An existing
 // dialog, inline presentation keeps the choice and form in that dialog.
-// Presets carry the Chat's summary; Dailies isn't offered with one.
+// A preset supplies the starting context.
 // An existing Dailies opens directly. Browsing and cancelling save nothing.
 function QuestStartChoices({
   preset = NO_PRESET,

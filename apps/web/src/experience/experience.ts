@@ -1,28 +1,15 @@
-// A user's experience: each ability gains one point for each thing the user
-// does in it, and the abilities' weighted points add up to their experience,
-// which sets their circle. Experience counts only things done, never open
-// work, days or streaks.
+// The weighted sum of recorded events sets the user’s experience and circle.
 import { z } from "zod";
 
-const ABILITIES = [
-  "adding-tasks",
-  "ideating",
-  "noting",
-  "completing-tasks",
-  "completing-quests",
-] as const;
+const EVENTS = ["adding", "checking-off", "completing-quests"] as const;
 
-const ABILITY = z.enum(ABILITIES);
+const EVENT_KIND = z.enum(EVENTS);
 
-type Ability = z.infer<typeof ABILITY>;
+type Event = z.infer<typeof EVENT_KIND>;
 
-// Adding a task, an idea or a Quick Note is worth the same; completing a
-// task is worth one of each, and completing a quest three completed tasks.
-const ABILITY_WEIGHTS: Readonly<Record<Ability, number>> = {
-  "adding-tasks": 1,
-  ideating: 1,
-  noting: 1,
-  "completing-tasks": 3,
+const EVENT_KIND_WEIGHTS: Readonly<Record<Event, number>> = {
+  adding: 1,
+  "checking-off": 3,
   "completing-quests": 9,
 };
 
@@ -45,12 +32,12 @@ const CIRCLE_TITLES = [
 
 type CircleTitle = (typeof CIRCLE_TITLES)[number]["title"];
 
-type AbilityPoints = Readonly<Record<Ability, number>>;
+type EventCounts = Readonly<Record<Event, number>>;
 
-// Where a user stands: their points in each ability, their experience, their
+// Where a user stands: their counts in each event, their experience, their
 // circle and its title, and the experience its first and next circles start at.
 interface Experience {
-  readonly points: AbilityPoints;
+  readonly counts: EventCounts;
   readonly experience: number;
   readonly circle: number;
   readonly title: CircleTitle;
@@ -58,11 +45,9 @@ interface Experience {
   readonly nextCircleStart: number;
 }
 
-const NO_POINTS: AbilityPoints = {
-  "adding-tasks": 0,
-  ideating: 0,
-  noting: 0,
-  "completing-tasks": 0,
+const NO_EVENTS: EventCounts = {
+  adding: 0,
+  "checking-off": 0,
   "completing-quests": 0,
 };
 
@@ -100,34 +85,32 @@ function circleFraction(experience: Experience): number {
   return (experience.experience - start) / (nextCircleStart - start);
 }
 
-// One ability's points and the experience they're worth.
-interface AbilityStanding {
-  readonly ability: Ability;
-  readonly points: number;
+// One event's counts and the experience they're worth.
+interface EventStanding {
+  readonly event: Event;
+  readonly counts: number;
   readonly experience: number;
 }
 
-// Each ability's points and the experience they're worth, the most experience
-// first. Abilities worth the same keep ABILITIES' order.
-function abilitiesByExperience(
-  points: AbilityPoints,
-): readonly AbilityStanding[] {
-  return ABILITIES.map((ability) => ({
-    ability,
-    points: points[ability],
-    experience: points[ability] * ABILITY_WEIGHTS[ability],
+// Each event's counts and the experience they're worth, the most experience
+// first. Events worth the same keep EVENTS' order.
+function eventsByExperience(counts: EventCounts): readonly EventStanding[] {
+  return EVENTS.map((event) => ({
+    event,
+    counts: counts[event],
+    experience: counts[event] * EVENT_KIND_WEIGHTS[event],
   })).toSorted((a, b) => b.experience - a.experience);
 }
 
-// Where the points put a user.
-function experienceOf(points: AbilityPoints): Experience {
-  const experience = ABILITIES.reduce(
-    (total, ability) => total + points[ability] * ABILITY_WEIGHTS[ability],
+// Where the counts put a user.
+function experienceOf(counts: EventCounts): Experience {
+  const experience = EVENTS.reduce(
+    (total, event) => total + counts[event] * EVENT_KIND_WEIGHTS[event],
     0,
   );
   const circle = circleAt(experience);
   return {
-    points,
+    counts,
     experience,
     circle,
     title: titleOf(circle),
@@ -136,24 +119,18 @@ function experienceOf(points: AbilityPoints): Experience {
   };
 }
 
-export type {
-  Ability,
-  AbilityPoints,
-  AbilityStanding,
-  CircleTitle,
-  Experience,
-};
+export type { CircleTitle, Event, EventCounts, EventStanding, Experience };
 export {
-  ABILITIES,
-  ABILITY,
-  ABILITY_WEIGHTS,
-  abilitiesByExperience,
   CIRCLE_STEP,
   CIRCLE_TITLES,
   circleAt,
   circleFraction,
   circleStart,
+  EVENT_KIND,
+  EVENT_KIND_WEIGHTS,
+  EVENTS,
+  eventsByExperience,
   experienceOf,
-  NO_POINTS,
+  NO_EVENTS,
   nextTitleOf,
 };

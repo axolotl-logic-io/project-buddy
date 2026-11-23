@@ -2,6 +2,7 @@ import { parse, wcagContrast } from "culori";
 import { afterEach, beforeAll, beforeEach, expect, test, vi } from "vitest";
 import { commands, page, userEvent } from "vitest/browser";
 import { THEME_MODES } from "@/themes/themes.ts";
+import { timerPath } from "@/timer/schedule.ts";
 import { SITE_PANEL_COPY } from "@/ui/copy/site.ts";
 import { THEME_COPY } from "@/ui/copy/theme.ts";
 import { TIMER_COPY } from "@/ui/copy/timer.ts";
@@ -142,10 +143,13 @@ test("the phone drawer traps focus, closes with Escape, and restores focus", asy
     name: TIMER_COPY.closePreferences,
   });
   await expect.element(close).toHaveFocus();
-  preferences()
-    .getByRole("button", { name: TIMER_COPY.copyLink })
-    .element()
-    .focus();
+  const timerOnly = preferences().getByRole("link", {
+    name: TIMER_COPY.timerOnlyLink,
+  });
+  await expect
+    .element(timerOnly)
+    .toHaveAttribute("href", `${timerPath(SCHEDULE)}?mode=focus`);
+  timerOnly.element().focus();
   await tabForward();
   await expect.element(close).toHaveFocus();
   await userEvent.keyboard("{Escape}");
@@ -167,7 +171,7 @@ test.each(THEME_MODES)(
     await renderTimer(longSchedule);
     await openTimerPreferences();
     // The illustration sits on the page's own texture and adds no second
-    // paper surface (docs/timer.md).
+    // paper surface.
     expect(
       parse(getComputedStyle(timerStage()).backgroundColor)?.alpha,
       "the timer's stage paints no surface of its own",

@@ -8,22 +8,14 @@ import {
   readApiBody,
 } from "@/api/api-route.ts";
 import { questView } from "@/api/api-views.ts";
-import { readQuestConversation } from "@/conversations/start-quest.ts";
 import { QUEST_NAME } from "@/quests/quest-name.ts";
 import { getQuest, renameQuest } from "@/quests/store.ts";
 
 const RENAME_BODY = z.object({ name: QUEST_NAME });
 
-// The quest, with its status revision and its conversation's id, or null
-// when it has none yet.
 export const GET = questRoute(
-  async ({ user, quest }: QuestCall<QuestParams>): Promise<Response> => {
-    const conversation = await readQuestConversation(user.id, quest.id);
-    return apiData({
-      ...questView(quest),
-      conversationId: conversation?.id ?? null,
-    });
-  },
+  ({ quest }: QuestCall<QuestParams>): Promise<Response> =>
+    Promise.resolve(apiData(questView(quest))),
 );
 
 // Renames the quest, with the site's quest-name rules.

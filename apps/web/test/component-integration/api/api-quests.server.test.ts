@@ -41,7 +41,6 @@ describe("use_case_cli_api_quests", () => {
   test("the owner lists, reads, renames and completes a quest with its revision", async () => {
     const { her, herData } = await twoUsers();
     const quest = await herData.quest("Prototype");
-    const chat = await herData.chat(quest);
     await signIn(her);
 
     const listed = await callApi(listQuests, {
@@ -58,7 +57,6 @@ describe("use_case_cli_api_quests", () => {
         id: quest.id,
         status: "active",
         revision: 0,
-        conversationId: chat.id,
       }),
     });
 
@@ -139,7 +137,6 @@ describe("use_case_cli_api_quests", () => {
         name: "Make a thing",
         status: "active",
         resumed: false,
-        conversationId: expect.any(String),
       }),
     });
 

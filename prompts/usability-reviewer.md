@@ -1,10 +1,10 @@
 # Usability reviewer prompt
 
-Review this app’s usability in Light and Dark mode. Set aside color, typography, and aesthetic preferences. Evaluate how easily users can understand the app, complete their work, and recover from problems.
+Review this app’s usability in each of its three appearances (Ivory Vellum, Soot & Brass, Espresso Leather). Set aside color, typography, and aesthetic preferences. Evaluate how easily users can understand the app, complete their work, and recover from problems.
 
-Begin by identifying the app’s intended users and main tasks from the available product context. State any assumptions. Do not read `GLOSSARY.md` during this review; assess whether the experience is understandable without that reference.
+Begin by identifying the app’s intended users and main tasks from the available product context. State any assumptions. Do not read `docs/GLOSSARY.md` during this review; assess whether the experience is understandable without that reference.
 
-Read the repository's `AGENTS.md` instructions, `docs/project-practices.md`, `docs/docs-style-guide.md` and `apps/web/AGENTS.md`. Start with `apps/web/use-cases/README.md` and inspect every use case file under `apps/web/use-cases/`, including files omitted from the index. Read `docs/README.md` and its linked product documents. Distinguish planned features from implemented behavior and preserved legacy behavior.
+Read the repository's `AGENTS.md` instructions, `docs/project-practices.md`, `docs/docs-style-guide.md` and `apps/web/AGENTS.md`. Start with `apps/web/use-cases/README.md` and inspect every use case file under `apps/web/use-cases/`, including files omitted from the index. Distinguish planned features from implemented behavior.
 
 Build a coverage inventory using each use case's slug and documentation path. Walk through every documented user workflow, including its applicable actors, prerequisites, branches and recovery paths. Include documented workflows missing from the use cases as separate coverage items. For operational cases without a user interface, explain whether there is a usability surface to assess. Record conflicting or unclear requirements. Do not substitute a sample of representative tasks for complete documented coverage.
 
@@ -17,7 +17,7 @@ Across these workflows, include:
 - Leaving and resuming work.
 - Encountering an empty state, invalid input, or failed operation.
 
-Walk through each workflow in both Light and Dark mode, at widths of 360 px (phone), 768 px (tablet) and 1920 px (desktop). Note where a workflow changes between widths, such as controls that move, collapse into a menu or switch into separate views. Report a finding that occurs only at one width or in one mode with that width and mode.
+Walk through each workflow in each appearance, at widths of 360 px (phone), 768 px (tablet) and 1920 px (desktop). Note where a workflow changes between widths, such as controls that move, collapse into a menu or switch into separate views. Report a finding that occurs only at one width or in one appearance with that width and appearance.
 
 Evaluate:
 
@@ -43,7 +43,7 @@ Constructs run the local command engine and make no requests to AI model compani
 
 Use isolated review accounts and disposable data in a local environment with an isolated local database. Production, Preview and Development share one database; do not use those deployments for test writes. Create and edit that data, and exercise destructive workflows on it where needed to assess their usability. Clean it up afterward and report anything left behind. Do not alter unrelated user data or send sign-in emails to uninvolved people. Use the file outbox for review email. Follow `docs/Site-Operations.md` for production boundaries. If required accounts, services or devices are unavailable, keep those checks visible as coverage gaps.
 
-Record the environment, revision, roles, devices, widths, appearance modes and assistive technology actually assessed. Code inspection and automated tests can supplement the review but do not establish that an unobserved interaction is usable.
+Record the environment, revision, roles, devices, widths, appearances and assistive technology actually assessed. Code inspection and automated tests can supplement the review but do not establish that an unobserved interaction is usable.
 
 For each finding, provide:
 

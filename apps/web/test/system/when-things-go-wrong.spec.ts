@@ -2,8 +2,8 @@
 // gate for a session that lapsed, an auth workflow, so it stays in
 // Playwright (e2e-auth-only). The other failure cases are
 // Vitest's: test/component-integration/errors/missing-page.server.test.ts,
-// test/component-integration/app/api/chat/reply-failures.server.test.ts and the
-// storage-unavailable.server.test.ts files.
+// test/component-integration/performances/conjurations.server.test.ts and
+// the storage-unavailable.server.test.ts files.
 
 import { type BrowserContext, expect, type Page } from "@playwright/test";
 import {
@@ -48,7 +48,7 @@ test("use_case_session_expired", async ({ account, context, page }) => {
     await page.goto("/quests");
     await expect(page).toHaveURL("/login");
 
-    await page.goto(`/chats/${crypto.randomUUID()}`);
+    await page.goto(`/missing/${crypto.randomUUID()}`);
     await expect(page).toHaveURL("/login");
   });
 

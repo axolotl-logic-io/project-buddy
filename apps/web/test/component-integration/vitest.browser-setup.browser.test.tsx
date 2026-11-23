@@ -1,7 +1,7 @@
 // The browser tests' setup file (vitest.browser-setup.ts), in Chromium and
 // WebKit: scrolling a test's page leaves Vitest's runner page, which holds
 // it, where it is, so nothing pinned to the top of the window moves above it
-// in a later test (#624).
+// in a later test.
 import { afterEach, expect, test } from "vitest";
 import { page } from "vitest/browser";
 import { LAPTOP_VIEWPORT } from "./viewports-test-kit.ts";
@@ -10,7 +10,7 @@ import { LAPTOP_VIEWPORT } from "./viewports-test-kit.ts";
 const SCREENS = 4;
 
 // The runner page too, so a regression fails this test alone rather than
-// cutting off what later files pin to the top (#624).
+// cutting off what later files pin to the top.
 afterEach(() => {
   document.body.replaceChildren();
   window.scrollTo(0, 0);

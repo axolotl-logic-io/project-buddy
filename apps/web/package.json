@@ -32,17 +32,11 @@
     "test-env:init": "bash scripts/test-env/init-worktree.sh",
     "test-db:up": "bash scripts/test-env/require-env-test.sh && docker compose --file compose.test-db.yml up --detach --wait",
     "test-db:down": "bash scripts/test-env/require-env-test.sh && docker compose --file compose.test-db.yml down",
-    "test-db:reset": "bash scripts/test-env/require-env-test.sh && node --env-file=.env.test --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/test-db/reset.ts",
-    "copy:export": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/export-copy.ts"
+    "test-db:reset": "bash scripts/test-env/require-env-test.sh && node --env-file=.env.test --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/test-db/reset.ts"
   },
   "dependencies": {
-    "@ai-sdk/provider": "4.0.26",
-    "@ai-sdk/react": "^4.0.140",
-    "@assistant-ui/react": "0.15.27",
-    "@assistant-ui/react-ai-sdk": "1.4.17",
     "@streamdown/code": "2.0.0",
     "@vercel/functions": "^3.11.3",
-    "ai": "^7.0.137",
     "drizzle-orm": "^0.45.4",
     "lucide-react": "1.70.0",
     "next": "16.4.6",
