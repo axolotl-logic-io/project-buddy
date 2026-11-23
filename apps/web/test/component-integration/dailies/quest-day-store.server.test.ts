@@ -90,6 +90,17 @@ test("use_case_start_day", async () => {
       emptySpaces: [],
     }),
   ).toBe(false);
+  const { quest: named } = await createOrResumeQuest(
+    owner.id,
+    QUEST_NAME.parse("Dailies"),
+    {},
+  );
+  expect(
+    await startQuestDay(owner.id, named.id, {
+      localDate: SECOND_DATE,
+      emptySpaces: [],
+    }),
+  ).toBe(false);
   expect(
     await startQuestDay(owner.id, quest.id, {
       localDate: SECOND_DATE,
@@ -139,6 +150,8 @@ test("use_case_undo_start_day", async () => {
     kind: "add",
     text: "Added by hand",
   });
+  const outsider = await testUser();
+  expect(await undoQuestDay(outsider.id, quest.id)).toBe(false);
   expect(await undoQuestDay(owner.id, quest.id)).toBe(true);
   expect(
     (await listMurmlings(owner.id, quest.id, second.id)).map(

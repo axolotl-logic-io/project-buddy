@@ -1,6 +1,10 @@
 import { expect, test } from "vitest";
 import { readExperience } from "@/experience/experience-store.ts";
-import { changeMurmling, writeSpaceContents } from "@/spaces/murmling-store.ts";
+import {
+  changeMurmling,
+  listMurmlings,
+  writeSpaceContents,
+} from "@/spaces/murmling-store.ts";
 import { listSpaces } from "@/spaces/space-store.ts";
 import { testData } from "../../support/test-database/data-test-kit.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
@@ -62,6 +66,50 @@ test("use_case_change_tasks", async () => {
     await changeMurmling(owner.id, quest.id, space.id, {
       kind: "undo",
       version,
+    }),
+  ).toBe("unchanged");
+});
+
+test("use_case_change_tasks: Undo keeps the changes made since", async () => {
+  const owner = await testUser();
+  const quest = await testData(owner).quest();
+  const [space] = await listSpaces(owner.id, quest.id);
+  if (space === undefined) {
+    throw new Error("Missing space");
+  }
+  function change(
+    body: Parameters<typeof writeSpaceContents>[3],
+  ): ReturnType<typeof writeSpaceContents> {
+    return writeSpaceContents(owner.id, quest.id, space.id, body);
+  }
+  await change({ kind: "add", text: "Mix" });
+  await change({ kind: "add", text: "Proof" });
+  await change({ kind: "add", text: "Bake" });
+  const [mix, proof, bake] = await listMurmlings(owner.id, quest.id, space.id);
+  if (mix === undefined || proof === undefined || bake === undefined) {
+    throw new Error("Missing tasks");
+  }
+
+  const removed = (await change({ kind: "remove", id: proof.id })).space
+    ?.version;
+  const edited = (await change({ kind: "edit", id: mix.id, text: "Knead" }))
+    .space?.version;
+  if (removed === undefined || edited === undefined) {
+    throw new Error("Missing change version");
+  }
+  await change({ kind: "remove", id: bake.id });
+  await change({ kind: "remove", id: mix.id });
+
+  // Proof's old neighbour, Bake, is gone, so Proof goes back at the end.
+  const restored = await change({ kind: "undo", version: removed });
+  expect(restored.space?.murmlings).toMatchObject([
+    { id: proof.id, text: "Proof", taskNumber: proof.taskNumber },
+  ]);
+  // Mix was removed after its edit, so undoing the edit leaves it removed.
+  expect(
+    await changeMurmling(owner.id, quest.id, space.id, {
+      kind: "undo",
+      version: edited,
     }),
   ).toBe("unchanged");
 });
