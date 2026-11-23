@@ -63,7 +63,7 @@ function exitStatusOf(code: string): FailureStatus {
     case "not_found":
       return EXIT_STATUS.notFound;
     case "conflict":
-    case "reply_in_progress":
+    case "performance_required":
       return EXIT_STATUS.conflict;
     case "rate_limited":
       return EXIT_STATUS.rateLimited;

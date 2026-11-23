@@ -25,7 +25,6 @@ interface Command {
   readonly options: readonly CommandOption[];
   readonly target: boolean;
   readonly list: boolean;
-  readonly timeoutSeconds: number;
   readonly request: (input: CommandInput) => ApiRequest;
 }
 
@@ -34,11 +33,6 @@ interface Resource {
   readonly name: string;
   readonly summary: string;
 }
-
-const DEFAULT_TIMEOUT_SECONDS = 30;
-
-// A reply can take a while: as long as the site lets it run.
-const REPLY_TIMEOUT_SECONDS = 300;
 
 const WHOLE_NUMBER = /^\d+$/u;
 
@@ -116,7 +110,6 @@ function command(
     options: [],
     target: false,
     list: false,
-    timeoutSeconds: DEFAULT_TIMEOUT_SECONDS,
     ...spec,
   };
 }
@@ -221,7 +214,6 @@ const QUEST_COMMANDS: readonly Command[] = [
     summary:
       "Start a quest from a starting point, as the site does. Dailies resumes your Dailies quest if you have one.",
     options: ["from", "name", "why", "context"],
-    timeoutSeconds: REPLY_TIMEOUT_SECONDS,
     request: (input: CommandInput): ApiRequest => ({
       method: "POST",
       path: "/quests",

@@ -75,19 +75,19 @@ A failed or cancelled release opens or updates an `ops` issue titled `Production
 
 ### Local construct engine
 
-The app makes no requests to AI model companies. Constructs use deterministic commands inspired by multi-user dungeons (MUDs): `help`, `look`, `exp` and `cast <spell id>`. See [construct use cases](apps/web/use-cases/constructs.md).
+The app makes no requests to AI model companies. A rite replies with one of its fixed templates, filled in with the rite's name, the space's words, the conjuration's text and the user's name. See [construct use cases](apps/web/use-cases/constructs.md) and [rite use cases](apps/web/use-cases/grimoire.md).
 
-### Quests and conversations
+### Quests, spaces and performances
 
 Quests at `/quests` is the signed-in landing page. Start a quest offers Dailies, Learn a thing, Make a thing and Do a thing. Each quest has spaces of murmlings, starting with Tasks and Ideas, and a record of its performances: rites performed on a space, where each conjuration adds a murmling and the rite replies. Its owner, or anyone already in it, can share it by inviting people as [members](docs/GLOSSARY.md#quest-member). Dailies continues the same quest each day. See [quest use cases](apps/web/use-cases/quests.md), [space use cases](apps/web/use-cases/spaces.md) and [performance use cases](apps/web/use-cases/performances.md).
 
-Each starting point assigns the construct for its quest's conversation. Spellbook at `/spellbook` lists built-in and own spells with search and source filters. Profile at `/profile` holds the user's name and experience; Settings at `/settings` holds appearance and security.
+Each starting point assigns its quest's construct, which speaks the rites' replies in its performances. Grimoire at `/grimoire` lists built-in and own rites. Profile at `/profile` holds the user's name and experience; Settings at `/settings` holds appearance and security.
 
-Conversation storage uses `quests`, `chats` and `messages` in `src/db/tables/quests-and-chats.ts`. `src/app/api/chat/route.ts` passes each new message to `replyToChat` in `src/replies/reply.ts`, which streams the construct's reply through the Vercel AI SDK and saves the exchange. `src/replies/model.ts` selects the local command engine, and `src/env.ts` reads its configuration. `src/replies/system-prompt.ts` assembles the global prompt, the construct, and the quest's Tasks and recent milestones. Constructs always run the local command engine. Tests exercise local commands and tool handlers directly.
+Spaces and their murmlings are in `src/db/tables/spaces.ts`, and each change to a space is recorded in `space-changes.ts` so it can be undone. Rites, performances and conjurations are in `src/db/tables/performances.ts`. `conjure` in `src/performances/performance-store.ts` adds the conjuration's murmling, picks the rite's reply with `riteReply` in `src/rites/rite.ts`, and saves both in one transaction. The `/api/v1` routes under `src/app/api/v1/` serve the same stores to the [`project-buddy` command](apps/cli/).
 
 ### Errors
 
-`src/errors/app-error.ts` sorts every failure of a call to Anthropic or Neon into an `AppErrorCase`, such as `out-of-credits` or `database-unreachable`. The stores and the rate limits run their queries through `withAppErrors`. The conversation route passes model errors, including those that arrive mid-stream, to `toAppError`. `toAppError` logs the original error with its case, status, upstream message and request id, and this log line is what appears in the Vercel logs as `[app-error] <case> in <operation>`. The browser receives only the case and shows that case's fixed message, never the upstream text.
+`src/errors/app-error.ts` sorts every failure of a call to Neon into an `AppErrorCase`, such as `database-unreachable`. The stores and the rate limits run their queries through `withAppErrors`. `toAppError` logs the original error with its case, status, upstream message and request id, and this log line is what appears in the Vercel logs as `[app-error] <case> in <operation>`. The browser receives only the case and shows that case's fixed message, never the upstream text.
 
 ### Sign-up and login
 
@@ -138,8 +138,8 @@ The site offers three fixed textured appearances: Ivory Vellum, Soot & Brass, an
 Three accounts in your worktree's development database show the site at different levels of use, for design reviews and screenshots:
 
 - **Empty**, `review+empty@project-buddy.test`: a name and nothing else, for the empty states.
-- **Typical**, `review+typical@project-buddy.test`: three quests, one of them completed, with construct replies, command replies, tasks, ideas, Quick Notes, milestones and a cast spell; three spells with reply lists; and about 45 experience, circle 4.
-- **Crowded**, `review+crowded@project-buddy.test`: sixteen quests and fourteen spells, with every name and text at its length limit, words too long to wrap, long messages, a construct reply in rich Markdown with a table and code, and long Tasks, Ideas, Quick Notes and Progress lists.
+- **Typical**, `review+typical@project-buddy.test`: three quests, one of them completed, with tasks, ideas, Quick Notes and performances of its own rites, one of them replying in Markdown; three own rites; and about 45 experience, circle 4.
+- **Crowded**, `review+crowded@project-buddy.test`: sixteen quests and fourteen own rites, with every name and text at its length limit, words too long to wrap, long conjurations, a reply in rich Markdown with a table and code, and long Tasks and Ideas spaces with Quick Notes.
 
 To make the accounts, start the site with `mise //apps/web:dev`, then run this command from the repository root:
 
@@ -149,7 +149,7 @@ mise run review-data
 
 The command deletes the three accounts, makes them again and prints a 30-minute sign-in link for each. To use other addresses, pass a base address, such as `mise run review-data me@example.test`, which gives `me+empty@example.test` and so on. The base address itself is never changed. If the site runs on another port, set `PROJECT_BUDDY_URL`, such as `PROJECT_BUDDY_URL=http://localhost:3210`.
 
-The command refuses any database but your worktree's own development database, and any site address but `localhost`. It goes through the local site's API where it can, and writes two kinds of message straight into the database, because the local construct engine never writes them: replies that record a milestone, and replies in Markdown. The content is in `apps/web/scripts/development/review-content.ts`.
+The command refuses any database but your worktree's own development database, and any site address but `localhost`. It goes through the local site's API where it can. It deletes the accounts straight from the database, and saves the accounts' own rites through the rite store, because the API only reads rites. The content is in `apps/web/scripts/development/review-content.ts`.
 
 ### Visual comparison
 

@@ -163,7 +163,7 @@ const TASK_MAX = 200;
 const PLAIN_MAX = 200;
 const NOTE_MAX = 1000;
 const RITE_NAME_MAX = 80;
-const RITE_REPLIES_MAX = 20;
+const RITE_REPLIES_MAX = 50;
 
 // How many of each the crowded account has.
 const LISTED_QUESTS = 15;

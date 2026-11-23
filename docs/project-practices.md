@@ -63,18 +63,18 @@ Never print a `.env*` file. Never copy a secret into code, docs, logs, issues or
 
 ## Product
 
-- **No requests to AI model companies.** Constructs run local deterministic rules. The Vercel AI SDK remains a stream and tool protocol adapter.
+- **No requests to AI model companies.** A rite's reply is one of its fixed templates, filled in on the server.
 
 ## Site design
 
-- **Information hiding:** the model choice, prompt assembly, the storage layout, error classification and the manual's URL scheme each live in one module. Callers don't know the prompt text. A route or page is a thin adapter over a domain module.
+- **Information hiding:** choosing and filling a rite's reply, the storage layout, error classification and the manual's URL scheme each live in one module. Callers don't know the reply templates. A route or page is a thin adapter over a domain module.
 - **Define errors out of existence:** re-indexes are idempotent, like deletes. Errors that remain go through `src/errors/app-error.ts`.
 - **Different layer, different abstraction:** UI, domain and storage each speak their own vocabulary.
 
 ## Site types
 
-- External data parsed at the boundary includes request bodies, form data, env vars, JSON columns and model tool inputs.
-- `QuestId` and `ChatId` are separate id types.
+- External data parsed at the boundary includes request bodies, form data, env vars and JSON columns.
+- `QuestId`, `SpaceId` and `PerformanceId` are separate id types.
 
 ## Site lint
 
@@ -106,23 +106,22 @@ Never print a `.env*` file. Never copy a secret into code, docs, logs, issues or
 
 ## Product documentation
 
-Changes to prompts, model inputs, tools or relevant user flows update the corresponding repository documentation in the same PR.
+Changes to rites, constructs, reply templates or relevant user flows update the corresponding repository documentation in the same PR.
 
-## Site prompts and the AI SDK
+## Site construct and rite texts
 
-- Prompt and construct texts say "the user" and "their", never "she" or "her".
-- AI SDK 7: `streamText`'s `response` covers the last step only, so a follow-up call reads `result.responseMessages`. Text parts have no ids: group consecutive text parts, and key other parts by their own ids, such as `toolCallId`.
+- Rite replies and construct texts say "the user" and "their", never "she" or "her".
 
 ## Site tests
 
 - **Fast default checks:** `npm run check` and `npm test` need no browser binaries or database, so a fast pass proves none of the opt-in stages: browser, server, e2e and build/font checks. CI runs them all: `npm run check` in the Check workflow, and the browser, server and Playwright stages in the Full suite workflow (Site production). See the [stage costs and prerequisites](../README.md#tests).
 - **Use cases drive tests.** Playwright e2e tests cover only the auth workflows: sign-up, sign-in, sign-out, the sign-in limits, and the signed-out access gate. Every other use case gets a Vitest test. A case that needs a real server or database gets a server test (`*.server.test.ts`) that calls the Server Action, route handler or store with real users and sessions from the kit in `test/support/test-database/`, which deletes them after the test. A case that needs only the UI gets a browser integration or feature-entrypoint test (`*.browser.test.tsx`). A test that needs the browser's time zone is `*.zoned.browser.test.tsx`, and one that needs a touch screen is `*.touch.browser.test.tsx`. [Tests](../README.md#tests) in the README lists the commands.
-- **Local constructs:** every environment uses the local command engine. Tests use the real local engine, call tool handlers directly, and inject only the particular stream or storage fault a test exercises.
+- **Local replies:** every environment fills rite replies on the server. Tests use the real rites and inject only the particular storage or reply fault a test exercises.
 - **The test database:** the orchestrator provides `.env.test` with its local database and `E2E_PORT` pinned to the checkout's lane; test commands consume it without allocating names or ports or tearing down lane resources. For manual work, run `npm run test-env:init` or copy `.env.test.example` by hand. Guards require localhost or 127.0.0.1, a safe database name and the file email outbox.
 - **Phone checks:** a new page gets an entry in `PHONE_PAGES` (`test/component-integration/app/phone-pages-test-kit.tsx`). See "Phone and theme checks" in the README.
 - **Check what the user sees, not class names.** UI tests find elements by role, label or text and check what is shown or done, never a CSS class name such as `card` or `error-box`.
 - **E2e helpers:** every test gets its own `account` and `testData` from `test/system/fixtures.ts`, deleted after the test; the fixtures make them with the server tests' kit in `test/support/test-database/`. Next's route announcer also has `role="alert"`, so find an alert inside its container (`alertIn` in `page-helpers.ts`) or by its text, never by `getByRole("alert")` alone.
-- **Typing right after a goto:** WebKit hydrates a page well after the load event `page.goto` waits for, and text typed before then misses the form's state. Fill a field right after a goto with `fillWhenReady` from `page-helpers.ts` (or `sendMessage` in `chat-page.ts` for the composer).
+- **Typing right after a goto:** WebKit hydrates a page well after the load event `page.goto` waits for, and text typed before then misses the form's state. Fill a field right after a goto with `fillWhenReady` from `page-helpers.ts`.
 
 ## Site production
 

@@ -15,11 +15,11 @@ const REQUEST_ID = /^req_[\da-f-]{36}$/u;
 const HTTP = {
   badRequest: 400,
   unauthorized: 401,
+  forbidden: 403,
   notFound: 404,
   conflict: 409,
   tooManyRequests: 429,
   internalServerError: 500,
-  badGateway: 502,
 } as const;
 
 const QUESTS = [
@@ -331,7 +331,7 @@ describe("failures", () => {
       status: EXIT_STATUS.conflict,
     },
     {
-      response: problem("reply_in_progress", HTTP.conflict),
+      response: problem("performance_required", HTTP.forbidden),
       status: EXIT_STATUS.conflict,
     },
     {
@@ -339,7 +339,7 @@ describe("failures", () => {
       status: EXIT_STATUS.rateLimited,
     },
     {
-      response: problem("reply_failed", HTTP.badGateway),
+      response: problem("server_error", HTTP.internalServerError),
       status: EXIT_STATUS.failure,
     },
     {

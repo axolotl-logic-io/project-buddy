@@ -11,7 +11,7 @@ import {
 
 const SHARED_HELP = `Options for every command:
   --url URL          The site's address. Default: PROJECT_BUDDY_URL, or http://localhost:3000.
-  --timeout SECONDS  How long to wait for the site. Default: 30, or 300 for a reply.
+  --timeout SECONDS  How long to wait for the site. Default: 30.
   -h, --help         Show help and do nothing else.
 
 Text options, for commands that take text; give exactly one:
@@ -27,8 +27,8 @@ Output: one JSON object per line on stdout, each with schemaVersion, type
 (item, result or error), command, requestId and sequence. Every command ends
 with exactly one result or error line.
 
-Exit status: 0 success, 1 unexpected failure or failed reply, 2 invalid
-input, 3 signed out, 5 not found, 6 conflict or reply in progress, 7 rate
+Exit status: 0 success, 1 unexpected failure, 2 invalid input, 3
+signed out, 5 not found, 6 conflict or no active performance, 7 rate
 limited, 8 network failure or deadline, 130 interrupted.`;
 
 // The width of the resource column in the root help.

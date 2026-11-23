@@ -47,7 +47,7 @@ Both workflows run the same command from `apps/web/`, using Node 24 without a Ty
 node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/release/smoke.ts <base-url>
 ```
 
-The integration workflow waits for the merge commit's preview to be READY, then supplies that preview URL and its automation bypass secret through the environment. The command sends sequential requests without following redirects: the sign-in page, the textures, the public sign-up form, the redirect from `/` to `/login`, and a signed-out `POST /api/chat`, which must answer 401. The list lives in `scripts/release/smoke-checks.ts`.
+The integration workflow waits for the merge commit's preview to be READY, then supplies that preview URL and its automation bypass secret through the environment. The command sends sequential requests without following redirects: the sign-in page, the textures, the public sign-up form, the redirect from `/` to `/login`, and a signed-out `GET /api/v1/me`, which must answer 401. The list lives in `scripts/release/smoke-checks.ts`.
 
 The page expectations import shared UI copy; they don't maintain separate prose. Those imports (including their dependencies) must stay runnable by plain Node. Copy or anchor markup that appears only in scripts, styles or HTML comments does not satisfy a page check.
 
