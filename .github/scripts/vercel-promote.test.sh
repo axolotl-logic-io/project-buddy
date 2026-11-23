@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Tests for vercel-promote.sh, run by the site's `npm run check`:
+# Tests for vercel-promote.sh, run by the site's `npm run test:unit`:
 #
 #   bash .github/scripts/vercel-promote.test.sh
 #

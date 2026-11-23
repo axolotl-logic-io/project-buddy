@@ -1,3 +1,7 @@
-[tasks.check]
-description = "Typecheck, lint and test the command-line interface without a running site"
-run = "npm run check"
+[tasks.lint]
+description = "Typecheck and run Biome on the command-line interface"
+run = "npm run lint"
+
+[tasks.test]
+description = "Test the command-line interface without a running site"
+run = "npm test"

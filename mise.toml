@@ -14,6 +14,19 @@ node = "24"
 _.path = ["{{config_root}}/node_modules/.bin"]
 _.file = { path = "{{config_root}}/apps/cli/.env.local", redact = true }
 
+# The three quality tasks. Each runs the same npm script in every workspace.
+[tasks.lint]
+description = "Run Biome and the type check in every workspace"
+run = "npm run lint"
+
+[tasks.test]
+description = "Run every test but end-to-end in every workspace"
+run = "npm test"
+
+[tasks."test:e2e"]
+description = "Run the end-to-end tests"
+run = "npm run test:e2e"
+
 [tasks.setup]
 description = "Install dependencies and prepare the persistent local development environment"
 run = 'node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON "{{config_root}}/apps/web/scripts/development/run.ts" setup'
