@@ -77,10 +77,11 @@ test("use_case_change_tasks: Undo keeps the changes made since", async () => {
   if (space === undefined) {
     throw new Error("Missing space");
   }
+  const spaceId = space.id;
   function change(
     body: Parameters<typeof writeSpaceContents>[3],
   ): ReturnType<typeof writeSpaceContents> {
-    return writeSpaceContents(owner.id, quest.id, space.id, body);
+    return writeSpaceContents(owner.id, quest.id, spaceId, body);
   }
   await change({ kind: "add", text: "Mix" });
   await change({ kind: "add", text: "Proof" });
