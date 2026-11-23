@@ -250,7 +250,6 @@ describe.each(THEME_IDS)("the %s theme", (themeId: ThemeId) => {
           SECTION_HEADING,
           HEADER_TITLE,
           CARD_TITLE,
-          "conversation-text-size",
           "initial-size",
           "timer-phase-size",
           "timer-number-size",

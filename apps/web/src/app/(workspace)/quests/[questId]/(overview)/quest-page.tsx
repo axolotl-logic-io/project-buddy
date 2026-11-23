@@ -2,7 +2,7 @@ import type { Route } from "next";
 import Link from "next/link";
 import type { JSX, ReactNode } from "react";
 import { z } from "zod";
-import { readUserName } from "@/accounts/users-store.ts";
+import type { User } from "@/accounts/users-store.ts";
 import { ConstructAvatar } from "@/components/constructs/construct-visual.tsx";
 import { DayGrid } from "@/components/dailies/day-grid.tsx";
 import { LocalTime } from "@/components/local-time.tsx";
@@ -116,11 +116,12 @@ function dailiesRecord(
 }
 
 async function questPage(
-  user: UserId,
+  viewer: User,
   questId: string,
   section: unknown,
   performanceParam?: unknown,
 ): Promise<JSX.Element | undefined> {
+  const user = viewer.id;
   const quest = await getQuest(user, questId);
   if (quest === undefined) {
     return undefined;
@@ -142,10 +143,7 @@ async function questPage(
   const construct = getConstruct(quest.constructId);
   let runningContent: ReactNode;
   if (running !== undefined) {
-    const [entries, author] = await Promise.all([
-      readConjurations(user, running.id),
-      readUserName(user),
-    ]);
+    const entries = await readConjurations(user, running.id);
     runningContent = (
       <section aria-label={running.rite.name} className="quest-section-body">
         <h2 className="section-heading">{running.rite.name}</h2>
@@ -154,7 +152,7 @@ async function questPage(
           questId={quest.id}
           performanceId={running.id}
           viewer={user}
-          author={author ?? PERFORMANCE_COPY.unnamed}
+          author={viewer.name ?? PERFORMANCE_COPY.unnamed}
           construct={construct}
           answered={entries.map(({ id }) => id)}
         >

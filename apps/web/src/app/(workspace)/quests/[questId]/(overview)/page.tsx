@@ -16,7 +16,7 @@ export default async function QuestPage({
     searchParams,
     requireUser(),
   ]);
-  const page = await questPage(user.id, questId, section, performance);
+  const page = await questPage(user, questId, section, performance);
   if (page === undefined) {
     notFound();
   }
