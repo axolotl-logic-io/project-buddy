@@ -2,6 +2,7 @@
 // The stores that save what a user does gain and lose counts in the same
 // transaction, so a point is there exactly while what gave it stands.
 import { and, desc, eq, inArray, sql } from "drizzle-orm";
+import { eventOwnedBy } from "@/accounts/owner-scope.ts";
 import { type Database, getDb } from "@/db/client.ts";
 import { events } from "@/db/tables/events.ts";
 import { withAppErrors } from "@/errors/to-app-error.ts";
@@ -91,7 +92,7 @@ function readExperience(user: UserId): Promise<Experience> {
         counts: sql<number>`count(*)::int`,
       })
       .from(events)
-      .where(eq(events.userId, user))
+      .where(eventOwnedBy(user))
       .groupBy(events.event);
     const counts: Record<Event, number> = { ...NO_EVENTS };
     for (const row of rows) {

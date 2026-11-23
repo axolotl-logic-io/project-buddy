@@ -56,14 +56,16 @@ interface Scope {
 }
 
 async function undoCheckOff(
-  { tx }: Scope,
+  { tx, questId }: Scope,
   { after, checkOff, checkOffAfter }: Inverse,
 ): Promise<void> {
   if (checkOffAfter?.id === checkOff?.id) {
     return;
   }
   if (after?.checkedOff === true && checkOffAfter !== undefined) {
-    await tx.delete(events).where(eq(events.id, checkOffAfter.id));
+    await tx
+      .delete(events)
+      .where(and(eq(events.id, checkOffAfter.id), eq(events.questId, questId)));
   }
   if (after?.checkedOff !== true && checkOff !== undefined) {
     const [actor] = await tx

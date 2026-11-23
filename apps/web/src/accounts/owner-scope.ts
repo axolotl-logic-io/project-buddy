@@ -1,8 +1,32 @@
-// Access predicates for quests and the records reached through them.
-// Pending invitations grant access to the invitation, while rites and days
-// are personal to their owner.
+// The only access predicates: every query on user data builds its where
+// from these, so a row that the acting user may not reach is never read or
+// written, and a foreign id reads as not found, exactly as an unknown id
+// does.
+//
+// A quest belongs to its owner, the user who made it, and is open to its
+// owner and its accepted members (quest_members). Everything reached
+// through a quest is open to everyone the quest is open to: its spaces and
+// their murmlings and changes, its performances and their conjurations, and
+// the quest's members and pending invitations, which any of them may see,
+// add to or remove. The owner is never a member row, so no one can remove
+// them. The one action left to the owner alone is finding a quest as their
+// Dailies, with its days (quest_days).
+//
+// A pending quest invitation is not membership: it opens nothing of the
+// quest to its invitee but the quest's name, the inviter's name and the
+// invitation itself, which the invitee alone may accept or decline.
+//
+// Own rites belong to their user alone, and so do events and a timer
+// presence report. The one read across users is how many other accounts
+// follow a schedule, a count that names no one and reaches no quest
+// (src/timer/presence-store.ts). A performance keeps a snapshot of its
+// rite, so a member sees the snapshot of an own rite used in the quest,
+// never the rite itself.
+//
+// Each predicate is SQL for a where clause or a join, on the table it names.
 import { and, eq, exists, inArray, type SQL, sql } from "drizzle-orm";
 import { QueryBuilder } from "drizzle-orm/pg-core";
+import { events } from "@/db/tables/events.ts";
 import { conjurations, performances, rites } from "@/db/tables/performances.ts";
 import { questDays } from "@/db/tables/quest-days.ts";
 import { questInvitations, questMembers } from "@/db/tables/quest-members.ts";
@@ -137,6 +161,12 @@ function timerPresenceOwnedBy(owner: UserId): SQL {
   return eq(timerPresence.userId, owner);
 }
 
+// An event's counts belong to the user who gained them, whatever quest
+// they gained them in.
+function eventOwnedBy(owner: UserId): SQL {
+  return eq(events.userId, owner);
+}
+
 // A visiting date belongs to its account alone, regardless of membership.
 function signedInDayOwnedBy(owner: UserId): SQL {
   return eq(signedInDays.userId, owner);
@@ -144,6 +174,7 @@ function signedInDayOwnedBy(owner: UserId): SQL {
 
 export {
   conjurationOpenTo,
+  eventOwnedBy,
   murmlingOpenTo,
   opensQuest,
   performanceOpenTo,
