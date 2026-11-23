@@ -1,6 +1,6 @@
 // What `mise run review-data` puts in the typical and crowded review
 // accounts (review-accounts.ts): their quests, what is done in each, and
-// their spells. review-data.ts makes it all through the site's API and
+// their rites. review-data.ts makes it all through the site's API and
 // stores; this module is only the words.
 //
 // The typical account looks like a few weeks of real use. The crowded
@@ -8,15 +8,15 @@
 // their longest, words too long to wrap, Markdown in every form a
 // construct writes, and long lists.
 
-// One step in a quest's conversation, in order.
+// One step in a quest, in order.
 type QuestStep =
-  | { readonly kind: "cast"; readonly name: string }
+  | { readonly kind: "perform"; readonly name: string }
   | { readonly kind: "stop" }
-  // A message sent to the active spell through the site's API.
+  // A conjuration made during a performance through the site's API.
   | { readonly kind: "send"; readonly text: string }
-  // A chat command the site runs without the construct, such as /add,
-  // /done, /tasks or /idea.
-  | { readonly kind: "command"; readonly text: string }
+  | { readonly kind: "plain"; readonly text: string }
+  | { readonly kind: "task"; readonly text: string }
+  | { readonly kind: "check"; readonly number: number }
   // Tasks added from the Tasks panel, in one change, as a panel adds them.
   | { readonly kind: "tasks"; readonly texts: readonly string[] }
   // A Quick Note, from the Quick Note box.
@@ -35,54 +35,35 @@ interface ReviewQuest {
   readonly steps: readonly QuestStep[];
 }
 
-// A spell of the account's own.
-interface ReviewSpell {
+// A rite of the account's own.
+interface ReviewRite {
   readonly name: string;
-  readonly destination: "tasks" | "brainstorm";
-  readonly castReply: readonly string[];
-  readonly savedReply: readonly string[];
-  readonly stopReply: readonly string[];
-  readonly invalidReply: readonly string[];
+  readonly replies: readonly string[];
 }
 
 // What one account holds.
 interface ReviewContent {
-  readonly spells: readonly ReviewSpell[];
+  readonly rites: readonly ReviewRite[];
   readonly quests: readonly ReviewQuest[];
 }
 
-const LATIN_MAP_REPLY = `Good work. Reading a whole legend unaided is the step this quest was for, so I've put it on your progress timeline.
+const LATIN_MAP_REPLY = `Good work. Reading a whole legend unaided is the step this quest was for, and you can keep it in the space at the end of your performance.
 
 Next, try the cartouche on the **Blaeu** sheet: its abbreviations are harder than the legend's.`;
 
 const TYPICAL: ReviewContent = {
-  spells: [
+  rites: [
     {
       name: "Workshop log",
-      destination: "tasks",
-      castReply: [
-        "Workshop log is open. Each message is a task until you say stop.",
-        "Logging. Tell me what's next on the bench.",
-      ],
-      savedReply: ["Logged.", "On the list.", "Added to the bench list."],
-      stopReply: ["Workshop log closed.", "That's the log done for now."],
-      invalidReply: ["That one didn't fit as a task. Try a shorter line."],
+      replies: ["Logged.", "On the list.", "Added to the bench list."],
     },
     {
       name: "Margin notes",
-      destination: "brainstorm",
-      castReply: ["Margin notes open. Every message is an idea."],
-      savedReply: ["Noted in the margin.", "Kept as an idea."],
-      stopReply: ["Margin notes closed."],
-      invalidReply: ["That didn't fit in the margin. Try fewer words."],
+      replies: ["Noted in the margin.", "Kept in the margin."],
     },
     {
       name: "Morning bell",
-      destination: "tasks",
-      castReply: ["Morning bell. What has to happen today?"],
-      savedReply: ["On today's list.", "Got it.", "Rung and listed."],
-      stopReply: ["The bell is quiet. Have a good day."],
-      invalidReply: ["That one was too long for the list."],
+      replies: ["On today's list.", "Got it.", "Rung and listed."],
     },
   ],
   quests: [
@@ -99,9 +80,9 @@ const TYPICAL: ReviewContent = {
             "Borrow two trestle tables",
           ],
         },
-        { kind: "command", text: "/done 1" },
-        { kind: "command", text: "/done 2" },
-        { kind: "command", text: "/done 3" },
+        { kind: "check", number: 1 },
+        { kind: "check", number: 2 },
+        { kind: "check", number: 3 },
         { kind: "status", status: "completed" },
       ],
     },
@@ -117,15 +98,15 @@ const TYPICAL: ReviewContent = {
             "Choose between dados and shelf pins",
           ],
         },
-        { kind: "cast", name: "Workshop log" },
+        { kind: "perform", name: "Workshop log" },
         { kind: "send", text: "Rip the walnut boards to 250 mm" },
         { kind: "send", text: "Sand the sides to 180 grit" },
         { kind: "send", text: "Buy Danish oil" },
         { kind: "stop" },
-        { kind: "command", text: "/done 1" },
+        { kind: "check", number: 1 },
         {
-          kind: "command",
-          text: "/idea A small drawer under the bottom shelf",
+          kind: "plain",
+          text: "A small drawer under the bottom shelf",
         },
       ],
     },
@@ -134,23 +115,23 @@ const TYPICAL: ReviewContent = {
       name: "Read Latin on old maps",
       why: "I keep buying old maps and can't read half of them.",
       steps: [
-        { kind: "command", text: "/add Learn the common map abbreviations" },
+        { kind: "task", text: "Learn the common map abbreviations" },
         {
-          kind: "command",
-          text: "/add Translate the legend of the 1648 Mercator sheet",
+          kind: "task",
+          text: "Translate the legend of the 1648 Mercator sheet",
         },
-        { kind: "command", text: "/add Make flashcards for compass terms" },
+        { kind: "task", text: "Make flashcards for compass terms" },
         {
-          kind: "command",
-          text: "/add Read the Ortelius cartouche aloud",
+          kind: "task",
+          text: "Read the Ortelius cartouche aloud",
         },
-        { kind: "command", text: "/done 1" },
-        { kind: "command", text: "/done 3" },
+        { kind: "check", number: 1 },
+        { kind: "check", number: 3 },
         {
-          kind: "command",
-          text: "/idea Frame the Mercator sheet with my translation beside it",
+          kind: "plain",
+          text: "Frame the Mercator sheet with my translation beside it",
         },
-        { kind: "command", text: "/idea Ask the map shop about Blaeu atlases" },
+        { kind: "plain", text: "Ask the map shop about Blaeu atlases" },
         {
           kind: "note",
           text: "Septentrio is north, meridies is south. Oriens and occidens for east and west.",
@@ -163,13 +144,12 @@ const TYPICAL: ReviewContent = {
           kind: "note",
           text: "The library has Lewis and Short on the second floor.",
         },
-        { kind: "cast", name: "Margin notes" },
+        { kind: "perform", name: "Margin notes" },
         {
           kind: "reply",
           message: "I read the whole Mercator legend without the dictionary!",
           reply: LATIN_MAP_REPLY,
         },
-        { kind: "command", text: "/tasks" },
       ],
     },
   ],
@@ -180,19 +160,18 @@ const TYPICAL: ReviewContent = {
 // (app-modules.ts), so it repeats them.
 const QUEST_NAME_MAX = 80;
 const TASK_MAX = 200;
-const IDEA_MAX = 200;
+const PLAIN_MAX = 200;
 const NOTE_MAX = 1000;
-const SPELL_NAME_MAX = 120;
-const SPELL_REPLY_MAX = 2000;
-const SPELL_REPLIES_MAX = 20;
+const RITE_NAME_MAX = 80;
+const RITE_REPLIES_MAX = 20;
 
 // How many of each the crowded account has.
 const LISTED_QUESTS = 15;
 const PANEL_TASKS = 26;
 const COMMAND_TASKS = 4;
-const IDEAS = 15;
+const PLAIN_ITEMS = 15;
 const NOTES = 10;
-const SPELLS = 14;
+const RITES = 14;
 
 // The crowded main quest's tasks with long words and addresses, before the
 // rest.
@@ -314,33 +293,20 @@ const CROWDED_TASKS: readonly string[] = [
   ),
 ];
 
-const CROWDED_SPELLS: readonly ReviewSpell[] = Array.from(
-  { length: SPELLS },
+const CROWDED_RITES: readonly ReviewRite[] = Array.from(
+  { length: RITES },
   (_, index) => {
-    let destination: ReviewSpell["destination"] = "tasks";
-    if (index % 2 === 1) {
-      destination = "brainstorm";
-    }
-    return {
+      return {
       name: growingText(
-        `Spell ${index + 1}: capture every passing thought about the archive move before it is lost `,
-        SPELL_NAME_MAX,
-        SPELLS - index,
-        SPELLS,
+        `Rite ${index + 1}: capture every passing thought about the archive move before it is lost `,
+        RITE_NAME_MAX,
+        RITES - index,
+        RITES,
       ),
-      destination,
-      castReply: Array.from({ length: SPELL_REPLIES_MAX }, (__, reply) =>
-        `${growingText(`${reply + 1}. ${PROSE}`, SPELL_REPLY_MAX, reply + 1, SPELL_REPLIES_MAX)} ${LONG_WORD}`.slice(
-          0,
-          SPELL_REPLY_MAX,
-        ),
-      ),
-      savedReply: Array.from(
-        { length: SPELL_REPLIES_MAX },
+      replies: Array.from(
+        { length: RITE_REPLIES_MAX },
         (__, reply) => `Saved, reply ${reply + 1}.`,
       ),
-      stopReply: [textOfLength(PROSE, SPELL_REPLY_MAX)],
-      invalidReply: [`That didn't fit: ${LONG_WORD}`],
     };
   },
 );
@@ -355,19 +321,17 @@ const CROWDED_MAIN: ReviewQuest = {
   steps: [
     { kind: "tasks", texts: CROWDED_TASKS.slice(0, PANEL_TASKS) },
     ...CROWDED_TASKS.slice(PANEL_TASKS).map(
-      (text): QuestStep => ({ kind: "command", text: `/add ${text}` }),
+      (text): QuestStep => ({ kind: "task", text }),
     ),
-    ...DONE_TASKS.map(
-      (task): QuestStep => ({ kind: "command", text: `/done ${task}` }),
-    ),
+    ...DONE_TASKS.map((task): QuestStep => ({ kind: "check", number: task })),
     ...Array.from(
-      { length: IDEAS },
+      { length: PLAIN_ITEMS },
       (_, index): QuestStep => ({
-        kind: "command",
-        text: `/idea ${growingText(`Idea ${index + 1}: ${PROSE}`, IDEA_MAX, index + 1, IDEAS)}`,
+        kind: "plain",
+        text: `${growingText(`Option ${index + 1}: ${PROSE}`, PLAIN_MAX, index + 1, PLAIN_ITEMS)}`,
       }),
     ),
-    { kind: "command", text: `/idea ${LONG_WORD}${LONG_WORD}` },
+    { kind: "plain", text: `${LONG_WORD}${LONG_WORD}` },
     ...Array.from(
       { length: NOTES },
       (_, index): Extract<QuestStep, { kind: "note" }> => ({
@@ -381,7 +345,7 @@ const CROWDED_MAIN: ReviewQuest = {
       }),
     ),
     { kind: "note", text: `${LONG_URL} ${LONG_WORD}` },
-    { kind: "cast", name: "Brainstorm" },
+    { kind: "perform", name: "Brainstorm" },
     { kind: "send", text: LONG_MESSAGE },
     {
       kind: "reply",
@@ -393,7 +357,6 @@ const CROWDED_MAIN: ReviewQuest = {
       message: "Where are we with the archive? Give me the full picture.",
       reply: MARKDOWN_REPLY,
     },
-    { kind: "command", text: "/tasks" },
   ],
 };
 
@@ -430,9 +393,9 @@ const CROWDED_LIST: readonly ReviewQuest[] = Array.from(
 );
 
 const CROWDED: ReviewContent = {
-  spells: CROWDED_SPELLS,
+  rites: CROWDED_RITES,
   quests: [...CROWDED_LIST, CROWDED_MAIN],
 };
 
-export type { QuestStep, ReviewContent, ReviewQuest, ReviewSpell };
+export type { QuestStep, ReviewContent, ReviewQuest, ReviewRite };
 export { CROWDED, TYPICAL };
