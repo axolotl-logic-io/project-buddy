@@ -5,8 +5,7 @@ import {
   DELETE as stop,
 } from "@/app/api/v1/quests/[questId]/performances/[performanceId]/route.ts";
 import { POST as start } from "@/app/api/v1/quests/[questId]/performances/route.ts";
-import { getConstruct } from "@/constructs/index.ts";
-import { startQuest } from "@/conversations/start-quest.ts";
+import { createQuest } from "@/quests/store.ts";
 import {
   conjureAction,
   startPerformanceAction,
@@ -31,15 +30,7 @@ async function setup(): Promise<{
   spaces: Awaited<ReturnType<typeof listSpaces>>;
 }> {
   const user = await testUser();
-  const started = await startQuest(
-    user.id,
-    QUEST_NAME.parse("Workshop"),
-    getConstruct("vellum"),
-  );
-  if (started.kind !== "started") {
-    throw new Error("The quest did not start");
-  }
-  const questId = started.chat.quest.id;
+  const { id: questId } = await createQuest(user.id, QUEST_NAME.parse("Workshop"));
   await signIn(user);
   return { user, questId, spaces: await listSpaces(user.id, questId) };
 }

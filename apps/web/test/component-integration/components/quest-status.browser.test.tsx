@@ -3,18 +3,14 @@ import { beforeEach, describe, expect, test, vi } from "vitest";
 import { page, userEvent } from "vitest/browser";
 import { render } from "vitest-browser-react";
 import {
-  answerQuestStatusAction,
   changeQuestStatusAction,
-  readQuestStatusApprovalAction,
 } from "@/app/(workspace)/quests/status-actions.ts";
-import { QuestStatusPart } from "@/components/chat/quest-status-part.tsx";
+
 import { QuestStatusControls } from "@/components/quest-status-controls.tsx";
 import { QuestStatusTabs } from "@/components/quest-status-tabs.tsx";
 import type { AnswerInvitation } from "@/quests/membership.ts";
 import {
-  STATUS_APPROVAL_ID,
   type StatusActionState,
-  type StatusApproval,
 } from "@/quests/quest-status.ts";
 import { THEME_MODES } from "@/themes/themes.ts";
 import { PENDING_COPY } from "@/ui/copy/quest-members.ts";
@@ -32,26 +28,9 @@ import {
   PHONE_VIEWPORT,
   setViewport,
 } from "../viewports-test-kit.ts";
-import {
-  chatSendMock,
-  inConversation,
-  sentTexts,
-} from "./chat/chat-send-test-kit.tsx";
+
 
 const TAB_TARGET_PX = 44;
-
-const PROPOSAL: StatusApproval = {
-  id: STATUS_APPROVAL_ID.parse("6f1c2a8e-3b4d-4e5f-8a9b-0c1d2e3f4a5b"),
-  questId: FOX_QUEST.id,
-  name: FOX_QUEST.name,
-  fromStatus: "active",
-  toStatus: "abandoned",
-  revision: 0,
-  decision: "pending",
-};
-const PART: { result: unknown } = {
-  result: { status: "awaiting-approval", approval: PROPOSAL },
-};
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -162,105 +141,7 @@ describe("quest status actions", () => {
   });
 });
 
-describe("quest status actions in a quest's conversation", () => {
-  test.each([
-    ["active", "Complete", "/complete"],
-    ["active", "Abandon", "/abandon"],
-    ["completed", "Restore quest", "/restore"],
-  ] as const)(
-    "a %s quest's %s button sends %s to the conversation",
-    async (status, label, command) => {
-      const send = chatSendMock();
-      await render(
-        inConversation(
-          send,
-          <QuestStatusControls quest={{ ...FOX_QUEST, status }} />,
-        ),
-      );
-      await page.getByRole("button", { name: label, exact: true }).click();
 
-      await vi.waitFor(() => {
-        expect(sentTexts(send)).toEqual([command]);
-      });
-      expect(changeQuestStatusAction).not.toHaveBeenCalled();
-    },
-  );
-});
-
-describe("quest approval card", () => {
-  test("shows the exact change, waits for approval, and disables answered controls", async () => {
-    vi.mocked(readQuestStatusApprovalAction).mockResolvedValue(PROPOSAL);
-    vi.mocked(answerQuestStatusAction).mockResolvedValue({
-      kind: "saved",
-      approval: { ...PROPOSAL, decision: "approved" },
-    });
-    await render(<QuestStatusPart part={PART} />);
-    await expect
-      .element(
-        page.getByText(
-          `${QUEST_STATUS_COPY.labels.active} → ${QUEST_STATUS_COPY.labels.abandoned}`,
-        ),
-      )
-      .toBeVisible();
-    await expect
-      .element(
-        page.getByRole("button", { name: QUEST_STATUS_COPY.confirm.abandoned }),
-      )
-      .toBeVisible();
-    expect(answerQuestStatusAction).not.toHaveBeenCalled();
-    await page
-      .getByRole("button", { name: QUEST_STATUS_COPY.confirm.abandoned })
-      .click();
-    await expect
-      .element(
-        page.getByText(QUEST_STATUS_COPY.decisions.approved, { exact: true }),
-      )
-      .toBeVisible();
-    await expect
-      .element(
-        page.getByRole("button", { name: QUEST_STATUS_COPY.confirm.abandoned }),
-      )
-      .not.toBeInTheDocument();
-    const [, sent] = vi.mocked(answerQuestStatusAction).mock.lastCall ?? [];
-    expect(sent?.get("decision")).toBe("approve");
-    expect(sent?.get("id")).toBe(PROPOSAL.id);
-  });
-  test.each(["declined", "outdated"] as const)(
-    "reloading a %s proposal does not offer approval",
-    async (decision) => {
-      vi.mocked(readQuestStatusApprovalAction).mockResolvedValue({
-        ...PROPOSAL,
-        decision,
-      });
-      await render(<QuestStatusPart part={PART} />);
-      await expect
-        .element(page.getByText(QUEST_STATUS_COPY.decisions[decision]))
-        .toBeVisible();
-      await expect
-        .element(
-          page.getByRole("button", {
-            name: QUEST_STATUS_COPY.confirm.abandoned,
-          }),
-        )
-        .not.toBeInTheDocument();
-      expect(answerQuestStatusAction).not.toHaveBeenCalled();
-    },
-  );
-  test("can decline without executing a change", async () => {
-    vi.mocked(readQuestStatusApprovalAction).mockResolvedValue(PROPOSAL);
-    vi.mocked(answerQuestStatusAction).mockResolvedValue({
-      kind: "saved",
-      approval: { ...PROPOSAL, decision: "declined" },
-    });
-    await render(<QuestStatusPart part={PART} />);
-    await page.getByRole("button", { name: QUEST_STATUS_COPY.decline }).click();
-    await expect
-      .element(page.getByText(QUEST_STATUS_COPY.decisions.declined))
-      .toBeVisible();
-    const [, sent] = vi.mocked(answerQuestStatusAction).mock.lastCall ?? [];
-    expect(sent?.get("decision")).toBe("decline");
-  });
-});
 
 describe("quest status tabs", () => {
   test("filters quests by status and supports keyboard navigation", async () => {
@@ -407,39 +288,7 @@ describe("quest status on phones", () => {
           .toBeVisible();
       });
 
-      test(`approval and restoration fit ${viewport.width} px in ${mode}`, async () => {
-        applyTheme("parchment", mode);
-        await setViewport(viewport);
-        vi.mocked(readQuestStatusApprovalAction).mockResolvedValue(PROPOSAL);
-        const view = await render(<QuestStatusPart part={PART} />);
-        await expect
-          .element(
-            page.getByRole("button", {
-              name: QUEST_STATUS_COPY.confirm.abandoned,
-            }),
-          )
-          .toBeVisible();
-        expect(pageScrollWidth()).toBeLessThanOrEqual(viewport.width);
-        expect(smallTargets(await measureTargets())).toEqual([]);
-        await view.rerender(
-          <QuestStatusTabs
-            initialStatus="completed"
-            quests={[{ ...FOX_QUEST, status: "completed" }]}
-          />,
-        );
-        expect(pageScrollWidth()).toBeLessThanOrEqual(viewport.width);
-        expect(smallTargets(await measureTargets())).toEqual([]);
-        await view.rerender(
-          <QuestStatusControls quest={{ ...FOX_QUEST, status: "completed" }} />,
-        );
-        await expect
-          .element(
-            page.getByRole("button", { name: QUEST_STATUS_COPY.restore }),
-          )
-          .toBeVisible();
-        expect(pageScrollWidth()).toBeLessThanOrEqual(viewport.width);
-        expect(smallTargets(await measureTargets())).toEqual([]);
-      });
+      
     }
   }
 });

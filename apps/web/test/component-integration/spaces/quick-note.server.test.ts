@@ -1,6 +1,5 @@
 import { expect, test, vi } from "vitest";
-import { getConstruct } from "@/constructs/index.ts";
-import { startQuest } from "@/conversations/start-quest.ts";
+import { createQuest } from "@/quests/store.ts";
 import { QUEST_ID } from "@/ids.ts";
 import { QUEST_NAME } from "@/quests/quest-name.ts";
 import { listMurmlings } from "@/spaces/murmling-store.ts";
@@ -16,11 +15,7 @@ vi.mock("next/cache", () => ({ refresh: vi.fn() }));
 
 test("use_case_quick_note", async () => {
   const owner = await testUser();
-  await startQuest(
-    owner.id,
-    QUEST_NAME.parse("Pottery"),
-    getConstruct("vellum"),
-  );
+  await createQuest(owner.id, QUEST_NAME.parse("Pottery"));
   await signIn(owner);
   const [quest] = await listQuickNoteQuests();
   const [first, second] = quest?.spaces ?? [];

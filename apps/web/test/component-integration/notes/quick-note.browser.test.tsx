@@ -5,18 +5,18 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { page, userEvent } from "vitest/browser";
 import { render } from "vitest-browser-react";
-import { QuestNotes } from "@/components/quest-notes.tsx";
+
 import { AccountLinks, SiteHeader } from "@/components/site-header.tsx";
 import { SitePanel } from "@/components/site-panel.tsx";
-import { NOTE_ID, NOTE_MAX_LENGTH } from "@/notes/note.ts";
-import { changeNoteAction } from "@/notes/note-actions.ts";
+
+
 import {
   listQuickNoteQuests,
   type QuickNoteQuest,
   saveQuickNote,
 } from "@/spaces/quick-note-actions.ts";
-import { PANEL_COMMANDS_COPY } from "@/ui/copy/commands.ts";
-import { QUEST_NOTES_COPY, QUICK_NOTE_COPY } from "@/ui/copy/notes.ts";
+
+import { QUICK_NOTE_COPY } from "@/ui/copy/notes.ts";
 import { QUEST_SHARING_COPY } from "@/ui/copy/quest-members.ts";
 import { FOX_QUEST } from "../app/(workspace)/page-fixtures.ts";
 import {
@@ -214,173 +214,6 @@ describe("use_case_quick_note", () => {
       .not.toBeInTheDocument();
   });
 
-  test("a quest's Quick Notes tab lists notes and deletes one", async () => {
-    const newest = {
-      id: NOTE_ID.parse("33333333-3333-4333-8333-333333333333"),
-      text: "Buy more clay",
-      savedAt: new Date("2026-11-14T12:00:00Z"),
-    };
-    const notes = [
-      newest,
-      {
-        id: NOTE_ID.parse("44444444-4444-4444-8444-444444444444"),
-        text: "Try a slower wheel",
-        savedAt: new Date("2026-11-12T12:00:00Z"),
-      },
-    ];
-    const send = vi.mocked(changeNoteAction).mockReset().mockResolvedValue({
-      kind: "saved",
-      message: "Deleted the Quick Note “Buy more clay”.",
-    });
-    await render(<QuestNotes notes={notes} quest={FOX_QUEST} />);
+  
 
-    const list = page.getByRole("list", { name: QUEST_NOTES_COPY.heading });
-    await expect
-      .element(list.getByRole("listitem").first().getByText("Buy more clay"))
-      .toBeVisible();
-    await page
-      .getByRole("button", {
-        name: 'Actions for the Quick Note "Buy more clay"',
-      })
-      .click();
-    await page
-      .getByRole("menuitem", { name: 'Delete the Quick Note "Buy more clay"' })
-      .click();
-    expect(send).toHaveBeenCalledWith({ questId: FOX_QUEST.id, id: newest.id });
-    await expect
-      .element(page.getByRole("status").filter({ hasText: "Deleted" }))
-      .toHaveTextContent(PANEL_COMMANDS_COPY.notes.dropNote("Buy more clay"));
-    await expect
-      .element(page.getByText("Buy more clay"))
-      .not.toBeInTheDocument();
-    await expect.element(page.getByText("Try a slower wheel")).toBeVisible();
-  });
-
-  test("a note has a multiline editor, saves line breaks and cancels changes", async () => {
-    const send = vi
-      .mocked(changeNoteAction)
-      .mockReset()
-      .mockResolvedValue({ kind: "saved" });
-    await render(
-      <QuestNotes
-        quest={FOX_QUEST}
-        notes={[
-          {
-            id: NOTE_ID.parse("33333333-3333-4333-8333-333333333333"),
-            text: "Buy more clay",
-            savedAt: new Date("2026-11-14T12:00:00Z"),
-          },
-        ]}
-      />,
-    );
-    const edit = page.getByRole("button", { name: QUEST_NOTES_COPY.edit });
-    await edit.click();
-    const field = page
-      .getByRole("group", { name: QUICK_NOTE_COPY.textLabel, exact: true })
-      .getByRole("textbox", {
-        name: QUICK_NOTE_COPY.textLabel,
-        exact: true,
-      });
-    expect(field.element().tagName).toBe("TEXTAREA");
-    await field.fill("Clay");
-    await userEvent.keyboard("{End}");
-    await userEvent.keyboard("{Enter}");
-    await userEvent.keyboard("Glaze");
-    await expect.element(field).toHaveValue("Clay\nGlaze");
-    expect(send).not.toHaveBeenCalled();
-    await page
-      .getByRole("group", { name: QUICK_NOTE_COPY.textLabel })
-      .getByRole("button", { name: QUICK_NOTE_COPY.save, exact: true })
-      .click();
-    expect(send).toHaveBeenCalledWith({
-      questId: FOX_QUEST.id,
-      id: "33333333-3333-4333-8333-333333333333",
-      text: "Clay\nGlaze",
-    });
-    await expect
-      .element(page.getByText("Clay\nGlaze", { exact: true }))
-      .toBeVisible();
-    await edit.click();
-    await field.fill("Discard this");
-    await page.getByRole("button", { name: QUEST_NOTES_COPY.cancel }).click();
-    await expect.element(edit).toHaveTextContent("Clay Glaze");
-    await expect.element(edit).toHaveFocus();
-    expect(send).toHaveBeenCalledTimes(1);
-  });
-
-  test("invalid and refused edits keep the draft", async () => {
-    const send = vi.mocked(changeNoteAction).mockReset().mockResolvedValue({
-      kind: "problem",
-      text: PANEL_COMMANDS_COPY.problems.awaitingReply,
-    });
-    await render(
-      <QuestNotes
-        quest={FOX_QUEST}
-        notes={[
-          {
-            id: NOTE_ID.parse("33333333-3333-4333-8333-333333333333"),
-            text: "Buy more clay",
-            savedAt: new Date("2026-11-14T12:00:00Z"),
-          },
-        ]}
-      />,
-    );
-    await page.getByRole("button", { name: QUEST_NOTES_COPY.edit }).click();
-    const field = page
-      .getByRole("group", { name: QUICK_NOTE_COPY.textLabel, exact: true })
-      .getByRole("textbox", {
-        name: QUICK_NOTE_COPY.textLabel,
-        exact: true,
-      });
-    const save = page
-      .getByRole("group", { name: QUICK_NOTE_COPY.textLabel })
-      .getByRole("button", {
-        name: QUICK_NOTE_COPY.save,
-        exact: true,
-      });
-    await field.fill("   ");
-    await save.click();
-    await expect.element(field).toHaveAttribute("aria-invalid", "true");
-    await field.fill("a".repeat(NOTE_MAX_LENGTH + 1));
-    await save.click();
-    await expect.element(field).toHaveAttribute("aria-invalid", "true");
-    expect(send).not.toHaveBeenCalled();
-    await field.fill("Clay\nGlaze");
-    await save.click();
-    await expect
-      .element(page.getByRole("alert"))
-      .toHaveTextContent(PANEL_COMMANDS_COPY.problems.awaitingReply);
-    await expect.element(field).toHaveValue("Clay\nGlaze");
-  });
-
-  test("a refused Quick Note deletion keeps the note and says why", async () => {
-    const problem = "Wait for the reply to your last message, then try again.";
-    vi.mocked(changeNoteAction)
-      .mockReset()
-      .mockResolvedValue({ kind: "problem", text: problem });
-    await render(
-      <QuestNotes
-        quest={FOX_QUEST}
-        notes={[
-          {
-            id: NOTE_ID.parse("33333333-3333-4333-8333-333333333333"),
-            text: "Buy more clay",
-            savedAt: new Date("2026-11-14T12:00:00Z"),
-          },
-        ]}
-      />,
-    );
-
-    await page
-      .getByRole("button", {
-        name: 'Actions for the Quick Note "Buy more clay"',
-      })
-      .click();
-    await page
-      .getByRole("menuitem", { name: 'Delete the Quick Note "Buy more clay"' })
-      .click();
-
-    await expect.element(page.getByRole("alert")).toHaveTextContent(problem);
-    await expect.element(page.getByText("Buy more clay")).toBeVisible();
-  });
 });

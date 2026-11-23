@@ -15,13 +15,14 @@ import QuestPage from "@/app/(workspace)/quests/[questId]/(overview)/page.tsx";
 import { continueSignInAction } from "@/app/login/link/actions.ts";
 import SignInLinkPage from "@/app/login/link/page.tsx";
 import { currentUser } from "@/auth/current-user.ts";
-import type { Chat } from "@/chats/chat-rows.ts";
-import { getChat, readStoppedReply, saveMessage } from "@/chats/store.ts";
-import { PANEL_COMMAND } from "@/commands/panel-commands.ts";
-import { getConstruct } from "@/constructs/index.ts";
-import { startDailies } from "@/conversations/dailies.ts";
+
+
+
+
+
 import {
   CONJURATION,
+  readConjurations,
   conjure,
   startPerformance,
 } from "@/performances/performance-store.ts";
@@ -37,38 +38,30 @@ import {
 } from "@/quests/membership-store.ts";
 import { QUEST_NAME } from "@/quests/quest-name.ts";
 import {
-  answerStatusApproval,
   changeQuestStatus,
-  readStatusApproval,
-  requestQuestStatus,
 } from "@/quests/quest-status-store.ts";
 import {
+  createOrResumeQuest,
   getQuest,
   listQuests,
   type Quest,
   renameQuest,
 } from "@/quests/store.ts";
-import {
-  beginReplyRun,
-  cancellationRequested,
-  stopReply,
-} from "@/replies/reply-runs.ts";
-import { HOME_PATH } from "@/routes.ts";
+
 import { listSpaces } from "@/spaces/space-store.ts";
-import { PANEL_COMMANDS_COPY } from "@/ui/copy/commands.ts";
+
 import { LINK_PAGE_COPY } from "@/ui/copy/login.ts";
 import {
   QUEST_INVITATION_EMAIL_COPY,
-  QUEST_MEMBERS_COPY,
 } from "@/ui/copy/quest-members.ts";
 import { testData } from "../../support/test-database/data-test-kit.ts";
 import {
   testAddress,
   testUser,
 } from "../../support/test-database/user-test-kit.ts";
-import { commandNotes, runCommand } from "../commands/command-test-kit.ts";
+
 import { spyOnErrorLog } from "../errors/error-log-spy.ts";
-import { newMessageId, question } from "../test-database/chat-test-kit.ts";
+
 import {
   expectNotFound,
   expectRedirect,
@@ -100,9 +93,6 @@ vi.mock("next/headers", async () => {
   };
 });
 
-function byText(one: string, other: string): number {
-  return one.localeCompare(other);
-}
 
 // The acceptance link's continue form, with a name when given.
 function continueForm(token: string, name?: string): FormData {
@@ -140,61 +130,20 @@ function sharingOf(quests: readonly Quest[], id: string): unknown {
   return quests.find((quest) => quest.id === id)?.sharing;
 }
 
-// A user who owns two quests, each with its conversation: chat is the
-// first's, secondChat the second's.
+// A user who owns two quests.
 async function ownerWithTwoQuests(): Promise<{
   readonly owner: Awaited<ReturnType<typeof testUser>>;
   readonly first: Awaited<ReturnType<ReturnType<typeof testData>["quest"]>>;
   readonly second: Awaited<ReturnType<ReturnType<typeof testData>["quest"]>>;
-  readonly chat: Chat;
-  readonly secondChat: Chat;
 }> {
   const owner = await testUser();
   const data = testData(owner);
   const [first, second] = await Promise.all([data.quest(), data.quest()]);
-  const [chat, secondChat] = await Promise.all([
-    data.chat(first),
-    data.chat(second),
-  ]);
-  return { owner, first, second, chat, secondChat };
+  return { owner, first, second };
 }
 
 describe("use_case_invite_to_quest", () => {
-  test("/invite with a new address creates an invited account before any link is followed, and notes it in the conversation", async () => {
-    const { owner, first, second, chat, secondChat } =
-      await ownerWithTwoQuests();
-    const email = testAddress();
-    await signIn(owner);
-
-    expect(
-      await runCommand(chat.id, PANEL_COMMAND.invite(email)),
-    ).toMatchObject({
-      kind: "noted",
-      note: PANEL_COMMANDS_COPY.notes.invited(email),
-    });
-    const invited = await accountOf(email);
-    expect(invited.accountState).toBe("invited");
-    expect(emailedInvitationToken(sent.sendEmail, email)).not.toBe("");
-    expect(await commandNotes(owner.id, chat.id)).toEqual([
-      {
-        command: PANEL_COMMAND.invite(email),
-        note: PANEL_COMMANDS_COPY.notes.invited(email),
-      },
-    ]);
-
-    expect(
-      await runCommand(
-        secondChat.id,
-        PANEL_COMMAND.invite(email.toUpperCase()),
-      ),
-    ).toMatchObject({ kind: "noted" });
-    expect((await accountOf(email)).id).toBe(invited.id);
-    expect(
-      (await listPendingQuests(invited.id))
-        .map(({ name }) => name)
-        .toSorted(byText),
-    ).toEqual([first.name, second.name].toSorted(byText));
-  });
+  
 
   test("inviting an existing user keeps their account, name and sign-up", async () => {
     const [{ owner, first }, existing] = await Promise.all([
@@ -211,59 +160,9 @@ describe("use_case_invite_to_quest", () => {
     ]);
   });
 
-  test("/invite refuses an address that isn't one, the owner or a member, and Dailies, saying why", async () => {
-    const [{ owner, first, chat }, member] = await Promise.all([
-      ownerWithTwoQuests(),
-      testUser(),
-    ]);
-    await addMember(owner, first.id, member);
-    const dailies = await startDailies(owner.id, {
-      name: QUEST_NAME.parse("My day"),
-      context: "Make room for creativity",
-      construct: getConstruct("vellum"),
-    });
-    if (dailies.kind === "claudeUnavailable") {
-      throw new Error("Dailies did not start");
-    }
-    await signIn(owner);
-    const people = await listQuestPeople(owner.id, first.id);
+  
 
-    expect(await runCommand(chat.id, "/invite not-an-address")).toEqual({
-      kind: "problem",
-      text: PANEL_COMMANDS_COPY.problems.noEmail,
-    });
-    expect(await runCommand(chat.id, "/invite")).toEqual({
-      kind: "problem",
-      text: PANEL_COMMANDS_COPY.problems.noEmail,
-    });
-    expect(
-      await runCommand(chat.id, PANEL_COMMAND.invite(member.email)),
-    ).toEqual({
-      kind: "problem",
-      text: QUEST_MEMBERS_COPY.inQuest(member.email),
-    });
-    expect(
-      await runCommand(dailies.chat.id, PANEL_COMMAND.invite(testAddress())),
-    ).toEqual({ kind: "problem", text: PANEL_COMMANDS_COPY.problems.dailies });
-
-    expect(await listQuestPeople(owner.id, first.id)).toEqual(people);
-    expect(await commandNotes(owner.id, chat.id)).toEqual([]);
-  });
-
-  test("an /invite whose email fails is noted as unsent", async () => {
-    const { owner, chat } = await ownerWithTwoQuests();
-    const email = testAddress();
-    spyOnErrorLog();
-    sent.sendEmail.mockRejectedValueOnce(new Error("Mail is down"));
-    await signIn(owner);
-
-    expect(
-      await runCommand(chat.id, PANEL_COMMAND.invite(email)),
-    ).toMatchObject({
-      kind: "noted",
-      note: PANEL_COMMANDS_COPY.notes.unsent(email),
-    });
-  });
+  
 
   test("inviting the owner, a member, or into a Dailies quest changes nothing", async () => {
     const [{ owner, first }, member] = await Promise.all([
@@ -271,14 +170,10 @@ describe("use_case_invite_to_quest", () => {
       testUser(),
     ]);
     await addMember(owner, first.id, member);
-    const dailies = await startDailies(owner.id, {
-      name: QUEST_NAME.parse("My day"),
+    const dailies = await createOrResumeQuest(owner.id, QUEST_NAME.parse("Dailies"), { dailies: true,
       context: "Make room for creativity",
-      construct: getConstruct("vellum"),
+      constructId: "vellum",
     });
-    if (dailies.kind === "claudeUnavailable") {
-      throw new Error("Dailies did not start");
-    }
 
     expect(await invite(owner, first.id, owner.email)).toEqual({
       kind: "in-quest",
@@ -286,7 +181,7 @@ describe("use_case_invite_to_quest", () => {
     expect(await invite(member, first.id, member.email)).toEqual({
       kind: "in-quest",
     });
-    expect(await invite(owner, dailies.chat.quest.id, testAddress())).toEqual({
+    expect(await invite(owner, dailies.quest.id, testAddress())).toEqual({
       kind: "not-found",
     });
   });
@@ -665,171 +560,71 @@ describe("use_case_accept_pending_quest", () => {
   });
 });
 
-describe("use_case_quest_member_powers", () => {
-  test("a member renames, changes status, invites and removes another member", async () => {
-    const [{ owner, first, chat }, member, other] = await Promise.all([
-      ownerWithTwoQuests(),
-      testUser(),
-      testUser(),
-    ]);
-    await saveUserName(other.id, "Otto Other");
-    await addMember(owner, first.id, member);
-    await addMember(owner, first.id, other);
-    const renamed = QUEST_NAME.parse("Shared voyage");
+test("use_case_quest_member_powers", async () => {
+  const [{ owner, first }, member, other] = await Promise.all([
+    ownerWithTwoQuests(),
+    testUser(),
+    testUser(),
+  ]);
+  await addMember(owner, first.id, member);
+  await addMember(owner, first.id, other);
+  const name = QUEST_NAME.parse("Shared work");
+  expect(await renameQuest(member.id, first.id, name)).toBe(true);
+  expect(await changeQuestStatus(member.id, {
+    questId: first.id,
+    fromStatus: "active",
+    toStatus: "completed",
+    revision: first.statusRevision,
+  })).toBeDefined();
+  expect(await getQuest(owner.id, first.id)).toMatchObject({ name, status: "completed" });
+  expect(await invite(member, first.id, testAddress())).toEqual({ kind: "invited" });
+  expect(await removeFromQuest(member.id, { questId: first.id, person: owner.id })).toBe(false);
+  expect(await removeFromQuest(member.id, { questId: first.id, person: other.id })).toBe(true);
+  expect(await getQuest(other.id, first.id)).toBeUndefined();
+});
 
-    expect(await renameQuest(member.id, first.id, renamed)).toBe(true);
-    expect(
-      await changeQuestStatus(member.id, {
-        questId: first.id,
-        fromStatus: "active",
-        toStatus: "completed",
-        revision: first.statusRevision,
-      }),
-    ).toMatchObject({ toStatus: "completed" });
-    expect(await invite(member, first.id, testAddress())).toEqual({
-      kind: "invited",
-    });
-    await signIn(member);
-    expect(
-      await runCommand(chat.id, PANEL_COMMAND.remove("Otto Other")),
-    ).toMatchObject({
-      kind: "noted",
-      note: PANEL_COMMANDS_COPY.notes.removed("Otto Other"),
-    });
-    expect(await getQuest(owner.id, first.id)).toMatchObject({
-      name: renamed,
-      status: "completed",
-    });
-    expect(await getQuest(other.id, first.id)).toBeUndefined();
+test("use_case_quest_member_access", async () => {
+  const [{ owner, first, second }, member, pending, stranger] = await Promise.all([
+    ownerWithTwoQuests(),
+    testUser(),
+    testUser(),
+    testUser(),
+  ]);
+  await addMember(owner, first.id, member);
+  await addInvitee(owner, first.id, pending);
+  const [space] = await listSpaces(member.id, first.id);
+  if (space === undefined) {
+    throw new Error("Member could not read the quest's spaces");
+  }
+  const performance = await startPerformance(member.id, first.id, { spaceId: space.id, riteId: "capture" });
+  if (performance === undefined) {
+    throw new Error("Member could not start a performance");
+  }
+  const makeRequest = () => CONJURATION.parse({
+    id: crypto.randomUUID(),
+    performanceId: performance.id,
+    text: "Work from the sketch",
   });
-
-  test("anyone in the quest answers a status approval card another asked for", async () => {
-    const [{ owner, first, chat }, member, stranger] = await Promise.all([
-      ownerWithTwoQuests(),
-      testUser(),
-      testUser(),
-    ]);
-    await addMember(owner, first.id, member);
-    const approval = await requestQuestStatus(
-      member.id,
-      chat.id,
-      first.id,
-      "completed",
-    );
-    if (approval === undefined) {
-      throw new Error("The member's request made no card");
+  const saved = await conjure(member.id, first.id, makeRequest());
+  expect(saved).toBeDefined();
+  expect(await readConjurations(owner.id, performance.id)).toEqual([saved]);
+  expect(await listSpaces(member.id, second.id)).toEqual([]);
+  for (const denied of [pending, stranger, member]) {
+    if (denied === member) {
+      await removeFromQuest(owner.id, { questId: first.id, person: member.id });
     }
-
-    expect(await readStatusApproval(stranger.id, approval.id)).toBeUndefined();
-    expect(
-      await answerStatusApproval(stranger.id, approval.id, true),
-    ).toBeUndefined();
-    expect(
-      await answerStatusApproval(owner.id, approval.id, true),
-    ).toMatchObject({ toStatus: "completed" });
-    expect(await readStatusApproval(member.id, approval.id)).toMatchObject({
-      decision: "approved",
-    });
-  });
-
-  test("no one can remove the owner", async () => {
-    const [{ owner, first, chat }, member] = await Promise.all([
-      ownerWithTwoQuests(),
-      testUser(),
-    ]);
-    await saveUserName(owner.id, "Rowan Owner");
-    await addMember(owner, first.id, member);
-    await signIn(member);
-
-    expect(
-      await runCommand(chat.id, PANEL_COMMAND.remove("Rowan Owner")),
-    ).toEqual({ kind: "problem", text: PANEL_COMMANDS_COPY.problems.owner });
-    expect(
-      await removeFromQuest(member.id, {
-        questId: first.id,
-        person: owner.id,
-      }),
-    ).toBe(false);
-    await signIn(owner);
-    expect(await runCommand(chat.id, PANEL_COMMAND.leave)).toEqual({
-      kind: "problem",
-      text: PANEL_COMMANDS_COPY.problems.owner,
-    });
-    expect(await getQuest(owner.id, first.id)).toBeDefined();
-    expect((await listQuestPeople(member.id, first.id))?.owner.id).toBe(
-      owner.id,
-    );
-  });
+    expect(await getQuest(denied.id, first.id)).toBeUndefined();
+    expect(await listSpaces(denied.id, first.id)).toEqual([]);
+    expect(await readConjurations(denied.id, performance.id)).toEqual([]);
+    expect(await conjure(denied.id, first.id, makeRequest())).toBeUndefined();
+  }
+  expect(await readConjurations(owner.id, performance.id)).toEqual([saved]);
 });
 
 describe("use_case_remove_quest_member", () => {
-  test("a member who sends /leave loses access, and the page opens Quests, naming the quest", async () => {
-    const [{ owner, first, chat }, member] = await Promise.all([
-      ownerWithTwoQuests(),
-      testUser(),
-    ]);
-    await addMember(owner, first.id, member);
-    await signIn(member);
+  
 
-    expect(await runCommand(chat.id, PANEL_COMMAND.leave)).toMatchObject({
-      kind: "noted",
-      note: PANEL_COMMANDS_COPY.notes.left,
-      navigate: HOME_PATH,
-      leftQuest: first.name,
-    });
-    expect(await getQuest(member.id, first.id)).toBeUndefined();
-    expect((await listQuestPeople(owner.id, first.id))?.members).toEqual([]);
-    expect(await runCommand(chat.id, PANEL_COMMAND.leave)).toEqual({
-      kind: "not-found",
-    });
-    expect(await commandNotes(owner.id, chat.id)).toEqual([
-      { command: PANEL_COMMAND.leave, note: PANEL_COMMANDS_COPY.notes.left },
-    ]);
-  });
-
-  test("/remove and /withdraw take out a member and an invitation by name, and say why when no one matches", async () => {
-    const [{ owner, first, chat }, member, invitee] = await Promise.all([
-      ownerWithTwoQuests(),
-      testUser(),
-      testUser(),
-    ]);
-    await saveUserName(member.id, "Mika Member");
-    await addMember(owner, first.id, member);
-    await addInvitee(owner, first.id, invitee);
-    await signIn(owner);
-
-    expect(await runCommand(chat.id, PANEL_COMMAND.remove("Nobody"))).toEqual({
-      kind: "problem",
-      text: PANEL_COMMANDS_COPY.problems.noMember("Nobody"),
-    });
-    expect(
-      await runCommand(chat.id, PANEL_COMMAND.withdraw(testAddress())),
-    ).toMatchObject({ kind: "problem" });
-    expect(
-      await runCommand(chat.id, PANEL_COMMAND.remove("mika member")),
-    ).toMatchObject({
-      kind: "noted",
-      note: PANEL_COMMANDS_COPY.notes.removed("Mika Member"),
-    });
-    expect(
-      await runCommand(chat.id, PANEL_COMMAND.withdraw(invitee.email)),
-    ).toMatchObject({
-      kind: "noted",
-      note: PANEL_COMMANDS_COPY.notes.withdrawn(invitee.email),
-    });
-
-    expect(await listQuestPeople(owner.id, first.id)).toMatchObject({
-      members: [],
-      invited: [],
-    });
-    expect(await listPendingQuests(invitee.id)).toEqual([]);
-    expect(
-      (await commandNotes(owner.id, chat.id)).map(({ note }) => note),
-    ).toEqual([
-      PANEL_COMMANDS_COPY.notes.removed("Mika Member"),
-      PANEL_COMMANDS_COPY.notes.withdrawn(invitee.email),
-    ]);
-  });
+  
 
   test("a removed member's quest page can't be found", async () => {
     const [{ owner, first }, member] = await Promise.all([
@@ -849,24 +644,7 @@ describe("use_case_remove_quest_member", () => {
     );
   });
 
-  test("the owner sees members and pending invitations, and a member sees them alike", async () => {
-    const [{ owner, first, chat }, member, invitee] = await Promise.all([
-      ownerWithTwoQuests(),
-      testUser(),
-      testUser(),
-    ]);
-    await addMember(owner, first.id, member);
-    await addInvitee(owner, first.id, invitee);
-
-    const people = await listQuestPeople(owner.id, first.id);
-    expect(people).toMatchObject({
-      owner: { id: owner.id },
-      members: [{ id: member.id }],
-      invited: [{ id: invitee.id }],
-    });
-    expect(await listQuestPeople(member.id, first.id)).toEqual(people);
-    expect((await getChat(member.id, chat.id))?.id).toBe(chat.id);
-  });
+  
 });
 
 describe("how a quest is shared, wherever quests are listed", () => {
@@ -920,28 +698,7 @@ describe("how a quest is shared, wherever quests are listed", () => {
 });
 
 describe("removal and sign-out leave no stuck state", () => {
-  test("removing a member stops the reply their message awaits, so anyone left can ask again", async () => {
-    const [{ owner, first, chat }, member] = await Promise.all([
-      ownerWithTwoQuests(),
-      testUser(),
-    ]);
-    await addMember(owner, first.id, member);
-    const messageId = newMessageId();
-    expect(
-      await saveMessage(member.id, chat.id, {
-        ...question("Hi"),
-        id: messageId,
-      }),
-    ).toBe("inserted");
-    const runId = await beginReplyRun(member.id, chat.id, messageId);
-    expect(await readStoppedReply(owner.id, chat.id)).toBeUndefined();
-
-    await removeFromQuest(owner.id, { questId: first.id, person: member.id });
-
-    expect(await readStoppedReply(owner.id, chat.id)).toBe(messageId);
-    expect(await cancellationRequested(member.id, runId)).toBe(true);
-    expect(await stopReply(owner.id, chat.id, messageId)).toBe("cancelled");
-  });
+  
 
   test("signing out everywhere stops invitation links but leaves invitations pending", async () => {
     const [{ owner, first }, user] = await Promise.all([

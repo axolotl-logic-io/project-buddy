@@ -2,6 +2,8 @@ import type { JSX } from "react";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { page, userEvent } from "vitest/browser";
 import { render } from "vitest-browser-react";
+import { QuestSidePanel } from "@/components/quest-side-panel.tsx";
+import { QUEST_SIDEBAR_COPY } from "@/ui/copy/quest-sidebar.ts";
 import { QuestMembers } from "@/components/quest-members.tsx";
 import { QuestStatusTabs } from "@/components/quest-status-tabs.tsx";
 import type { MembershipResult } from "@/quests/membership.ts";
@@ -11,7 +13,7 @@ import {
 } from "@/quests/membership-actions.ts";
 import type { PendingQuest, QuestPeople } from "@/quests/membership-store.ts";
 import { THEME_MODES } from "@/themes/themes.ts";
-import { PANEL_COMMANDS_COPY } from "@/ui/copy/commands.ts";
+
 import { PENDING_COPY, QUEST_MEMBERS_COPY } from "@/ui/copy/quest-members.ts";
 import { QUEST_STATUS_COPY } from "@/ui/copy/quest-status.ts";
 import { animationsSettled } from "../../support/animations-test-kit.ts";
@@ -30,12 +32,13 @@ import {
   setViewport,
   type ViewportSize,
 } from "../viewports-test-kit.ts";
-import { QuestSidebar } from "./quest-panel-test-kit.tsx";
+
 
 vi.mock("next/navigation", () => import("./router-test-kit.ts"));
 
-const notes: typeof PANEL_COMMANDS_COPY.notes = PANEL_COMMANDS_COPY.notes;
 
+
+const SIDEBAR_LABEL: string = QUEST_SIDEBAR_COPY.label;
 const REMOVE_OWNER = /remove morgan/iu;
 const INVITED_BY_MORGAN = /Morgan invited you/u;
 const WORD_BREAK_NAME = "Thursday bread in Portuguese with neighbours";
@@ -55,8 +58,6 @@ const PEOPLE: QuestPeople = {
 // common phone's.
 const TABLET_VIEWPORT: ViewportSize = { width: 768, height: 1024 };
 const SMALL_PHONE_VIEWPORT: ViewportSize = { width: 360, height: 780 };
-const SIDEBAR_LABEL = "Quest side menu";
-const CONVERSATION = "Conversation";
 
 const QUEST_A: PendingQuest = {
   questId: questIdFixture(),
@@ -101,14 +102,7 @@ function members(viewer = OWNER.id, dailies = false): JSX.Element {
 // for viewer, opened on Members: a drawer below 1024 px.
 function sidebarMembers(viewer = OWNER.id): JSX.Element {
   return (
-    <QuestSidebar
-      initialSection="members"
-      sideSections={[
-        { id: "members", label: "Members", content: members(viewer) },
-      ]}
-    >
-      <p>{CONVERSATION}</p>
-    </QuestSidebar>
+    <QuestSidePanel initialSection="members" title="Members" panel={members(viewer)} />
   );
 }
 
@@ -141,7 +135,7 @@ describe("a quest's Members tab", () => {
   test("lists the owner, members and invitations by address, and invites by email with the keyboard", async () => {
     invite.mockResolvedValue({
       kind: "saved",
-      message: notes.invited("ash@example.test"),
+      message: QUEST_MEMBERS_COPY.invitationResult.invited("ash@example.test"),
     });
     await render(members());
     const list = page.getByRole("list", { name: QUEST_MEMBERS_COPY.listLabel });
@@ -178,7 +172,7 @@ describe("a quest's Members tab", () => {
     await email.fill("ash@example.test");
     await userEvent.keyboard("{Enter}");
     await expect
-      .element(page.getByText(notes.invited("ash@example.test")))
+      .element(page.getByText(QUEST_MEMBERS_COPY.invitationResult.invited("ash@example.test")))
       .toBeVisible();
     await expect.element(email).toHaveValue("");
     expect(invite).toHaveBeenCalledWith({
@@ -219,18 +213,18 @@ describe("a quest's Members tab", () => {
 
     invite.mockResolvedValue({
       kind: "saved",
-      message: notes.invited("rae@example.test"),
+      message: QUEST_MEMBERS_COPY.invitationResult.invited("rae@example.test"),
     });
     await page.getByRole("button", { name: QUEST_MEMBERS_COPY.invite }).click();
     await expect
-      .element(page.getByText(notes.invited("rae@example.test")))
+      .element(page.getByText(QUEST_MEMBERS_COPY.invitationResult.invited("rae@example.test")))
       .toBeVisible();
     await expect.element(email).toHaveValue("");
     await expect.element(email).toHaveFocus();
   });
 
   test("removing a member asks first and reports success", async () => {
-    remove.mockResolvedValue({ kind: "saved", message: notes.removed("Rae") });
+    remove.mockResolvedValue({ kind: "saved", message: QUEST_MEMBERS_COPY.removed });
     await render(members());
     await page
       .getByRole("button", { name: QUEST_MEMBERS_COPY.removeLabel("Rae") })
@@ -247,7 +241,7 @@ describe("a quest's Members tab", () => {
       .getByRole("alertdialog")
       .getByRole("button", { name: QUEST_MEMBERS_COPY.remove })
       .click();
-    await expect.element(page.getByText(notes.removed("Rae"))).toBeVisible();
+    await expect.element(page.getByText(QUEST_MEMBERS_COPY.removed)).toBeVisible();
     expect(remove).toHaveBeenCalledWith({
       questId: QUEST_ID,
       person: MEMBER.id,
@@ -257,7 +251,7 @@ describe("a quest's Members tab", () => {
   test("a member may withdraw an invitation without confirming, and focus stays in the tab", async () => {
     remove.mockResolvedValue({
       kind: "saved",
-      message: notes.withdrawn(INVITEE.displayName),
+      message: QUEST_MEMBERS_COPY.removed,
     });
     await render(members(MEMBER.id));
     await expect
@@ -269,7 +263,7 @@ describe("a quest's Members tab", () => {
       })
       .click();
     await expect
-      .element(page.getByText(notes.withdrawn(INVITEE.displayName)))
+      .element(page.getByText(QUEST_MEMBERS_COPY.removed))
       .toBeVisible();
     expect(remove).toHaveBeenCalledWith({
       questId: QUEST_ID,
@@ -296,30 +290,7 @@ describe("a quest's Members tab", () => {
     );
   });
 
-  test("a refused removal says why and keeps the member listed", async () => {
-    remove.mockResolvedValue({
-      kind: "problem",
-      text: PANEL_COMMANDS_COPY.problems.awaitingReply,
-    });
-    await render(members());
-    await page
-      .getByRole("button", { name: QUEST_MEMBERS_COPY.removeLabel("Rae") })
-      .click();
-    await page
-      .getByRole("alertdialog")
-      .getByRole("button", { name: QUEST_MEMBERS_COPY.remove })
-      .click();
-    await expect
-      .element(page.getByRole("alert"))
-      .toHaveTextContent(PANEL_COMMANDS_COPY.problems.awaitingReply);
-    await expect
-      .element(
-        page
-          .getByRole("list", { name: QUEST_MEMBERS_COPY.listLabel })
-          .getByText("Rae"),
-      )
-      .toBeVisible();
-  });
+  
 
   test("Dailies says only that it has no members", async () => {
     await render(members(OWNER.id, true));
@@ -350,7 +321,7 @@ describe("the Members tab in the quest sidebar's drawer", () => {
     test(`at ${viewport.width} px, Remove asks above the drawer, keeps focus in its question, and Cancel and Remove work by touch and keyboard`, async () => {
       remove.mockResolvedValue({
         kind: "saved",
-        message: notes.removed("Rae"),
+        message: QUEST_MEMBERS_COPY.removed,
       });
       await setViewport(viewport);
       await render(sidebarMembers());
@@ -392,7 +363,7 @@ describe("the Members tab in the quest sidebar's drawer", () => {
       await expect.element(confirm).toHaveFocus();
       await userEvent.keyboard("{Enter}");
       await expect
-        .element(drawer.getByText(notes.removed("Rae")))
+        .element(drawer.getByText(QUEST_MEMBERS_COPY.removed))
         .toBeVisible();
       expect(remove).toHaveBeenCalledWith({
         questId: QUEST_ID,
@@ -442,7 +413,7 @@ describe("the Members tab in the quest sidebar's drawer", () => {
   });
 
   test("at 1280 px the sidebar is no drawer, and Remove still asks first", async () => {
-    remove.mockResolvedValue({ kind: "saved", message: notes.removed("Rae") });
+    remove.mockResolvedValue({ kind: "saved", message: QUEST_MEMBERS_COPY.removed });
     await setViewport(LAPTOP_VIEWPORT);
     await render(sidebarMembers());
     await page
@@ -454,7 +425,7 @@ describe("the Members tab in the quest sidebar's drawer", () => {
     await animationsDone();
     expect(hitAtMiddle(confirm.element())).toBe(confirm.element());
     await confirm.click();
-    await expect.element(page.getByText(notes.removed("Rae"))).toBeVisible();
+    await expect.element(page.getByText(QUEST_MEMBERS_COPY.removed)).toBeVisible();
   });
 });
 

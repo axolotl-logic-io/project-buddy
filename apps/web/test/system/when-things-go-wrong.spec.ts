@@ -48,7 +48,7 @@ test("use_case_session_expired", async ({ account, context, page }) => {
     await page.goto("/quests");
     await expect(page).toHaveURL("/login");
 
-    await page.goto(`/chats/${crypto.randomUUID()}`);
+    await page.goto(`/missing/${crypto.randomUUID()}`);
     await expect(page).toHaveURL("/login");
   });
 

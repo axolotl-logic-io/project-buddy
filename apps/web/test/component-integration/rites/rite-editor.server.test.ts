@@ -1,6 +1,5 @@
 import { expect, test, vi } from "vitest";
-import { getConstruct } from "@/constructs/index.ts";
-import { startQuest } from "@/conversations/start-quest.ts";
+import { createQuest } from "@/quests/store.ts";
 import {
   listPerformances,
   startPerformance,
@@ -20,15 +19,7 @@ vi.mock("next/cache", () => ({ refresh: vi.fn() }));
 
 test("use_case_customize_rite", async () => {
   const [author, stranger] = await Promise.all([testUser(), testUser()]);
-  const started = await startQuest(
-    author.id,
-    QUEST_NAME.parse("Workshop"),
-    getConstruct("vellum"),
-  );
-  if (started.kind !== "started") {
-    throw new Error("The quest did not start");
-  }
-  const questId = started.chat.quest.id;
+  const { id: questId } = await createQuest(author.id, QUEST_NAME.parse("Workshop"));
   const [space] = await listSpaces(author.id, questId);
   if (space === undefined) {
     throw new Error("The quest has no starting space");
@@ -79,3 +70,37 @@ test("use_case_customize_rite", async () => {
     { rite: original, endedAt: null },
   ]);
 });
+
+test("use_case_retire_definitions", async () => {
+  const { owner, id } = await ownRite();
+  expect(await changeRiteAvailability(owner.id, id, "forget")).toBe(true);
+  expect(await listRites(owner.id)).not.toContainEqual(expect.objectContaining({ id }));
+});
+
+test("use_case_restore_retired_definition", async () => {
+  const { owner, id } = await ownRite();
+  await changeRiteAvailability(owner.id, id, "forget");
+  expect(await changeRiteAvailability(owner.id, id, "restore")).toBe(true);
+  expect(await listRites(owner.id)).toContainEqual(expect.objectContaining({ id, name: "Plan" }));
+});
+
+test("use_case_delete_retired_definition", async () => {
+  const { owner, id } = await ownRite();
+  expect(await changeRiteAvailability(owner.id, id, "delete")).toBe(false);
+  await changeRiteAvailability(owner.id, id, "forget");
+  expect(await changeRiteAvailability(owner.id, id, "delete")).toBe(true);
+  expect(await listRites(owner.id, true)).toEqual([]);
+});
+
+async function ownRite(): Promise<{
+  readonly owner: Awaited<ReturnType<typeof testUser>>;
+  readonly id: ReturnType<typeof OWN_RITE_ID.parse>;
+}> {
+  const owner = await testUser();
+  await signIn(owner);
+  const result = await saveRiteAction({ name: "Plan", replies: ["First reply"] });
+  if (result.kind !== "saved") {
+    throw new Error("The rite was not saved");
+  }
+  return { owner, id: OWN_RITE_ID.parse(result.id) };
+}

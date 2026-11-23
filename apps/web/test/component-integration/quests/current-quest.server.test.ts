@@ -2,7 +2,7 @@ import { and, eq } from "drizzle-orm";
 import { describe, expect, test } from "vitest";
 import { questOwnedBy } from "@/accounts/owner-scope.ts";
 import { getDb } from "@/db/client.ts";
-import { quests } from "@/db/tables/quests-and-chats.ts";
+import { quests } from "@/db/tables/quests.ts";
 import type { QuestId, UserId } from "@/ids.ts";
 import {
   CONJURATION,

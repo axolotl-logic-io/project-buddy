@@ -11,19 +11,6 @@ import {
   NO_EVENTS,
   nextTitleOf,
 } from "@/experience/experience.ts";
-import { taskPointChanges } from "@/experience/task-points.ts";
-import type { Tasks } from "@/tasks/tasks.ts";
-
-const GLAZE = { number: 4, text: "Glaze it", done: true };
-
-const POTTERY: Tasks = {
-  items: [
-    { number: 1, text: "Wedge the clay", done: true },
-    { number: 2, text: "Throw the bowl", done: false },
-    { number: 3, text: "Trim the foot", done: false },
-  ],
-  nextNumber: 4,
-};
 
 // Where circles start: circle n at 5 · n(n − 1) / 2.
 const STARTS = [
@@ -114,38 +101,3 @@ test("events weigh into experience: a completed task three, a completed quest ni
   });
 });
 
-describe("taskPointChanges", () => {
-  test("added tasks and completions gain, reopenings take back", () => {
-    const after: Tasks = {
-      items: [
-        { number: 1, text: "Wedge the clay", done: false },
-        { number: 2, text: "Throw the bowl", done: true },
-        { number: 3, text: "Trim the foot", done: false },
-        GLAZE,
-      ],
-      nextNumber: GLAZE.number + 1,
-    };
-    expect(taskPointChanges(POTTERY, after)).toEqual({
-      added: [GLAZE.number],
-      completed: [2],
-      reopened: [1],
-    });
-  });
-
-  test("a removed task keeps its counts and a restored one gains none", () => {
-    const removed: Tasks = {
-      items: POTTERY.items.filter((task) => task.number !== 1),
-      nextNumber: 4,
-    };
-    expect(taskPointChanges(POTTERY, removed)).toEqual({
-      added: [],
-      completed: [],
-      reopened: [],
-    });
-    expect(taskPointChanges(removed, POTTERY)).toEqual({
-      added: [],
-      completed: [],
-      reopened: [],
-    });
-  });
-});

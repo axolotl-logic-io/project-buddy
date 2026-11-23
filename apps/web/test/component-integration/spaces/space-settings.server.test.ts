@@ -1,6 +1,5 @@
 import { expect, test, vi } from "vitest";
-import { getConstruct } from "@/constructs/index.ts";
-import { startQuest } from "@/conversations/start-quest.ts";
+import { createQuest } from "@/quests/store.ts";
 import { readExperience } from "@/experience/experience-store.ts";
 import { QUEST_NAME } from "@/quests/quest-name.ts";
 import { changeMurmlingAction } from "@/spaces/murmling-actions.ts";
@@ -8,22 +7,14 @@ import { listMurmlings } from "@/spaces/murmling-store.ts";
 import { saveSpaceAction } from "@/spaces/space-actions.ts";
 import { listSpaces } from "@/spaces/space-store.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
-import { formOf } from "../test-database/chat-test-kit.ts";
+import { formOf } from "../test-database/form-test-kit.ts";
 import { signIn } from "../test-database/session-test-kit.ts";
 
 vi.mock("next/cache", () => ({ refresh: vi.fn() }));
 
 test("use_case_set_up_space", async () => {
   const [owner, stranger] = await Promise.all([testUser(), testUser()]);
-  const started = await startQuest(
-    owner.id,
-    QUEST_NAME.parse("Workshop"),
-    getConstruct("vellum"),
-  );
-  if (started.kind !== "started") {
-    throw new Error("The quest did not start");
-  }
-  const questId = started.chat.quest.id;
+  const { id: questId } = await createQuest(owner.id, QUEST_NAME.parse("Workshop"));
   await signIn(owner);
   const fields = {
     questId,
@@ -80,15 +71,7 @@ test("use_case_set_up_space", async () => {
 
 test("use_case_murmling_types", async () => {
   const owner = await testUser();
-  const started = await startQuest(
-    owner.id,
-    QUEST_NAME.parse("Garden"),
-    getConstruct("vellum"),
-  );
-  if (started.kind !== "started") {
-    throw new Error("The quest did not start");
-  }
-  const questId = started.chat.quest.id;
+  const { id: questId } = await createQuest(owner.id, QUEST_NAME.parse("Garden"));
   const [destination, space] = await listSpaces(owner.id, questId);
   if (space === undefined || destination === undefined) {
     throw new Error("The starting spaces were not saved");
@@ -184,15 +167,7 @@ test("use_case_murmling_types", async () => {
 
 test("use_case_quest_spaces", async () => {
   const [owner, stranger] = await Promise.all([testUser(), testUser()]);
-  const started = await startQuest(
-    owner.id,
-    QUEST_NAME.parse("Workshop"),
-    getConstruct("vellum"),
-  );
-  if (started.kind !== "started") {
-    throw new Error("The quest did not start");
-  }
-  const questId = started.chat.quest.id;
+  const { id: questId } = await createQuest(owner.id, QUEST_NAME.parse("Workshop"));
   const [source, destination] = await listSpaces(owner.id, questId);
   if (source === undefined || destination === undefined) {
     throw new Error("The starting spaces were not saved");

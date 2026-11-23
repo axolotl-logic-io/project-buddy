@@ -1,10 +1,10 @@
 import { beforeEach, describe, expect, test } from "vitest";
 import { page } from "vitest/browser";
 import { render } from "vitest-browser-react";
-import { RetirementFeedback } from "@/components/retirement-feedback.tsx";
+
 import { TextField } from "@/components/ui/field.tsx";
 import { Alert, FormStatus, Notice } from "@/components/ui/form-message.tsx";
-import { RETIREMENT_COPY } from "@/ui/copy/retirement.ts";
+
 import { tabForward } from "../../support/keyboard-test-kit.ts";
 import { applyTheme } from "../themes/theme-test-kit.ts";
 import {
@@ -27,21 +27,7 @@ for (const mode of ["light", "dark"]) {
       await setViewport(NARROWEST_VIEWPORT);
     });
 
-    test("retirement feedback has a visible boundary and space at 320 px", async () => {
-      await render(<RetirementFeedback completed={true} />);
-      const result = page.getByRole("status");
-      await expect.element(result).toHaveTextContent(RETIREMENT_COPY.retired);
-      await expect.element(result).toHaveFocus();
-      const element = result.element();
-      const look = getComputedStyle(element);
-      expect(Number.parseFloat(look.borderTopWidth)).toBeGreaterThan(0);
-      expect(Number.parseFloat(look.paddingTop)).toBeGreaterThan(0);
-      expect(look.backgroundColor).not.toBe("rgba(0, 0, 0, 0)");
-      expect(element.scrollWidth).toBeLessThanOrEqual(element.clientWidth);
-      expect(element.getBoundingClientRect().right).toBeLessThanOrEqual(
-        NARROWEST_VIEWPORT.width,
-      );
-    });
+    
 
     test("static warning keeps its link readable and keyboard reachable", async () => {
       await render(

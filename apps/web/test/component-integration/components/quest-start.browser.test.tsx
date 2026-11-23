@@ -112,7 +112,7 @@ describe("use_case_browse_premade_quests", () => {
 
   test("a refused start keeps the Why in the dialog", async () => {
     actions.startQuestAction.mockResolvedValue({
-      kind: "claudeUnavailable",
+      kind: "invalid",
       message: "Try again later.",
     });
     await render(<QuestStartChoices />);

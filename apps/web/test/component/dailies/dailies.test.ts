@@ -11,7 +11,7 @@ import {
   streakChains,
   todayHere,
 } from "@/dailies/dailies.ts";
-import type { Tasks } from "@/tasks/tasks.ts";
+import type { DayTasks } from "@/dailies/dailies.ts";
 
 // The task numbers, and the grid's usual week.
 const STRETCH = 1;
@@ -29,13 +29,12 @@ const LONG = {
   chain: { streak: 45, doneToday: true, links: 30, earned: 29 },
 };
 
-const TASKS: Tasks = {
+const TASKS: DayTasks = {
   items: [
     { number: 1, text: "Stretch", done: false, recurring: true },
     { number: 2, text: "Sketch", done: true, recurring: true },
     { number: 3, text: "Book the vet", done: true },
   ],
-  nextNumber: 4,
 };
 
 // An ended day on date, with the recurring tasks done that are listed.
@@ -57,7 +56,7 @@ function going(date: string): DailiesDay {
 // Each recurring task's streak, by its number, leaving out those at 0.
 function streaks(
   days: readonly DailiesDay[],
-  tasks: Tasks,
+  tasks: DayTasks,
 ): ReadonlyMap<number, number> {
   const found = new Map<number, number>();
   for (const [number, chain] of streakChains(days, tasks)) {

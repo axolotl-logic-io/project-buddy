@@ -3,12 +3,6 @@
 // throws instead of returning undefined, so a test reads like the fixture it
 // builds. Add a fixture for a new id type as one more `idFixture` line.
 import {
-  type ChatId,
-  type MessageId,
-  type OwnPromptId,
-  parseChatId,
-  parseMessageId,
-  parseOwnPromptId,
   parseQuestId,
   parseUserId,
   type QuestId,
@@ -41,24 +35,9 @@ const questIdFixture: IdFixture<QuestId> = idFixture(
   "questIdFixture",
   parseQuestId,
 );
-const chatIdFixture: IdFixture<ChatId> = idFixture(
-  "chatIdFixture",
-  parseChatId,
-);
-const messageIdFixture: IdFixture<MessageId> = idFixture(
-  "messageIdFixture",
-  parseMessageId,
-);
 
-const ownSpellIdFixture: IdFixture<OwnPromptId> = idFixture(
-  "spellIdFixture",
-  parseOwnPromptId,
-);
 
 export {
-  chatIdFixture,
-  messageIdFixture,
-  ownSpellIdFixture,
   questIdFixture,
   userIdFixture,
 };
