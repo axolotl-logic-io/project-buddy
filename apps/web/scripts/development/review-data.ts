@@ -253,7 +253,10 @@ async function runStep(
       await addMurmling(site, scene, scene.secondary, { text: step.text });
       return;
     case "note":
-      await addMurmling(site, scene, scene.secondary, { text: step.text, type: "quick-note" });
+      await addMurmling(site, scene, scene.secondary, {
+        text: step.text,
+        type: "quick-note",
+      });
       return;
     case "check": {
       const endpoint = `${path}/spaces/${scene.primary}`;

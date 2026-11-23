@@ -10,20 +10,17 @@ import {
   endEverySession,
   findUserByEmail,
   saveUserName,
+  type User,
 } from "@/accounts/users-store.ts";
 import QuestPage from "@/app/(workspace)/quests/[questId]/(overview)/page.tsx";
 import { continueSignInAction } from "@/app/login/link/actions.ts";
 import SignInLinkPage from "@/app/login/link/page.tsx";
 import { currentUser } from "@/auth/current-user.ts";
 
-
-
-
-
 import {
   CONJURATION,
-  readConjurations,
   conjure,
+  readConjurations,
   startPerformance,
 } from "@/performances/performance-store.ts";
 import { readCurrentQuest } from "@/quests/current-quest-store.ts";
@@ -37,9 +34,7 @@ import {
   removeFromQuest,
 } from "@/quests/membership-store.ts";
 import { QUEST_NAME } from "@/quests/quest-name.ts";
-import {
-  changeQuestStatus,
-} from "@/quests/quest-status-store.ts";
+import { changeQuestStatus } from "@/quests/quest-status-store.ts";
 import {
   createOrResumeQuest,
   getQuest,
@@ -51,9 +46,7 @@ import {
 import { listSpaces } from "@/spaces/space-store.ts";
 
 import { LINK_PAGE_COPY } from "@/ui/copy/login.ts";
-import {
-  QUEST_INVITATION_EMAIL_COPY,
-} from "@/ui/copy/quest-members.ts";
+import { QUEST_INVITATION_EMAIL_COPY } from "@/ui/copy/quest-members.ts";
 import { testData } from "../../support/test-database/data-test-kit.ts";
 import {
   testAddress,
@@ -92,7 +85,6 @@ vi.mock("next/headers", async () => {
       Promise.resolve(new Headers({ origin: "http://localhost:3494" })),
   };
 });
-
 
 // The acceptance link's continue form, with a name when given.
 function continueForm(token: string, name?: string): FormData {
@@ -143,8 +135,6 @@ async function ownerWithTwoQuests(): Promise<{
 }
 
 describe("use_case_invite_to_quest", () => {
-  
-
   test("inviting an existing user keeps their account, name and sign-up", async () => {
     const [{ owner, first }, existing] = await Promise.all([
       ownerWithTwoQuests(),
@@ -160,20 +150,21 @@ describe("use_case_invite_to_quest", () => {
     ]);
   });
 
-  
-
-  
-
   test("inviting the owner, a member, or into a Dailies quest changes nothing", async () => {
     const [{ owner, first }, member] = await Promise.all([
       ownerWithTwoQuests(),
       testUser(),
     ]);
     await addMember(owner, first.id, member);
-    const dailies = await createOrResumeQuest(owner.id, QUEST_NAME.parse("Dailies"), { dailies: true,
-      context: "Make room for creativity",
-      constructId: "vellum",
-    });
+    const dailies = await createOrResumeQuest(
+      owner.id,
+      QUEST_NAME.parse("Dailies"),
+      {
+        dailies: true,
+        startingContext: "Make room for creativity",
+        constructId: "vellum",
+      },
+    );
 
     expect(await invite(owner, first.id, owner.email)).toEqual({
       kind: "in-quest",
@@ -570,62 +561,76 @@ test("use_case_quest_member_powers", async () => {
   await addMember(owner, first.id, other);
   const name = QUEST_NAME.parse("Shared work");
   expect(await renameQuest(member.id, first.id, name)).toBe(true);
-  expect(await changeQuestStatus(member.id, {
-    questId: first.id,
-    fromStatus: "active",
-    toStatus: "completed",
-    revision: first.statusRevision,
-  })).toBeDefined();
-  expect(await getQuest(owner.id, first.id)).toMatchObject({ name, status: "completed" });
-  expect(await invite(member, first.id, testAddress())).toEqual({ kind: "invited" });
-  expect(await removeFromQuest(member.id, { questId: first.id, person: owner.id })).toBe(false);
-  expect(await removeFromQuest(member.id, { questId: first.id, person: other.id })).toBe(true);
+  expect(
+    await changeQuestStatus(member.id, {
+      questId: first.id,
+      fromStatus: "active",
+      toStatus: "completed",
+      revision: first.statusRevision,
+    }),
+  ).toBeDefined();
+  expect(await getQuest(owner.id, first.id)).toMatchObject({
+    name,
+    status: "completed",
+  });
+  expect(await invite(member, first.id, testAddress())).toEqual({
+    kind: "invited",
+  });
+  expect(
+    await removeFromQuest(member.id, { questId: first.id, person: owner.id }),
+  ).toBe(false);
+  expect(
+    await removeFromQuest(member.id, { questId: first.id, person: other.id }),
+  ).toBe(true);
   expect(await getQuest(other.id, first.id)).toBeUndefined();
 });
 
 test("use_case_quest_member_access", async () => {
-  const [{ owner, first, second }, member, pending, stranger] = await Promise.all([
-    ownerWithTwoQuests(),
-    testUser(),
-    testUser(),
-    testUser(),
-  ]);
+  const [{ owner, first, second }, member, pending, stranger] =
+    await Promise.all([
+      ownerWithTwoQuests(),
+      testUser(),
+      testUser(),
+      testUser(),
+    ]);
   await addMember(owner, first.id, member);
   await addInvitee(owner, first.id, pending);
   const [space] = await listSpaces(member.id, first.id);
   if (space === undefined) {
     throw new Error("Member could not read the quest's spaces");
   }
-  const performance = await startPerformance(member.id, first.id, { spaceId: space.id, riteId: "capture" });
+  const performance = await startPerformance(member.id, first.id, {
+    spaceId: space.id,
+    riteId: "capture",
+  });
   if (performance === undefined) {
     throw new Error("Member could not start a performance");
   }
-  const makeRequest = () => CONJURATION.parse({
-    id: crypto.randomUUID(),
-    performanceId: performance.id,
-    text: "Work from the sketch",
-  });
+  const performanceId = performance.id;
+  function makeRequest(): Parameters<typeof conjure>[2] {
+    return CONJURATION.parse({
+      id: crypto.randomUUID(),
+      performanceId,
+      text: "Work from the sketch",
+    });
+  }
+  async function expectDenied(person: User): Promise<void> {
+    expect(await getQuest(person.id, first.id)).toBeUndefined();
+    expect(await listSpaces(person.id, first.id)).toEqual([]);
+    expect(await readConjurations(person.id, performanceId)).toEqual([]);
+    expect(await conjure(person.id, first.id, makeRequest())).toBeUndefined();
+  }
   const saved = await conjure(member.id, first.id, makeRequest());
   expect(saved).toBeDefined();
   expect(await readConjurations(owner.id, performance.id)).toEqual([saved]);
   expect(await listSpaces(member.id, second.id)).toEqual([]);
-  for (const denied of [pending, stranger, member]) {
-    if (denied === member) {
-      await removeFromQuest(owner.id, { questId: first.id, person: member.id });
-    }
-    expect(await getQuest(denied.id, first.id)).toBeUndefined();
-    expect(await listSpaces(denied.id, first.id)).toEqual([]);
-    expect(await readConjurations(denied.id, performance.id)).toEqual([]);
-    expect(await conjure(denied.id, first.id, makeRequest())).toBeUndefined();
-  }
+  await Promise.all([pending, stranger].map(expectDenied));
+  await removeFromQuest(owner.id, { questId: first.id, person: member.id });
+  await expectDenied(member);
   expect(await readConjurations(owner.id, performance.id)).toEqual([saved]);
 });
 
 describe("use_case_remove_quest_member", () => {
-  
-
-  
-
   test("a removed member's quest page can't be found", async () => {
     const [{ owner, first }, member] = await Promise.all([
       ownerWithTwoQuests(),
@@ -643,8 +648,6 @@ describe("use_case_remove_quest_member", () => {
       }),
     );
   });
-
-  
 });
 
 describe("how a quest is shared, wherever quests are listed", () => {
@@ -698,8 +701,6 @@ describe("how a quest is shared, wherever quests are listed", () => {
 });
 
 describe("removal and sign-out leave no stuck state", () => {
-  
-
   test("signing out everywhere stops invitation links but leaves invitations pending", async () => {
     const [{ owner, first }, user] = await Promise.all([
       ownerWithTwoQuests(),

@@ -69,7 +69,90 @@
 //   --body-font       body text (set on <body>)         font-body
 //   --heading-font    headings (set on h1 to h6)        font-heading
 //   --mono-font       code                              font-mono
-
+// Spacing, one value for all three appearances:
+//   --space-unit      the step of every spacing         any spacing
+//                     utility, such as 0.25rem          utility: p-4,
+//                     (Tailwind's own)                  gap-2, size-4
+// Heading sizes, one value for all three appearances, each in rem and larger than body
+// text (1rem), from the site's title down to a section's heading, with a
+// page's heading at least 1.2 times a section's (theme-tokens.browser.test.tsx checks
+// both). page-roles.css's heading roles use them; the line heights are the
+// contract's.
+//   --site-title-size       the site's name, as the   text-site-title
+//                           heading of the home and
+//                           login pages
+//   --site-title-wide-size  the same from sm up, at   text-site-title-wide
+//                           least as large
+//   --page-heading-size     a page's heading          text-page-heading
+//   --page-heading-phone-size  the same below sm, at  text-page-heading-phone
+//                           most as large, and still
+//                           clearly above a section's
+//   --section-heading-size  a heading inside a page   text-section-heading
+// Title sizes, one value for all three appearances, each in rem, for titles that
+// aren't a page's headings (theme-tokens.browser.test.tsx checks each sits below the
+// heading named). page-roles.css's title roles use them.
+//   --header-title-size     the site's name in the    text-header-title
+//                           header, below a page's
+//                           heading and above body
+//                           text
+//   --card-title-size       a card's title, such as   text-card-title
+//                           a quest's name, below
+//                           a section's heading, at
+//                           least body text
+// Letterpress actions (buttons, action links and specialized control roles):
+//   action-fill / on-action     brass commitment       bg-action-fill / text-on-action
+//   action-paper / action-ink   paper and ink          bg-action-paper / text-action-ink
+//   --action-font               action labels          font-action
+//   --action-radius             fine action corners    rounded-action
+//   --action-line-width         action keyline width   (read by page-roles.css)
+//   --action-hover-shadow       subtle pointer hover   shadow-action-hover
+//   --action-pressed-shadow     shallow inset press    (read by page-roles.css)
+// Danger continues to use danger/on-danger. Quiet destructive triggers use
+// Button quiet-danger; irreversible confirmations use danger and a trash icon.
+// Shape and depth, one value for all three appearances:
+//   --control-radius  inputs, swatches, content details       rounded-control
+//   --box-radius      panels, cards, menus              rounded-box
+//   --line-width      the width of every border, and    border (any side)
+//                     of a chosen card's outline and a  (and read by
+//                     link's underline                  page-roles.css)
+//   --control-shadow  fields and content surfaces                shadow-control
+//   --raised-shadow   panels that float: menus, cards   shadow-raised
+//   --focus-glow      a box-shadow layer added to the   (set on
+//                     focused element's shadows, such   :focus-visible and
+//                     as `0 0 6px <colour>`, or         the focused
+//                     `0 0 transparent` for none        .field-box)
+// Decoration:
+//   --page-decoration a background-image behind the     (set on <body>)
+//                     page, or `none`
+// The site panel, using the active palette, read by page-roles.css's
+// .site-panel and .panel-* roles:
+//   --panel-decoration     a background-image behind the site panel, or
+//                          `none`; hidden with the page decoration
+//   --panel-label-case     a text-transform for its groups' names
+//   --panel-label-tracking their letter-spacing
+//   --panel-separator      a background for the rule between its groups
+//   --panel-separator-size that rule's height
+//   --header-ink      the shared HUD's permanent dark ground
+//   --header-paper    light text and medallion on the HUD
+//   --header-line     HUD separators and button shadow
+//   --header-gold     HUD accent, controls and focus rings
+// The built-in constructs' drawings (components/constructs/artwork/), set
+// per mode and read by construct-art.css. Ink stays dark in every mode,
+// because it only draws over metal, paper and light:
+//   --construct-ground       the portrait's backdrop
+//   --construct-ground-ink   faint backdrop detail: coastlines, motes
+//   --construct-ink          outlines, eyes and runes
+//   --construct-metal        the lit face of brass
+//   --construct-metal-shade  the shadowed face of brass
+//   --construct-metal-light  polish highlights on brass
+//   --construct-paper        map paper, the quill, the compass plate
+//   --construct-glow         Lumen's light and Vellum's lenses
+//   --construct-glow-core    the hottest centre of a light
+//   --construct-accent       one rubric red: jewels, the compass's north
+// A shadow or decoration that should differ by mode uses colour tokens, as
+// in color-mix(in oklab, var(--shadow) 30%, transparent).
+//
+import { z } from "zod";
 
 // The site's single visual identity. Old theme cookies resolve to this entry.
 const THEMES = [{ id: "parchment", name: "Parchment" }] as const;

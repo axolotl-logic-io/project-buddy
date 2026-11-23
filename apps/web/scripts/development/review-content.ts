@@ -295,20 +295,18 @@ const CROWDED_TASKS: readonly string[] = [
 
 const CROWDED_RITES: readonly ReviewRite[] = Array.from(
   { length: RITES },
-  (_, index) => {
-      return {
-      name: growingText(
-        `Rite ${index + 1}: capture every passing thought about the archive move before it is lost `,
-        RITE_NAME_MAX,
-        RITES - index,
-        RITES,
-      ),
-      replies: Array.from(
-        { length: RITE_REPLIES_MAX },
-        (__, reply) => `Saved, reply ${reply + 1}.`,
-      ),
-    };
-  },
+  (_, index) => ({
+    name: growingText(
+      `Rite ${index + 1}: capture every passing thought about the archive move before it is lost `,
+      RITE_NAME_MAX,
+      RITES - index,
+      RITES,
+    ),
+    replies: Array.from(
+      { length: RITE_REPLIES_MAX },
+      (__, reply) => `Saved, reply ${reply + 1}.`,
+    ),
+  }),
 );
 
 const CROWDED_MAIN: ReviewQuest = {

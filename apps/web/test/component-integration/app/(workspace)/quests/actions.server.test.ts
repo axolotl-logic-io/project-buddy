@@ -10,14 +10,14 @@ import {
   startQuestAction,
 } from "@/app/(workspace)/quests/actions.ts";
 import { getConstruct, listConstructs } from "@/constructs/index.ts";
+import { listPerformances } from "@/performances/performance-store.ts";
 import {
   PREMADE_QUESTS,
   type PremadeQuestId,
 } from "@/quests/premade-quests.ts";
 import { QUEST_NAME_MAX_LENGTH } from "@/quests/quest-name.ts";
-import { listPerformances } from "@/performances/performance-store.ts";
-import { listSpaces } from "@/spaces/space-store.ts";
 import { listQuests, type Quest } from "@/quests/store.ts";
+import { listSpaces } from "@/spaces/space-store.ts";
 import { QUESTS_COPY } from "@/ui/copy/quests.ts";
 import { testData } from "../../../../support/test-database/data-test-kit.ts";
 import { testUser } from "../../../../support/test-database/user-test-kit.ts";
@@ -55,10 +55,7 @@ function startForm(
 
 // Starts a quest from form as the signed-in user, checks the action opened
 // the quest it made, the newest of theirs, and returns its conversation.
-async function startQuest(
-  user: User,
-  form: FormData,
-): Promise<Quest> {
+async function startQuest(user: User, form: FormData): Promise<Quest> {
   const starting = startQuestAction(IDLE, form);
   await Promise.allSettled([starting]);
   const [quest] = await listQuests(user.id);
@@ -103,7 +100,11 @@ describe("use_case_new_quest", () => {
 
       expect(conversation.constructId).toBe(premade(id).constructId);
       expect(await listPerformances(user.id, conversation.id)).toEqual([]);
-      expect((await listSpaces(user.id, conversation.id)).map(({ newType }) => newType)).toEqual(["task", "plain"]);
+      expect(
+        (await listSpaces(user.id, conversation.id)).map(
+          ({ newType }) => newType,
+        ),
+      ).toEqual(["task", "plain"]);
     },
   );
 

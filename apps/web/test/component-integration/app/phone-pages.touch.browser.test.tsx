@@ -71,9 +71,6 @@ vi.mock("@/quests/current-quest-store.ts", () => ({
   readCurrentQuest: vi.fn<typeof readCurrentQuest>(),
 }));
 
-
-
-
 vi.mock("@/accounts/sign-in-links.ts", () => ({
   readSignInLinkUser: vi.fn<typeof readSignInLinkUser>(),
 }));
@@ -95,8 +92,7 @@ vi.mock("@/app/login/link/actions.ts", () => ({
 vi.mock("@/app/(workspace)/quests/actions.ts", () => ({
   startQuestAction: vi.fn(),
 }));
-vi.mock("@/app/(workspace)/quests/[questId]/(overview)/actions.ts", () => ({
-}));
+vi.mock("@/app/(workspace)/quests/[questId]/(overview)/actions.ts", () => ({}));
 vi.mock("@/app/(workspace)/constructs/actions.ts", () => ({
   retireConstructAction: vi.fn(),
   cloneConstructAction: vi.fn(),
@@ -228,7 +224,6 @@ beforeAll(async () => {
 });
 
 beforeEach(() => {
-  
   document.documentElement.classList.add("h-full");
   document.body.classList.add("flex", "min-h-full", "flex-col");
 });
@@ -287,10 +282,6 @@ describe("use_case_use_on_phone", () => {
     });
   }
 });
-
-
-
-
 
 vi.mock(
   "@/visits/signed-in-days-store.ts",

@@ -1,7 +1,11 @@
 import { expect, test, vi } from "vitest";
 import { readUserName } from "@/accounts/users-store.ts";
 import { setNameAction } from "@/app/(workspace)/profile/actions.ts";
-import { CONJURATION, conjure, startPerformance } from "@/performances/performance-store.ts";
+import {
+  CONJURATION,
+  conjure,
+  startPerformance,
+} from "@/performances/performance-store.ts";
 import { saveRite } from "@/rites/rite-store.ts";
 import { listSpaces } from "@/spaces/space-store.ts";
 import { ACCOUNT_COPY } from "@/ui/copy/account.ts";
@@ -17,12 +21,18 @@ test("use_case_set_name", async () => {
   const other = await testUser();
   const data = testData(user);
   const quest = await data.quest();
-  const rite = await saveRite(user.id, { name: "Named replies", replies: ["Hi {user}"] });
+  const rite = await saveRite(user.id, {
+    name: "Named replies",
+    replies: ["Hi {user}"],
+  });
   const [space] = await listSpaces(user.id, quest.id);
   if (rite === undefined || space === undefined) {
     throw new Error("The performance could not be prepared");
   }
-  const performance = await startPerformance(user.id, quest.id, { spaceId: space.id, riteId: rite.id });
+  const performance = await startPerformance(user.id, quest.id, {
+    spaceId: space.id,
+    riteId: rite.id,
+  });
   if (performance === undefined) {
     throw new Error("The performance could not start");
   }
@@ -35,7 +45,19 @@ test("use_case_set_name", async () => {
   });
   expect(await readUserName(user.id)).toBe("Mabel");
   expect(await readUserName(other.id)).toBeUndefined();
-  expect((await conjure(user.id, quest.id, CONJURATION.parse({ id: crypto.randomUUID(), performanceId: performance.id, text: "An idea" })))?.reply).toBe("Hi Mabel");
+  expect(
+    (
+      await conjure(
+        user.id,
+        quest.id,
+        CONJURATION.parse({
+          id: crypto.randomUUID(),
+          performanceId: performance.id,
+          text: "An idea",
+        }),
+      )
+    )?.reply,
+  ).toBe("Hi Mabel");
   form.set("name", "{x}");
   expect(await setNameAction({ kind: "idle" }, form)).toEqual({
     kind: "invalid",
@@ -47,5 +69,17 @@ test("use_case_set_name", async () => {
     kind: "invalid",
     message: ACCOUNT_COPY.nameRequired,
   });
-  expect((await conjure(user.id, quest.id, CONJURATION.parse({ id: crypto.randomUUID(), performanceId: performance.id, text: "Another idea" })))?.reply).toBe("Hi Mabel");
+  expect(
+    (
+      await conjure(
+        user.id,
+        quest.id,
+        CONJURATION.parse({
+          id: crypto.randomUUID(),
+          performanceId: performance.id,
+          text: "Another idea",
+        }),
+      )
+    )?.reply,
+  ).toBe("Hi Mabel");
 });

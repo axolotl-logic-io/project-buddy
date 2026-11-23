@@ -435,7 +435,9 @@ function removeFromQuest(
 ): Promise<boolean> {
   return withAppErrors("remove from quest", () =>
     inTransaction(async (tx) => {
-      if ((await lockedSharableQuest(tx, user, request.questId)) === undefined) {
+      if (
+        (await lockedSharableQuest(tx, user, request.questId)) === undefined
+      ) {
         return false;
       }
       const members = await tx

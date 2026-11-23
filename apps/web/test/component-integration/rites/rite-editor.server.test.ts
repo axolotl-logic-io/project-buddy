@@ -1,10 +1,10 @@
 import { expect, test, vi } from "vitest";
-import { createQuest } from "@/quests/store.ts";
 import {
   listPerformances,
   startPerformance,
 } from "@/performances/performance-store.ts";
 import { QUEST_NAME } from "@/quests/quest-name.ts";
+import { createQuest } from "@/quests/store.ts";
 import { saveRiteAction } from "@/rites/rite-actions.ts";
 import {
   changeRiteAvailability,
@@ -19,7 +19,10 @@ vi.mock("next/cache", () => ({ refresh: vi.fn() }));
 
 test("use_case_customize_rite", async () => {
   const [author, stranger] = await Promise.all([testUser(), testUser()]);
-  const { id: questId } = await createQuest(author.id, QUEST_NAME.parse("Workshop"));
+  const { id: questId } = await createQuest(
+    author.id,
+    QUEST_NAME.parse("Workshop"),
+  );
   const [space] = await listSpaces(author.id, questId);
   if (space === undefined) {
     throw new Error("The quest has no starting space");
@@ -74,14 +77,18 @@ test("use_case_customize_rite", async () => {
 test("use_case_retire_definitions", async () => {
   const { owner, id } = await ownRite();
   expect(await changeRiteAvailability(owner.id, id, "forget")).toBe(true);
-  expect(await listRites(owner.id)).not.toContainEqual(expect.objectContaining({ id }));
+  expect(await listRites(owner.id)).not.toContainEqual(
+    expect.objectContaining({ id }),
+  );
 });
 
 test("use_case_restore_retired_definition", async () => {
   const { owner, id } = await ownRite();
   await changeRiteAvailability(owner.id, id, "forget");
   expect(await changeRiteAvailability(owner.id, id, "restore")).toBe(true);
-  expect(await listRites(owner.id)).toContainEqual(expect.objectContaining({ id, name: "Plan" }));
+  expect(await listRites(owner.id)).toContainEqual(
+    expect.objectContaining({ id, name: "Plan" }),
+  );
 });
 
 test("use_case_delete_retired_definition", async () => {
@@ -98,7 +105,10 @@ async function ownRite(): Promise<{
 }> {
   const owner = await testUser();
   await signIn(owner);
-  const result = await saveRiteAction({ name: "Plan", replies: ["First reply"] });
+  const result = await saveRiteAction({
+    name: "Plan",
+    replies: ["First reply"],
+  });
   if (result.kind !== "saved") {
     throw new Error("The rite was not saved");
   }

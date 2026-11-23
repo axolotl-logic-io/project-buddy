@@ -9,7 +9,6 @@ import { render } from "vitest-browser-react";
 import { AccountLinks, SiteHeader } from "@/components/site-header.tsx";
 import { SitePanel } from "@/components/site-panel.tsx";
 
-
 import {
   listQuickNoteQuests,
   type QuickNoteQuest,
@@ -213,7 +212,4 @@ describe("use_case_quick_note", () => {
       .element(dialog.getByRole("textbox", { name: QUICK_NOTE_COPY.textLabel }))
       .not.toBeInTheDocument();
   });
-
-  
-
 });

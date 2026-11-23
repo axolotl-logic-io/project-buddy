@@ -3,6 +3,7 @@
 // Progress grid.
 
 import { describe, expect, test } from "vitest";
+import type { DayTasks } from "@/dailies/dailies.ts";
 import {
   type DailiesDay,
   dayDate,
@@ -11,7 +12,6 @@ import {
   streakChains,
   todayHere,
 } from "@/dailies/dailies.ts";
-import type { DayTasks } from "@/dailies/dailies.ts";
 
 // The task numbers, and the grid's usual week.
 const STRETCH = 1;

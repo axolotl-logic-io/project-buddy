@@ -15,17 +15,41 @@ test("use_case_experience", async () => {
   if (space === undefined) {
     throw new Error("Missing space");
   }
-  const added = await writeSpaceContents(member.id, quest.id, space.id, { kind: "add", text: "Pack lunch" });
+  const added = await writeSpaceContents(member.id, quest.id, space.id, {
+    kind: "add",
+    text: "Pack lunch",
+  });
   const task = added.space?.murmlings[0];
   if (task === undefined) {
     throw new Error("Missing task");
   }
-  await writeSpaceContents(owner.id, quest.id, space.id, { kind: "check", id: task.id, checkedOff: true });
-  await changeQuestStatus(member.id, { questId: quest.id, fromStatus: "active", toStatus: "completed", revision: 0 });
-  expect((await readExperience(member.id)).counts).toMatchObject({ adding: 1, "completing-quests": 1 });
+  await writeSpaceContents(owner.id, quest.id, space.id, {
+    kind: "check",
+    id: task.id,
+    checkedOff: true,
+  });
+  await changeQuestStatus(member.id, {
+    questId: quest.id,
+    fromStatus: "active",
+    toStatus: "completed",
+    revision: 0,
+  });
+  expect((await readExperience(member.id)).counts).toMatchObject({
+    adding: 1,
+    "completing-quests": 1,
+  });
   expect((await readExperience(owner.id)).counts["checking-off"]).toBe(1);
-  await writeSpaceContents(member.id, quest.id, space.id, { kind: "check", id: task.id, checkedOff: false });
-  await changeQuestStatus(owner.id, { questId: quest.id, fromStatus: "completed", toStatus: "active", revision: 1 });
+  await writeSpaceContents(member.id, quest.id, space.id, {
+    kind: "check",
+    id: task.id,
+    checkedOff: false,
+  });
+  await changeQuestStatus(owner.id, {
+    questId: quest.id,
+    fromStatus: "completed",
+    toStatus: "active",
+    revision: 1,
+  });
   expect((await readExperience(member.id)).experience).toBe(1);
   expect((await readExperience(owner.id)).experience).toBe(0);
 });

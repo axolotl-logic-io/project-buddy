@@ -98,9 +98,7 @@ const NOT_FOUND_MESSAGE =
 // The problems a failure the stores raise can answer with.
 type CaseProblemCode = Extract<
   ApiProblemCode,
-  | "not_found"
-  | "authorization_required"
-  | "server_error"
+  "not_found" | "authorization_required" | "server_error"
 >;
 
 // The problem a failure the stores raise answers with.

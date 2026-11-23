@@ -100,4 +100,3 @@ test("events weigh into experience: a completed task three, a completed quest ni
     nextCircleStart: 30,
   });
 });
-

@@ -13,5 +13,4 @@ const LINK_USER: SessionUser & { readonly needsName: boolean } = {
   needsName: false,
 };
 
-
 export { LINK_USER };

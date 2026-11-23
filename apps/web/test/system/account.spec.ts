@@ -93,7 +93,9 @@ async function answerSignOutEverywhere(
   answer: string,
 ): Promise<void> {
   const dialog = signOutEverywhereDialog(page);
-  await page.getByRole("button", { name: ACCOUNT_COPY.signOutEverywhere }).click();
+  await page
+    .getByRole("button", { name: ACCOUNT_COPY.signOutEverywhere })
+    .click();
   await expect(dialog).toHaveAccessibleDescription(
     ACCOUNT_COPY.signOutEverywhereDescription,
   );
@@ -110,11 +112,7 @@ test("use_case_sign_out_everywhere", async ({
   const link = await newSignInLink(page, account.email);
   await logIn(page, account);
   await openSecurity(page);
-  const other = await anotherBrowser(
-    browser,
-    account,
-    `/quests/${quest.id}`,
-  );
+  const other = await anotherBrowser(browser, account, `/quests/${quest.id}`);
 
   await test.step("cancelling changes nothing", async () => {
     await answerSignOutEverywhere(page, ACCOUNT_COPY.stay);

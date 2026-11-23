@@ -2,16 +2,12 @@ import { parse } from "culori";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { page, userEvent } from "vitest/browser";
 import { render } from "vitest-browser-react";
-import {
-  changeQuestStatusAction,
-} from "@/app/(workspace)/quests/status-actions.ts";
+import { changeQuestStatusAction } from "@/app/(workspace)/quests/status-actions.ts";
 
 import { QuestStatusControls } from "@/components/quest-status-controls.tsx";
 import { QuestStatusTabs } from "@/components/quest-status-tabs.tsx";
 import type { AnswerInvitation } from "@/quests/membership.ts";
-import {
-  type StatusActionState,
-} from "@/quests/quest-status.ts";
+import type { StatusActionState } from "@/quests/quest-status.ts";
 import { THEME_MODES } from "@/themes/themes.ts";
 import { PENDING_COPY } from "@/ui/copy/quest-members.ts";
 import { QUEST_STATUS_COPY } from "@/ui/copy/quest-status.ts";
@@ -28,7 +24,6 @@ import {
   PHONE_VIEWPORT,
   setViewport,
 } from "../viewports-test-kit.ts";
-
 
 const TAB_TARGET_PX = 44;
 
@@ -140,8 +135,6 @@ describe("quest status actions", () => {
     expect(undone?.get("revision")).toBe("1");
   });
 });
-
-
 
 describe("quest status tabs", () => {
   test("filters quests by status and supports keyboard navigation", async () => {
@@ -287,8 +280,6 @@ describe("quest status on phones", () => {
           )
           .toBeVisible();
       });
-
-      
     }
   }
 });

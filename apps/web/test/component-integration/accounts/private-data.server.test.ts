@@ -77,7 +77,10 @@ describe("use_case_private_data", () => {
 
   test("each sees only their own projects", async () => {
     const { herData, other, otherData } = await twoUsers();
-    const quests = [await herData.quest("Glaze notes"), await otherData.quest("Evening sketches")];
+    const quests = [
+      await herData.quest("Glaze notes"),
+      await otherData.quest("Evening sketches"),
+    ];
     const [hers, theirs] = quests.map(({ name }) => name);
 
     expect(projectsIn(await projectsHtml(), quests)).toEqual([hers]);

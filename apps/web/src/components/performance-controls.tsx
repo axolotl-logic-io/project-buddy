@@ -7,8 +7,8 @@ import {
   type ReactNode,
   type SubmitEvent,
   useCallback,
-  useRef,
   useLayoutEffect,
+  useRef,
   useState,
   useSyncExternalStore,
 } from "react";
@@ -142,7 +142,9 @@ function Conjure({
   const stored = useSyncExternalStore(subscribe, snapshot, withoutDraft);
   const saved = draft ?? parseLocalDraft(stored, DRAFT) ?? EMPTY;
   const latestRef = useRef(saved);
-  useLayoutEffect(() => { latestRef.current = saved; }, [saved]);
+  useLayoutEffect(() => {
+    latestRef.current = saved;
+  }, [saved]);
   const answeredId = saved.request?.id;
   const request =
     answeredId !== undefined && !answered.includes(answeredId) && saved.request;

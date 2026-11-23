@@ -16,14 +16,9 @@ import { render } from "vitest-browser-react";
 import { QuestList } from "@/components/quest-list.tsx";
 import { THEMES, type ThemeId } from "@/themes/themes.ts";
 
-import {
-  questIdFixture,
-} from "../../support/id-fixtures.ts";
+import { questIdFixture } from "../../support/id-fixtures.ts";
 import { applyTheme } from "../themes/theme-test-kit.ts";
-import {
-  focusLook,
-  showsGlow,
-} from "./focus-look-test-kit.ts";
+import { focusLook, showsGlow } from "./focus-look-test-kit.ts";
 
 vi.mock("next/navigation", () => import("./router-test-kit.ts"));
 
@@ -117,7 +112,7 @@ async function linkCardFocus(): Promise<
             status: "active",
             statusRevision: 0,
             dailies: false,
-    constructId: "lumen",
+            constructId: "lumen",
             sharing: { kind: "personal" },
           },
         ]}
@@ -154,8 +149,6 @@ describe("use_case_choose_theme", () => {
           overlayOff: 0,
         });
       });
-
-  
     });
   }
 });

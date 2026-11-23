@@ -29,7 +29,8 @@ async function testQuest(
 
 function testData(user: User): TestData {
   return {
-    quest: (name = "Test quest", createdAt): Promise<Quest> => testQuest(user.id, name, createdAt),
+    quest: (name?: string, createdAt?: Date): Promise<Quest> =>
+      testQuest(user.id, name ?? "Test quest", createdAt),
   };
 }
 

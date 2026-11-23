@@ -11,7 +11,6 @@ vi.mock("@/app/(workspace)/quests/status-actions.ts", () => ({
   changeQuestStatusAction: vi.fn(() => {
     throw new Error("Mock the quest status action in this test");
   }),
-
 }));
 
 // The quest start (src/components/quest-start.tsx) reaches this action from
@@ -27,10 +26,6 @@ vi.mock("@/quests/rename-quest-action.ts", () => ({
     throw new Error("Mock the quest rename action in this test");
   }),
 }));
-
-
-
-
 
 // A WebKit error's stack lists only its frames, without the "Name: message"
 // line Chromium's starts with, and reporters that print an error's stack
@@ -80,11 +75,6 @@ beforeEach(({ onTestFailed }) => {
   });
 });
 
-
-
-
-
-
 // The site panel's Quick Note dialog and a quest's Quick Notes tab reach these
 // from every signed-in page. Tests of those flows supply their own results.
 
@@ -95,8 +85,6 @@ vi.mock("@/timer/presence-action.ts", () => ({
     Promise.resolve({ kind: "count", others: 0 }),
   ),
 }));
-
-
 
 // Quests and a quest's Members tab reach these. Tests of membership flows
 // supply their own results; by default a quest shows no Members tab, the

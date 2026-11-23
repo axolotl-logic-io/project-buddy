@@ -1,7 +1,7 @@
 import { expect, test, vi } from "vitest";
-import { createQuest } from "@/quests/store.ts";
 import { QUEST_ID } from "@/ids.ts";
 import { QUEST_NAME } from "@/quests/quest-name.ts";
+import { createQuest } from "@/quests/store.ts";
 import { listMurmlings } from "@/spaces/murmling-store.ts";
 import {
   listQuickNoteQuests,

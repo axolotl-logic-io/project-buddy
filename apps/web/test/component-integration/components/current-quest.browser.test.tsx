@@ -6,14 +6,16 @@
 import { describe, expect, test } from "vitest";
 import { page } from "vitest/browser";
 import { render } from "vitest-browser-react";
-
-import type { Quest } from "@/quests/store.ts";
 import { CurrentQuestCard } from "@/components/current-quest.tsx";
+import type { Quest } from "@/quests/store.ts";
 import { QUEST_SHARING_COPY } from "@/ui/copy/quest-members.ts";
 import { CURRENT_QUEST_COPY } from "@/ui/copy/quests.ts";
 import { FOX_QUEST } from "../app/(workspace)/page-fixtures.ts";
 
-const QUEST: Pick<Quest, "id" | "name"> = { id: FOX_QUEST.id, name: FOX_QUEST.name };
+const QUEST: Pick<Quest, "id" | "name"> = {
+  id: FOX_QUEST.id,
+  name: FOX_QUEST.name,
+};
 
 describe("use_case_continue_quest", () => {
   test("names the quest and its next task, and Continue opens its conversation", async () => {

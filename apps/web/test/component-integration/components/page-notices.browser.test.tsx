@@ -27,8 +27,6 @@ for (const mode of ["light", "dark"]) {
       await setViewport(NARROWEST_VIEWPORT);
     });
 
-    
-
     test("static warning keeps its link readable and keyboard reachable", async () => {
       await render(
         <Notice>

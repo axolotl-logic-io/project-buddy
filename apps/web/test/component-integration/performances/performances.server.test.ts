@@ -5,7 +5,6 @@ import {
   DELETE as stop,
 } from "@/app/api/v1/quests/[questId]/performances/[performanceId]/route.ts";
 import { POST as start } from "@/app/api/v1/quests/[questId]/performances/route.ts";
-import { createQuest } from "@/quests/store.ts";
 import {
   conjureAction,
   startPerformanceAction,
@@ -16,6 +15,7 @@ import {
   readConjurations,
 } from "@/performances/performance-store.ts";
 import { QUEST_NAME } from "@/quests/quest-name.ts";
+import { createQuest } from "@/quests/store.ts";
 import { listMurmlings } from "@/spaces/murmling-store.ts";
 import { listSpaces } from "@/spaces/space-store.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
@@ -30,7 +30,10 @@ async function setup(): Promise<{
   spaces: Awaited<ReturnType<typeof listSpaces>>;
 }> {
   const user = await testUser();
-  const { id: questId } = await createQuest(user.id, QUEST_NAME.parse("Workshop"));
+  const { id: questId } = await createQuest(
+    user.id,
+    QUEST_NAME.parse("Workshop"),
+  );
   await signIn(user);
   return { user, questId, spaces: await listSpaces(user.id, questId) };
 }

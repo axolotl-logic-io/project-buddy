@@ -23,8 +23,6 @@ import QuestPage from "@/app/(workspace)/quests/[questId]/(overview)/page.tsx";
 import SettingsLayout from "@/app/(workspace)/settings/layout.tsx";
 import SettingsPage from "@/app/(workspace)/settings/page.tsx";
 
-
-
 import TimerPage from "@/app/(workspace)/timer/[work]/[break]/[start]/page.tsx";
 import TimerLayout from "@/app/(workspace)/timer/layout.tsx";
 import TimerSetupPage from "@/app/(workspace)/timer/page.tsx";
@@ -33,13 +31,11 @@ import SignInLinkPage from "@/app/login/link/page.tsx";
 import LoginPage from "@/app/login/page.tsx";
 import SignUpPage from "@/app/signup/page.tsx";
 
-
 import { readCurrentQuest } from "@/quests/current-quest-store.ts";
 import { getQuest, listQuests } from "@/quests/store.ts";
 
 import { BUILT_IN_RITES } from "@/rites/rite.ts";
 import { listRites, readRite } from "@/rites/rite-store.ts";
-
 
 import { QUEST_COPY, QUESTS_COPY } from "@/ui/copy/quests.ts";
 
@@ -129,7 +125,6 @@ function constructPage(constructId: string): Promise<JSX.Element> {
 
 // The activity page of activityId.
 
-
 // The Quests page, with one quest, which it offers to continue under a
 // long name.
 const projectsPage = workspacePage(
@@ -205,9 +200,6 @@ const PHONE_PAGES: readonly PhonePage[] = [
         }),
     ),
   },
-  
-  
-  
 
   { name: "the Credits page", render: signedOut(CreditsPage) },
   {
@@ -297,7 +289,7 @@ const PHONE_PAGES: readonly PhonePage[] = [
       );
     },
   },
-  
+
   {
     name: "the Profile page",
     path: ["profile"],
@@ -318,16 +310,7 @@ const PHONE_PAGES: readonly PhonePage[] = [
     path: ["constructs", "vellum"],
     render: workspacePage(noData, () => constructPage("vellum")),
   },
-  
-  
-  
-  
-  
-  
 ];
-
-
-
 
 export type { PhonePage };
 export { PHONE_PAGES };

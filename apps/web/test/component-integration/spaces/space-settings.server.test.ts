@@ -1,7 +1,7 @@
 import { expect, test, vi } from "vitest";
-import { createQuest } from "@/quests/store.ts";
 import { readExperience } from "@/experience/experience-store.ts";
 import { QUEST_NAME } from "@/quests/quest-name.ts";
+import { createQuest } from "@/quests/store.ts";
 import { changeMurmlingAction } from "@/spaces/murmling-actions.ts";
 import { listMurmlings } from "@/spaces/murmling-store.ts";
 import { saveSpaceAction } from "@/spaces/space-actions.ts";
@@ -14,7 +14,10 @@ vi.mock("next/cache", () => ({ refresh: vi.fn() }));
 
 test("use_case_set_up_space", async () => {
   const [owner, stranger] = await Promise.all([testUser(), testUser()]);
-  const { id: questId } = await createQuest(owner.id, QUEST_NAME.parse("Workshop"));
+  const { id: questId } = await createQuest(
+    owner.id,
+    QUEST_NAME.parse("Workshop"),
+  );
   await signIn(owner);
   const fields = {
     questId,
@@ -71,7 +74,10 @@ test("use_case_set_up_space", async () => {
 
 test("use_case_murmling_types", async () => {
   const owner = await testUser();
-  const { id: questId } = await createQuest(owner.id, QUEST_NAME.parse("Garden"));
+  const { id: questId } = await createQuest(
+    owner.id,
+    QUEST_NAME.parse("Garden"),
+  );
   const [destination, space] = await listSpaces(owner.id, questId);
   if (space === undefined || destination === undefined) {
     throw new Error("The starting spaces were not saved");
@@ -167,7 +173,10 @@ test("use_case_murmling_types", async () => {
 
 test("use_case_quest_spaces", async () => {
   const [owner, stranger] = await Promise.all([testUser(), testUser()]);
-  const { id: questId } = await createQuest(owner.id, QUEST_NAME.parse("Workshop"));
+  const { id: questId } = await createQuest(
+    owner.id,
+    QUEST_NAME.parse("Workshop"),
+  );
   const [source, destination] = await listSpaces(owner.id, questId);
   if (source === undefined || destination === undefined) {
     throw new Error("The starting spaces were not saved");

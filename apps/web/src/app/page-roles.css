@@ -1416,39 +1416,6 @@
     @apply flex min-w-0 flex-wrap items-center justify-between gap-x-4 border-line border-y px-4 sm:px-6;
   }
 
-  /* The fades, by how far the row has scrolled: the end edge at the start,
-     both edges in between and the start edge at the end. A row with
-     nothing to scroll has no timeline, so it never fades. */
-  @supports (animation-timeline: scroll()) and (mask-image: none) {
-
-    @keyframes tablist-fade {
-      0% {
-        mask-image: linear-gradient(
-          to right,
-          black calc(100% - var(--tablist-fade)),
-          transparent
-        );
-      }
-      2%,
-      98% {
-        mask-image: linear-gradient(
-          to right,
-          transparent,
-          black var(--tablist-fade),
-          black calc(100% - var(--tablist-fade)),
-          transparent
-        );
-      }
-      100% {
-        mask-image: linear-gradient(
-          to right,
-          transparent,
-          black var(--tablist-fade)
-        );
-      }
-    }
-  }
-
   .workspace-content {
     @apply flex min-w-0 flex-col gap-4 p-4 sm:p-6;
   }
@@ -2357,10 +2324,7 @@
 
   @media (width >= --theme(--breakpoint-lg)) {
     /* Reserve the default dock before the browser hydrates the dialog. */
-    .quest-layout:is(
-        [data-sidebar-open="true"],
-        [data-sidebar-open="auto"]
-      ) {
+    .quest-layout:is([data-sidebar-open="true"], [data-sidebar-open="auto"]) {
       padding-inline-end: var(--quest-panel-width);
     }
 

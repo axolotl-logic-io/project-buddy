@@ -20,7 +20,6 @@ import {
 } from "vitest";
 import { page } from "vitest/browser";
 
-
 import { LocalTime } from "@/components/local-time.tsx";
 import { QuestList } from "@/components/quest-list.tsx";
 import { formatTime, type TimeDetail } from "@/components/time-format.ts";
@@ -175,7 +174,7 @@ describe("use_case_view_quests", () => {
             status: "active",
             statusRevision: 0,
             dailies: false,
-    constructId: "lumen",
+            constructId: "lumen",
             sharing: { kind: "personal" },
           },
         ]}
@@ -214,7 +213,3 @@ vi.mock(
   "@/auth/current-user.ts",
   () => import("../auth/current-user-test-kit.ts"),
 );
-
-
-
-

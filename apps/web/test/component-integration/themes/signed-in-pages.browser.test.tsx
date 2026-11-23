@@ -1,17 +1,15 @@
-import { getConstruct } from "@/constructs/index.ts";
-import { Markdown } from "@/components/markdown.tsx";
-import { TIMER_COPY } from "@/ui/copy/timer.ts";
 import { beforeAll, beforeEach, describe, expect, test, vi } from "vitest";
 import { page } from "vitest/browser";
 import { render } from "vitest-browser-react";
 import QuestLayout from "@/app/(workspace)/quests/[questId]/(overview)/layout.tsx";
 import QuestPage from "@/app/(workspace)/quests/[questId]/(overview)/page.tsx";
+import { Markdown } from "@/components/markdown.tsx";
+import { getConstruct } from "@/constructs/index.ts";
 import type { getQuest, listQuests } from "@/quests/store.ts";
 import { THEMES } from "@/themes/themes.ts";
 import { SITE_COPY } from "@/ui/copy/site.ts";
-import {
-  FOX_QUEST,
-} from "../app/(workspace)/page-fixtures.ts";
+import { TIMER_COPY } from "@/ui/copy/timer.ts";
+import { FOX_QUEST } from "../app/(workspace)/page-fixtures.ts";
 import { siteHeaderAt } from "../app/site-header-test-kit.tsx";
 import { inWorkspace } from "../app/workspace-test-kit.tsx";
 import { SIGNED_IN_USER, signInAs } from "../auth/current-user-test-kit.ts";
@@ -38,7 +36,6 @@ const stores = vi.hoisted(() => ({
     getQuest: vi.fn<typeof getQuest>(),
     listQuests: vi.fn<typeof listQuests>(),
   },
-
 }));
 vi.mock("@/quests/store.ts", () => stores.quests);
 vi.mock("@/app/(workspace)/quests/[questId]/(overview)/actions.ts", () => ({
@@ -77,7 +74,11 @@ async function renderMarkdownReply(): Promise<void> {
     <>
       {await siteHeaderAt(QUEST_PATH)}
       <section aria-label={getConstruct("vellum").name}>
-        <Markdown text="## Print a sample" running={false} topHeadingLevel={3} />
+        <Markdown
+          text="## Print a sample"
+          running={false}
+          topHeadingLevel={3}
+        />
       </section>
     </>,
   );

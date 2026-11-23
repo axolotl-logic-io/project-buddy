@@ -37,9 +37,22 @@ test("use_case_grimoire_page", async () => {
 test("use_case_view_retirement", async () => {
   signInAs(SIGNED_IN_USER);
   vi.mocked(listRites).mockResolvedValueOnce([
-    { id: crypto.randomUUID(), name: "Forgotten rite", source: "own", replies: ["Reply"], forgotten: true },
+    {
+      id: crypto.randomUUID(),
+      name: "Forgotten rite",
+      source: "own",
+      replies: ["Reply"],
+      forgotten: true,
+    },
   ]);
-  await render(await GrimoirePage({ params: Promise.resolve({}), searchParams: Promise.resolve({ filter: "forgotten" }) }));
-  await expect.element(page.getByRole("heading", { name: "Forgotten rite" })).toBeVisible();
+  await render(
+    await GrimoirePage({
+      params: Promise.resolve({}),
+      searchParams: Promise.resolve({ filter: "forgotten" }),
+    }),
+  );
+  await expect
+    .element(page.getByRole("heading", { name: "Forgotten rite" }))
+    .toBeVisible();
   expect(listRites).toHaveBeenLastCalledWith(SIGNED_IN_USER.id, true);
 });

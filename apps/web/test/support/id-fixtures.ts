@@ -2,12 +2,7 @@
 // fixture makes a new random id, or the id that a given value names, and
 // throws instead of returning undefined, so a test reads like the fixture it
 // builds. Add a fixture for a new id type as one more `idFixture` line.
-import {
-  parseQuestId,
-  parseUserId,
-  type QuestId,
-  type UserId,
-} from "@/ids.ts";
+import { parseQuestId, parseUserId, type QuestId, type UserId } from "@/ids.ts";
 
 // Makes the id that value names, by default a new random UUID; throws,
 // naming the fixture and the value, if it names none.
@@ -36,8 +31,4 @@ const questIdFixture: IdFixture<QuestId> = idFixture(
   parseQuestId,
 );
 
-
-export {
-  questIdFixture,
-  userIdFixture,
-};
+export { questIdFixture, userIdFixture };
