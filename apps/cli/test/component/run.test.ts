@@ -6,6 +6,8 @@ import { EXIT_STATUS } from "../../src/problems.ts";
 import { runCli, SESSION } from "./run-test-kit.ts";
 
 const QUEST = "8d2f63c4-5e2b-4a6f-9d61-3b7b0d6a1c11";
+const SPACE = "5b0e6f1a-7c3d-4e2b-9a8f-1d2c3b4a5e6f";
+const SPACE_PATH = `/api/v1/quests/${QUEST}/spaces/${SPACE}`;
 
 const VERSION_LINE = /^project-buddy \d+\.\d+\.\d+\n$/u;
 const REQUEST_ID = /^req_[\da-f-]{36}$/u;
@@ -41,11 +43,11 @@ describe("help", () => {
   });
 
   test("a resource shows its commands, and --help a command's usage", async () => {
-    const resource = await runCli(["task"]);
-    expect(resource.text).toContain("project-buddy task undo CHANGE_VERSION");
-    const action = await runCli(["task", "add", "--help"]);
+    const resource = await runCli(["space"]);
+    expect(resource.text).toContain("project-buddy space undo VERSION");
+    const action = await runCli(["murmling", "add", "--help"]);
     expect(action.status).toBe(EXIT_STATUS.ok);
-    expect(action.text).toContain("Usage: project-buddy task add --quest");
+    expect(action.text).toContain("Usage: project-buddy murmling add --quest");
     expect(action.requests).toEqual([]);
   });
 
@@ -89,7 +91,7 @@ describe("records", () => {
   });
 
   test("an empty list writes only its count, with the list's meta", async () => {
-    const outcome = await runCli(["task", "list", "--quest", QUEST], {
+    const outcome = await runCli(["space", "list", "--quest", QUEST], {
       responses: [Response.json({ version: 4, items: [] })],
     });
     expect(outcome.records).toEqual([
@@ -111,49 +113,71 @@ describe("records", () => {
 
 describe("requests", () => {
   test("options may come before the resource", async () => {
-    const outcome = await runCli(["--quest", QUEST, "note", "list"], {
+    const outcome = await runCli(["--quest", QUEST, "space", "list"], {
       responses: [Response.json({ items: [] })],
     });
     expect(outcome.status).toBe(EXIT_STATUS.ok);
     expect(outcome.requests[0]?.url.pathname).toBe(
-      `/api/v1/quests/${QUEST}/notes`,
+      `/api/v1/quests/${QUEST}/spaces`,
     );
   });
 
   test.each([
     {
       args: [
-        "task",
+        "murmling",
         "add",
         "--quest",
         QUEST,
+        "--space",
+        SPACE,
         "--text",
         "Sketch",
-        "--before",
-        "2",
+        "--type",
+        "task",
       ],
-      path: `/api/v1/quests/${QUEST}/tasks`,
-      body: { operations: [{ op: "add", text: "Sketch", before: 2 }] },
+      path: SPACE_PATH,
+      body: { kind: "add", text: "Sketch", type: "task" },
     },
     {
-      args: ["task", "complete", "3", "--quest", QUEST],
-      path: `/api/v1/quests/${QUEST}/tasks`,
-      body: { operations: [{ op: "complete", task: 3 }] },
+      args: ["murmling", "check", "m1", "--quest", QUEST, "--space", SPACE],
+      path: SPACE_PATH,
+      body: { id: "m1", kind: "check", checkedOff: true },
     },
     {
-      args: ["task", "undo", "7", "--quest", QUEST],
-      path: `/api/v1/quests/${QUEST}/tasks/undo`,
-      body: { version: 7 },
+      args: [
+        "murmling",
+        "reorder",
+        "m1",
+        "--quest",
+        QUEST,
+        "--space",
+        SPACE,
+        "--before",
+        "m0",
+      ],
+      path: SPACE_PATH,
+      body: { id: "m1", kind: "place", before: "m0" },
     },
     {
-      args: ["idea", "move", "i1", "--quest", QUEST, "--before", "i0"],
-      path: `/api/v1/quests/${QUEST}/ideas`,
-      body: { op: "reorder", id: "i1", before: "i0" },
+      args: [
+        "murmling",
+        "move",
+        "m1",
+        "--quest",
+        QUEST,
+        "--space",
+        SPACE,
+        "--to",
+        "s2",
+      ],
+      path: SPACE_PATH,
+      body: { id: "m1", kind: "move", destination: "s2" },
     },
     {
-      args: ["idea", "to-tasks", "i1", "--quest", QUEST],
-      path: `/api/v1/quests/${QUEST}/ideas`,
-      body: { op: "move", id: "i1" },
+      args: ["space", "undo", "7", "--quest", QUEST, "--space", SPACE],
+      path: SPACE_PATH,
+      body: { kind: "undo", version: 7 },
     },
     {
       args: ["quest", "complete", QUEST, "--revision", "3"],
@@ -166,9 +190,18 @@ describe("requests", () => {
       body: { from: "make", why: "To learn" },
     },
     {
-      args: ["spell", "cast", "--quest", QUEST, "--spell", "tasks"],
-      path: `/api/v1/quests/${QUEST}/conversation/spell`,
-      body: { spell: "tasks" },
+      args: [
+        "performance",
+        "start",
+        "--quest",
+        QUEST,
+        "--rite",
+        "capture",
+        "--space",
+        SPACE,
+      ],
+      path: `/api/v1/quests/${QUEST}/performances`,
+      body: { riteId: "capture", spaceId: SPACE },
     },
   ])("$args.0 $args.1 sends its change", async ({ args, path, body }) => {
     const outcome = await runCli(args);
@@ -180,39 +213,64 @@ describe("requests", () => {
   });
 
   test("an ID goes in the path as one segment", async () => {
-    const outcome = await runCli(["note", "remove", "a/b", "--quest", QUEST]);
+    const outcome = await runCli([
+      "performance",
+      "stop",
+      "a/b",
+      "--quest",
+      QUEST,
+    ]);
     expect(outcome.requests[0]?.method).toBe("DELETE");
     expect(outcome.requests[0]?.url.pathname).toBe(
-      `/api/v1/quests/${QUEST}/notes/a%2Fb`,
+      `/api/v1/quests/${QUEST}/performances/a%2Fb`,
     );
   });
 
   test("text comes from a file or stdin", async () => {
     const fromFile = await runCli(
-      ["note", "add", "--quest", QUEST, "--text-file", "handoff.txt"],
+      [
+        "murmling",
+        "add",
+        "--quest",
+        QUEST,
+        "--space",
+        SPACE,
+        "--text-file",
+        "handoff.txt",
+      ],
       { files: { "handoff.txt": "Line one\nLine two\n" } },
     );
     expect(fromFile.requests[0]?.body).toEqual({
+      kind: "add",
       text: "Line one\nLine two\n",
     });
     const fromStdin = await runCli(
-      ["conversation", "send", "--quest", QUEST, "--stdin"],
+      ["performance", "conjure", "p1", "--quest", QUEST, "--stdin"],
       { stdin: "help" },
     );
-    expect(fromStdin.requests[0]?.body).toEqual({ text: "help" });
+    expect(fromStdin.requests[0]?.body).toEqual({
+      id: expect.any(String),
+      text: "help",
+    });
   });
 });
+
+const IN_SPACE: readonly string[] = ["--quest", QUEST, "--space", SPACE];
+const ADD: readonly string[] = ["murmling", "add", ...IN_SPACE];
 
 describe("invalid input", () => {
   test.each([
     {
-      args: ["note", "add", "--quest", QUEST, "--text", "a", "--stdin"],
+      args: [...ADD, "--text", "a", "--stdin"],
       field: "text",
     },
-    { args: ["note", "add", "--quest", QUEST], field: "text" },
-    { args: ["note", "add", "--text", "a"], field: "quest" },
-    { args: ["task", "complete", "first", "--quest", QUEST], field: "task" },
-    { args: ["task", "complete", "0", "--quest", QUEST], field: "task" },
+    { args: ADD, field: "text" },
+    {
+      args: ["murmling", "add", "--space", SPACE, "--text", "a"],
+      field: "quest",
+    },
+    { args: ["space", "undo", "first", ...IN_SPACE], field: "version" },
+    { args: ["space", "undo", "0", ...IN_SPACE], field: "version" },
     { args: ["quest", "list", "--colour"], field: "colour" },
     { args: ["quest", "list", "--quest", QUEST], field: "quest" },
     { args: ["quest", "list", "extra"], field: "argument" },
@@ -220,7 +278,7 @@ describe("invalid input", () => {
     { args: ["dragon", "list"], field: "resource" },
     { args: ["quest", "list", "--timeout", "soon"], field: "timeout" },
     {
-      args: ["note", "add", "--quest", QUEST, "--text-file", "missing.txt"],
+      args: [...ADD, "--text-file", "missing.txt"],
       field: "text-file",
     },
   ])(

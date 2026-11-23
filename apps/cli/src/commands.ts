@@ -263,12 +263,17 @@ function writeSpace(input: CommandInput, body: object): ApiRequest {
   };
 }
 
+interface MurmlingChange {
+  readonly kind: string;
+  readonly [field: string]: unknown;
+}
+
 interface MurmlingCommand {
   readonly action: string;
   readonly summary: string;
   readonly options?: readonly CommandOption[];
   readonly extra?: string;
-  readonly body: (input: CommandInput) => object;
+  readonly body: (input: CommandInput) => MurmlingChange;
 }
 
 function murmlingCommand({
@@ -336,7 +341,7 @@ const SPACE_COMMANDS: readonly Command[] = [
     summary: "Change a murmling's text.",
     options: ["text"],
     extra: " (--text TEXT | --text-file PATH | --stdin)",
-    body: (input: CommandInput): object => ({
+    body: (input: CommandInput): MurmlingChange => ({
       kind: "edit",
       text: textOf(input),
     }),
@@ -344,19 +349,19 @@ const SPACE_COMMANDS: readonly Command[] = [
   murmlingCommand({
     action: "check",
     summary: "Check off a task.",
-    body: (): object => ({ kind: "check", checkedOff: true }),
+    body: (): MurmlingChange => ({ kind: "check", checkedOff: true }),
   }),
   murmlingCommand({
     action: "uncheck",
     summary: "Uncheck a task.",
-    body: (): object => ({ kind: "check", checkedOff: false }),
+    body: (): MurmlingChange => ({ kind: "check", checkedOff: false }),
   }),
   murmlingCommand({
     action: "reorder",
     summary: "Place a murmling before another or at the end.",
     options: ["before"],
     extra: " [--before MURMLING_ID]",
-    body: (input: CommandInput): object => ({
+    body: (input: CommandInput): MurmlingChange => ({
       kind: "place",
       before: input.options.get("before"),
     }),
@@ -366,7 +371,7 @@ const SPACE_COMMANDS: readonly Command[] = [
     summary: "Move a murmling to another space.",
     options: ["to"],
     extra: " --to SPACE_ID",
-    body: (input: CommandInput): object => ({
+    body: (input: CommandInput): MurmlingChange => ({
       kind: "move",
       destination: required(input, "to"),
     }),
@@ -376,7 +381,7 @@ const SPACE_COMMANDS: readonly Command[] = [
     summary: "Mark a murmling as plain, task or quick-note.",
     options: ["type"],
     extra: " --type TYPE",
-    body: (input: CommandInput): object => ({
+    body: (input: CommandInput): MurmlingChange => ({
       kind: "type",
       type: required(input, "type"),
     }),
@@ -384,7 +389,7 @@ const SPACE_COMMANDS: readonly Command[] = [
   murmlingCommand({
     action: "remove",
     summary: "Remove a murmling.",
-    body: (): object => ({ kind: "remove" }),
+    body: (): MurmlingChange => ({ kind: "remove" }),
   }),
 ];
 
