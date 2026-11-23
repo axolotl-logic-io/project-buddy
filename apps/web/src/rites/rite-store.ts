@@ -1,4 +1,4 @@
-import { and, eq, isNotNull, isNull } from "drizzle-orm";
+import { and, desc, eq, isNotNull, isNull } from "drizzle-orm";
 import { z } from "zod";
 import { riteOwnedBy } from "@/accounts/owner-scope.ts";
 import { getDb } from "@/db/client.ts";
@@ -16,29 +16,36 @@ const OWN_RITE_ID = z.guid().toLowerCase().brand<"OwnRiteId">();
 type OwnRiteId = z.infer<typeof OWN_RITE_ID>;
 
 function asRite(row: typeof rites.$inferSelect): Rite {
-  return {
+  const rite: Rite = {
     ...RITE_DEFINITION.parse(row),
     id: row.id,
     source: "own",
     updatedAt: row.updatedAt,
-    forgotten: row.forgottenAt !== null,
   };
+  if (row.forgottenAt === null) {
+    return rite;
+  }
+  return { ...rite, forgottenAt: row.forgottenAt };
 }
 
+// The user's active rites, built-in ones first and then their own by name;
+// or, with forgotten, only their own forgotten rites, the most recently
+// forgotten first.
 function listRites(user: UserId, forgotten = false): Promise<Rite[]> {
   return withAppErrors("listRites", async () => {
-    let availability = isNull(rites.forgottenAt);
     if (forgotten) {
-      availability = isNotNull(rites.forgottenAt);
+      const rows = await getDb()
+        .select()
+        .from(rites)
+        .where(and(riteOwnedBy(user), isNotNull(rites.forgottenAt)))
+        .orderBy(desc(rites.forgottenAt), rites.name, rites.id);
+      return rows.map(asRite);
     }
     const rows = await getDb()
       .select()
       .from(rites)
-      .where(and(riteOwnedBy(user), availability))
+      .where(and(riteOwnedBy(user), isNull(rites.forgottenAt)))
       .orderBy(rites.name, rites.id);
-    if (forgotten) {
-      return rows.map(asRite);
-    }
     return [...BUILT_IN_RITES, ...rows.map(asRite)];
   });
 }
@@ -97,6 +104,12 @@ function saveRite(
   });
 }
 
+// Forgets the user's active own rite, restores their forgotten one, or
+// deletes their forgotten one forever, and says whether it did. Each is one
+// statement that checks the rite's state as it changes it, so an active
+// rite is never deleted, however recently it was restored. A foreign or
+// unknown id, or a change already made, changes nothing. Performances keep
+// their rite snapshots.
 function changeRiteAvailability(
   user: UserId,
   id: OwnRiteId,

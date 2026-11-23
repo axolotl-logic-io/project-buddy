@@ -5,6 +5,7 @@ import { notFound, redirect } from "next/navigation";
 import { z } from "zod";
 import { requireUser } from "@/auth/current-user.ts";
 import { GRIMOIRE_COPY } from "@/ui/copy/grimoire.ts";
+import { forgottenTabHref } from "./forgotten-tab.ts";
 import { MAX_RITE_NAME, RITE_DEFINITION } from "./rite.ts";
 import {
   changeRiteAvailability,
@@ -79,6 +80,9 @@ const AVAILABILITY = z.object({
   change: z.enum(["forget", "restore", "delete"]),
 });
 
+// Forgets, restores or deletes the user's rite, then shows the Forgotten
+// tab reporting the change, or that the rite was unavailable, when the id
+// is unknown or foreign, or the rite isn't in a state to change that way.
 async function changeRiteAction(form: FormData): Promise<void> {
   const user = await requireUser();
   const input = AVAILABILITY.safeParse(Object.fromEntries(form)).data;
@@ -86,9 +90,9 @@ async function changeRiteAction(form: FormData): Promise<void> {
     input === undefined ||
     !(await changeRiteAvailability(user.id, input.id, input.change))
   ) {
-    notFound();
+    redirect(forgottenTabHref("unavailable"));
   }
-  redirect("/grimoire?filter=forgotten");
+  redirect(forgottenTabHref(input.change, input.id));
 }
 
 export { changeRiteAction, copyRiteAction, saveRiteAction };

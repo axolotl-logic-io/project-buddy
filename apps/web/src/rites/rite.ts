@@ -25,7 +25,8 @@ type RiteDefinition = z.infer<typeof RITE_DEFINITION>;
 interface Rite extends RiteDefinition {
   readonly id: string;
   readonly updatedAt?: Date;
-  readonly forgotten?: boolean;
+  // When the user forgot their own rite; absent while it is active.
+  readonly forgottenAt?: Date;
   readonly source: "built-in" | "own";
 }
 

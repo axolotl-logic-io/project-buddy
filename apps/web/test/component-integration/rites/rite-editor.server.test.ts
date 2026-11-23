@@ -1,19 +1,24 @@
-import { expect, test, vi } from "vitest";
+import { describe, expect, test, vi } from "vitest";
 import {
   listPerformances,
   startPerformance,
 } from "@/performances/performance-store.ts";
 import { QUEST_NAME } from "@/quests/quest-name.ts";
 import { createQuest } from "@/quests/store.ts";
-import { saveRiteAction } from "@/rites/rite-actions.ts";
+import { changeRiteAction, saveRiteAction } from "@/rites/rite-actions.ts";
 import {
   changeRiteAvailability,
   listRites,
   OWN_RITE_ID,
+  readRite,
+  saveRite,
 } from "@/rites/rite-store.ts";
 import { listSpaces } from "@/spaces/space-store.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
+import { expectRedirect } from "../test-database/navigation-test-kit.ts";
 import { signIn } from "../test-database/session-test-kit.ts";
+
+const SECOND_MS = 1000;
 
 vi.mock("next/cache", () => ({ refresh: vi.fn() }));
 
@@ -75,42 +80,204 @@ test("use_case_customize_rite", async () => {
 });
 
 test("use_case_retire_definitions", async () => {
-  const { owner, id } = await ownRite();
+  const owner = await testUser();
+  const id = await ownRite(owner, "Plan");
   expect(await changeRiteAvailability(owner.id, id, "forget")).toBe(true);
   expect(await listRites(owner.id)).not.toContainEqual(
     expect.objectContaining({ id }),
   );
 });
 
-test("use_case_restore_retired_definition", async () => {
-  const { owner, id } = await ownRite();
-  await changeRiteAvailability(owner.id, id, "forget");
-  expect(await changeRiteAvailability(owner.id, id, "restore")).toBe(true);
-  expect(await listRites(owner.id)).toContainEqual(
-    expect.objectContaining({ id, name: "Plan" }),
-  );
-});
-
-test("use_case_delete_retired_definition", async () => {
-  const { owner, id } = await ownRite();
-  expect(await changeRiteAvailability(owner.id, id, "delete")).toBe(false);
-  await changeRiteAvailability(owner.id, id, "forget");
-  expect(await changeRiteAvailability(owner.id, id, "delete")).toBe(true);
-  expect(await listRites(owner.id, true)).toEqual([]);
-});
-
-async function ownRite(): Promise<{
-  readonly owner: Awaited<ReturnType<typeof testUser>>;
-  readonly id: ReturnType<typeof OWN_RITE_ID.parse>;
-}> {
-  const owner = await testUser();
-  await signIn(owner);
-  const result = await saveRiteAction({
-    name: "Plan",
-    replies: ["First reply"],
+describe("use_case_view_retirement", () => {
+  test("lists only the user's forgotten rites, the most recently forgotten first", async () => {
+    const owner = await testUser();
+    const [older, newer, active] = await Promise.all([
+      ownRite(owner, "Older"),
+      ownRite(owner, "Newer"),
+      ownRite(owner, "Active"),
+    ]);
+    const stranger = await testUser();
+    const foreign = await ownRite(stranger, "Foreign");
+    const now = Date.now();
+    vi.useFakeTimers({ toFake: ["Date"] });
+    try {
+      vi.setSystemTime(now);
+      await changeRiteAvailability(owner.id, older, "forget");
+      vi.setSystemTime(now + SECOND_MS);
+      await changeRiteAvailability(owner.id, newer, "forget");
+      await changeRiteAvailability(stranger.id, foreign, "forget");
+    } finally {
+      vi.useRealTimers();
+    }
+    const forgotten = await listRites(owner.id, true);
+    expect(forgotten.map(({ id }) => id)).toEqual([newer, older]);
+    expect(forgotten[0]?.forgottenAt).toEqual(new Date(now + SECOND_MS));
+    expect(await listRites(owner.id)).toContainEqual(
+      expect.objectContaining({ id: active }),
+    );
+    expect(await listRites(owner.id)).not.toContainEqual(
+      expect.objectContaining({ id: older }),
+    );
   });
-  if (result.kind !== "saved") {
+
+  test("a user with no forgotten rites has an empty Forgotten tab", async () => {
+    const owner = await testUser();
+    await ownRite(owner, "Active");
+    expect(await listRites(owner.id, true)).toEqual([]);
+  });
+});
+
+describe("use_case_restore_retired_definition", () => {
+  test("restores the same rite, with its id, replies and source intact", async () => {
+    const owner = await testUser();
+    await signIn(owner);
+    const id = await ownRite(owner, "Plan");
+    await changeRiteAvailability(owner.id, id, "forget");
+    await expectRedirect(
+      () => changeRiteAction(change(id, "restore")),
+      "/grimoire",
+      {
+        filter: "forgotten",
+        changed: "restore",
+        rite: id,
+      },
+    );
+    expect(await readRite(owner.id, id)).toMatchObject({
+      id,
+      name: "Plan",
+      replies: ["First reply"],
+      source: "own",
+    });
+    expect((await readRite(owner.id, id))?.forgottenAt).toBeUndefined();
+    expect(await listRites(owner.id, true)).toEqual([]);
+  });
+
+  test("another user can't restore the original", async () => {
+    const [owner, stranger] = await Promise.all([testUser(), testUser()]);
+    const id = await ownRite(owner, "Plan");
+    await changeRiteAvailability(owner.id, id, "forget");
+    await signIn(stranger);
+    await expectUnavailable(() => changeRiteAction(change(id, "restore")));
+    expect(await listRites(owner.id, true)).toMatchObject([{ id }]);
+  });
+
+  test("restoring an active rite, again or by an unknown id changes nothing", async () => {
+    const owner = await testUser();
+    await signIn(owner);
+    const id = await ownRite(owner, "Plan");
+    await expectUnavailable(() => changeRiteAction(change(id, "restore")));
+    await expectUnavailable(() =>
+      changeRiteAction(change(crypto.randomUUID(), "restore")),
+    );
+    await expectUnavailable(() =>
+      changeRiteAction(change("not-a-rite", "restore")),
+    );
+    expect(await readRite(owner.id, id)).toMatchObject({ id, name: "Plan" });
+  });
+});
+
+describe("use_case_delete_retired_definition", () => {
+  test("deletes the forgotten original, keeping past performances' rite snapshots", async () => {
+    const owner = await testUser();
+    const { id: questId } = await createQuest(
+      owner.id,
+      QUEST_NAME.parse("Workshop"),
+    );
+    const [space] = await listSpaces(owner.id, questId);
+    if (space === undefined) {
+      throw new Error("The quest has no starting space");
+    }
+    await signIn(owner);
+    const id = await ownRite(owner, "Plan");
+    await startPerformance(owner.id, questId, {
+      spaceId: space.id,
+      riteId: id,
+    });
+    await changeRiteAvailability(owner.id, id, "forget");
+    await expectRedirect(
+      () => changeRiteAction(change(id, "delete")),
+      "/grimoire",
+      {
+        filter: "forgotten",
+        changed: "delete",
+        rite: id,
+      },
+    );
+    expect(await readRite(owner.id, id, true)).toBeUndefined();
+    expect(await listPerformances(owner.id, questId)).toMatchObject([
+      { rite: { name: "Plan", replies: ["First reply"] } },
+    ]);
+  });
+
+  test("an active rite can't be deleted, even one restored after Delete forever was chosen", async () => {
+    const owner = await testUser();
+    await signIn(owner);
+    const id = await ownRite(owner, "Plan");
+    await expectUnavailable(() => changeRiteAction(change(id, "delete")));
+    await changeRiteAvailability(owner.id, id, "forget");
+    // The dialog is open on the forgotten rite while it is restored elsewhere.
+    await changeRiteAvailability(owner.id, id, "restore");
+    await expectUnavailable(() => changeRiteAction(change(id, "delete")));
+    expect(await readRite(owner.id, id)).toMatchObject({ id, name: "Plan" });
+  });
+
+  test("a repeated or unknown-id request changes nothing", async () => {
+    const owner = await testUser();
+    await signIn(owner);
+    const [id, kept] = await Promise.all([
+      ownRite(owner, "Plan"),
+      ownRite(owner, "Kept"),
+    ]);
+    await Promise.all([
+      changeRiteAvailability(owner.id, id, "forget"),
+      changeRiteAvailability(owner.id, kept, "forget"),
+    ]);
+    expect(await changeRiteAvailability(owner.id, id, "delete")).toBe(true);
+    await expectUnavailable(() => changeRiteAction(change(id, "delete")));
+    await expectUnavailable(() =>
+      changeRiteAction(change(crypto.randomUUID(), "delete")),
+    );
+    await expectUnavailable(() =>
+      changeRiteAction(change("not-a-rite", "delete")),
+    );
+    expect(await listRites(owner.id, true)).toMatchObject([{ id: kept }]);
+  });
+
+  test("another user can't delete the original", async () => {
+    const [owner, stranger] = await Promise.all([testUser(), testUser()]);
+    const id = await ownRite(owner, "Plan");
+    await changeRiteAvailability(owner.id, id, "forget");
+    await signIn(stranger);
+    await expectUnavailable(() => changeRiteAction(change(id, "delete")));
+    expect(await listRites(owner.id, true)).toMatchObject([{ id }]);
+  });
+});
+
+// A form submitting the change to the rite with the id.
+function change(id: string, riteChange: "restore" | "delete"): FormData {
+  const form = new FormData();
+  form.set("id", id);
+  form.set("change", riteChange);
+  return form;
+}
+
+// Passes only if the action leads to the Forgotten tab saying the rite was
+// unavailable.
+function expectUnavailable(action: () => unknown): Promise<void> {
+  return expectRedirect(action, "/grimoire", {
+    filter: "forgotten",
+    changed: "unavailable",
+  });
+}
+
+// A new rite of the user's, saved through the Grimoire's action.
+async function ownRite(
+  owner: Awaited<ReturnType<typeof testUser>>,
+  name: string,
+): Promise<ReturnType<typeof OWN_RITE_ID.parse>> {
+  const saved = await saveRite(owner.id, { name, replies: ["First reply"] });
+  if (saved === undefined) {
     throw new Error("The rite was not saved");
   }
-  return { owner, id: OWN_RITE_ID.parse(result.id) };
+  return OWN_RITE_ID.parse(saved.id);
 }

@@ -21,6 +21,20 @@ const GRIMOIRE_COPY = {
   filter: "Show rites",
   find: "Search",
   empty: "There are no rites in this collection.",
+  emptyForgotten:
+    "You have no forgotten rites. Forget one of your rites from its page to put it aside here.",
+  forgottenOn: (day: string): string => `Forgotten ${day}`,
+  confirmDelete: (name: string): string => `Delete “${name}” forever?`,
+  confirmDeleteDetail:
+    "The rite is removed for good and can’t be restored. Performances that used it keep their rite snapshots.",
+  keepForgotten: "Keep forgotten",
+  changed: {
+    forget: (name: string): string =>
+      `“${name}” is forgotten. Restore it here, or delete it forever.`,
+    restore: (name: string): string =>
+      `“${name}” is restored and back among your rites.`,
+    delete: "The rite is deleted forever.",
+  },
   noMatches: "No rites match your search.",
   unavailable: "This rite is unavailable.",
   invalidName: "Enter a rite name of up to 80 characters on one line.",
