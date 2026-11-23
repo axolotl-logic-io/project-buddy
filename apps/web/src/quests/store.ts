@@ -147,6 +147,9 @@ interface StartedQuest {
   readonly resumed: boolean;
 }
 
+// A new quest with its starting spaces, or the owner's Dailies quest when
+// they start Dailies again: a user has one Dailies quest, so a second start
+// resumes it.
 function createOrResumeQuest(
   owner: UserId,
   name: QuestName,
@@ -159,6 +162,7 @@ function createOrResumeQuest(
         .values({ ...options, userId: owner, name })
         .onConflictDoNothing({ target: quests.userId, where: sql`dailies` })
         .returning(QUEST_COLUMNS);
+      // A new quest is its owner's own, with no members yet.
       const [quest] = toQuests(
         owner,
         inserted.map((row) => ({
@@ -187,6 +191,7 @@ function createOrResumeQuest(
   );
 }
 
+// A new quest with its starting spaces.
 async function createQuest(owner: UserId, name: QuestName): Promise<Quest> {
   const { quest } = await createOrResumeQuest(owner, name, {});
   return quest;

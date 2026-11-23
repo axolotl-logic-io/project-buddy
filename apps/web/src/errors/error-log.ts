@@ -1,4 +1,5 @@
-// The application log collected by Vercel.
+// The app's log, which Vercel collects from the console: one line per
+// failure on the error stream. The only module that writes to the console.
 
 import type { EmailProblem } from "@/email/email-failure.ts";
 import type { AppErrorCase } from "@/errors/app-error.ts";

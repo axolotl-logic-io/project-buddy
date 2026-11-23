@@ -1,3 +1,7 @@
+// Domain ids, typed so a quest id cannot be passed where a user id is
+// expected. Both are Postgres UUIDs. The parsers, and the schemas for zod
+// objects that hold an id, are the only way to make one, so a UserId or
+// QuestId is always a canonical lowercase UUID string.
 import { z } from "zod";
 
 // 8-4-4-4-12 hex digits in any case, with nothing around them. Any version and

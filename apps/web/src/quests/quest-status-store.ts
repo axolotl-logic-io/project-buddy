@@ -7,7 +7,7 @@ import { recordEvents, takeBackEvents } from "@/experience/experience-store.ts";
 import type { QuestId, UserId } from "@/ids.ts";
 import type { StatusChange } from "@/quests/quest-status.ts";
 
-// Every status writer locks the quest, so a stale card or Undo cannot
+// Every status writer locks the quest, so a stale form or Undo cannot
 // overwrite a later change, even when two requests arrive together.
 async function lockedQuest(
   tx: Transaction,

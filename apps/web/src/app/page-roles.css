@@ -697,7 +697,7 @@
     }
   }
 
-  /* Leave room under the pinned trail band when jumping to a message. */
+  /* Leave room under the pinned trail band when jumping to a conjuration. */
   html:has(.quest-workspace) {
     scroll-padding-top: calc(var(--site-header-height) + --spacing(4));
   }
