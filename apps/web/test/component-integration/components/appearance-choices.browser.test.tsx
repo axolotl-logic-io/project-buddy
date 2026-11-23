@@ -132,23 +132,76 @@ async function decodePaint(backgroundImage: string): Promise<void> {
   await image.decode();
 }
 
+// How far a material's rendered pixels moved: the largest channel change,
+// where it is, and how many pixels changed by more than the tolerance and
+// the box around them, so a failure tells an edge from the whole swatch.
+interface MaterialChange {
+  readonly largest: number;
+  readonly at: string;
+  readonly changedPixels: number;
+  readonly changedBox: string;
+}
+
 // Compare rendered pixels and dimensions so meaningful tints or geometry changes fail.
-function materialDifference(
+function materialChange(
   previous: MaterialPixels,
   next: MaterialPixels,
-): number {
+): MaterialChange {
   if (
     next.width !== previous.width ||
     next.height !== previous.height ||
     next.channels.length !== previous.channels.length
   ) {
-    return Number.POSITIVE_INFINITY;
+    return {
+      largest: Number.POSITIVE_INFINITY,
+      at: `size ${previous.width}x${previous.height} became ${next.width}x${next.height}`,
+      changedPixels: next.positions.length,
+      changedBox: "the whole material",
+    };
   }
-  return next.channels.reduce(
-    (max, channel, index) =>
-      Math.max(max, Math.abs(channel - (previous.channels[index] ?? 0))),
-    0,
-  );
+  const channelsPerPixel = next.channels.length / next.positions.length;
+  let largest = 0;
+  let largestAt = 0;
+  let changedPixels = 0;
+  const box = { left: next.width, top: next.height, right: -1, bottom: -1 };
+  for (const [pixel, position] of next.positions.entries()) {
+    let change = 0;
+    for (let channel = 0; channel < channelsPerPixel; channel += 1) {
+      const index = pixel * channelsPerPixel + channel;
+      change = Math.max(
+        change,
+        Math.abs((next.channels[index] ?? 0) - (previous.channels[index] ?? 0)),
+      );
+    }
+    if (change > largest) {
+      largest = change;
+      largestAt = position;
+    }
+    if (change > MATERIAL_CHANNEL_TOLERANCE) {
+      changedPixels += 1;
+      const x = position % next.width;
+      const y = Math.floor(position / next.width);
+      box.left = Math.min(box.left, x);
+      box.top = Math.min(box.top, y);
+      box.right = Math.max(box.right, x);
+      box.bottom = Math.max(box.bottom, y);
+    }
+  }
+  let changedBox = "none";
+  if (changedPixels > 0) {
+    changedBox = `x ${box.left}-${box.right}, y ${box.top}-${box.bottom} of ${next.width}x${next.height}`;
+  }
+  return {
+    largest,
+    at: `x ${largestAt % next.width}, y ${Math.floor(largestAt / next.width)}`,
+    changedPixels,
+    changedBox,
+  };
+}
+
+// Where name's material changed, for a failure message.
+function changeMessage(name: string, change: MaterialChange): string {
+  return `${name}'s material changed by ${change.largest} at ${change.at}; ${change.changedPixels} pixels changed, in ${change.changedBox}`;
 }
 
 // How many lines of text an element takes: its height over its line height,
@@ -303,9 +356,11 @@ describe("use_case_choose_theme", () => {
         .element(page.getByRole("tooltip", { name: THEME_COPY.modes[mode] }))
         .toBeVisible();
       const covered = await commands.materialPixels(selector);
-      expect(materialDifference(uncovered, covered)).toBeLessThanOrEqual(
-        MATERIAL_CHANNEL_TOLERANCE,
-      );
+      const change = materialChange(uncovered, covered);
+      expect(
+        change.largest,
+        changeMessage(THEME_COPY.modes[mode], change),
+      ).toBeLessThanOrEqual(MATERIAL_CHANNEL_TOLERANCE);
     },
   );
 
@@ -347,14 +402,17 @@ describe("use_case_choose_theme", () => {
       const after = await Promise.all(
         selectors.map((selector) => commands.materialPixels(selector)),
       );
-      for (const [index, previous] of before.entries()) {
+      for (const [index, swatchMode] of THEME_MODES.entries()) {
+        const previous = before[index];
         const next = after[index];
-        if (next === undefined) {
+        if (previous === undefined || next === undefined) {
           throw new Error("A swatch disappeared after changing appearance");
         }
-        expect(materialDifference(previous, next)).toBeLessThanOrEqual(
-          MATERIAL_CHANNEL_TOLERANCE,
-        );
+        const change = materialChange(previous, next);
+        expect(
+          change.largest,
+          changeMessage(THEME_COPY.modes[swatchMode], change),
+        ).toBeLessThanOrEqual(MATERIAL_CHANNEL_TOLERANCE);
       }
     },
   );
