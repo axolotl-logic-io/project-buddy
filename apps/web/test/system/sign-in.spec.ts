@@ -59,7 +59,10 @@ test("use_case_sign_in_by_link", async ({
     await phone.goto("/quests");
     // By role: while the page refreshes after loading, Next keeps a hidden
     // copy of the list, which a text match finds too.
-    await expect(phone.getByRole("link", { name: quest.name })).toBeVisible();
+    // Exact: Continue also links to the quest, labelled with its name.
+    await expect(
+      phone.getByRole("link", { name: quest.name, exact: true }),
+    ).toBeVisible();
   });
   await device.close();
 
