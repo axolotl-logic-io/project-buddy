@@ -22,7 +22,11 @@ const PERFORMANCE: Performance = {
   id: PERFORMANCE_ID.parse("0b6c1d55-2f0e-4b8a-9c3d-6e7f8a9b0c1d"),
   listId: LIST_ID.parse("a0c7c952-9f82-4640-9584-45e01b0c2513"),
   listName: "Bench",
-  rite: { name: "Brainstorm", replies: ["What else comes to mind?"] },
+  rite: {
+    name: "Brainstorm",
+    firstMessage: "Let’s brainstorm for {list}. What comes to mind first?",
+    replies: ["What else comes to mind?"],
+  },
   startedAt: new Date("2026-11-20T09:00:00Z"),
   endedAt: null,
   added: 0,

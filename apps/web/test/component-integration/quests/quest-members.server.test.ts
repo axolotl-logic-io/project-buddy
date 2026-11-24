@@ -590,7 +590,7 @@ describe("use_case_remove_quest_member", () => {
 });
 
 describe("how a quest is shared, wherever quests are listed", () => {
-  test("the owner's quest with members is shared, a member sees its owner, and personal quests stay unmarked", async () => {
+  test("the owner's quest with members is shared, a member sees its owner, and private quests stay unmarked", async () => {
     const [{ owner, first, second }, member] = await Promise.all([
       ownerWithTwoQuests(),
       testUser(),
@@ -626,12 +626,12 @@ describe("how a quest is shared, wherever quests are listed", () => {
       readCurrentQuest(member.id),
     ]);
     expect(sharingOf(ownerQuests, first.id)).toEqual({ kind: "shared" });
-    expect(sharingOf(ownerQuests, second.id)).toEqual({ kind: "personal" });
+    expect(sharingOf(ownerQuests, second.id)).toEqual({ kind: "private" });
     expect(sharingOf(memberQuests, first.id)).toEqual({
       kind: "joined",
       owner: "Rowan Owner",
     });
-    expect(sharingOf(memberQuests, own.id)).toEqual({ kind: "personal" });
+    expect(sharingOf(memberQuests, own.id)).toEqual({ kind: "private" });
     expect(continued).toMatchObject({
       quest: { id: first.id },
       sharing: { kind: "joined", owner: "Rowan Owner" },

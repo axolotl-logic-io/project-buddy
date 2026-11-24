@@ -135,8 +135,8 @@ async function questPage(
               <span className="quest-status-mark">
                 {QUEST_STATUS_COPY.labels[quest.status]}
               </span>
-              {quest.sharing.kind === "personal" && (
-                <span>{QUEST_OVERVIEW_COPY.personal}</span>
+              {quest.sharing.kind === "private" && (
+                <span>{QUEST_OVERVIEW_COPY.private}</span>
               )}
               <QuestSharingMark sharing={quest.sharing} />
             </p>
@@ -159,7 +159,7 @@ async function questPage(
         {quest.status !== "active" && (
           <Notice>{QUEST_STATUS_COPY.effects}</Notice>
         )}
-        <NextTask questId={quest.id} tasks={next} lists={lists} />
+        <NextTask questId={quest.id} tasks={next} />
         {history !== undefined && recurring.length > 0 && (
           <TodayTasks questId={quest.id} history={history} tasks={recurring} />
         )}

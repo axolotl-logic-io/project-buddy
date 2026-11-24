@@ -13,7 +13,7 @@ const INVITATIONS_PER_HOUR = 20;
 // with no members; their own, with members; or someone else's, which they
 // are a member of, named by its owner's display name.
 type QuestSharing =
-  | { readonly kind: "personal" | "shared" }
+  | { readonly kind: "private" | "shared" }
   | { readonly kind: "joined"; readonly owner: string };
 
 // What a removal or an answer to an invitation did: done, or nothing,

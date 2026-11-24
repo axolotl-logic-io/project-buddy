@@ -7,7 +7,6 @@ import { useQuestAction } from "@/components/use-quest-action.ts";
 import type { QuestId } from "@/ids.ts";
 import { changeListItemAction } from "@/lists/list-item-actions.ts";
 import type { OpenTask } from "@/lists/list-item-store.ts";
-import type { List } from "@/lists/list-store.ts";
 import { LISTS_COPY } from "@/ui/copy/lists.ts";
 import { QUEST_OVERVIEW_COPY } from "@/ui/copy/quest-overview.ts";
 import { QUEST_SIDEBAR_COPY } from "@/ui/copy/quest-sidebar.ts";
@@ -24,12 +23,10 @@ function numbered({ taskNumber, text }: OpenTask): string {
 function NextTask({
   questId,
   tasks,
-  lists,
 }: {
   readonly questId: QuestId;
   // The quest's next tasks, in order; the first is the next task.
   readonly tasks: readonly OpenTask[];
-  readonly lists: readonly List[];
 }): JSX.Element {
   const headingId = useId();
   const [task, ...then] = tasks;
@@ -43,7 +40,6 @@ function NextTask({
       });
     }
   }, [questId, run, task]);
-  const list = lists.find(({ id }) => id === task?.listId);
   return (
     <section
       aria-labelledby={headingId}
@@ -67,7 +63,7 @@ function NextTask({
             disabled={busy}
             onClick={checkOff}
           >
-            {list?.checkOff ?? QUEST_OVERVIEW_COPY.checkOff}
+            {LISTS_COPY.checkOff}
           </Button>
           {then.length > 0 && (
             <p className="wrap-anywhere text-muted text-sm">

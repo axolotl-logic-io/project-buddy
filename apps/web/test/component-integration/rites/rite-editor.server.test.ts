@@ -34,7 +34,11 @@ test("use_case_customize_rite", async () => {
   }
 
   await signIn(author);
-  const original = { name: "Plan", replies: ["First reply", "Second reply"] };
+  const original = {
+    name: "Plan",
+    firstMessage: "Plan begins on {list}.",
+    replies: ["First reply", "Second reply"],
+  };
   const created = await saveRiteAction(original);
   expect(created.kind).toBe("saved");
   if (created.kind !== "saved") {
@@ -61,8 +65,19 @@ test("use_case_customize_rite", async () => {
     field: "replies",
   });
   expect(
-    await saveRiteAction({ id, name: "New plan", replies: ["A new reply"] }),
+    await saveRiteAction({ ...original, id, firstMessage: " " }),
+  ).toMatchObject({ kind: "invalid", field: "firstMessage" });
+  expect(
+    await saveRiteAction({
+      id,
+      name: "New plan",
+      firstMessage: "New plan begins.",
+      replies: ["A new reply"],
+    }),
   ).toMatchObject({ kind: "saved", id });
+  expect(await readRite(author.id, id)).toMatchObject({
+    firstMessage: "New plan begins.",
+  });
   expect(await changeRiteAvailability(author.id, id, "forget")).toBe(true);
   expect(
     await startPerformance(author.id, questId, {
@@ -205,7 +220,13 @@ describe("use_case_delete_retired_definition", () => {
     );
     expect(await readRite(owner.id, id, true)).toBeUndefined();
     expect(await listPerformances(owner.id, questId)).toMatchObject([
-      { rite: { name: "Plan", replies: ["First reply"] } },
+      {
+        rite: {
+          name: "Plan",
+          firstMessage: "Plan begins.",
+          replies: ["First reply"],
+        },
+      },
     ]);
   });
 
@@ -275,7 +296,11 @@ async function ownRite(
   owner: Awaited<ReturnType<typeof testUser>>,
   name: string,
 ): Promise<ReturnType<typeof OWN_RITE_ID.parse>> {
-  const saved = await saveRite(owner.id, { name, replies: ["First reply"] });
+  const saved = await saveRite(owner.id, {
+    name,
+    firstMessage: `${name} begins.`,
+    replies: ["First reply"],
+  });
   if (saved === undefined) {
     throw new Error("The rite was not saved");
   }

@@ -21,6 +21,7 @@ const rites = pgTable(
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
     name: text("name").notNull(),
+    firstMessage: text("first_message").notNull(),
     replies: jsonb("replies").notNull(),
     forgottenAt: timestamp("forgotten_at", { withTimezone: true }),
     updatedAt: timestamp("updated_at", { withTimezone: true })

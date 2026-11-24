@@ -23,6 +23,7 @@ test("use_case_set_name", async () => {
   const quest = await data.quest();
   const rite = await saveRite(user.id, {
     name: "Named replies",
+    firstMessage: "Ready when you are.",
     replies: ["Hi {user}"],
   });
   const [list] = await readLists(user.id, quest.id);

@@ -37,7 +37,7 @@ const OTHER_QUEST: QuickAddQuest = {
   id: "22222222-2222-4222-8222-222222222222",
   name: "Kiln",
   lists: LISTS,
-  sharing: { kind: "personal" },
+  sharing: { kind: "private" },
 };
 const JOINED_QUEST: QuickAddQuest = {
   id: "33333333-3333-4333-8333-333333333333",
@@ -178,7 +178,7 @@ describe("use_case_quick_add", () => {
     );
   });
 
-  test("a quest shared with others is marked with its owner, beside a personal one of the same name", async () => {
+  test("a quest shared with others is marked with its owner, beside a private one of the same name", async () => {
     vi.mocked(listQuickAddQuests).mockResolvedValue([
       OTHER_QUEST,
       JOINED_QUEST,

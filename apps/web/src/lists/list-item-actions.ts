@@ -36,8 +36,11 @@ async function changeListItemAction(
     if (result === "saved") {
       refresh();
       let message = LISTS_COPY.savedChange;
-      if (change.kind === "check" && list !== undefined) {
-        message = LISTS_COPY.checked(list, change.checkedOff);
+      if (change.kind === "check" && change.checkedOff) {
+        message = LISTS_COPY.checkedOff;
+      }
+      if (change.kind === "check" && !change.checkedOff) {
+        message = LISTS_COPY.unchecked;
       }
       if (change.kind === "undo" || list === undefined) {
         return { kind: "saved", message };

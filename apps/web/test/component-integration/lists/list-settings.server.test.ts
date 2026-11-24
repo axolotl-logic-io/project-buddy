@@ -23,18 +23,13 @@ test("use_case_set_up_list", async () => {
   const fields = {
     questId,
     name: "Plans",
-    checkOff: "Finish",
-    uncheck: "Resume",
     type: "task",
   };
 
-  const invalid = await saveListAction(
-    {},
-    formOf({ ...fields, checkOff: " " }),
-  );
-  expect(invalid.error).toContain("checkOff");
-  const { name: draftName } = invalid.draft ?? {};
-  expect(draftName).toBe("Plans");
+  const invalid = await saveListAction({}, formOf({ ...fields, name: " " }));
+  expect(invalid.error).toContain("name");
+  const { type: draftType } = invalid.draft ?? {};
+  expect(draftType).toBe("task");
   expect((await readLists(owner.id, questId)).map(({ name }) => name)).toEqual([
     "Tasks",
     "Ideas",
@@ -47,11 +42,7 @@ test("use_case_set_up_list", async () => {
     throw new Error("The new list was not listed");
   }
   expect(lists.map(({ name }) => name)).toEqual(["Tasks", "Ideas", "Plans"]);
-  expect(added).toMatchObject({
-    checkOff: "Finish",
-    uncheck: "Resume",
-    type: "task",
-  });
+  expect(added).toMatchObject({ type: "task" });
 
   const edit = formOf({
     ...fields,
@@ -89,8 +80,6 @@ test("use_case_list_types", async () => {
       questId,
       listId: list.id,
       name: list.name,
-      checkOff: list.checkOff,
-      uncheck: list.uncheck,
       type,
     };
   }
