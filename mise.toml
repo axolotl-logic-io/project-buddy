@@ -45,3 +45,9 @@ run = 'node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON "{{config_root}}/apps
 [tasks.visual-baseline]
 description = "Measure the critical views' page weight, fonts, LCP, CLS and axe violations in a production build; --help for the options"
 run = 'node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON "{{config_root}}/apps/web/scripts/visual/baseline.ts"'
+
+# Which local scripts recent T3 Code threads for this project ran, and which
+# they did not, read from T3 Code's local database.
+[tasks.script-usage]
+description = "List the npm scripts, mise tasks and script files the last N T3 Code threads ran, and those they did not, with where each is defined; --help for the options"
+run = 'node "{{config_root}}/scripts/script-usage.mts"'
