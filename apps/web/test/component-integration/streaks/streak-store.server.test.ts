@@ -15,7 +15,7 @@ import { readExperience } from "@/experience/experience-store.ts";
 import type { ListItem } from "@/lists/list-item-store.ts";
 import {
   readListItems,
-  readNextTask,
+  readNextTasks,
   writeListContents,
 } from "@/lists/list-item-store.ts";
 import { readLists } from "@/lists/list-store.ts";
@@ -108,7 +108,7 @@ describe("use_case_recurring_tasks", () => {
       { text: "Stretch", checkedOff: true },
       { text: "Water the plants", checkedOff: true },
     ]);
-    expect(await readNextTask(owner.id, quest.id)).toBeUndefined();
+    expect(await readNextTasks(owner.id, quest.id, 1)).toEqual([]);
     const experience = await readExperience(owner.id);
 
     await passMidnight(quest);
@@ -117,9 +117,9 @@ describe("use_case_recurring_tasks", () => {
       { id: stretch.id, checkedOff: false, recurring: true },
       { id: water.id, checkedOff: true, recurring: false },
     ]);
-    expect(await readNextTask(owner.id, quest.id)).toMatchObject({
-      id: stretch.id,
-    });
+    expect(await readNextTasks(owner.id, quest.id, 1)).toMatchObject([
+      { id: stretch.id },
+    ]);
     expect(await readExperience(owner.id)).toEqual(experience);
 
     // Checking it off again counts for today.

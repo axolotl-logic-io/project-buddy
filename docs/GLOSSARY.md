@@ -96,7 +96,7 @@ The rite's answer to a message in a performance, picked at random from the rite'
 
 ### Performance
 
-A rite performed on one list of a quest, from start to stop. Starting a performance saves a **rite snapshot**, a copy of the definition, so editing or forgetting the rite leaves the performance unchanged. The **active performance** is the one in effect for everyone in the quest, and a quest has at most one. **Stop** ends it. **Performances** is the quest's record of its past and active performances.
+A rite performed on one list of a quest, from start to stop. Starting a performance saves a **rite snapshot**, a copy of the definition, so editing or forgetting the rite leaves the performance unchanged. The **active performance** is the one in effect for everyone in the quest, and a quest has at most one. **Stop** ends it.
 
 During the active performance, users in the quest send messages. Each message adds one list item to the performance's list, and the rite replies. A message keeps its author's name. [Performance use cases](../apps/web/use-cases/performances.md) and [send a message use case](../apps/web/use-cases/performances.md#use_case_send_message)
 

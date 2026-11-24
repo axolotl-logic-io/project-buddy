@@ -11,12 +11,12 @@ export default async function QuestPage({
   params,
   searchParams,
 }: PageProps<"/quests/[questId]">): Promise<JSX.Element> {
-  const [{ questId }, { section, performance }, user] = await Promise.all([
+  const [{ questId }, { section }, user] = await Promise.all([
     params,
     searchParams,
     requireUser(),
   ]);
-  const page = await questPage(user, questId, section, performance);
+  const page = await questPage(user, questId, section);
   if (page === undefined) {
     notFound();
   }

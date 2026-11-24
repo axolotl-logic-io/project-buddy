@@ -15,7 +15,13 @@ import {
   takeBackEvents,
 } from "@/experience/experience-store.ts";
 import type { QuestId, UserId } from "@/ids.ts";
-import { LIST_TYPE, type ListId, type ListType, listItemText } from "./list.ts";
+import {
+  LIST_ID,
+  LIST_TYPE,
+  type ListId,
+  type ListType,
+  listItemText,
+} from "./list.ts";
 import { LIST_ITEM_ID, type ListItemChange } from "./list-item.ts";
 import { type List, readList } from "./list-store.ts";
 import {
@@ -526,12 +532,21 @@ function writeListContents(
   );
 }
 
-function readNextTask(
+// An open task with the list it is in, whose verbs name checking it off.
+interface OpenTask extends ListItem {
+  readonly listId: ListId;
+}
+
+// The quest's next tasks, up to count of them: its open tasks, taking its
+// task lists in order and each list's tasks in their saved order. The first
+// is the quest's next task.
+function readNextTasks(
   user: UserId,
   questId: QuestId,
-): Promise<ListItem | undefined> {
-  return withAppErrors("readNextTask", async () => {
-    const [row] = await getDb()
+  count: number,
+): Promise<OpenTask[]> {
+  return withAppErrors("readNextTasks", async () => {
+    const rows = await getDb()
       .select({ item: LIST_ITEM_COLUMNS })
       .from(listItems)
       .innerJoin(lists, eq(lists.id, listItems.listId))
@@ -545,20 +560,54 @@ function readNextTask(
         ),
       )
       .orderBy(lists.position, listItems.position, listItems.id)
-      .limit(1);
-    if (row === undefined) {
-      return;
-    }
-    return toListItem(row.item);
+      .limit(count);
+    return rows.map(({ item }) => ({
+      ...toListItem(item),
+      listId: LIST_ID.parse(item.listId),
+    }));
   });
 }
 
-export type { ListItem };
+// A list's number of list items, and how many of them are open.
+interface ListCount {
+  readonly total: number;
+  readonly open: number;
+}
+
+// How many list items each of the quest's lists holds, and how many of
+// them are open: not checked off now. A list with no items is absent.
+function countListItems(
+  user: UserId,
+  questId: QuestId,
+): Promise<ReadonlyMap<ListId, ListCount>> {
+  return withAppErrors("countListItems", async () => {
+    const rows = await getDb()
+      .select({
+        listId: listItems.listId,
+        total: sql<number>`count(*)`.mapWith(Number),
+        open: sql<number>`count(*) filter (where not ${CHECKED_OFF_NOW})`.mapWith(
+          Number,
+        ),
+      })
+      .from(listItems)
+      .where(and(eq(listItems.questId, questId), listItemOpenTo(user)))
+      .groupBy(listItems.listId);
+    return new Map(
+      rows.map(({ listId, total, open }) => [
+        LIST_ID.parse(listId),
+        { total, open },
+      ]),
+    );
+  });
+}
+
+export type { ListCount, ListItem, OpenTask };
 export {
   changeListItem,
   changeWithin,
+  countListItems,
   readListContents,
   readListItems,
-  readNextTask,
+  readNextTasks,
   writeListContents,
 };

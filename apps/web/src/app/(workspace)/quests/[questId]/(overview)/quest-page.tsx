@@ -14,7 +14,6 @@ import {
 } from "@/components/performance-controls.tsx";
 import { PerformanceTranscript } from "@/components/performance-transcript.tsx";
 import { QuestMembers } from "@/components/quest-members.tsx";
-import { QuestPerformances } from "@/components/quest-performances.tsx";
 import { QuestSharingMark } from "@/components/quest-sharing-mark.tsx";
 import { QuestSidePanel } from "@/components/quest-side-panel.tsx";
 import {
@@ -22,13 +21,18 @@ import {
   QuestStatusFeedback,
 } from "@/components/quest-status-controls.tsx";
 import { QuestTimer } from "@/components/timer/quest-timer.tsx";
+import { TodayTasks } from "@/components/today-tasks.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { Notice } from "@/components/ui/form-message.tsx";
 import { Icon } from "@/components/ui/icon.tsx";
 import { getConstruct } from "@/constructs/index.ts";
 import type { QuestId } from "@/ids.ts";
-import { LIST_ID } from "@/lists/list.ts";
-import { readListItems, readNextTask } from "@/lists/list-item-store.ts";
+import { LIST_ID, type ListId } from "@/lists/list.ts";
+import {
+  countListItems,
+  readListItems,
+  readNextTasks,
+} from "@/lists/list-item-store.ts";
 import { readLists } from "@/lists/list-store.ts";
 import {
   listPerformances,
@@ -46,10 +50,13 @@ import { QUEST_SIDEBAR_COPY } from "@/ui/copy/quest-sidebar.ts";
 import { QUEST_STATUS_COPY } from "@/ui/copy/quest-status.ts";
 import { TIMER_COPY } from "@/ui/copy/timer.ts";
 
-const SECTION = z.enum(["members", "days", "rites", "performances"]);
+const SECTION = z.enum(["members", "days"]);
 type Section = z.infer<typeof SECTION>;
 
-function sectionPath(id: QuestId, section?: Section): Route {
+// How many open tasks the overview names: the next task and those after it.
+const NEXT_TASKS = 3;
+
+function sectionPath(id: QuestId, section?: Section | ListId): Route {
   if (section === undefined) {
     return `/quests/${id}`;
   }
@@ -60,7 +67,6 @@ async function questPage(
   viewer: User,
   questId: string,
   section: unknown,
-  performanceParam?: unknown,
 ): Promise<JSX.Element | undefined> {
   const user = viewer.id;
   const quest = await getQuest(user, questId);
@@ -80,7 +86,6 @@ async function questPage(
     contents = await readListItems(user, quest.id, list.id);
   }
   const running = performances.find(({ endedAt }) => endedAt === null);
-  const selected = performances.find(({ id }) => id === performanceParam);
   const construct = getConstruct(quest.constructId);
   let runningContent: ReactNode;
   if (running !== undefined) {
@@ -106,49 +111,122 @@ async function questPage(
       </section>
     );
   }
-  let historyContent: ReactNode;
-  if (section === "performances") {
-    historyContent = (
-      <QuestPerformances questId={quest.id} performances={performances} />
-    );
-    if (selected !== undefined) {
-      historyContent = (
-        <PerformanceTranscript
-          performance={selected}
-          entries={await readPerformanceMessages(user, selected.id)}
-          construct={construct}
-        />
-      );
-    }
-  }
   const current = SECTION.safeParse(section).data;
 
-  let riteContent: ReactNode;
-  if (section === "rites") {
-    riteContent = (
-      <section
-        aria-label={PERFORMANCE_COPY.ritesAndStatus}
-        className="quest-section-body"
-      >
-        <h2 className="section-heading">{PERFORMANCE_COPY.ritesAndStatus}</h2>
-        <PerformRite
-          questId={quest.id}
-          rites={await listRites(user)}
-          lists={lists}
-        />
-        <h3 className="section-heading">{QUEST_OVERVIEW_COPY.status}</h3>
-        <QuestStatusControls quest={quest} />
-      </section>
-    );
-  }
-  const onOverview =
-    current === undefined &&
-    list === undefined &&
-    section !== "performances" &&
-    section !== "rites";
-  let nextTask: Awaited<ReturnType<typeof readNextTask>>;
+  const onOverview = current === undefined && list === undefined;
+  let overview: JSX.Element | undefined;
   if (onOverview) {
-    nextTask = await readNextTask(user, quest.id);
+    const [next, counts, rites, recurring] = await Promise.all([
+      readNextTasks(user, quest.id, NEXT_TASKS),
+      countListItems(user, quest.id),
+      listRites(user),
+      readRecurringTasks(user, quest.id),
+    ]);
+    let membersLabel: string = QUEST_MEMBERS_COPY.heading;
+    if (people !== undefined) {
+      membersLabel = QUEST_OVERVIEW_COPY.members(1 + people.members.length);
+    }
+    overview = (
+      <>
+        <section className="quest-focus-head" aria-label={quest.name}>
+          <div className="min-w-0">
+            <p className="quest-overview-meta">
+              <span>{QUEST_OVERVIEW_COPY.quest}</span>
+              <span className="quest-status-mark">
+                {QUEST_STATUS_COPY.labels[quest.status]}
+              </span>
+              {quest.sharing.kind === "personal" && (
+                <span>{QUEST_OVERVIEW_COPY.personal}</span>
+              )}
+              <QuestSharingMark sharing={quest.sharing} />
+            </p>
+            <h2
+              data-quest-overview-heading=""
+              className="quest-focus-title"
+              tabIndex={-1}
+            >
+              {quest.name}
+            </h2>
+            {quest.startingContext !== undefined &&
+              quest.startingContext !== "" && (
+                <p className="quest-overview-summary">
+                  {quest.startingContext}
+                </p>
+              )}
+          </div>
+          <ConstructAvatar construct={construct} />
+        </section>
+        {quest.status !== "active" && (
+          <Notice>{QUEST_STATUS_COPY.effects}</Notice>
+        )}
+        <NextTask questId={quest.id} tasks={next} lists={lists} />
+        {history !== undefined && recurring.length > 0 && (
+          <TodayTasks questId={quest.id} history={history} tasks={recurring} />
+        )}
+        {runningContent ?? (
+          <section
+            aria-label={QUEST_OVERVIEW_COPY.performRite}
+            className="quest-section-body"
+          >
+            <h3 className="quest-overview-label">
+              {QUEST_OVERVIEW_COPY.performRite}
+            </h3>
+            <PerformRite questId={quest.id} rites={rites} lists={lists} />
+          </section>
+        )}
+        <nav aria-label={LISTS_COPY.heading} className="quest-section-body">
+          <h3 className="sr-only">{LISTS_COPY.heading}</h3>
+          <ul className="quest-list-rows">
+            {lists.map((entry) => (
+              <li key={entry.id}>
+                <Link
+                  href={sectionPath(quest.id, entry.id)}
+                  className="quest-list-row"
+                >
+                  <span className="wrap-anywhere">{entry.name}</span>
+                  <span className="text-muted text-sm">
+                    {QUEST_OVERVIEW_COPY.listSize(
+                      entry.type,
+                      counts.get(entry.id) ?? { total: 0, open: 0 },
+                    )}
+                  </span>
+                  <Icon name="chevron-right" />
+                </Link>
+              </li>
+            ))}
+          </ul>
+          <ListSettings questId={quest.id} />
+        </nav>
+        <details
+          className="quest-section-body quest-settings"
+          open={quest.status !== "active"}
+        >
+          <summary>{QUEST_OVERVIEW_COPY.settings}</summary>
+          <ul className="quest-list-rows">
+            <li>
+              <Link
+                href={sectionPath(quest.id, "members")}
+                className="quest-list-row"
+              >
+                <span>{membersLabel}</span>
+                <Icon name="chevron-right" />
+              </Link>
+            </li>
+            <li>
+              <Link
+                href={sectionPath(quest.id, "days")}
+                className="quest-list-row"
+              >
+                <span>{QUEST_SIDEBAR_COPY.dayGrid}</span>
+                <Icon name="chevron-right" />
+              </Link>
+            </li>
+          </ul>
+          <h4 className="font-semibold">{QUEST_OVERVIEW_COPY.status}</h4>
+          <QuestStatusControls quest={quest} />
+        </details>
+      </>
+    );
   }
   let dayGrid: JSX.Element | undefined;
   if (current === "days" && history !== undefined) {
@@ -170,93 +248,9 @@ async function questPage(
     >
       <div className="quest-workspace quest-overview">
         <QuestStatusFeedback>
-          {onOverview === true && (
-            <section className="quest-overview-hero" aria-label={quest.name}>
-              <div className="quest-overview-heading">
-                <div className="min-w-0">
-                  <div className="quest-overview-meta">
-                    <span className="quest-status-mark">
-                      {QUEST_STATUS_COPY.labels[quest.status]}
-                    </span>
-                    {quest.sharing.kind === "personal" && (
-                      <span>{QUEST_OVERVIEW_COPY.personal}</span>
-                    )}
-                    <QuestSharingMark sharing={quest.sharing} />
-                  </div>
-                  <h2
-                    data-quest-overview-heading=""
-                    className="quest-overview-title"
-                    tabIndex={-1}
-                  >
-                    {quest.name}
-                  </h2>
-                </div>
-                <ConstructAvatar construct={construct} />
-              </div>
-              {quest.startingContext !== undefined &&
-                quest.startingContext !== "" && (
-                  <p className="quest-overview-summary">
-                    {quest.startingContext}
-                  </p>
-                )}
-              <NextTask task={nextTask} />
-            </section>
-          )}
-          {quest.status !== "active" && (
+          {overview}
+          {quest.status !== "active" && !onOverview && (
             <Notice>{QUEST_STATUS_COPY.effects}</Notice>
-          )}
-          {onOverview === true && (
-            <>
-              <nav aria-label={LISTS_COPY.heading}>
-                <h2 className="section-heading">{LISTS_COPY.heading}</h2>
-                <ul className="quest-overview-links">
-                  {lists.map((entry) => (
-                    <li key={entry.id}>
-                      <Link
-                        href={`/quests/${quest.id}?section=${entry.id}`}
-                        className="quest-overview-link"
-                      >
-                        {entry.name}
-                        <Icon name="chevron-right" />
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-                <ListSettings questId={quest.id} />
-              </nav>
-              <ul className="quest-overview-links">
-                <li>
-                  <Link
-                    href={`/quests/${quest.id}?section=rites`}
-                    className="quest-overview-link"
-                  >
-                    {PERFORMANCE_COPY.ritesAndStatus}
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href={`/quests/${quest.id}?section=performances`}
-                    className="quest-overview-link"
-                  >
-                    {PERFORMANCE_COPY.heading}
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href={sectionPath(quest.id, "days")}
-                    className="quest-overview-link"
-                  >
-                    {QUEST_SIDEBAR_COPY.dayGrid}
-                  </Link>
-                </li>
-              </ul>
-              <Link
-                href={sectionPath(quest.id, "members")}
-                className="quest-overview-link"
-              >
-                {QUEST_MEMBERS_COPY.heading}
-              </Link>
-            </>
           )}
           {list !== undefined && (
             <section className="quest-section-body" aria-label={list.name}>
@@ -290,17 +284,7 @@ async function questPage(
             <QuestMembers viewer={user} people={people} quest={quest} />
           )}
           {dayGrid}
-          {riteContent}
-          {historyContent !== undefined && (
-            <section
-              aria-label={PERFORMANCE_COPY.heading}
-              className="quest-section-body"
-            >
-              <h2 className="section-heading">{PERFORMANCE_COPY.heading}</h2>
-              {historyContent}
-            </section>
-          )}
-          {section !== "performances" && runningContent}
+          {!onOverview && runningContent}
         </QuestStatusFeedback>
       </div>
     </QuestSidePanel>

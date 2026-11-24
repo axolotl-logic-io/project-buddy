@@ -108,7 +108,7 @@ test("use_case_perform_rite", async () => {
   ).toBe(true);
 });
 
-test("use_case_view_performances", async () => {
+test("a stopped performance keeps its messages, and a stranger reads none", async () => {
   const {
     user,
     questId,

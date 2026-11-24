@@ -46,7 +46,8 @@ The user sees how many days in a row they have checked off each recurring task.
 - **Prerequisites:** `use_case_recurring_tasks`.
 - **Steps:**
   - The user looks at a recurring task in its list.
-  - The user opens Day grid from the quest's Overview.
+  - The user looks at Today on the quest's Overview, which lists each recurring task with its streak chain.
+  - The user opens Day grid from Quest settings on the quest's Overview.
 - **Outcome:** each recurring task shows its streak chain under its text: one filled link for each day in a row, up to today, on which someone checked it off, then today's link, dashed until the task is checked off. A line under the chain gives the streak and what checking the task off does next, such as "4-day streak. Check it off to make it 5." Today counts once the task is checked off, and an open task doesn't end the streak until midnight. A day the task wasn't checked off ends the streak. Each day starts at midnight in the quest owner's time zone. Day grid shows each recurring task's last seven dates: filled when checked off, empty when not. Screen readers announce each date's weekday, date and mark.
 - **Variations:**
   - With no recurring tasks, Day grid says how to make one.

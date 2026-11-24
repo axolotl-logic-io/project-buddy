@@ -43,9 +43,10 @@ import { saveListAction } from "@/lists/list-actions.ts";
 import type { ListItemChange } from "@/lists/list-item.ts";
 import { changeListItemAction } from "@/lists/list-item-actions.ts";
 import {
+  countListItems,
   readListContents,
   readListItems,
-  readNextTask,
+  readNextTasks,
   writeListContents,
 } from "@/lists/list-item-store.ts";
 import { readLists } from "@/lists/list-store.ts";
@@ -513,13 +514,26 @@ describe("use_case_quest_member_access", () => {
           readLists(outsider.id, quest.id),
           readListItems(outsider.id, quest.id, tasks.id),
           readListContents(outsider.id, quest.id, tasks.id),
-          readNextTask(outsider.id, quest.id),
+          readNextTasks(outsider.id, quest.id, 1),
+          countListItems(outsider.id, quest.id),
           listPerformances(outsider.id, quest.id),
           readPerformanceMessages(outsider.id, performanceId),
           listQuickAddQuests(),
           readStreakQuests(outsider.id),
         ]),
-      ).toEqual([[], undefined, [], [], undefined, undefined, [], [], [], []]);
+      ).toEqual([
+        [],
+        undefined,
+        [],
+        [],
+        undefined,
+        [],
+        new Map(),
+        [],
+        [],
+        [],
+        [],
+      ]);
       expect(
         await markTaskDayAction({
           questId: quest.id,
