@@ -6,16 +6,12 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "check:build-fonts": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/check-build-font-urls.ts",
     "lint": "biome check --error-on-warnings && npm run typecheck",
     "typecheck": "next typegen && tsc --noEmit",
     "format": "biome format --write",
     "format:check": "biome format",
-    "test": "npm run test:unit && npm run test:browser && npm run test:server",
-    "test:unit": "bash ../../.github/scripts/vercel-promote.test.sh && bash test/component-integration/scripts/test-env/test-env.test.sh && bash test/component-integration/scripts/ops/ops.test.sh && vitest run --project repository --project vite-integration",
-    "test:browser": "npm run browsers:install && vitest run --project 'browser*'",
-    "test:server": "bash scripts/test-env/require-env-test.sh && npm run test-db:reset && node --env-file=.env.test --disable-warning=MODULE_TYPELESS_PACKAGE_JSON ../../node_modules/vitest/vitest.mjs run --config vitest.server.config.mts",
-    "test:e2e": "bash scripts/test-env/require-env-test.sh && npm run test-db:reset && node --env-file=.env.test --disable-warning=MODULE_TYPELESS_PACKAGE_JSON ../../node_modules/@playwright/test/cli.js test",
+    "test": "bash scripts/test-env/require-env-test.sh && npx --yes react-doctor@0.9.23 --yes --no-score --no-supply-chain && bash ../../.github/scripts/vercel-promote.test.sh && bash test/component-integration/scripts/test-env/test-env.test.sh && bash test/component-integration/scripts/ops/ops.test.sh && vitest run --project repository --project vite-integration && npm run test-db:reset && node --env-file=.env.test --disable-warning=MODULE_TYPELESS_PACKAGE_JSON ../../node_modules/vitest/vitest.mjs run --config vitest.server.config.mts",
+    "test:e2e": "bash scripts/test-env/require-env-test.sh && npm run browsers:install && vitest run --project 'browser*' && npm run test-db:reset && node --env-file=.env.test --disable-warning=MODULE_TYPELESS_PACKAGE_JSON ../../node_modules/@playwright/test/cli.js test",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "dev:database": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/development/database.ts",
@@ -23,8 +19,7 @@
     "test-env:init": "bash scripts/test-env/init-worktree.sh",
     "test-db:up": "bash scripts/test-env/require-env-test.sh && docker compose --file compose.test-db.yml up --detach --wait",
     "test-db:down": "bash scripts/test-env/require-env-test.sh && docker compose --file compose.test-db.yml down",
-    "test-db:reset": "bash scripts/test-env/require-env-test.sh && node --env-file=.env.test --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/test-db/reset.ts",
-    "doctor": "npx --yes react-doctor@0.9.23 --yes --no-score --no-supply-chain"
+    "test-db:reset": "bash scripts/test-env/require-env-test.sh && node --env-file=.env.test --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/test-db/reset.ts"
   },
   "dependencies": {
     "@streamdown/code": "2.0.0",
@@ -42,7 +37,6 @@
     "zod": "^4.6.7"
   },
   "devDependencies": {
-    "@axe-core/playwright": "^4.14.0",
     "@next/env": "16.4.6",
     "@playwright/test": "^1.64.0",
     "@tailwindcss/turbopack": "^4",

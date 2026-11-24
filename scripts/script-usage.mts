@@ -138,7 +138,7 @@ Arguments:
 Options:
   --json        Print the report as JSON
   --trace TEXT  Print to stderr each command that ran a script whose label
-                contains TEXT, such as "test:browser", with its thread
+                contains TEXT, such as "test:e2e", with its thread
   --db PATH     T3 Code's state database; ${DEFAULT_DB} by default
   -h, --help    Show this help
 `;

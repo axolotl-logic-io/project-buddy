@@ -1,6 +1,6 @@
 // How src/themes/theme-font-urls.ts has drifted from the production build:
-// the check `npm run check:build-fonts` (check-build-font-urls.ts) runs on
-// the CSS that `npm run build` writes under `.next/static/`. The map is in
+// the check in check-build-font-urls.ts runs on the CSS that
+// `npm run build` writes under `.next/static/`. The map is in
 // step when each typeface's URL is the `src` of a built `@font-face` rule
 // for the family the built CSS gives its variable, and every `.woff2` file
 // a built `@font-face` rule loads is in the map.
