@@ -73,7 +73,7 @@ The conventions for these cases are in [the index](README.md#conventions). The T
 - **Steps:**
   - They open the left site panel.
   - They choose Ivory Vellum, Soot & Brass or Espresso Leather.
-- **Outcome:** the site and timer change appearance together immediately, using the same preference as the left panel and Settings. The browser remembers the site appearance across timer links and reloads. Ivory Vellum uses the scribe’s hourglass, with the countdown beside it on desktop and below it on phones; the darker appearances retain their dials. The schedule and shared link stay unchanged. On phones, the site panel opens as a modal drawer with keyboard focus kept inside; Escape closes it and returns focus to the opening button. On wide screens it docks on the left and remembers whether it is open.
+- **Outcome:** the site and timer change appearance together immediately, using the same preference as the left panel and Settings. The browser remembers the site appearance across timer links and reloads. Ivory Vellum uses the scribe’s hourglass, with the countdown beside it on desktop and below it on phones; the darker appearances retain their dials. The schedule and shared link stay unchanged. On phones, the site panel opens as a modal drawer with keyboard focus kept inside; Escape closes it and returns focus to the opening button. On wide screens it docks on the left. Navigating closes the site panel at any screen width.
 
 ## use_case_timer_copy_link
 

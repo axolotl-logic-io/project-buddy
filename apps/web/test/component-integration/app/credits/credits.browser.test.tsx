@@ -77,15 +77,13 @@ describe("use_case_see_icon_credit", () => {
       await expect.element(credits).toBeVisible();
       await expect.element(credits).toHaveAttribute("href", "/credits");
 
-      // Keep the test's page: the link's own navigation is Next's to test.
-      globalThis.addEventListener("click", stayOnThisPage, { capture: true });
+      // Stop the browser's navigation after React handles the click.
+      globalThis.addEventListener("click", stayOnThisPage);
       try {
         await credits.click();
         await expect.poll(() => page.getByRole("dialog").query()).toBeNull();
       } finally {
-        globalThis.removeEventListener("click", stayOnThisPage, {
-          capture: true,
-        });
+        globalThis.removeEventListener("click", stayOnThisPage);
       }
     });
   }
