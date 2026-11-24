@@ -72,23 +72,37 @@ function PerformRite({
   );
   return (
     <form onSubmit={perform} className="grid gap-3">
-      <SelectField label={PERFORMANCE_COPY.rite} name="riteId" required={true}>
-        {rites.map((rite) => (
-          <option key={rite.id} value={rite.id}>
+      <fieldset className="rite-choices">
+        <legend className="sr-only">{PERFORMANCE_COPY.rite}</legend>
+        {rites.map((rite, index) => (
+          <label key={rite.id} className="rite-choice">
+            <input
+              type="radio"
+              name="riteId"
+              value={rite.id}
+              defaultChecked={index === 0}
+              required={true}
+            />
             {rite.name}
-          </option>
+          </label>
         ))}
-      </SelectField>
-      <SelectField label={PERFORMANCE_COPY.list} name="listId" required={true}>
-        {lists.map((list) => (
-          <option key={list.id} value={list.id}>
-            {list.name}
-          </option>
-        ))}
-      </SelectField>
-      <Button type="submit" disabled={pending === true || lists.length === 0}>
-        {PERFORMANCE_COPY.start}
-      </Button>
+      </fieldset>
+      <div className="perform-rite-target">
+        <SelectField
+          label={PERFORMANCE_COPY.list}
+          name="listId"
+          required={true}
+        >
+          {lists.map((list) => (
+            <option key={list.id} value={list.id}>
+              {list.name}
+            </option>
+          ))}
+        </SelectField>
+        <Button type="submit" disabled={pending === true || lists.length === 0}>
+          {PERFORMANCE_COPY.start}
+        </Button>
+      </div>
       {error !== "" && <Alert>{error}</Alert>}
     </form>
   );

@@ -29,7 +29,7 @@ const INVALID: StatusActionState = {
 };
 
 // Asks, as the signed-in user, to move the quest from one status to
-// another at the revision their page shows, as Rites & status and its Undo
+// another at the revision their page shows, as Quest settings and its Undo
 // do.
 function askStatus(
   quest: Quest,

@@ -2075,19 +2075,27 @@
     pointer-events: none;
   }
 
-  .quest-overview-heading {
+  /* Focus overview: the quest's name and construct, then one card per job
+     — the next task, today's recurring tasks, a rite to perform, the lists
+     and, folded away, the quest's settings. */
+  .quest-focus-head {
     @apply flex items-start justify-between gap-3;
   }
 
-  .quest-overview-heading .construct-avatar {
+  .quest-focus-head .construct-avatar {
     inline-size: clamp(--spacing(10), 6vw, --spacing(16));
     block-size: auto;
     aspect-ratio: 1;
     @apply shrink-0;
   }
 
-  .quest-overview-title {
+  .quest-overview-title,
+  .quest-focus-title {
     @apply wrap-anywhere font-heading text-page-heading-phone leading-tight font-semibold sm:text-page-heading;
+  }
+
+  .quest-focus-title:focus {
+    outline: none;
   }
 
   .quest-overview-meta {
@@ -2110,11 +2118,6 @@
     @apply mt-2 max-w-prose wrap-anywhere whitespace-pre-line text-muted;
   }
 
-  .quest-overview-feature {
-    @apply mt-4 flex flex-col items-start gap-2 border-line/60 border-t pt-3;
-    align-self: stretch;
-  }
-
   .quest-overview-label {
     font-family: var(--label-font);
     color: var(--label-ink);
@@ -2124,17 +2127,119 @@
     @apply text-sm font-semibold;
   }
 
-  .quest-overview-links {
-    @apply mt-2 grid gap-2 sm:grid-cols-2;
+  .quest-next-task {
+    @apply flex flex-col gap-3;
   }
 
-  .quest-overview-link {
+  .quest-next-task-text {
+    @apply wrap-anywhere font-heading text-xl leading-snug font-semibold;
+  }
+
+  .quest-next-task-check {
+    @apply w-full sm:w-auto sm:min-w-48 sm:self-start;
+  }
+
+  .quest-today {
+    @apply grid;
+  }
+
+  .quest-today-task {
+    @apply flex flex-wrap items-center justify-between gap-x-3 border-line/40 border-t first:border-t-0;
+  }
+
+  .quest-today-streak {
+    @apply ms-auto text-end text-muted text-sm;
+  }
+
+  .quest-today-check {
+    @apply grid min-w-0 flex-1 cursor-pointer grid-cols-[auto_minmax(0,1fr)] items-center gap-1;
+  }
+
+  .rite-choices {
+    @apply m-0 flex min-w-0 flex-wrap gap-2 border-0 p-0;
+  }
+
+  .rite-choice {
     min-block-size: var(--target-size);
-    @apply grid h-full grid-cols-[auto_minmax(0,1fr)_auto] items-start gap-2 rounded-box border border-line/60 bg-surface p-3 hover:border-line hover:bg-secondary-surface;
+    @apply relative inline-flex max-w-full cursor-pointer items-center rounded-action border border-line/70 bg-action-paper px-3.5 py-2 font-action font-semibold text-action-ink wrap-anywhere;
   }
 
-  .quest-overview-link .icon {
-    @apply mt-1 text-primary;
+  /* The radio covers its whole chip, unseen, so the chip is its target. */
+  .rite-choice input {
+    @apply absolute inset-0 m-0 size-full cursor-pointer appearance-none opacity-0;
+  }
+
+  .rite-choice:has(input:checked) {
+    @apply border-primary bg-primary text-on-primary;
+  }
+
+  .rite-choice:has(input:focus-visible) {
+    outline: var(--focus-outline);
+    outline-offset: var(--focus-offset);
+  }
+
+  .perform-rite-target {
+    @apply flex flex-wrap items-end gap-3;
+  }
+
+  .perform-rite-target > :first-child {
+    @apply min-w-0 flex-1 basis-40;
+  }
+
+  .quest-list-rows {
+    @apply grid;
+  }
+
+  .quest-list-rows > li + li {
+    @apply border-line/40 border-t;
+  }
+
+  .quest-list-row {
+    min-block-size: var(--target-size);
+    @apply flex items-center gap-3 py-2 hover:text-primary;
+  }
+
+  .quest-list-row > :first-child {
+    @apply min-w-0 flex-1 font-semibold;
+  }
+
+  .quest-list-row .icon {
+    @apply shrink-0 text-muted;
+  }
+
+  .quest-settings > summary {
+    min-block-size: var(--target-size);
+    @apply flex cursor-pointer list-none items-center justify-between gap-3 font-heading text-lg font-semibold;
+  }
+
+  .quest-settings > summary::-webkit-details-marker {
+    display: none;
+  }
+
+  /* A caret that points down when closed and up when open. */
+  .quest-settings > summary::after {
+    content: "";
+    inline-size: --spacing(2);
+    block-size: --spacing(2);
+    rotate: 45deg;
+    translate: 0 -25%;
+    border-block-end: 2px solid currentColor;
+    border-inline-end: 2px solid currentColor;
+    @apply shrink-0 text-muted;
+  }
+
+  .quest-settings[open] > summary::after {
+    rotate: 225deg;
+    translate: 0 25%;
+  }
+
+  .quest-settings h4 {
+    @apply mt-3;
+  }
+
+  /* Closed, the card is just its summary line. */
+  .quest-settings:not([open]) {
+    @apply gap-0 py-2 sm:py-2;
   }
 
   .quest-section-body {

@@ -5,6 +5,8 @@ import QuestLayout from "@/app/(workspace)/quests/[questId]/(overview)/layout.ts
 import QuestPage from "@/app/(workspace)/quests/[questId]/(overview)/page.tsx";
 import { LIST_ID } from "@/lists/list.ts";
 import { LIST_ITEM_ID } from "@/lists/list-item.ts";
+import { changeListItemAction } from "@/lists/list-item-actions.ts";
+import { type OpenTask, readNextTasks } from "@/lists/list-item-store.ts";
 import { type List, readLists } from "@/lists/list-store.ts";
 import { listPerformances } from "@/performances/performance-store.ts";
 import { listQuestPeople } from "@/quests/membership-store.ts";
@@ -13,6 +15,7 @@ import { readRecurringTasks, readTaskHistory } from "@/streaks/streak-store.ts";
 import type { TaskHistory } from "@/streaks/streaks.ts";
 import { DAY_GRID_COPY } from "@/ui/copy/day-grid.ts";
 import { PERFORMANCE_COPY } from "@/ui/copy/performances.ts";
+import { QUEST_OVERVIEW_COPY } from "@/ui/copy/quest-overview.ts";
 import { QUEST_SIDEBAR_COPY } from "@/ui/copy/quest-sidebar.ts";
 import { TIMER_COPY } from "@/ui/copy/timer.ts";
 import {
@@ -56,6 +59,7 @@ beforeEach(() => {
   vi.mocked(listPerformances).mockResolvedValue([]);
   vi.mocked(readTaskHistory).mockResolvedValue(HISTORY);
   vi.mocked(readRecurringTasks).mockResolvedValue([]);
+  vi.mocked(readNextTasks).mockResolvedValue([]);
 });
 
 afterEach(async () => {
@@ -107,17 +111,83 @@ test("use_case_open_quest", async () => {
     .element(page.getByRole("heading", { name: "Next task" }))
     .toBeVisible();
   await expect
-    .element(page.getByRole("link", { name: LIST.name }))
+    .element(page.getByRole("link", { name: `${LIST.name} 0 open` }))
     .toHaveAttribute("href", `/quests/${FOX_QUEST.id}?section=${LIST.id}`);
   await expect
-    .element(page.getByRole("link", { name: "Rites & status" }))
+    .element(
+      page.getByRole("region", { name: QUEST_OVERVIEW_COPY.performRite }),
+    )
     .toBeVisible();
+  // An Active quest keeps its settings folded away until the user opens them.
+  const dayGrid = page.getByRole("link", { name: QUEST_SIDEBAR_COPY.dayGrid });
+  await expect.element(dayGrid).not.toBeInTheDocument();
+  await page.getByText(QUEST_OVERVIEW_COPY.settings).click();
   await expect
-    .element(page.getByRole("link", { name: "Performances" }))
-    .toBeVisible();
+    .element(dayGrid)
+    .toHaveAttribute("href", `/quests/${FOX_QUEST.id}?section=days`);
   await expect
     .element(page.getByRole("textbox", { name: "Message" }))
     .not.toBeInTheDocument();
+});
+
+// Bench's next open tasks, in order, numbered from #12.
+const FIRST_NUMBER = 12;
+// The next task's text, after its task number.
+const NEXT_TEXT = /Sand the legs$/u;
+const NEXT: OpenTask[] = [
+  ["e3a1c8b0-5d1f-4a5e-9c2b-1f0e2d3c4b51", "Sand the legs"],
+  ["e3a1c8b0-5d1f-4a5e-9c2b-1f0e2d3c4b52", "Glue the seat"],
+  ["e3a1c8b0-5d1f-4a5e-9c2b-1f0e2d3c4b53", "Oil the top"],
+].map(([id, text], index) => ({
+  id: LIST_ITEM_ID.parse(id),
+  listId: LIST.id,
+  taskNumber: FIRST_NUMBER + index,
+  text: text ?? "",
+  checkedOff: false,
+  recurring: false,
+  createdAt: new Date("2026-11-01T09:00:00Z"),
+}));
+
+test("use_case_open_quest: Overview checks off the next task and recurring tasks in place", async () => {
+  vi.mocked(readNextTasks).mockResolvedValue(NEXT);
+  vi.mocked(readRecurringTasks).mockResolvedValue([
+    {
+      id: LIST_ITEM_ID.parse("5d0f43d4-4b0c-4cb5-9d5c-3a8f3e1c0b21"),
+      listId: LIST.id,
+      number: 1,
+      text: STRETCH,
+      done: false,
+      createdAt: new Date("2026-11-01T09:00:00Z"),
+    },
+  ]);
+  vi.mocked(changeListItemAction).mockReset();
+  vi.mocked(changeListItemAction).mockResolvedValue({ kind: "saved" });
+  await open(FOX_QUEST);
+  const next = page.getByRole("region", { name: QUEST_SIDEBAR_COPY.nextTask });
+  await expect.element(next.getByText(NEXT_TEXT)).toBeVisible();
+  await expect
+    .element(next.getByText("Then: #13 Glue the seat · #14 Oil the top"))
+    .toBeVisible();
+  await next.getByRole("button", { name: LIST.checkOff }).click();
+  expect(changeListItemAction).toHaveBeenLastCalledWith({
+    questId: FOX_QUEST.id,
+    listId: LIST.id,
+    change: { kind: "check", id: NEXT[0]?.id, checkedOff: true },
+  });
+
+  const today = page.getByRole("region", { name: QUEST_OVERVIEW_COPY.today });
+  await today.getByRole("checkbox", { name: STRETCH }).click();
+  await expect
+    .poll(() => changeListItemAction)
+    .toHaveBeenLastCalledWith({
+      questId: FOX_QUEST.id,
+      listId: LIST.id,
+      change: {
+        kind: "check",
+        id: LIST_ITEM_ID.parse("5d0f43d4-4b0c-4cb5-9d5c-3a8f3e1c0b21"),
+        checkedOff: true,
+      },
+    });
 });
 
 test("use_case_tailored_quest_overviews", async () => {

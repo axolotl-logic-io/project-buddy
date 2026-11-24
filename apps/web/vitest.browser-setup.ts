@@ -124,7 +124,8 @@ vi.mock("@/lists/list-actions.ts", () => ({
 
 vi.mock("@/lists/list-item-store.ts", () => ({
   readListItems: vi.fn(() => Promise.resolve([])),
-  readNextTask: vi.fn(() => Promise.resolve(undefined)),
+  readNextTasks: vi.fn(() => Promise.resolve([])),
+  countListItems: vi.fn(() => Promise.resolve(new Map())),
 }));
 
 vi.mock("@/lists/list-item-actions.ts", () => ({

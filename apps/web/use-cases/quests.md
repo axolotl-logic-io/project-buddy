@@ -78,7 +78,7 @@ The site receives a quest start request with a name longer than 80 characters.
 
 - **Prerequisites:** `use_case_view_quests`.
 - **Steps:** Choose a quest, then open a section from Overview. Use Back to overview to return.
-- **Outcome:** Overview shows a summary of each of the quest's lists, Performances, Rites & status, and Members. An ordinary quest shows Next task. Each section has its own actions. The title in the trail band opens its rename editor. The Timer panel docks on wide screens and opens as a drawer on phones. The active performance appears below the workspace.
+- **Outcome:** Overview shows the quest's name and status, then one card for each job: Next task, which the user checks off in place, with the two open tasks after it; Today, with each recurring task and its streak, when the quest has one; Perform a rite; the quest's lists, each with its size; and Quest settings, folded away, with Members, Day grid and the quest's status. Each list opens its own section. The title in the trail band opens its rename editor. The Timer panel docks on wide screens and opens as a drawer on phones. The active performance takes the place of Perform a rite.
 - **Access:** Only the quest's owner and accepted members can open it.
 
 ## use_case_dailies
@@ -110,4 +110,4 @@ Anyone in the quest, its owner or an accepted member, changes the quest title in
 ## use_case_tailored_quest_overviews
 
 - **Steps:** Open an Active quest, then a Completed one.
-- **Outcome:** each quest's Overview shows Next task and links to its lists, Rites & status, Performances, Day grid and Members, whichever starting point it came from. While a quest is Active, its construct's portrait and name sit after the breadcrumbs and before the Timer panel control, clear of docked panels, and open the construct's profile ([`use_case_view_character_profile`](constructs.md#use_case_view_character_profile)). A Completed or Abandoned quest's trail band shows no construct.
+- **Outcome:** each quest's Overview shows Next task and links to its lists, and Quest settings links to Day grid and Members, whichever starting point it came from. A Completed or Abandoned quest shows Quest settings open, so Restore quest is in view. While a quest is Active, its construct's portrait and name sit after the breadcrumbs and before the Timer panel control, clear of docked panels, and open the construct's profile ([`use_case_view_character_profile`](constructs.md#use_case_view_character_profile)). A Completed or Abandoned quest's trail band shows no construct.
