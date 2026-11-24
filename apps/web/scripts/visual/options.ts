@@ -17,7 +17,7 @@ interface ToolOptions {
   readonly help: boolean;
 }
 
-// apps/web/AGENTS.md asks for 320 px as the phone width; pass
+// The project practices check phones at 320 px wide; pass
 // --widths 1280,360,320 to include it.
 const DEFAULT_WIDTHS = "1280,360";
 const WIDTH = /^[1-9]\d{2,3}$/u;
@@ -131,7 +131,7 @@ Views:
                        comma-separated parts, such as quest--,settings
   --appearances LIST   default ${THEME_MODES.join(",")}
   --widths LIST        default ${DEFAULT_WIDTHS}; add 320, the phone width
-                       apps/web/AGENTS.md asks for
+                       the project practices check
   --out DIR            where to write the results`;
 
 export type { ToolOptions };

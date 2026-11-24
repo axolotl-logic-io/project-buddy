@@ -5,7 +5,7 @@
     "apps/*"
   ],
   "scripts": {
-    "lint": "npm run lint --workspaces --if-present",
+    "lint": "biome check --error-on-warnings scripts/ops && npm run lint --workspaces --if-present",
     "test": "npm test --workspaces --if-present",
     "test:e2e": "npm run test:e2e --workspaces --if-present"
   },
