@@ -388,7 +388,7 @@ async function addPerformanceMessage(
     .from(lists)
     .where(and(eq(lists.id, listId), listOpenTo(user)));
   const list = LIST_SETTINGS.parse(row);
-  const [latest] = await tx
+  const latestMessagePosition = tx
     .select({ position: performanceMessages.position })
     .from(performanceMessages)
     .where(
@@ -428,7 +428,7 @@ async function addPerformanceMessage(
       text: input.text,
       reply,
       added,
-      position: (latest?.position ?? -1) + 1,
+      position: sql<number>`coalesce((${latestMessagePosition}), -1) + 1`,
     })
     .returning(PERFORMANCE_MESSAGE_COLUMNS);
   if (entry === undefined) {

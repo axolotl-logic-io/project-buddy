@@ -84,7 +84,7 @@ async function migrationState(url: string): Promise<MigrationState> {
       const { rows } = await client.query<{ hash: string }>(
         "SELECT hash FROM drizzle.__drizzle_migrations",
       );
-      applied = new Set(rows.map((row) => row.hash));
+      applied = new Set(rows.map(({ hash }) => hash));
     } catch (error) {
       if (
         error instanceof Error &&
@@ -95,15 +95,28 @@ async function migrationState(url: string): Promise<MigrationState> {
       }
       throw error;
     }
-    const known = new Set(
-      readdirSync(MIGRATIONS_FOLDER)
-        .filter((file) => file.endsWith(".sql"))
-        .map((file) =>
-          createHash("sha256")
-            .update(readFileSync(join(MIGRATIONS_FOLDER, file)))
-            .digest("hex"),
-        ),
+    const known = new Set<string>();
+    const files = readdirSync(MIGRATIONS_FOLDER).filter((file) =>
+      file.endsWith(".sql"),
     );
+    for (const file of files) {
+      const contents = readFileSync(join(MIGRATIONS_FOLDER, file));
+      const current = createHash("sha256").update(contents).digest("hex");
+      known.add(current);
+      // Both revisions drop the table in one transaction. Accept the older
+      // checksum so removing the redundant statement keeps existing data.
+      if (file === "0035_drop_monthly_spend.sql") {
+        const previous = createHash("sha256")
+          .update(
+            'ALTER TABLE "monthly_spend" DISABLE ROW LEVEL SECURITY;--> statement-breakpoint\n',
+          )
+          .update(contents)
+          .digest("hex");
+        if (applied.delete(previous)) {
+          applied.add(current);
+        }
+      }
+    }
     if ([...applied].some((hash) => !known.has(hash))) {
       return "diverged";
     }
