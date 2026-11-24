@@ -260,7 +260,7 @@
     // pulled settings outside the checkout; development commands also run
     // before dependencies have been installed. Neither imports app settings.
     {
-      "includes": ["scripts/ops/query.ts", "scripts/development/*.ts"],
+      "includes": ["scripts/development/*.ts"],
       "linter": {
         "rules": {
           "correctness": {
@@ -312,7 +312,7 @@
       }
     },
 
-    // `npm run ops:query` is tested the same way, with its env file in a
+    // `mise run ops:query` is tested the same way, with its env file in a
     // temporary directory that the child's environment names.
     {
       "includes": [

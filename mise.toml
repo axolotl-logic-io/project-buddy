@@ -46,6 +46,27 @@ run = 'node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON "{{config_root}}/apps
 description = "Measure the critical views' page weight, fonts, LCP, CLS and axe violations in a production build; --help for the options"
 run = 'node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON "{{config_root}}/apps/web/scripts/visual/baseline.ts"'
 
+# Vercel operations. They need a personal `vercel login`. Pulled environments
+# are written outside the checkout; see scripts/ops/project.sh.
+[tasks."ops:link"]
+description = "Link this checkout to the site's Vercel project, so the other ops tasks and the vercel CLI work without --scope"
+run = 'bash "{{config_root}}/scripts/ops/link.sh"'
+
+[tasks."ops:env"]
+description = "Pull one environment's variables to a private file outside the checkout, and print their names"
+usage = '''
+arg "[environment]" help="production, preview or development"
+'''
+run = 'bash "{{config_root}}/scripts/ops/pull-env.sh" "$usage_environment"'
+
+[tasks."ops:query"]
+description = "Run one read-only SQL statement against an environment's database, and print the rows as JSON"
+usage = '''
+arg "[environment]" help="production, preview or development"
+arg "[sql]" help="One SQL statement, quoted"
+'''
+run = 'node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON "{{config_root}}/scripts/ops/query.ts" "$usage_environment" "$usage_sql"'
+
 # Which local scripts recent T3 Code threads for this project ran, and which
 # they did not, read from T3 Code's local database.
 [tasks.script-usage]

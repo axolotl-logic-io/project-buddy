@@ -1,20 +1,20 @@
 #!/usr/bin/env bash
-# `npm run ops:env -- production|preview|development`: pulls that Vercel
+# `mise run ops:env production|preview|development`: pulls that Vercel
 # environment's variables to OPS_ENV_DIR/<environment>.env (see project.sh),
 # readable only by you, and prints the variable names, never their values.
 # Links apps/web first if it isn't linked. Refuses a directory inside the
 # checkout, where `next build` or a test command could load the file.
 set -euo pipefail
 here="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-web_root="$(cd -- "$here/../.." && pwd)"
-repo_root="$(cd -- "$web_root/../.." && pwd)"
+repo_root="$(cd -- "$here/../.." && pwd)"
+web_root="$repo_root/apps/web"
 # shellcheck source=project.sh
 . "$here/project.sh"
 
 environment="${1:-}"
 case "$environment" in
   production | preview | development) ;;
-  *) echo "Usage: npm run ops:env -- production|preview|development" >&2; exit 2 ;;
+  *) echo "Usage: mise run ops:env production|preview|development" >&2; exit 2 ;;
 esac
 
 umask 077
