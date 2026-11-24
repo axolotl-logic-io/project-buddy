@@ -10,7 +10,7 @@ import { currentUser } from "@/auth/current-user.ts";
 import { Button } from "@/components/ui/button.tsx";
 import { Notice } from "@/components/ui/form-message.tsx";
 import { readInvitationLink } from "@/quests/membership-store.ts";
-import { HOME_PATH, localPath, SIGN_IN_PATH } from "@/routes.ts";
+import { localPath, SIGN_IN_PATH } from "@/routes.ts";
 import { LINK_PAGE_COPY } from "@/ui/copy/login.ts";
 import { INVITATION_LINK_COPY } from "@/ui/copy/quest-members.ts";
 
@@ -89,7 +89,7 @@ export default async function SignInLinkPage({
         )}
         {viewer !== undefined && (
           <Button asChild={true}>
-            <Link href={HOME_PATH}>{LINK_PAGE_COPY.openQuests}</Link>
+            <Link href="/quests">{LINK_PAGE_COPY.openQuests}</Link>
           </Button>
         )}
       </SignInPanel>

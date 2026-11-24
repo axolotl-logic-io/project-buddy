@@ -54,3 +54,4 @@ The user sees how many days in a row they have checked off each recurring task.
   - The chain shows at most the 30 most recent links.
   - A date before a task became recurring shows as untracked.
   - A quest not started as Dailies shows no streaks or day grid.
+  - Home shows every Dailies quest's streaks together, and checks them off on any of the last seven dates ([`use_case_home_streaks`](home.md#use_case_home_streaks)).

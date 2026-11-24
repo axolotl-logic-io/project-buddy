@@ -1,4 +1,4 @@
-import { and, desc, eq, inArray, sql } from "drizzle-orm";
+import { and, asc, desc, eq, exists, inArray, sql } from "drizzle-orm";
 import { z } from "zod";
 import {
   listItemOpenTo,
@@ -11,9 +11,9 @@ import { listItems, lists } from "@/db/tables/lists.ts";
 import { questDays } from "@/db/tables/quest-days.ts";
 import { quests } from "@/db/tables/quests.ts";
 import { withAppErrors } from "@/errors/to-app-error.ts";
-import type { QuestId, UserId } from "@/ids.ts";
-import type { ListId } from "@/lists/list.ts";
-import { LIST_ITEM_ID } from "@/lists/list-item.ts";
+import { parseQuestId, type QuestId, type UserId } from "@/ids.ts";
+import { LIST_ID, type ListId } from "@/lists/list.ts";
+import { LIST_ITEM_ID, type ListItemId } from "@/lists/list-item.ts";
 import { LIST_ITEM_RECORD } from "@/lists/list-item-record.ts";
 import {
   closePerformanceForDay,
@@ -22,8 +22,9 @@ import {
 } from "@/performances/performance-store.ts";
 import {
   DAY_TASK,
+  type DailiesDay,
   type DailiesRecord,
-  type DayTasks,
+  type DayTask,
   type LocalDate,
 } from "./dailies.ts";
 
@@ -35,6 +36,24 @@ const DAY_UNDO = z.object({
   reset: z.array(LIST_ITEM_ID),
 });
 type DayUndo = z.infer<typeof DAY_UNDO>;
+
+// A quest's recurring tasks as they are now, each with the list item and
+// list that hold it, so it can be checked off where it is shown.
+interface RecurringTasks {
+  readonly items: readonly (DayTask & {
+    readonly recurring: true;
+    readonly id: ListItemId;
+    readonly listId: ListId;
+  })[];
+}
+
+// An Active quest's recurring tasks and its days, for a table of streaks
+// across quests.
+interface StreakQuest {
+  readonly quest: { readonly id: QuestId; readonly name: string };
+  readonly days: readonly DailiesDay[];
+  readonly tasks: RecurringTasks;
+}
 
 function dayScope(owner: UserId, questId: QuestId): ReturnType<typeof and> {
   return and(eq(questDays.questId, questId), questDayOwnedBy(owner));
@@ -107,10 +126,15 @@ function questListItems(
   );
 }
 
-function readRecurringTasks(user: UserId, questId: QuestId): Promise<DayTasks> {
+function readRecurringTasks(
+  user: UserId,
+  questId: QuestId,
+): Promise<RecurringTasks> {
   return withAppErrors("readRecurringTasks", async () => {
     const rows = await getDb()
       .select({
+        id: listItems.id,
+        listId: listItems.listId,
         number: listItems.taskNumber,
         text: listItems.text,
         done: listItems.checkedOff,
@@ -127,14 +151,127 @@ function readRecurringTasks(user: UserId, questId: QuestId): Promise<DayTasks> {
       )
       .orderBy(lists.position, listItems.position, listItems.id);
     return {
-      items: rows.flatMap(({ number, text, done }) => {
+      items: rows.flatMap(({ id, listId, number, text, done }) => {
         if (number === null) {
           return [];
         }
-        return [{ number, text, done, recurring: true }];
+        return [
+          {
+            id: LIST_ITEM_ID.parse(id),
+            listId: LIST_ID.parse(listId),
+            number,
+            text,
+            done,
+            recurring: true as const,
+          },
+        ];
       }),
     };
   });
+}
+
+// Every Active Dailies quest the user owns that has recurring tasks, oldest
+// first, with its recurring tasks and the days the user started. Only the
+// owner starts a Dailies quest's days, so a member has no streaks there.
+function readStreakQuests(user: UserId): Promise<readonly StreakQuest[]> {
+  return withAppErrors("readStreakQuests", async () => {
+    const rows = await getDb()
+      .select({ id: quests.id, name: quests.name })
+      .from(quests)
+      .where(
+        and(
+          questOwnedBy(user),
+          eq(quests.dailies, true),
+          eq(quests.status, "active"),
+          exists(
+            getDb()
+              .select({ id: listItems.id })
+              .from(listItems)
+              .where(
+                and(
+                  eq(listItems.questId, quests.id),
+                  eq(listItems.recurring, true),
+                ),
+              ),
+          ),
+        ),
+      )
+      .orderBy(asc(quests.createdAt), asc(quests.id));
+    return Promise.all(
+      rows.flatMap(({ id, name }) => {
+        const questId = parseQuestId(id);
+        if (questId === undefined) {
+          return [];
+        }
+        return [
+          Promise.all([
+            readQuestDays(user, questId),
+            readRecurringTasks(user, questId),
+          ]).then(([record, tasks]) => ({
+            quest: { id: questId, name },
+            days: record.days,
+            tasks,
+          })),
+        ];
+      }),
+    );
+  });
+}
+
+// Records whether a recurring task was done on a date that has ended: every
+// day started on that date and ended since keeps the change. The day still
+// going is the task's own check, so it is not changed here. False when the
+// quest isn't the owner's Active Dailies quest or no ended day on that date
+// tracked the task.
+function markQuestDayTask(
+  owner: UserId,
+  questId: QuestId,
+  change: {
+    readonly localDate: LocalDate;
+    readonly number: number;
+    readonly done: boolean;
+  },
+): Promise<boolean> {
+  return withAppErrors("markQuestDayTask", () =>
+    inTransaction(async (tx) => {
+      if (!(await lockDailies(tx, owner, questId))) {
+        return false;
+      }
+      const { localDate, number, done } = change;
+      const rows = await tx
+        .select({ id: questDays.id, tasks: questDays.tasks })
+        .from(questDays)
+        .where(
+          and(dayScope(owner, questId), eq(questDays.localDate, localDate)),
+        );
+      const changed = rows.flatMap((row) => {
+        const tasks = z.array(DAY_TASK).safeParse(row.tasks).data;
+        if (tasks?.some((task) => task.number === number) !== true) {
+          return [];
+        }
+        return [
+          {
+            id: row.id,
+            tasks: tasks.map((task) => {
+              if (task.number !== number) {
+                return task;
+              }
+              return { ...task, done };
+            }),
+          },
+        ];
+      });
+      await Promise.all(
+        changed.map(({ id, tasks }) =>
+          tx
+            .update(questDays)
+            .set({ tasks })
+            .where(and(eq(questDays.id, id), dayScope(owner, questId))),
+        ),
+      );
+      return changed.length > 0;
+    }),
+  );
 }
 
 async function bumpLists(
@@ -319,4 +456,12 @@ function undoQuestDay(owner: UserId, questId: QuestId): Promise<boolean> {
   );
 }
 
-export { readQuestDays, readRecurringTasks, startQuestDay, undoQuestDay };
+export type { RecurringTasks, StreakQuest };
+export {
+  markQuestDayTask,
+  readQuestDays,
+  readRecurringTasks,
+  readStreakQuests,
+  startQuestDay,
+  undoQuestDay,
+};

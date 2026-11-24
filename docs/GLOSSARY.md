@@ -80,6 +80,10 @@ A Dailies task marked to do every day. Start Day unchecks it if it is checked of
 
 A run of consecutive calendar dates on which a recurring task was checked off. A missed date or a **gap**, a date with no Dailies day started, breaks the run. Multiple starts on the same date count as one date. **Day grid** shows each recurring task's marks for up to seven recent dates. [Daily streak use case](../apps/web/use-cases/tasks.md#use_case_daily_streaks)
 
+### Home
+
+The signed-in landing page at the site's root, above Quests in the breadcrumbs. It shows the user's experience, then **Streaks**: every recurring task of their Active Dailies quests over the last seven dates, which they can check off in place on any date with a day started. [Home streaks use case](../apps/web/use-cases/home.md#use_case_home_streaks)
+
 ## Rites and performances
 
 ### Rite

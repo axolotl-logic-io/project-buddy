@@ -8,7 +8,7 @@ Anyone can create an account by verifying their email address.
 
 - **Prerequisites:** The address has no account.
 - **Steps:** Open Log in or sign up, or Sign up, enter an email address and request a link. Open the emailed link, enter a required Name, and choose Continue.
-- **Outcome:** Requesting a link and opening it create no account or session. Confirmation validates and saves the name and creates one ordinary account for the verified, normalized address, signs the browser in for 30 days, reaching Quests. No invitation, code or password is required. Verification links expire after 30 minutes, are replaced by a fresh request, and can be confirmed once. Invalid, expired, replaced and used links create no account or session. Concurrent confirmations create at most one account; a failed account insert preserves the link for retry. Public sign-up shares sign-in request limits.
+- **Outcome:** Requesting a link and opening it create no account or session. Confirmation validates and saves the name and creates one ordinary account for the verified, normalized address, signs the browser in for 30 days, reaching Home. No invitation, code or password is required. Verification links expire after 30 minutes, are replaced by a fresh request, and can be confirmed once. Invalid, expired, replaced and used links create no account or session. Concurrent confirmations create at most one account; a failed account insert preserves the link for retry. Public sign-up shares sign-in request limits.
 
 ## use_case_sign_up_existing_email
 
@@ -28,9 +28,10 @@ The user signs in with a link the site emails them, on this device or another.
   - The site tells them to check their email, and an email arrives holding a sign-in link.
   - The user opens the link, in this browser or on another device, such as their phone.
   - The page the link opens asks them to continue. The user continues.
-  - The site signs them in and shows Quests.
-- **Outcome:** the user is on Quests, where the user can continue a quest or choose one of the four premade starting points, in the browser where the user continued. Every page now opens there without signing in again, and the sign-in lasts 30 days. Opening the link alone does not sign anyone in; only continuing does, so a mail program that opens the link to check it gets nothing. An address with no account gets the same answer and a verification link to create an account.
+  - The site signs them in and shows Home.
+- **Outcome:** the user is on Home, with their experience and streaks, in the browser where the user continued. Every page now opens there without signing in again, and the sign-in lasts 30 days. Opening the link alone does not sign anyone in; only continuing does, so a mail program that opens the link to check it gets nothing. An address with no account gets the same answer and a verification link to create an account.
 - **Next:**
+  - [`use_case_home_streaks`](home.md#use_case_home_streaks): keep up their daily tasks.
   - [`use_case_view_quests`](quests.md#use_case_view_quests): see what the user has been working on.
   - [`use_case_new_quest`](quests.md#use_case_new_quest): start learning something new.
   - [`use_case_return_signed_in`](access.md#use_case_return_signed_in): come back another day without signing in again.

@@ -227,21 +227,108 @@ function dayGrid(
   if (first === undefined || newest === undefined) {
     return { dates: [], rows: [] };
   }
+  const dates = datesUpTo(newest.date, count).filter(
+    (date) => date >= first.date,
+  );
+  return { dates, rows: markRows(days, tasks, dates) };
+}
+
+// The count calendar dates up to last, oldest first.
+function datesUpTo(last: LocalDate, count: number): LocalDate[] {
   const dates: LocalDate[] = [];
-  let { date } = newest;
-  while (dates.length < count && date >= first.date) {
+  let date = last;
+  while (dates.length < count) {
     dates.unshift(date);
     date = addDays(date, -1);
   }
+  return dates;
+}
+
+// Each recurring task's mark on each date; a date before the first day is
+// untracked, since there was nothing to count yet.
+function markRows(
+  days: readonly DailiesDay[],
+  tasks: DayTasks,
+  dates: readonly LocalDate[],
+): DayGrid["rows"] {
+  const first = days.at(0)?.date;
+  return tasks.items
+    .filter((task) => task.recurring === true)
+    .map((task) => ({
+      number: task.number,
+      text: task.text,
+      marks: dates.map((date): DayMark => {
+        if (first === undefined || date < first) {
+          return "untracked";
+        }
+        return doneOn(days, tasks, task.number, date);
+      }),
+    }));
+}
+
+// The newest calendar dates several quests' grids share, oldest first: count
+// of them, up to the newest day's date among the quests. Before any day there
+// are none.
+function sharedDates(
+  quests: readonly (readonly DailiesDay[])[],
+  count: number,
+): readonly LocalDate[] {
+  const newest = quests
+    .flatMap((days) => days.at(-1)?.date ?? [])
+    .toSorted()
+    .at(-1);
+  if (newest === undefined) {
+    return [];
+  }
+  return datesUpTo(newest, count);
+}
+
+// A quest's recurring tasks with the days it was given, after the change of
+// one task's mark on one date: on the newest day's date it is the task's own
+// check, and on an earlier date it is what each day ended on that date
+// recorded. A date with no day, or a day without the task, is unchanged.
+function withMark<Task extends DayTask>(
+  days: readonly DailiesDay[],
+  tasks: { readonly items: readonly Task[] },
+  change: {
+    readonly number: number;
+    readonly date: LocalDate;
+    readonly done: boolean;
+  },
+): {
+  readonly days: readonly DailiesDay[];
+  readonly tasks: { readonly items: readonly Task[] };
+} {
+  const { number, date, done } = change;
+  if (days.at(-1)?.date === date) {
+    return {
+      days,
+      tasks: {
+        items: tasks.items.map((task) => {
+          if (task.number !== number) {
+            return task;
+          }
+          return { ...task, done };
+        }),
+      },
+    };
+  }
   return {
-    dates,
-    rows: tasks.items
-      .filter((task) => task.recurring === true)
-      .map((task) => ({
-        number: task.number,
-        text: task.text,
-        marks: dates.map((each) => doneOn(days, tasks, task.number, each)),
-      })),
+    tasks,
+    days: days.map((day) => {
+      if (day.date !== date || day.tasks === undefined) {
+        return day;
+      }
+      return {
+        ...day,
+        tasks: day.tasks.map((task) => {
+          if (task.number !== number) {
+            return task;
+          }
+          return { ...task, done };
+        }),
+      };
+    }),
   };
 }
 
@@ -255,4 +342,14 @@ export type {
   LocalDate,
   StreakChain,
 };
-export { DAY_TASK, dayDate, dayGrid, LOCAL_DATE, streakChains, todayHere };
+export {
+  DAY_TASK,
+  dayDate,
+  dayGrid,
+  LOCAL_DATE,
+  markRows,
+  sharedDates,
+  streakChains,
+  todayHere,
+  withMark,
+};
