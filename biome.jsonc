@@ -202,6 +202,21 @@
     {
       "includes": ["**/node_modules/playwright-core/types/types.d.ts"],
       "files": { "maxSize": 2097152 }
+    },
+
+    // The script usage report is a Node command: it runs git and mise, reads
+    // T3 Code's database with node:sqlite and prints to the terminal. Biome
+    // cannot resolve node:sqlite, which Node has built in since version 22.
+    {
+      "includes": ["scripts/script-usage.mts"],
+      "linter": {
+        "rules": {
+          "correctness": {
+            "noNodejsModules": "off",
+            "noUnresolvedImports": "off"
+          }
+        }
+      }
     }
   ]
 }
