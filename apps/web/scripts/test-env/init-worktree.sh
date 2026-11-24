@@ -5,7 +5,7 @@
 # never share them; every other setting keeps the example's value. An existing
 # .env.test, the orchestrator's or a hand-made one, is kept as it is. Touches
 # no containers or databases: `npm run test-db:up` starts the shared server and
-# `npm run test:server` creates and migrates the database.
+# `npm test` creates and migrates the database.
 set -euo pipefail
 web_root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../.." && pwd)"
 target="$web_root/.env.test"

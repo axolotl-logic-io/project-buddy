@@ -1,5 +1,5 @@
 // Playwright consumes the orchestrator-provided (or manually copied) .env.test.
-// npm run test:e2e resets the test database, then runs these tests; pass a file to run it alone.
+// npm run test:e2e runs the Vitest browser tests, resets the test database, then runs these tests; pass a file to run it alone.
 import {
   defineConfig,
   devices,

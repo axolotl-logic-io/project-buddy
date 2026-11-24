@@ -280,7 +280,7 @@ done
 # Every public environment-dependent command fails before Docker/DB/test work.
 rm "$checkout/.env.test"
 clear_log
-for command in test:server test:e2e test-db:up test-db:down test-db:reset; do
+for command in test test:e2e test-db:up test-db:down test-db:reset; do
   fails bash -c 'cd "$1" && npm run "$2"' -- "$checkout" "$command"
   contains "$work/error" 'Missing apps/web/.env.test'
   contains "$work/error" 'orchestrator provides'
@@ -302,31 +302,55 @@ JS
 cp "$work/record.mjs" "$work/checkout two/node_modules/vitest/vitest.mjs"
 cp "$work/record.mjs" "$work/checkout two/node_modules/@playwright/test/cli.js"
 cp "$work/record.mjs" "$checkout/scripts/test-db/reset.ts"
+# The command-line tools npm finds on PATH, and the shell tests npm test runs,
+# record their calls the same way.
+mkdir -p "$work/tools" "$work/checkout two/.github/scripts" "$checkout/test/component-integration/scripts/test-env" "$checkout/test/component-integration/scripts/ops"
+for tool in npx vitest playwright; do
+  cp "$work/record.mjs" "$work/tools/$tool.mjs"
+  printf '#!/usr/bin/env bash\nexec node "%s" "$@"\n' "$work/tools/$tool.mjs" > "$work/bin/$tool"
+  chmod +x "$work/bin/$tool"
+done
+for shell_test in "$work/checkout two/.github/scripts/vercel-promote.test.sh" \
+  "$checkout/test/component-integration/scripts/test-env/test-env.test.sh" \
+  "$checkout/test/component-integration/scripts/ops/ops.test.sh"; do
+  printf 'printf '\''{"entry":"%%s"}\\n'\'' "$(basename "$0")" >> "$COMMAND_LOG"\n' > "$shell_test"
+done
 cp "$work/lane-two-env" "$checkout/.env.test"
 export COMMAND_LOG="$work/command-log"
 : > "$COMMAND_LOG"
-# test:server resets the database, then runs the server tests alone.
-(cd "$checkout" && npm run test:server) > "$work/npm-output" 2>&1
-[[ "$(wc -l < "$COMMAND_LOG" | tr -d ' ')" == 2 ]] || die 'Wrong server stage count'
-sed -n '1p' "$COMMAND_LOG" > "$work/line"; contains "$work/line" '"entry":"reset.ts","args":[]'
-sed -n '2p' "$COMMAND_LOG" > "$work/line"; contains "$work/line" '"entry":"vitest.mjs","args":["run","--config","vitest.server.config.mts"]'
+# npm test runs React Doctor and the script and repository tests, then resets
+# the database and runs the server tests.
+(cd "$checkout" && npm test) > "$work/npm-output" 2>&1
+[[ "$(wc -l < "$COMMAND_LOG" | tr -d ' ')" == 7 ]] || die 'Wrong test stage count'
+sed -n '1p' "$COMMAND_LOG" > "$work/line"; contains "$work/line" '"entry":"npx.mjs","args":["--yes","react-doctor@'
+sed -n '2p' "$COMMAND_LOG" > "$work/line"; contains "$work/line" '"entry":"vercel-promote.test.sh"'
+sed -n '3p' "$COMMAND_LOG" > "$work/line"; contains "$work/line" '"entry":"test-env.test.sh"'
+sed -n '4p' "$COMMAND_LOG" > "$work/line"; contains "$work/line" '"entry":"ops.test.sh"'
+sed -n '5p' "$COMMAND_LOG" > "$work/line"; contains "$work/line" '"entry":"vitest.mjs","args":["run","--project","repository","--project","vite-integration"]'
+sed -n '6p' "$COMMAND_LOG" > "$work/line"; contains "$work/line" '"entry":"reset.ts","args":[]'
+sed -n '7p' "$COMMAND_LOG" > "$work/line"; contains "$work/line" '"entry":"vitest.mjs","args":["run","--config","vitest.server.config.mts"]'
 not_contains "$COMMAND_LOG" '"entry":"cli.js"'
+not_contains "$COMMAND_LOG" '"entry":"playwright.mjs"'
 : > "$COMMAND_LOG"
-# test:e2e resets the database, then runs Playwright alone.
+# test:e2e installs the browsers and runs the browser tests, then resets the
+# database and runs Playwright.
 (cd "$checkout" && npm run test:e2e) > "$work/npm-output" 2>&1
-[[ "$(wc -l < "$COMMAND_LOG" | tr -d ' ')" == 2 ]] || die 'Wrong e2e stage count'
-sed -n '1p' "$COMMAND_LOG" > "$work/line"; contains "$work/line" '"entry":"reset.ts"'
-sed -n '2p' "$COMMAND_LOG" > "$work/line"; contains "$work/line" '"entry":"cli.js"'
-not_contains "$COMMAND_LOG" vitest
+[[ "$(wc -l < "$COMMAND_LOG" | tr -d ' ')" == 4 ]] || die 'Wrong e2e stage count'
+sed -n '1p' "$COMMAND_LOG" > "$work/line"; contains "$work/line" '"entry":"playwright.mjs","args":["install","chromium","webkit"]'
+sed -n '2p' "$COMMAND_LOG" > "$work/line"; contains "$work/line" '"entry":"vitest.mjs","args":["run","--project","browser*"]'
+sed -n '3p' "$COMMAND_LOG" > "$work/line"; contains "$work/line" '"entry":"reset.ts"'
+sed -n '4p' "$COMMAND_LOG" > "$work/line"; contains "$work/line" '"entry":"cli.js"'
+not_contains "$COMMAND_LOG" 'vitest.server.config.mts'
 [[ "$(grep -Fc '"database":"postgres://postgres:postgres@127.0.0.1:5433/pb_lane_2","port":"20020"' "$COMMAND_LOG")" == 2 ]] || die 'Stages did not share supplied environment'
 # Options and file filters must reach Playwright, not the intermediate npm run
 # or the database stage. In particular, npm consumes --workers without its own
 # `--` separator and leaves the value as an unintended test-file filter.
 : > "$COMMAND_LOG"
 (cd "$checkout" && npm run test:e2e -- --workers 4 --project=chromium test/system/sign-in.spec.ts) > "$work/npm-output" 2>&1
-[[ "$(wc -l < "$COMMAND_LOG" | tr -d ' ')" == 2 ]] || die 'Wrong e2e stage count with options'
-sed -n '1p' "$COMMAND_LOG" > "$work/line"; contains "$work/line" '"entry":"reset.ts","args":[]'
-sed -n '2p' "$COMMAND_LOG" > "$work/line"; contains "$work/line" '"entry":"cli.js","args":["test","--workers","4","--project=chromium","test/system/sign-in.spec.ts"]'
+[[ "$(wc -l < "$COMMAND_LOG" | tr -d ' ')" == 4 ]] || die 'Wrong e2e stage count with options'
+sed -n '2p' "$COMMAND_LOG" > "$work/line"; contains "$work/line" '"entry":"vitest.mjs","args":["run","--project","browser*"]'
+sed -n '3p' "$COMMAND_LOG" > "$work/line"; contains "$work/line" '"entry":"reset.ts","args":[]'
+sed -n '4p' "$COMMAND_LOG" > "$work/line"; contains "$work/line" '"entry":"cli.js","args":["test","--workers","4","--project=chromium","test/system/sign-in.spec.ts"]'
 same "$work/lane-two-env" "$checkout/.env.test"
 : > "$COMMAND_LOG"
 fails bash -c 'cd "$1" && FAIL_RESET=1 npm run test:e2e -- --workers 4' -- "$checkout"
@@ -340,7 +364,7 @@ clear_log
 : > "$COMMAND_LOG"
 (cd "$checkout" && npm run test:e2e -- test/system/sign-in.spec.ts) > "$work/npm-output" 2>&1
 contains "$COMMAND_LOG" '"database":"postgres://postgres:postgres@localhost:5433/project_buddy_e2e","port":"3100"'
-not_contains "$COMMAND_LOG" vitest
+not_contains "$COMMAND_LOG" 'vitest.server.config.mts'
 same "$work/manual-before" "$checkout/.env.test"
 # Playwright launches its browsers on the host; it makes no Docker call.
 empty "$FAKE_DOCKER_STATE/calls"
