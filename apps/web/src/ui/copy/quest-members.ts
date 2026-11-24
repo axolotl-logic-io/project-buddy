@@ -50,11 +50,11 @@ export const QUEST_MEMBERS_COPY = {
 } as const;
 
 // The marker a multi-user quest carries wherever quests are listed or
-// chosen; a personal quest has none.
+// chosen; a private quest has none.
 export const QUEST_SHARING_COPY = {
   mark: (sharing: QuestSharing): string | undefined => {
     switch (sharing.kind) {
-      case "personal":
+      case "private":
         return undefined;
       case "shared":
         return "Shared";
@@ -66,7 +66,7 @@ export const QUEST_SHARING_COPY = {
   },
   option: (name: string, sharing: QuestSharing): string => {
     switch (sharing.kind) {
-      case "personal":
+      case "private":
         return name;
       case "shared":
         return `${name} (shared)`;

@@ -42,6 +42,7 @@ import { listQuestPeople } from "@/quests/membership-store.ts";
 import { getQuest } from "@/quests/store.ts";
 import { listRites } from "@/rites/rite-store.ts";
 import { readRecurringTasks, readTaskHistory } from "@/streaks/streak-store.ts";
+import { readQuestTallies } from "@/tallies/tally-store.ts";
 import { LISTS_COPY } from "@/ui/copy/lists.ts";
 import { PERFORMANCE_COPY } from "@/ui/copy/performances.ts";
 import { QUEST_MEMBERS_COPY } from "@/ui/copy/quest-members.ts";
@@ -82,8 +83,12 @@ async function questPage(
   const listId = LIST_ID.safeParse(section).data;
   const list = lists.find(({ id }) => id === listId);
   let contents: Awaited<ReturnType<typeof readListItems>> = [];
+  let tallies: Awaited<ReturnType<typeof readQuestTallies>>;
   if (list !== undefined) {
     contents = await readListItems(user, quest.id, list.id);
+  }
+  if (list?.type === "tally") {
+    tallies = await readQuestTallies(user, quest.id);
   }
   const running = performances.find(({ endedAt }) => endedAt === null);
   const construct = getConstruct(quest.constructId);
@@ -135,8 +140,8 @@ async function questPage(
               <span className="quest-status-mark">
                 {QUEST_STATUS_COPY.labels[quest.status]}
               </span>
-              {quest.sharing.kind === "personal" && (
-                <span>{QUEST_OVERVIEW_COPY.personal}</span>
+              {quest.sharing.kind === "private" && (
+                <span>{QUEST_OVERVIEW_COPY.private}</span>
               )}
               <QuestSharingMark sharing={quest.sharing} />
             </p>
@@ -159,7 +164,7 @@ async function questPage(
         {quest.status !== "active" && (
           <Notice>{QUEST_STATUS_COPY.effects}</Notice>
         )}
-        <NextTask questId={quest.id} tasks={next} lists={lists} />
+        <NextTask questId={quest.id} tasks={next} />
         {history !== undefined && recurring.length > 0 && (
           <TodayTasks questId={quest.id} history={history} tasks={recurring} />
         )}
@@ -267,6 +272,7 @@ async function questPage(
                 questId={quest.id}
                 contents={contents}
                 history={history}
+                tallies={tallies}
                 destinations={lists.filter(({ id }) => id !== list.id)}
               />
               <ListSettings key={list.id} questId={quest.id} list={list} />

@@ -11,9 +11,6 @@ import { saveListAction } from "@/lists/list-actions.ts";
 import type { List } from "@/lists/list-store.ts";
 import { LISTS_COPY } from "@/ui/copy/lists.ts";
 
-const { type: typeLabel, ...wordLabels }: typeof LISTS_COPY.fields =
-  LISTS_COPY.fields;
-
 function ListSettings({
   questId,
   list,
@@ -22,11 +19,7 @@ function ListSettings({
   readonly list?: List;
 }): JSX.Element {
   const [state, action, pending] = useActionState(saveListAction, {});
-  const { type: typeDraft } = state.draft ?? {};
-  const values: Partial<Record<string, string | number>> = {
-    ...list,
-    ...state.draft,
-  };
+  const { name: nameDraft, type: typeDraft } = state.draft ?? {};
   let title = LISTS_COPY.add;
   if (list !== undefined) {
     title = LISTS_COPY.settings;
@@ -39,20 +32,14 @@ function ListSettings({
         {list !== undefined && (
           <input name="listId" type="hidden" value={list.id} />
         )}
-        {Object.entries(wordLabels).map(([key, label]) => {
-          const { [key]: value } = values;
-          return (
-            <TextField
-              key={key}
-              label={label}
-              name={key}
-              defaultValue={value ?? ""}
-              required={true}
-            />
-          );
-        })}
+        <TextField
+          label={LISTS_COPY.fields.name}
+          name="name"
+          defaultValue={nameDraft ?? list?.name ?? ""}
+          required={true}
+        />
         <SelectField
-          label={typeLabel}
+          label={LISTS_COPY.fields.type}
           name="type"
           defaultValue={typeDraft ?? list?.type ?? "plain"}
         >

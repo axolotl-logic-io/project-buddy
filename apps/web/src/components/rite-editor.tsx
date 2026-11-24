@@ -18,7 +18,7 @@ import {
   subscribeToLocalDraft,
 } from "@/components/local-draft.ts";
 import { Button } from "@/components/ui/button.tsx";
-import { TextField } from "@/components/ui/field.tsx";
+import { TextAreaField, TextField } from "@/components/ui/field.tsx";
 import { Alert, FormStatus } from "@/components/ui/form-message.tsx";
 import { TextListField } from "@/components/ui/text-list-field.tsx";
 import { parseTextList } from "@/components/ui/text-list-value.ts";
@@ -27,7 +27,11 @@ import { MAX_REPLIES, MAX_REPLY, type Rite } from "@/rites/rite.ts";
 import { saveRiteAction } from "@/rites/rite-actions.ts";
 import { GRIMOIRE_COPY } from "@/ui/copy/grimoire.ts";
 
-const EDITOR_DRAFT = z.object({ name: z.string(), replies: z.string() });
+const EDITOR_DRAFT = z.object({
+  name: z.string(),
+  firstMessage: z.string(),
+  replies: z.string(),
+});
 type Draft = z.infer<typeof EDITOR_DRAFT>;
 
 function serverSnapshot(): null {
@@ -47,13 +51,14 @@ function RiteEditor({
   const savedDraft = useMemo(
     (): Draft => ({
       name: rite?.name ?? "",
+      firstMessage: rite?.firstMessage ?? "",
       replies: JSON.stringify(rite?.replies ?? []),
     }),
     [rite],
   );
   const [draft, setDraft] = useState<Draft | null>(null);
   const [error, setError] = useState<{
-    readonly field?: "name" | "replies";
+    readonly field?: "name" | "firstMessage" | "replies";
     readonly message: string;
   } | null>(null);
   const [pending, setPending] = useState(false);
@@ -82,6 +87,12 @@ function RiteEditor({
     },
     [current, update],
   );
+  const updateFirstMessage = useCallback(
+    (event: ChangeEvent<HTMLTextAreaElement>): void => {
+      update({ ...current, firstMessage: event.currentTarget.value });
+    },
+    [current, update],
+  );
   const updateReplies = useCallback(
     (_field: string, replies: string): void => {
       update({ ...current, replies });
@@ -105,6 +116,7 @@ function RiteEditor({
         const result = await saveRiteAction({
           id,
           name: current.name,
+          firstMessage: current.firstMessage,
           replies: parseTextList(current.replies),
         });
         if (result.kind === "saved") {
@@ -132,9 +144,13 @@ function RiteEditor({
   );
 
   let nameError: string | undefined;
+  let firstMessageError: string | undefined;
   let repliesError: string | undefined;
   if (error?.field === "name") {
     nameError = error.message;
+  }
+  if (error?.field === "firstMessage") {
+    firstMessageError = error.message;
   }
   if (error?.field === "replies") {
     repliesError = error.message;
@@ -147,6 +163,15 @@ function RiteEditor({
         value={current.name}
         onChange={updateName}
         error={nameError}
+      />
+      <TextAreaField
+        label={GRIMOIRE_COPY.firstMessage}
+        hint={GRIMOIRE_COPY.firstMessageHint}
+        name="firstMessage"
+        value={current.firstMessage}
+        maxLength={MAX_REPLY}
+        onChange={updateFirstMessage}
+        error={firstMessageError}
       />
       <TextListField
         name="replies"

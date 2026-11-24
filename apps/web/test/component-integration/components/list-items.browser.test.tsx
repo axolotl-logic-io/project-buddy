@@ -22,8 +22,6 @@ const LIST: List = {
   id: LIST_ID.parse(crypto.randomUUID()),
   position: 0,
   name: "Morning",
-  checkOff: "Done",
-  uncheck: "Not done",
   type: "task",
   version: 3,
 };

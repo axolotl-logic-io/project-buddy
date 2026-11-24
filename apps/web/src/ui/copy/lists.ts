@@ -7,6 +7,7 @@ const LIST_NOUNS: Readonly<
   plain: { one: "item", many: "items" },
   task: { one: "task", many: "tasks" },
   "quick-note": { one: "note", many: "notes" },
+  tally: { one: "tally", many: "tallies" },
 };
 
 const LISTS_COPY = {
@@ -20,7 +21,7 @@ const LISTS_COPY = {
   changeProblems: {
     missing: "This list or item is unavailable.",
     "invalid-text":
-      "Use 1 to 200 characters on one line for items and tasks, or 1 to 1000 characters for notes.",
+      "Use 1 to 200 characters on one line for items, tasks and tallies, or 1 to 1000 characters for notes.",
     unchanged: "Nothing changed.",
   },
   recurring: "Recurring",
@@ -37,15 +38,10 @@ const LISTS_COPY = {
   },
   saveFailed: "The change could not be saved. Try again.",
   undo: "Undo",
-  checked: (
-    list: { readonly checkOff: string; readonly uncheck: string },
-    checkedOff: boolean,
-  ): string => {
-    if (checkedOff) {
-      return `${list.checkOff}: saved.`;
-    }
-    return `${list.uncheck}: saved.`;
-  },
+  checkOff: "Check off",
+  uncheck: "Uncheck",
+  checkedOff: "Task checked off.",
+  unchecked: "Task unchecked.",
   savedChange: "Change saved.",
   addListItem: (type: ListType): string => `Add ${LIST_NOUNS[type].one}`,
   editListItem: (type: ListType): string => `Edit ${LIST_NOUNS[type].one}`,
@@ -68,14 +64,13 @@ const LISTS_COPY = {
   taskNumber: (number: number): string => `Task #${number}`,
   fields: {
     name: "List name",
-    checkOff: "Check-off verb",
-    uncheck: "Uncheck verb",
     type: "Type",
   },
   types: {
     plain: "Items",
     task: "Tasks",
     "quick-note": "Notes",
+    tally: "Tallies",
   },
 };
 

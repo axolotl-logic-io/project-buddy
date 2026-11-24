@@ -6,9 +6,9 @@
 // A quest belongs to its owner, the user who made it, and is open to its
 // owner and its accepted members (quest_members). Everything reached
 // through a quest is open to everyone the quest is open to: its lists and
-// their list items and changes, its performances and their messages, and
-// the quest's members and pending invitations, which any of them may see,
-// add to or remove. The owner is never a member row, so no one can remove
+// their list items and changes, its tallies' totals on each date, its
+// performances and their messages, and the quest's members and pending
+// invitations, which any of them may see, add to or remove. The owner is never a member row, so no one can remove
 // them. The quest's day starts at midnight in its owner's time zone, so
 // reading a quest reads its owner's time zone too
 // (src/lists/quest-today.ts), which names no one.
@@ -40,6 +40,7 @@ import {
 import { questInvitations, questMembers } from "@/db/tables/quest-members.ts";
 import { quests } from "@/db/tables/quests.ts";
 import { signedInDays } from "@/db/tables/signed-in-days.ts";
+import { tallyDays } from "@/db/tables/tallies.ts";
 import { timerPresence } from "@/db/tables/timer-presence.ts";
 import type { QuestId, UserId } from "@/ids.ts";
 
@@ -92,6 +93,12 @@ function listOpenTo(user: UserId): SQL {
 
 function listItemOpenTo(user: UserId): SQL {
   return inArray(listItems.questId, openQuestIds(user));
+}
+
+// A `tally_days` row of a quest open to user: a tally's total on a date,
+// which everyone in the quest may see and change.
+function tallyDayOpenTo(user: UserId): SQL {
+  return inArray(tallyDays.questId, openQuestIds(user));
 }
 
 function performanceOpenTo(user: UserId): SQL {
@@ -193,5 +200,6 @@ export {
   questPendingFor,
   riteOwnedBy,
   signedInDayOwnedBy,
+  tallyDayOpenTo,
   timerPresenceOwnedBy,
 };

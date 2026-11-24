@@ -25,6 +25,7 @@ const ACTIVE_PLAN: Rite = {
   id: "0b6c3d8e-1f2a-4b5c-8d9e-0f1a2b3c4d5e",
   name: "Plan",
   source: "own",
+  firstMessage: "Plan begins.",
   replies: ["First reply"],
 };
 const PLAN: Rite = {
@@ -35,6 +36,7 @@ const SKETCH: Rite = {
   id: "1c7d4e9f-2a3b-4c5d-9e0f-1a2b3c4d5e6f",
   name: "Sketch",
   source: "own",
+  firstMessage: "Sketch begins.",
   replies: ["Draw it"],
   forgottenAt: new Date("2026-11-18T12:00:00Z"),
 };
@@ -145,7 +147,7 @@ describe("use_case_view_retirement", () => {
     expect(page.getByRole("listitem").elements()).toHaveLength(0);
   });
 
-  test("shows a forgotten rite's replies as read-only text with its restore and delete controls", async () => {
+  test("shows a forgotten rite's first message and replies as read-only text with its restore and delete controls", async () => {
     vi.mocked(readRite).mockResolvedValue(PLAN);
     await render(
       await RitePage({
@@ -153,6 +155,7 @@ describe("use_case_view_retirement", () => {
         searchParams: Promise.resolve({}),
       }),
     );
+    await expect.element(page.getByText("Plan begins.")).toBeVisible();
     await expect.element(page.getByText("First reply")).toBeVisible();
     expect(page.getByRole("textbox").elements()).toHaveLength(0);
     await expect

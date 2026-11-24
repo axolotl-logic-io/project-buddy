@@ -263,6 +263,7 @@ export type {
 };
 export {
   addDays,
+  datesUpTo,
   dayGrid,
   HISTORY_DAYS,
   localDate,

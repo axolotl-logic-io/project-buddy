@@ -532,7 +532,7 @@ function writeListContents(
   );
 }
 
-// An open task with the list it is in, whose verbs name checking it off.
+// An open task with the list it is in.
 interface OpenTask extends ListItem {
   readonly listId: ListId;
 }

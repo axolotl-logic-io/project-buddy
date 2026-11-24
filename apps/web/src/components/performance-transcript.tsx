@@ -9,7 +9,7 @@ import type {
   Performance,
   PerformanceMessage,
 } from "@/performances/performance-store.ts";
-import { PERFORMANCE_COPY } from "@/ui/copy/performances.ts";
+import { riteFirstMessage } from "@/rites/rite.ts";
 
 function PerformanceTranscript({
   performance,
@@ -29,9 +29,13 @@ function PerformanceTranscript({
           decorative={true}
         />
       </div>
-      <p>
-        {PERFORMANCE_COPY.opening(performance.rite.name, performance.listName)}
-      </p>
+      <Markdown
+        text={riteFirstMessage(performance.rite, {
+          name: performance.listName,
+        })}
+        running={false}
+        topHeadingLevel={3}
+      />
       <ol className="grid gap-3">
         {entries.map((entry) => (
           <li key={entry.id} className="grid min-w-0 gap-2">

@@ -106,8 +106,6 @@ test("use_case_ask_whats_next", async () => {
   // The plain second list sits between two task lists.
   const later = await saveList(user.id, quest.id, {
     name: "Later",
-    checkOff: "Complete",
-    uncheck: "Reopen",
     type: "task",
   });
   if (later === undefined || later === "invalid-text") {

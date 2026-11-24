@@ -23,7 +23,7 @@ describe("use_case_continue_quest", () => {
       <CurrentQuestCard
         quest={{
           quest: QUEST,
-          sharing: { kind: "personal" },
+          sharing: { kind: "private" },
           nextTask: "Sketch the ears",
         }}
       />,
@@ -48,7 +48,7 @@ describe("use_case_continue_quest", () => {
       <CurrentQuestCard
         quest={{
           quest: QUEST,
-          sharing: { kind: "personal" },
+          sharing: { kind: "private" },
           nextTask: undefined,
         }}
       />,
@@ -61,7 +61,7 @@ describe("use_case_continue_quest", () => {
       .not.toBeInTheDocument();
   });
 
-  test("a quest someone else owns is marked as shared by them; a personal one isn't", async () => {
+  test("a quest someone else owns is marked as shared by them; a private one isn't", async () => {
     const view = await render(
       <CurrentQuestCard
         quest={{
@@ -79,7 +79,7 @@ describe("use_case_continue_quest", () => {
       <CurrentQuestCard
         quest={{
           quest: QUEST,
-          sharing: { kind: "personal" },
+          sharing: { kind: "private" },
           nextTask: undefined,
         }}
       />,

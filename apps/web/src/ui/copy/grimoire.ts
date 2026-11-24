@@ -9,6 +9,9 @@ const GRIMOIRE_COPY = {
   view: "View",
   edit: "Edit",
   name: "Rite name",
+  firstMessage: "First message",
+  firstMessageHint:
+    "The rite says this when a performance begins. Use {rite} and {list} in it.",
   replies: "Replies",
   hint: "Use {rite}, {list}, {text} and {user} in replies.",
   save: "Save rite",
@@ -38,6 +41,7 @@ const GRIMOIRE_COPY = {
   noMatches: "No rites match your search.",
   unavailable: "This rite is unavailable.",
   invalidName: "Enter a rite name of up to 80 characters on one line.",
+  invalidFirstMessage: "Enter a first message of up to 5000 characters.",
   invalidReplies:
     "Enter at least one reply. Use up to 50 replies of 5000 characters each.",
   filters: {

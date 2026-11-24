@@ -2,6 +2,7 @@
 
 import { type JSX, type SubmitEvent, useCallback } from "react";
 import { LocalTime } from "@/components/local-time.tsx";
+import { TallyCard } from "@/components/tally-card.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import {
   AddListItem,
@@ -31,6 +32,11 @@ import {
   streakChains,
   type TaskHistory,
 } from "@/streaks/streaks.ts";
+import type { Tally, TallyChanges, TallyQuest } from "@/tallies/tally.ts";
+import {
+  incrementTallyAction,
+  setTallyDayAction,
+} from "@/tallies/tally-actions.ts";
 import { LISTS_COPY } from "@/ui/copy/lists.ts";
 
 interface ListItemsProps {
@@ -40,9 +46,20 @@ interface ListItemsProps {
   readonly destinations: readonly List[];
   // The quest's check-off history, which gives recurring tasks' streaks.
   readonly history?: TaskHistory | undefined;
+  // The quest's tallies, for a tally list's counter cards.
+  readonly tallies?: TallyQuest | undefined;
 }
 
 type RunChange = (change: ListItemChange) => Promise<boolean>;
+
+// A tally list's counter card for a list item, with its quest's today and
+// the changes it runs.
+interface TallyOf {
+  readonly tally: Tally;
+  readonly today: TallyQuest["today"];
+  readonly changes: TallyChanges;
+  readonly busy: boolean;
+}
 
 function editorFor(type: ListType): EditorOptions {
   return {
@@ -69,11 +86,13 @@ function ListItemRow({
   run,
   busy,
   chain,
-}: Omit<ListItemsProps, "contents" | "questId" | "history"> & {
+  card,
+}: Omit<ListItemsProps, "contents" | "questId" | "history" | "tallies"> & {
   readonly item: ListItem;
   readonly run: RunChange;
   readonly busy: boolean;
   readonly chain?: StreakChain | undefined;
+  readonly card?: TallyOf | undefined;
 }): JSX.Element {
   const { id, checkedOff } = item;
   const save = useCallback(
@@ -120,7 +139,7 @@ function ListItemRow({
     );
   }
   let checked: boolean | undefined;
-  let toggleLabel = list.checkOff;
+  let toggleLabel = LISTS_COPY.checkOff;
   let menuLabel: string | undefined;
   let detail: JSX.Element | undefined;
   let leading: JSX.Element | undefined;
@@ -128,7 +147,7 @@ function ListItemRow({
     checked = checkedOff;
   }
   if (checkedOff) {
-    toggleLabel = list.uncheck;
+    ({ uncheck: toggleLabel } = LISTS_COPY);
   }
   if (item.taskNumber !== null) {
     menuLabel = LISTS_COPY.taskNumber(item.taskNumber);
@@ -171,6 +190,7 @@ function ListItemRow({
       detail={
         <>
           {chain !== undefined && <Streak chain={chain} />}
+          {card !== undefined && <TallyCard {...card} />}
           {detail}
         </>
       }
@@ -222,6 +242,7 @@ function ListItems({
   contents,
   destinations,
   history,
+  tallies,
 }: ListItemsProps): JSX.Element {
   const {
     run: save,
@@ -230,6 +251,9 @@ function ListItems({
     status,
     problem,
   } = useQuestAction(changeListItemAction);
+  const { run: runIncrement, ...increment } =
+    useQuestAction(incrementTallyAction);
+  const { run: runSet, ...set } = useQuestAction(setTallyDayAction);
   const listId = list.id;
   const run = useCallback(
     (change: ListItemChange): Promise<boolean> =>
@@ -273,6 +297,25 @@ function ListItems({
       ),
     );
   }
+  const tallyBusy = increment.busy || set.busy;
+  function cardOf(item: ListItem): TallyOf | undefined {
+    const tally = tallies?.tallies.find(({ id }) => id === item.id);
+    if (tallies === undefined || tally === undefined) {
+      return;
+    }
+    const { today } = tallies;
+    return {
+      tally,
+      today,
+      busy: tallyBusy || busy,
+      changes: {
+        increment: (amount: string): Promise<boolean> =>
+          runIncrement({ questId, id: item.id, amount }),
+        setToday: (total: string): Promise<boolean> =>
+          runSet({ questId, id: item.id, date: today, total }),
+      },
+    };
+  }
   function row(item: ListItem): JSX.Element {
     const chain = chains.get(item.taskNumber ?? 0);
     return (
@@ -280,6 +323,7 @@ function ListItems({
         key={item.id}
         item={item}
         chain={chain}
+        card={cardOf(item)}
         list={list}
         destinations={destinations}
         run={run}
@@ -289,16 +333,22 @@ function ListItems({
   }
   const done = contents.filter(({ checkedOff }) => checkedOff);
   const addLabel = LISTS_COPY.addListItem(list.type);
+  let layout: "rows" | "cards" = "rows";
+  if (list.type === "tally") {
+    layout = "cards";
+  }
+  const tallyProblem = increment.problem ?? set.problem;
   return (
     <EditableListScope blocked={busy}>
       <div className="grid gap-3">
-        <FormStatus>{status}</FormStatus>
+        <FormStatus>{status ?? increment.status ?? set.status}</FormStatus>
         {undoVersion !== undefined && (
           <Button variant="quiet" onClick={undo} disabled={busy}>
             {LISTS_COPY.undo}
           </Button>
         )}
         {problem !== undefined && <Alert>{problem}</Alert>}
+        {tallyProblem !== undefined && <Alert>{tallyProblem}</Alert>}
         <AddListItem
           label={addLabel}
           editor={{
@@ -309,7 +359,7 @@ function ListItems({
           disabled={busy}
           onSave={add}
         />
-        <EditableList label={list.name} onMove={place}>
+        <EditableList label={list.name} layout={layout} onMove={place}>
           {contents.filter(({ checkedOff }) => !checkedOff).map(row)}
         </EditableList>
         {done.length > 0 && (

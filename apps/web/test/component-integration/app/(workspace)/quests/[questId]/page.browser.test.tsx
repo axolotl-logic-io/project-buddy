@@ -14,6 +14,7 @@ import { getQuest, type Quest } from "@/quests/store.ts";
 import { readRecurringTasks, readTaskHistory } from "@/streaks/streak-store.ts";
 import type { TaskHistory } from "@/streaks/streaks.ts";
 import { DAY_GRID_COPY } from "@/ui/copy/day-grid.ts";
+import { LISTS_COPY } from "@/ui/copy/lists.ts";
 import { PERFORMANCE_COPY } from "@/ui/copy/performances.ts";
 import { QUEST_OVERVIEW_COPY } from "@/ui/copy/quest-overview.ts";
 import { QUEST_SIDEBAR_COPY } from "@/ui/copy/quest-sidebar.ts";
@@ -46,8 +47,6 @@ const LIST: List = {
   id: LIST_ID.parse("a0c7c952-9f82-4640-9584-45e01b0c2513"),
   position: 0,
   name: "Bench",
-  checkOff: "Finish",
-  uncheck: "Resume",
   type: "task",
   version: 0,
 };
@@ -168,7 +167,7 @@ test("use_case_open_quest: Overview checks off the next task and recurring tasks
   await expect
     .element(next.getByText("Then: #13 Glue the seat · #14 Oil the top"))
     .toBeVisible();
-  await next.getByRole("button", { name: LIST.checkOff }).click();
+  await next.getByRole("button", { name: LISTS_COPY.checkOff }).click();
   expect(changeListItemAction).toHaveBeenLastCalledWith({
     questId: FOX_QUEST.id,
     listId: LIST.id,

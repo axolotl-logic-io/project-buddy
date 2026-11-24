@@ -17,7 +17,7 @@ import {
 type RiteSave =
   | {
       readonly kind: "invalid";
-      readonly field: "name" | "replies";
+      readonly field: "name" | "firstMessage" | "replies";
       readonly message: string;
     }
   | { readonly kind: "unavailable" }
@@ -35,6 +35,13 @@ async function saveRiteAction(request: unknown): Promise<RiteSave> {
         kind: "invalid",
         field: "name",
         message: GRIMOIRE_COPY.invalidName,
+      };
+    }
+    if (issue?.path[0] === "firstMessage") {
+      return {
+        kind: "invalid",
+        field: "firstMessage",
+        message: GRIMOIRE_COPY.invalidFirstMessage,
       };
     }
     if (issue?.path[0] === "replies") {
@@ -67,6 +74,7 @@ async function copyRiteAction(form: FormData): Promise<void> {
   }
   const copied = await saveRite(user.id, {
     name: GRIMOIRE_COPY.copyName(source.name).slice(0, MAX_RITE_NAME),
+    firstMessage: source.firstMessage,
     replies: source.replies,
   });
   if (copied === undefined) {

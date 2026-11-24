@@ -4,7 +4,7 @@ import { QUEST_SHARING_COPY } from "@/ui/copy/quest-members.ts";
 
 // The short marker a multi-user quest carries where quests are listed:
 // "Shared" on the user's own, and the owner's name on someone else's. A
-// personal quest shows none.
+// private quest shows none.
 function QuestSharingMark({
   sharing,
 }: {
