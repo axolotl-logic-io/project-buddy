@@ -14,8 +14,9 @@ function useRouter(): {
   return { refresh, replace };
 }
 
-function usePathname(): string {
-  return "/";
-}
+const usePathname = vi.fn<() => string>(() => "/");
+const useSearchParams = vi.fn<() => URLSearchParams>(
+  () => new URLSearchParams(),
+);
 
-export { refresh, replace, usePathname, useRouter };
+export { refresh, replace, usePathname, useRouter, useSearchParams };

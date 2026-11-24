@@ -50,6 +50,7 @@ const route = vi.hoisted(() => ({ pathname: "/" }));
 vi.mock("next/navigation", () => ({
   usePathname: (): string => route.pathname,
   useRouter: (): { refresh: () => void } => ({ refresh: vi.fn() }),
+  useSearchParams: (): URLSearchParams => new URLSearchParams(),
 }));
 
 async function openQuickAdd(): Promise<void> {
