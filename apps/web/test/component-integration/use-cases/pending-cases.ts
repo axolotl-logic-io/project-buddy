@@ -1,7 +1,7 @@
 // Use cases written before their tests; each lane removes its entries.
 
-// The lane that brings the site in line with the rites-and-spaces glossary.
-type Lane = "rites-and-spaces";
+// The lane that brings the site in line with the rites-and-lists glossary.
+type Lane = "rites-and-lists";
 
 interface PendingCase {
   readonly slug: `use_case_${string}`;

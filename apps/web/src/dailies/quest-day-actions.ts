@@ -5,7 +5,7 @@ import { z } from "zod";
 import { requireUser } from "@/auth/current-user.ts";
 import type { QuestActionResult } from "@/components/use-quest-action.ts";
 import { QUEST_ID } from "@/ids.ts";
-import { SPACE_ID } from "@/spaces/space.ts";
+import { LIST_ID } from "@/lists/list.ts";
 import { DAY_GRID_COPY } from "@/ui/copy/dailies.ts";
 import { dayDate } from "./dailies.ts";
 import { startQuestDay, undoQuestDay } from "./quest-day-store.ts";
@@ -15,7 +15,7 @@ const DAY_REQUEST = z.discriminatedUnion("op", [
     op: z.literal("start"),
     questId: QUEST_ID,
     localDate: z.string(),
-    emptySpaces: z.array(SPACE_ID),
+    emptyLists: z.array(LIST_ID),
   }),
   z.object({ op: z.literal("undo"), questId: QUEST_ID }),
 ]);
@@ -36,7 +36,7 @@ async function changeQuestDay(request: unknown): Promise<QuestActionResult> {
   }
   const started = await startQuestDay(user.id, change.questId, {
     localDate: dayDate(change.localDate, new Date()),
-    emptySpaces: change.emptySpaces,
+    emptyLists: change.emptyLists,
   });
   if (!started) {
     return { kind: "problem", text: DAY_GRID_COPY.unavailable };

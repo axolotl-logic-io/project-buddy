@@ -49,7 +49,7 @@ const ICON_PATHS = {
     stroke:
       "M8 2c.5 3 1.5 4.5 5 6-3.5 1.5-4.5 3-5 6-.5-3-1.5-4.5-5-6 3.5-1.5 4.5-3 5-6z",
   },
-  // A page with a folded corner and two lines, for a Quick Note.
+  // A page with a folded corner and two lines, for Quick Add.
   note: { stroke: "M3.5 2h6l3 3v9h-9zM9.5 2v3h3M5.5 8.5h5M5.5 11h3.5" },
   // A plus sign, for making something new.
   hourglass: {

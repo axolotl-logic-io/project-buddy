@@ -1,10 +1,10 @@
 import { and, desc, eq, isNull, sql } from "drizzle-orm";
 import { z } from "zod";
 import {
-  conjurationOpenTo,
+  listOpenTo,
+  performanceMessageOpenTo,
   performanceOpenTo,
   questOpenTo,
-  spaceOpenTo,
 } from "@/accounts/owner-scope.ts";
 import { readUserName } from "@/accounts/users-store.ts";
 import {
@@ -13,21 +13,23 @@ import {
   inTransaction,
   type Transaction,
 } from "@/db/client.ts";
-import { conjurations, performances } from "@/db/tables/performances.ts";
+import { lists } from "@/db/tables/lists.ts";
+import { performanceMessages, performances } from "@/db/tables/performances.ts";
 import { questDays } from "@/db/tables/quest-days.ts";
 import { quests } from "@/db/tables/quests.ts";
-import { spaces } from "@/db/tables/spaces.ts";
 import { withAppErrors } from "@/errors/to-app-error.ts";
 import type { QuestId, UserId } from "@/ids.ts";
+import {
+  LIST_ID,
+  LIST_SETTINGS,
+  LIST_TYPE,
+  type ListId,
+  listItemLimit,
+} from "@/lists/list.ts";
+import { changeWithin } from "@/lists/list-item-store.ts";
 import { RITE_DEFINITION, riteReply } from "@/rites/rite.ts";
 import { readRite } from "@/rites/rite-store.ts";
-import { changeWithin } from "@/spaces/murmling-store.ts";
-import {
-  murmlingLimit,
-  SPACE_ID,
-  SPACE_WORDS,
-  type SpaceId,
-} from "@/spaces/space.ts";
+import { LISTS_COPY } from "@/ui/copy/lists.ts";
 import { PERFORMANCE_COPY } from "@/ui/copy/performances.ts";
 
 const PERFORMANCE_ID = z.guid().toLowerCase().brand<"PerformanceId">();
@@ -35,29 +37,29 @@ type PerformanceId = z.infer<typeof PERFORMANCE_ID>;
 
 const PERFORMANCE_COLUMNS: {
   readonly id: typeof performances.id;
-  readonly spaceId: typeof performances.spaceId;
+  readonly listId: typeof performances.listId;
   readonly rite: typeof performances.riteSnapshot;
   readonly startedAt: typeof performances.startedAt;
   readonly endedAt: typeof performances.endedAt;
   readonly added: typeof performances.added;
   readonly closing: typeof performances.closing;
-  readonly spaceName: typeof spaces.name;
+  readonly listName: typeof lists.name;
 } = {
   id: performances.id,
-  spaceId: performances.spaceId,
+  listId: performances.listId,
   rite: performances.riteSnapshot,
   startedAt: performances.startedAt,
   endedAt: performances.endedAt,
   added: performances.added,
   closing: performances.closing,
-  spaceName: spaces.name,
+  listName: lists.name,
 };
 
 function asPerformance(row: {
   readonly id: string;
   readonly rite: unknown;
-  readonly spaceId: string;
-  readonly spaceName: string;
+  readonly listId: string;
+  readonly listName: string;
   readonly startedAt: Date;
   readonly endedAt: Date | null;
   readonly added: number;
@@ -65,8 +67,8 @@ function asPerformance(row: {
 }): {
   id: PerformanceId;
   rite: z.infer<typeof RITE_DEFINITION>;
-  spaceId: SpaceId;
-  spaceName: string;
+  listId: ListId;
+  listName: string;
   startedAt: Date;
   endedAt: Date | null;
   added: number;
@@ -75,7 +77,7 @@ function asPerformance(row: {
   return {
     ...row,
     id: PERFORMANCE_ID.parse(row.id),
-    spaceId: SPACE_ID.parse(row.spaceId),
+    listId: LIST_ID.parse(row.listId),
     rite: RITE_DEFINITION.parse(row.rite),
   };
 }
@@ -90,12 +92,12 @@ function listPerformances(
     const rows = await getDb()
       .select(PERFORMANCE_COLUMNS)
       .from(performances)
-      .innerJoin(spaces, eq(spaces.id, performances.spaceId))
+      .innerJoin(lists, eq(lists.id, performances.listId))
       .where(
         and(
           eq(performances.questId, questId),
           performanceOpenTo(user),
-          spaceOpenTo(user),
+          listOpenTo(user),
         ),
       )
       .orderBy(desc(performances.startedAt), desc(performances.id));
@@ -124,12 +126,12 @@ async function active(
   const [row] = await tx
     .select(PERFORMANCE_COLUMNS)
     .from(performances)
-    .innerJoin(spaces, eq(spaces.id, performances.spaceId))
+    .innerJoin(lists, eq(lists.id, performances.listId))
     .where(
       and(
         eq(performances.questId, questId),
         performanceOpenTo(user),
-        spaceOpenTo(user),
+        listOpenTo(user),
         isNull(performances.endedAt),
       ),
     );
@@ -144,16 +146,17 @@ async function stopWithin(
   user: UserId,
   performance: Performance,
 ): Promise<void> {
-  const [space] = await tx
-    .select({ singular: spaces.singular, plural: spaces.plural })
-    .from(spaces)
-    .where(and(eq(spaces.id, performance.spaceId), spaceOpenTo(user)));
-  if (space === undefined) {
+  const [list] = await tx
+    .select({ type: lists.type })
+    .from(lists)
+    .where(and(eq(lists.id, performance.listId), listOpenTo(user)));
+  if (list === undefined) {
     return;
   }
-  let noun = space.plural;
+  const nouns = LISTS_COPY.nouns(LIST_TYPE.parse(list.type));
+  let noun = nouns.many;
   if (performance.added === 1) {
-    noun = space.singular;
+    noun = nouns.one;
   }
   await tx
     .update(performances)
@@ -204,7 +207,7 @@ async function restorePerformanceForDay(
 function startPerformance(
   user: UserId,
   questId: QuestId,
-  input: { readonly spaceId: SpaceId; readonly riteId: string },
+  input: { readonly listId: ListId; readonly riteId: string },
 ): Promise<Performance | undefined> {
   return withAppErrors("startPerformance", async () => {
     const rite = await readRite(user, input.riteId);
@@ -215,17 +218,17 @@ function startPerformance(
       if (!(await lockQuest(tx, user, questId))) {
         return;
       }
-      const [space] = await tx
-        .select({ name: spaces.name })
-        .from(spaces)
+      const [list] = await tx
+        .select({ name: lists.name })
+        .from(lists)
         .where(
           and(
-            eq(spaces.questId, questId),
-            eq(spaces.id, input.spaceId),
-            spaceOpenTo(user),
+            eq(lists.questId, questId),
+            eq(lists.id, input.listId),
+            listOpenTo(user),
           ),
         );
-      if (space === undefined) {
+      if (list === undefined) {
         return;
       }
       const previous = await active(tx, user, questId);
@@ -236,7 +239,7 @@ function startPerformance(
         .insert(performances)
         .values({
           questId,
-          spaceId: input.spaceId,
+          listId: input.listId,
           riteSnapshot: RITE_DEFINITION.parse(rite),
         })
         .returning();
@@ -246,7 +249,7 @@ function startPerformance(
       return asPerformance({
         ...row,
         rite: row.riteSnapshot,
-        spaceName: space.name,
+        listName: list.name,
       });
     });
   });
@@ -272,70 +275,75 @@ function stopPerformance(
   );
 }
 
-const CONJURATION = z.object({
+const PERFORMANCE_MESSAGE = z.object({
   id: z.guid(),
   performanceId: PERFORMANCE_ID,
   text: z.string().refine((text) => text.trim() !== ""),
 });
-type ConjurationRequest = z.infer<typeof CONJURATION>;
-const CONJURATION_COLUMNS: {
-  readonly id: typeof conjurations.id;
-  readonly author: typeof conjurations.author;
-  readonly text: typeof conjurations.text;
-  readonly reply: typeof conjurations.reply;
-  readonly added: typeof conjurations.added;
-  readonly createdAt: typeof conjurations.createdAt;
+type PerformanceMessageRequest = z.infer<typeof PERFORMANCE_MESSAGE>;
+const PERFORMANCE_MESSAGE_COLUMNS: {
+  readonly id: typeof performanceMessages.id;
+  readonly author: typeof performanceMessages.author;
+  readonly text: typeof performanceMessages.text;
+  readonly reply: typeof performanceMessages.reply;
+  readonly added: typeof performanceMessages.added;
+  readonly createdAt: typeof performanceMessages.createdAt;
 } = {
-  id: conjurations.id,
-  author: conjurations.author,
-  text: conjurations.text,
-  reply: conjurations.reply,
-  added: conjurations.added,
-  createdAt: conjurations.createdAt,
+  id: performanceMessages.id,
+  author: performanceMessages.author,
+  text: performanceMessages.text,
+  reply: performanceMessages.reply,
+  added: performanceMessages.added,
+  createdAt: performanceMessages.createdAt,
 };
-type Conjuration = Pick<
-  typeof conjurations.$inferSelect,
-  keyof typeof CONJURATION_COLUMNS
+type PerformanceMessage = Pick<
+  typeof performanceMessages.$inferSelect,
+  keyof typeof PERFORMANCE_MESSAGE_COLUMNS
 >;
 
-function readConjurations(
+function readPerformanceMessages(
   user: UserId,
   id: PerformanceId,
-): Promise<Conjuration[]> {
-  return withAppErrors("readConjurations", async () =>
+): Promise<PerformanceMessage[]> {
+  return withAppErrors("readPerformanceMessages", async () =>
     getDb()
-      .select(CONJURATION_COLUMNS)
-      .from(conjurations)
-      .where(and(eq(conjurations.performanceId, id), conjurationOpenTo(user)))
-      .orderBy(conjurations.position),
+      .select(PERFORMANCE_MESSAGE_COLUMNS)
+      .from(performanceMessages)
+      .where(
+        and(
+          eq(performanceMessages.performanceId, id),
+          performanceMessageOpenTo(user),
+        ),
+      )
+      .orderBy(performanceMessages.position),
   );
 }
 
-function conjure(
+function sendMessage(
   user: UserId,
   questId: QuestId,
-  input: ConjurationRequest,
-): Promise<Conjuration | undefined> {
-  return withAppErrors("conjure", async () => {
+  input: PerformanceMessageRequest,
+): Promise<PerformanceMessage | undefined> {
+  return withAppErrors("sendMessage", async () => {
     const author = (await readUserName(user)) ?? PERFORMANCE_COPY.unnamed;
     return inTransaction(async (tx) => {
       if (!(await lockQuest(tx, user, questId))) {
         return;
       }
       const [saved] = await tx
-        .select(CONJURATION_COLUMNS)
-        .from(conjurations)
+        .select(PERFORMANCE_MESSAGE_COLUMNS)
+        .from(performanceMessages)
         .innerJoin(
           performances,
-          eq(performances.id, conjurations.performanceId),
+          eq(performances.id, performanceMessages.performanceId),
         )
         .where(
           and(
             eq(performances.questId, questId),
-            eq(conjurations.performanceId, input.performanceId),
-            eq(conjurations.userId, user),
-            eq(conjurations.id, input.id),
-            conjurationOpenTo(user),
+            eq(performanceMessages.performanceId, input.performanceId),
+            eq(performanceMessages.userId, user),
+            eq(performanceMessages.id, input.id),
+            performanceMessageOpenTo(user),
           ),
         );
       if (saved !== undefined) {
@@ -345,7 +353,7 @@ function conjure(
       if (performance === undefined || performance.id !== input.performanceId) {
         return;
       }
-      const entry = await addConjuration(
+      const entry = await addPerformanceMessage(
         tx,
         { user, questId, author },
         performance,
@@ -360,7 +368,7 @@ function conjure(
   });
 }
 
-async function addConjuration(
+async function addPerformanceMessage(
   tx: Transaction,
   {
     user,
@@ -372,46 +380,46 @@ async function addConjuration(
     readonly author: string;
   },
   performance: Performance,
-  input: ConjurationRequest,
-): Promise<Conjuration> {
-  const { spaceId, rite } = performance;
+  input: PerformanceMessageRequest,
+): Promise<PerformanceMessage> {
+  const { listId, rite } = performance;
   const [row] = await tx
     .select()
-    .from(spaces)
-    .where(and(eq(spaces.id, spaceId), spaceOpenTo(user)));
-  const space = SPACE_WORDS.parse(row);
+    .from(lists)
+    .where(and(eq(lists.id, listId), listOpenTo(user)));
+  const list = LIST_SETTINGS.parse(row);
   const [latest] = await tx
-    .select({ position: conjurations.position })
-    .from(conjurations)
+    .select({ position: performanceMessages.position })
+    .from(performanceMessages)
     .where(
       and(
-        eq(conjurations.performanceId, performance.id),
-        conjurationOpenTo(user),
+        eq(performanceMessages.performanceId, performance.id),
+        performanceMessageOpenTo(user),
       ),
     )
-    .orderBy(desc(conjurations.position))
+    .orderBy(desc(performanceMessages.position))
     .limit(1);
   const result = await changeWithin(
     tx,
     user,
-    { questId, spaceId },
+    { questId, listId },
     { kind: "add", text: input.text },
   );
   let added = 0;
   let reply = PERFORMANCE_COPY.refused(
-    murmlingLimit(space.newType),
-    space.singular,
+    listItemLimit(list.type),
+    LISTS_COPY.nouns(list.type).one,
   );
   if (result === "saved") {
     added = 1;
-    reply = riteReply(rite, space, { text: input.text, author });
+    reply = riteReply(rite, list, { text: input.text, author });
     await tx
       .update(performances)
       .set({ added: sql`${performances.added} + 1` })
       .where(and(eq(performances.id, performance.id), performanceOpenTo(user)));
   }
   const [entry] = await tx
-    .insert(conjurations)
+    .insert(performanceMessages)
     .values({
       id: input.id,
       performanceId: performance.id,
@@ -422,22 +430,22 @@ async function addConjuration(
       added,
       position: (latest?.position ?? -1) + 1,
     })
-    .returning(CONJURATION_COLUMNS);
+    .returning(PERFORMANCE_MESSAGE_COLUMNS);
   if (entry === undefined) {
-    throw new Error("Inserting a conjuration returned no conjuration");
+    throw new Error("Inserting a performance message returned none");
   }
   return entry;
 }
 
-export type { Conjuration, Performance, PerformanceId };
+export type { Performance, PerformanceId, PerformanceMessage };
 export {
-  CONJURATION,
   closePerformanceForDay,
-  conjure,
   listPerformances,
   PERFORMANCE_ID,
-  readConjurations,
+  PERFORMANCE_MESSAGE,
+  readPerformanceMessages,
   restorePerformanceForDay,
+  sendMessage,
   startPerformance,
   stopPerformance,
 };

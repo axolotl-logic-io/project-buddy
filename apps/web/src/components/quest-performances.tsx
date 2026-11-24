@@ -24,7 +24,7 @@ function QuestPerformances({
           >
             {PERFORMANCE_COPY.title(
               performance.rite.name,
-              performance.spaceName,
+              performance.listName,
             )}
           </Link>
           <div className="flex flex-wrap gap-2">

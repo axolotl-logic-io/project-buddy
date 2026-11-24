@@ -191,19 +191,19 @@ const VIEWS: readonly VisualView[] = [
     prepare: openSitePanel,
   },
   {
-    view: "quick-note",
+    view: "quick-add",
     state: "dialog",
     account: "typical",
     path: "/quests",
     frame: "window",
     async prepare(at: ViewPage): Promise<void> {
       await openSitePanel(at);
-      await at.page.getByRole("button", { name: "Quick Note" }).click();
+      await at.page.getByRole("button", { name: "Quick Add" }).click();
     },
   },
 
   // 3. Quest workspace: the performance, with the construct's avatar, and
-  // the spaces.
+  // the lists.
   {
     view: "quest",
     state: "performance",
@@ -214,7 +214,7 @@ const VIEWS: readonly VisualView[] = [
   },
   {
     view: "quest",
-    state: "task-space",
+    state: "task-list",
     account: "typical",
     path: quest(QUEST_LEARN),
     frame: "page",
@@ -224,7 +224,7 @@ const VIEWS: readonly VisualView[] = [
   },
   {
     view: "quest",
-    state: "plain-space",
+    state: "plain-list",
     account: "typical",
     path: quest(QUEST_LEARN),
     frame: "page",

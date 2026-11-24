@@ -10,7 +10,7 @@ import {
   uniqueIndex,
   uuid,
 } from "drizzle-orm/pg-core";
-import { spaces } from "./spaces.ts";
+import { lists } from "./lists.ts";
 import { users } from "./users.ts";
 
 const rites = pgTable(
@@ -35,7 +35,7 @@ const performances = pgTable(
   {
     id: uuid("id").primaryKey().defaultRandom(),
     questId: uuid("quest_id").notNull(),
-    spaceId: uuid("space_id").notNull(),
+    listId: uuid("list_id").notNull(),
     riteSnapshot: jsonb("rite_snapshot").notNull(),
     startedAt: timestamp("started_at", { withTimezone: true })
       .notNull()
@@ -46,8 +46,8 @@ const performances = pgTable(
   },
   (table) => [
     foreignKey({
-      columns: [table.questId, table.spaceId],
-      foreignColumns: [spaces.questId, spaces.id],
+      columns: [table.questId, table.listId],
+      foreignColumns: [lists.questId, lists.id],
     }).onDelete("cascade"),
     index("performances_quest_started_idx").on(table.questId, table.startedAt),
     uniqueIndex("performances_active_quest_idx")
@@ -56,8 +56,8 @@ const performances = pgTable(
   ],
 );
 
-const conjurations = pgTable(
-  "conjurations",
+const performanceMessages = pgTable(
+  "performance_messages",
   {
     id: uuid("id").primaryKey(),
     performanceId: uuid("performance_id")
@@ -76,11 +76,11 @@ const conjurations = pgTable(
       .defaultNow(),
   },
   (table) => [
-    uniqueIndex("conjurations_performance_position_idx").on(
+    uniqueIndex("performance_messages_performance_position_idx").on(
       table.performanceId,
       table.position,
     ),
   ],
 );
 
-export { conjurations, performances, rites };
+export { performanceMessages, performances, rites };

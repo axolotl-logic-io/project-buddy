@@ -1,17 +1,17 @@
 import { and, desc, eq, sql } from "drizzle-orm";
 import {
-  conjurationOpenTo,
+  performanceMessageOpenTo,
   performanceOpenTo,
   questOpenTo,
 } from "@/accounts/owner-scope.ts";
 import { getDb } from "@/db/client.ts";
-import { conjurations, performances } from "@/db/tables/performances.ts";
+import { performanceMessages, performances } from "@/db/tables/performances.ts";
 import { quests } from "@/db/tables/quests.ts";
 import { withAppErrors } from "@/errors/to-app-error.ts";
 import { parseQuestId, type QuestId, type UserId } from "@/ids.ts";
+import { readNextTask } from "@/lists/list-item-store.ts";
 import type { QuestSharing } from "@/quests/membership.ts";
 import { SHARING_COLUMNS, sharingOf } from "@/quests/quest-sharing.ts";
-import { readNextMurmling } from "@/spaces/murmling-store.ts";
 
 interface CurrentQuest {
   readonly quest: { readonly id: QuestId; readonly name: string };
@@ -23,15 +23,18 @@ function readCurrentQuest(owner: UserId): Promise<CurrentQuest | undefined> {
   return withAppErrors("readCurrentQuest", async () => {
     const db = getDb();
     const activity = db
-      .select({ time: sql`max(${conjurations.createdAt})` })
-      .from(conjurations)
-      .innerJoin(performances, eq(performances.id, conjurations.performanceId))
+      .select({ time: sql`max(${performanceMessages.createdAt})` })
+      .from(performanceMessages)
+      .innerJoin(
+        performances,
+        eq(performances.id, performanceMessages.performanceId),
+      )
       // Fully qualify the outer column so it remains a correlated subquery.
       .where(
         and(
           sql`${performances.questId} = "quests"."id"`,
           performanceOpenTo(owner),
-          conjurationOpenTo(owner),
+          performanceMessageOpenTo(owner),
         ),
       );
 
@@ -51,7 +54,7 @@ function readCurrentQuest(owner: UserId): Promise<CurrentQuest | undefined> {
     return {
       quest: { id, name: latest.name },
       sharing: sharingOf(owner, latest),
-      nextTask: (await readNextMurmling(owner, id))?.text,
+      nextTask: (await readNextTask(owner, id))?.text,
     };
   });
 }

@@ -72,15 +72,15 @@ A failed or cancelled release opens or updates an `ops` issue titled `Production
 
 ### Local construct engine
 
-The app makes no requests to AI model companies. A rite replies with one of its fixed templates, filled in with the rite's name, the space's words, the conjuration's text and the user's name. See [construct use cases](apps/web/use-cases/constructs.md) and [rite use cases](apps/web/use-cases/grimoire.md).
+The app makes no requests to AI model companies. A rite replies with one of its fixed templates, filled in with the rite's name, the list's name, the message's text and the user's name. See [construct use cases](apps/web/use-cases/constructs.md) and [rite use cases](apps/web/use-cases/grimoire.md).
 
-### Quests, spaces and performances
+### Quests, lists and performances
 
-Quests at `/quests` is the signed-in landing page. Start a quest offers Dailies, Learn a thing, Make a thing and Do a thing. Each quest has spaces of murmlings, starting with Tasks and Ideas, and a record of its performances: rites performed on a space, where each conjuration adds a murmling and the rite replies. Its owner, or anyone already in it, can share it by inviting people as [members](docs/GLOSSARY.md#quest-member). Dailies continues the same quest each day. See [quest use cases](apps/web/use-cases/quests.md), [space use cases](apps/web/use-cases/spaces.md) and [performance use cases](apps/web/use-cases/performances.md).
+Quests at `/quests` is the signed-in landing page. Start a quest offers Dailies, Learn a thing, Make a thing and Do a thing. Each quest has lists of list items, starting with Tasks and Ideas, and a record of its performances: rites performed on a list, where each message adds a list item and the rite replies. Its owner, or anyone already in it, can share it by inviting people as [members](docs/GLOSSARY.md#quest-member). Dailies continues the same quest each day. See [quest use cases](apps/web/use-cases/quests.md), [list use cases](apps/web/use-cases/lists.md) and [performance use cases](apps/web/use-cases/performances.md).
 
 Each starting point assigns its quest's construct, which speaks the rites' replies in its performances. Grimoire at `/grimoire` lists built-in and own rites. Profile at `/profile` holds the user's name and experience; Settings at `/settings` holds appearance and security.
 
-Spaces and their murmlings are in `src/db/tables/spaces.ts`, and each change to a space is recorded in `space-changes.ts` so it can be undone. Rites, performances and conjurations are in `src/db/tables/performances.ts`. `conjure` in `src/performances/performance-store.ts` adds the conjuration's murmling, picks the rite's reply with `riteReply` in `src/rites/rite.ts`, and saves both in one transaction. The `/api/v1` routes under `src/app/api/v1/` serve the same stores to scripts and other programs; see the [API use cases](apps/web/use-cases/api.md).
+Lists and their list items are in `src/db/tables/lists.ts`, and each change to a list is recorded in `list-changes.ts` so it can be undone. Rites, performances and messages are in `src/db/tables/performances.ts`. `sendMessage` in `src/performances/performance-store.ts` adds the message's list item, picks the rite's reply with `riteReply` in `src/rites/rite.ts`, and saves both in one transaction. The `/api/v1` routes under `src/app/api/v1/` serve the same stores to scripts and other programs; see the [API use cases](apps/web/use-cases/api.md).
 
 ### Errors
 
@@ -139,8 +139,8 @@ The site offers three fixed textured appearances: Ivory Vellum, Soot & Brass, an
 Three accounts in your worktree's development database show the site at different levels of use, for design reviews and screenshots:
 
 - **Empty**, `review+empty@project-buddy.test`: a name and nothing else, for the empty states.
-- **Typical**, `review+typical@project-buddy.test`: three quests, one of them completed, with tasks, ideas, Quick Notes and performances of its own rites, one of them replying in Markdown; three own rites; and about 45 experience, circle 4.
-- **Crowded**, `review+crowded@project-buddy.test`: sixteen quests and fourteen own rites, with every name and text at its length limit, words too long to wrap, long conjurations, a reply in rich Markdown with a table and code, and long Tasks and Ideas spaces with Quick Notes.
+- **Typical**, `review+typical@project-buddy.test`: three quests, one of them completed, with tasks, ideas, notes and performances of its own rites, one of them replying in Markdown; three own rites; and about 45 experience, circle 4.
+- **Crowded**, `review+crowded@project-buddy.test`: sixteen quests and fourteen own rites, with every name and text at its length limit, words too long to wrap, long messages, a reply in rich Markdown with a table and code, and long Tasks and Ideas lists and a long notes list.
 
 To make the accounts, start the site with `mise //apps/web:dev`, then run this command from the repository root:
 

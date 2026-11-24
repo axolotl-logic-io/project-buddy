@@ -15,10 +15,10 @@ import QuestPage from "@/app/(workspace)/quests/[questId]/(overview)/page.tsx";
 import { continueSignInAction } from "@/app/login/link/actions.ts";
 import SignInLinkPage from "@/app/login/link/page.tsx";
 import { currentUser } from "@/auth/current-user.ts";
-
+import { readLists } from "@/lists/list-store.ts";
 import {
-  CONJURATION,
-  conjure,
+  PERFORMANCE_MESSAGE,
+  sendMessage,
   startPerformance,
 } from "@/performances/performance-store.ts";
 import { readCurrentQuest } from "@/quests/current-quest-store.ts";
@@ -40,8 +40,6 @@ import {
   type Quest,
   renameQuest,
 } from "@/quests/store.ts";
-
-import { listSpaces } from "@/spaces/space-store.ts";
 
 import { LINK_PAGE_COPY } from "@/ui/copy/login.ts";
 import { QUEST_INVITATION_EMAIL_COPY } from "@/ui/copy/quest-members.ts";
@@ -613,21 +611,21 @@ describe("how a quest is shared, wherever quests are listed", () => {
     await addMember(owner, first.id, member);
     const own = await testData(member).quest();
 
-    const [space] = await listSpaces(member.id, first.id);
-    if (space === undefined) {
-      throw new Error("The member cannot see the quest's starting spaces");
+    const [list] = await readLists(member.id, first.id);
+    if (list === undefined) {
+      throw new Error("The member cannot see the quest's starting lists");
     }
     const performance = await startPerformance(member.id, first.id, {
-      spaceId: space.id,
+      listId: list.id,
       riteId: "capture",
     });
     if (performance === undefined) {
       throw new Error("The member could not start a performance");
     }
-    await conjure(
+    await sendMessage(
       member.id,
       first.id,
-      CONJURATION.parse({
+      PERFORMANCE_MESSAGE.parse({
         id: crypto.randomUUID(),
         performanceId: performance.id,
         text: "Sketch the shared quest",

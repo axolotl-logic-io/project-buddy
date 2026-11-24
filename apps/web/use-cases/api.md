@@ -14,20 +14,20 @@ These cases cover the site's versioned API under `/api/v1`, which scripts and ot
 
 ## use_case_api_quest_records
 
-- **Intent:** Keep a quest's spaces and murmlings through the API.
+- **Intent:** Keep a quest's lists and list items through the API.
 - **Prerequisites:** [`use_case_api_quests`](#use_case_api_quests).
 - **Steps:**
-  - They list the quest's spaces and read one.
-  - They add, edit, check off, uncheck, reorder and remove murmlings, mark one as plain, a task or a quick note, and move one to another space.
+  - They list the quest's lists and read one.
+  - They add, edit, check off, uncheck, reorder and remove list items, and move one to another list, where it takes that list's type.
   - They undo a change by its version.
   - They list and read the constructs and rites open to them.
-- **Outcome:** each change answers with the space as it now is, with its new version. Tasks keep their task numbers, including when moved. A missing space or murmling is not found. Another user's spaces are not found.
+- **Outcome:** each change answers with the list as it now is, with its new version. Tasks keep their task numbers, including when moved to another task list. A missing list or list item is not found. Another user's lists are not found.
 
 ## use_case_api_performance
 
-- **Intent:** Perform a rite on a space through the API.
+- **Intent:** Perform a rite on a list through the API.
 - **Prerequisites:** [`use_case_api_quests`](#use_case_api_quests).
 - **Steps:**
-  - They start a performance of a rite on one of the quest's spaces.
-  - They make a conjuration from text, read the performance, then stop it.
-- **Outcome:** a conjuration adds its murmling to the space and waits for the rite's reply, and the performance then shows both with their authors. Conjuring requires an active performance. A quest's members can read its performances; anyone else gets not found.
+  - They start a performance of a rite on one of the quest's lists.
+  - They send a message from text, read the performance, then stop it.
+- **Outcome:** a message adds its list item to the list and waits for the rite's reply, and the performance then shows both with their authors. Sending a message requires an active performance. A quest's members can read its performances; anyone else gets not found.

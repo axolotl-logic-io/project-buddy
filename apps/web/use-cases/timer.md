@@ -1,6 +1,6 @@
 # Timer
 
-The conventions for these cases are in [the index](README.md#conventions). The Timer is a destination of its own in the site panel's Places, apart from every quest. A timer repeats a work period and a break period forever from a fixed start. Its link holds only the durations and the start, so following it reaches no quest, space or performance. Anyone may open the Timer and its links without signing in.
+The conventions for these cases are in [the index](README.md#conventions). The Timer is a destination of its own in the site panel's Places, apart from every quest. A timer repeats a work period and a break period forever from a fixed start. Its link holds only the durations and the start, so following it reaches no quest, list or performance. Anyone may open the Timer and its links without signing in.
 
 ## use_case_timer_start
 
@@ -41,7 +41,7 @@ The conventions for these cases are in [the index](README.md#conventions). The T
 - **Prerequisites:** [`use_case_timer_start`](#use_case_timer_start), [`use_case_timer_join_link`](#use_case_timer_join_link) or [`use_case_timer_join_global`](#use_case_timer_join_global).
 - **Steps:**
   - They read the period and the countdown, and may leave the tab in the background or let the device sleep, then come back.
-- **Outcome:** at exactly the end of work the timer shows Break with the whole break left, and at exactly the end of the break Work with the whole work period left; the ring starts empty or the hourglass resets with a full upper bowl each time. Coming back after missed periods shows the current period and time left at once, without replaying the ones missed. A screen reader hears the period's name as each one begins, not every second. The timer writes no message, completes no step, adds no murmling, sends no notification and makes no model request.
+- **Outcome:** at exactly the end of work the timer shows Break with the whole break left, and at exactly the end of the break Work with the whole work period left; the ring starts empty or the hourglass resets with a full upper bowl each time. Coming back after missed periods shows the current period and time left at once, without replaying the ones missed. A screen reader hears the period's name as each one begins, not every second. The timer writes no message, completes no step, adds no list item, sends no notification and makes no model request.
 - **Next:**
   - [`use_case_timer_return_to_setup`](#use_case_timer_return_to_setup): change the timer.
 

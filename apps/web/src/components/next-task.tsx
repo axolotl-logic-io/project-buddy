@@ -1,12 +1,12 @@
 import type { JSX } from "react";
-import type { Murmling } from "@/spaces/murmling-store.ts";
+import type { ListItem } from "@/lists/list-item-store.ts";
+import { LISTS_COPY } from "@/ui/copy/lists.ts";
 import { QUEST_SIDEBAR_COPY } from "@/ui/copy/quest-sidebar.ts";
-import { SPACES_COPY } from "@/ui/copy/spaces.ts";
 
 function NextTask({
   task,
 }: {
-  readonly task: Murmling | undefined;
+  readonly task: ListItem | undefined;
 }): JSX.Element {
   return (
     <div className="quest-overview-feature">
@@ -15,7 +15,7 @@ function NextTask({
         <p className="wrap-anywhere font-heading font-semibold text-lg">
           {task.taskNumber !== null && (
             <span className="font-mono text-muted text-xs">
-              {SPACES_COPY.taskNumber(task.taskNumber)}{" "}
+              {LISTS_COPY.taskNumber(task.taskNumber)}{" "}
             </span>
           )}
           {task.text}

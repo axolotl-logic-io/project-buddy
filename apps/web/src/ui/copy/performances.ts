@@ -1,14 +1,14 @@
 const PERFORMANCE_COPY = {
   rite: "Rite",
-  space: "Space",
-  conjuration: "Conjuration",
-  send: "Conjure",
+  list: "List",
+  message: "Message",
+  send: "Send",
   signedOut: "Your session ended. Sign in again to continue.",
   signIn: "Sign in again",
   failed: "The reply could not be saved. Try again.",
   retry: "Retry reply",
   working: "Replying…",
-  title: (rite: string, space: string): string => `${rite} · ${space}`,
+  title: (rite: string, list: string): string => `${rite} · ${list}`,
   count: (count: number): string => `${count} added`,
   active: "Active",
   empty: "No performances yet.",
@@ -17,10 +17,9 @@ const PERFORMANCE_COPY = {
   stop: "Stop",
   ritesAndStatus: "Rites & status",
   unavailable: "This performance is unavailable.",
-  required: "Start a performance to conjure.",
+  required: "Start a performance to send a message.",
   unnamed: "Quest member",
-  opening: (rite: string, space: string): string =>
-    `${rite} begins on ${space}.`,
+  opening: (rite: string, list: string): string => `${rite} begins on ${list}.`,
   closing: (rite: string, count: number, noun: string): string =>
     `${rite} ends. ${count} ${noun} added.`,
   refused: (limit: number, noun: string): string =>

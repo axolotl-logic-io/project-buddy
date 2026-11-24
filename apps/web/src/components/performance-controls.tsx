@@ -26,25 +26,25 @@ import { Alert, FormStatus } from "@/components/ui/form-message.tsx";
 import { usePerformanceScroll } from "@/components/use-performance-scroll.ts";
 import type { Construct } from "@/constructs/index.ts";
 import type { QuestId, UserId } from "@/ids.ts";
+import type { List } from "@/lists/list-store.ts";
 import {
-  conjureAction,
+  sendMessageAction,
   startPerformanceAction,
   stopPerformanceAction,
 } from "@/performances/performance-actions.ts";
 import type { PerformanceId } from "@/performances/performance-store.ts";
 import type { Rite } from "@/rites/rite.ts";
 import { SIGN_IN_PATH } from "@/routes.ts";
-import type { Space } from "@/spaces/space-store.ts";
 import { PERFORMANCE_COPY } from "@/ui/copy/performances.ts";
 
 function PerformRite({
   questId,
   rites,
-  spaces,
+  lists,
 }: {
   readonly questId: QuestId;
   readonly rites: readonly Rite[];
-  readonly spaces: readonly Space[];
+  readonly lists: readonly List[];
 }): JSX.Element {
   const [error, setError] = useState("");
   const [pending, setPending] = useState(false);
@@ -59,7 +59,7 @@ function PerformRite({
           (await startPerformanceAction({
             questId,
             riteId: form.get("riteId"),
-            spaceId: form.get("spaceId"),
+            listId: form.get("listId"),
           })) ?? "",
         );
       } catch {
@@ -79,18 +79,14 @@ function PerformRite({
           </option>
         ))}
       </SelectField>
-      <SelectField
-        label={PERFORMANCE_COPY.space}
-        name="spaceId"
-        required={true}
-      >
-        {spaces.map((space) => (
-          <option key={space.id} value={space.id}>
-            {space.name}
+      <SelectField label={PERFORMANCE_COPY.list} name="listId" required={true}>
+        {lists.map((list) => (
+          <option key={list.id} value={list.id}>
+            {list.name}
           </option>
         ))}
       </SelectField>
-      <Button type="submit" disabled={pending === true || spaces.length === 0}>
+      <Button type="submit" disabled={pending === true || lists.length === 0}>
         {PERFORMANCE_COPY.start}
       </Button>
       {error !== "" && <Alert>{error}</Alert>}
@@ -107,7 +103,7 @@ function withoutDraft(): null {
   return null;
 }
 
-function Conjure({
+function MessageComposer({
   questId,
   performanceId,
   viewer,
@@ -171,9 +167,13 @@ function Conjure({
       setError("");
       setSignedOut(false);
       update({ ...latestRef.current, request: next });
-      root.current?.dispatchEvent(new Event("conjure"));
+      root.current?.dispatchEvent(new Event("send-message"));
       try {
-        const result = await conjureAction({ questId, performanceId, ...next });
+        const result = await sendMessageAction({
+          questId,
+          performanceId,
+          ...next,
+        });
         if (result === undefined) {
           update({ text: latestRef.current.text });
         } else {
@@ -247,7 +247,7 @@ function Conjure({
       )}
       <form className="performance-composer grid gap-2" onSubmit={act}>
         <TextAreaField
-          label={PERFORMANCE_COPY.conjuration}
+          label={PERFORMANCE_COPY.message}
           name="text"
           ref={inputRef}
           rows={2}
@@ -294,4 +294,4 @@ function Conjure({
   );
 }
 
-export { Conjure, PerformRite };
+export { MessageComposer, PerformRite };

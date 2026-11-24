@@ -1,13 +1,13 @@
 import { expect, test, vi } from "vitest";
 import { readUserName } from "@/accounts/users-store.ts";
 import { setNameAction } from "@/app/(workspace)/profile/actions.ts";
+import { readLists } from "@/lists/list-store.ts";
 import {
-  CONJURATION,
-  conjure,
+  PERFORMANCE_MESSAGE,
+  sendMessage,
   startPerformance,
 } from "@/performances/performance-store.ts";
 import { saveRite } from "@/rites/rite-store.ts";
-import { listSpaces } from "@/spaces/space-store.ts";
 import { ACCOUNT_COPY } from "@/ui/copy/account.ts";
 import { testData } from "../../../../support/test-database/data-test-kit.ts";
 import { testUser } from "../../../../support/test-database/user-test-kit.ts";
@@ -25,12 +25,12 @@ test("use_case_set_name", async () => {
     name: "Named replies",
     replies: ["Hi {user}"],
   });
-  const [space] = await listSpaces(user.id, quest.id);
-  if (rite === undefined || space === undefined) {
+  const [list] = await readLists(user.id, quest.id);
+  if (rite === undefined || list === undefined) {
     throw new Error("The performance could not be prepared");
   }
   const performance = await startPerformance(user.id, quest.id, {
-    spaceId: space.id,
+    listId: list.id,
     riteId: rite.id,
   });
   if (performance === undefined) {
@@ -47,10 +47,10 @@ test("use_case_set_name", async () => {
   expect(await readUserName(other.id)).toBeUndefined();
   expect(
     (
-      await conjure(
+      await sendMessage(
         user.id,
         quest.id,
-        CONJURATION.parse({
+        PERFORMANCE_MESSAGE.parse({
           id: crypto.randomUUID(),
           performanceId: performance.id,
           text: "An idea",
@@ -71,10 +71,10 @@ test("use_case_set_name", async () => {
   });
   expect(
     (
-      await conjure(
+      await sendMessage(
         user.id,
         quest.id,
-        CONJURATION.parse({
+        PERFORMANCE_MESSAGE.parse({
           id: crypto.randomUUID(),
           performanceId: performance.id,
           text: "Another idea",

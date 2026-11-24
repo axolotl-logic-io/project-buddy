@@ -24,7 +24,7 @@ describe("quest without a performance", () => {
     const html = await pageHtml(quest.id);
 
     expect(html).toContain(quest.name);
-    expect(html).not.toContain(PERFORMANCE_COPY.conjuration);
+    expect(html).not.toContain(PERFORMANCE_COPY.message);
     expect(await listPerformances(her.id, quest.id)).toEqual([]);
   });
 });

@@ -17,7 +17,7 @@ import { useQuestAction } from "@/components/use-quest-action.ts";
 import { todayHere } from "@/dailies/dailies.ts";
 import { changeQuestDay } from "@/dailies/quest-day-actions.ts";
 import type { QuestId } from "@/ids.ts";
-import type { Space } from "@/spaces/space-store.ts";
+import type { List } from "@/lists/list-store.ts";
 import { DAY_GRID_COPY } from "@/ui/copy/dailies.ts";
 
 const MINUTE_MS = 60_000;
@@ -74,13 +74,13 @@ function LastStarted({
 
 function StartDay({
   questId,
-  spaces,
+  lists,
   lastStartedAt,
   undoable,
   children,
 }: {
   readonly questId: QuestId;
-  readonly spaces: readonly Space[];
+  readonly lists: readonly List[];
   readonly lastStartedAt: Date | undefined;
   readonly undoable: boolean;
   readonly children?: ReactNode;
@@ -96,7 +96,7 @@ function StartDay({
         op: "start",
         questId,
         localDate: todayHere(new Date()),
-        emptySpaces: form.getAll("emptySpaces"),
+        emptyLists: form.getAll("emptyLists"),
       })
         .then((saved) => {
           if (saved) {
@@ -129,10 +129,10 @@ function StartDay({
         <form onSubmit={start} className="flex flex-col gap-3">
           <p>{DAY_GRID_COPY.confirmStartDay}</p>
           <fieldset className="flex flex-col gap-2">
-            <legend>{DAY_GRID_COPY.emptySpaces}</legend>
-            {spaces.map(({ id, name }) => (
+            <legend>{DAY_GRID_COPY.emptyLists}</legend>
+            {lists.map(({ id, name }) => (
               <label key={id}>
-                <input type="checkbox" name="emptySpaces" value={id} /> {name}
+                <input type="checkbox" name="emptyLists" value={id} /> {name}
               </label>
             ))}
           </fieldset>

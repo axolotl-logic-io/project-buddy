@@ -52,7 +52,7 @@ interface DailiesDay {
 }
 
 // A Dailies quest's days, oldest first, and whether the newest Start Day can
-// still be undone: until someone makes a conjuration.
+// still be undone: until someone makes a message.
 interface DailiesRecord {
   readonly days: readonly DailiesDay[];
   readonly undoable: boolean;

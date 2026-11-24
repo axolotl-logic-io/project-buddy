@@ -1,27 +1,27 @@
-// A performance and its conjurations, shaped as the performance store
+// A performance and its messages, shaped as the performance store
 // returns them, and the performance as the quest page shows it: the
 // transcript inside the composer, for the browser tests of the transcript,
 // the composer and the quest page.
 
 import type { JSX } from "react";
 import { z } from "zod";
-import { Conjure } from "@/components/performance-controls.tsx";
+import { MessageComposer } from "@/components/performance-controls.tsx";
 import { PerformanceTranscript } from "@/components/performance-transcript.tsx";
 import type { Construct } from "@/constructs/index.ts";
 import type { QuestId, UserId } from "@/ids.ts";
+import { LIST_ID } from "@/lists/list.ts";
 import type {
-  Conjuration,
   Performance,
+  PerformanceMessage,
 } from "@/performances/performance-store.ts";
-import { SPACE_ID } from "@/spaces/space.ts";
 
 // The store's id schema, since the browser tests mock the store module.
 const PERFORMANCE_ID = z.guid().toLowerCase().brand<"PerformanceId">();
 
 const PERFORMANCE: Performance = {
   id: PERFORMANCE_ID.parse("0b6c1d55-2f0e-4b8a-9c3d-6e7f8a9b0c1d"),
-  spaceId: SPACE_ID.parse("a0c7c952-9f82-4640-9584-45e01b0c2513"),
-  spaceName: "Bench",
+  listId: LIST_ID.parse("a0c7c952-9f82-4640-9584-45e01b0c2513"),
+  listName: "Bench",
   rite: { name: "Brainstorm", replies: ["What else comes to mind?"] },
   startedAt: new Date("2026-11-20T09:00:00Z"),
   endedAt: null,
@@ -41,13 +41,13 @@ const MARKDOWN_REPLY = [
   "```python\nimport bpy\nbpy.ops.mesh.bevel(offset=0.1)\n```",
 ].join("\n\n");
 
-// A saved conjuration by author, with the rite's reply.
-function conjuration(
+// A saved message by author, with the rite's reply.
+function sentMessage(
   text: string,
   reply: string,
   author = "Robin",
   id: string = crypto.randomUUID(),
-): Conjuration {
+): PerformanceMessage {
   return {
     id,
     author,
@@ -59,7 +59,7 @@ function conjuration(
 }
 
 // The active performance as the quest page shows it to viewer, who
-// conjures as author.
+// sends messages as author.
 function performanceView({
   performance = PERFORMANCE,
   questId,
@@ -72,11 +72,11 @@ function performanceView({
   readonly questId: QuestId;
   readonly viewer: UserId;
   readonly construct: Construct;
-  readonly entries: readonly Conjuration[];
+  readonly entries: readonly PerformanceMessage[];
   readonly author?: string;
 }): JSX.Element {
   return (
-    <Conjure
+    <MessageComposer
       questId={questId}
       performanceId={performance.id}
       viewer={viewer}
@@ -89,14 +89,14 @@ function performanceView({
         entries={entries}
         construct={construct}
       />
-    </Conjure>
+    </MessageComposer>
   );
 }
 
 export {
-  conjuration,
   MARKDOWN_REPLY,
   PERFORMANCE,
   PERFORMANCE_ID,
   performanceView,
+  sentMessage,
 };
