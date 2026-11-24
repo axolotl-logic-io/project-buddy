@@ -169,3 +169,12 @@ vi.mock("@/streaks/streak-store.ts", () => ({
   readRecurringTasks: vi.fn(() => Promise.resolve([])),
   readStreakQuests: vi.fn(() => Promise.resolve([])),
 }));
+
+vi.mock("@/tallies/tally-actions.ts", () => ({
+  incrementTallyAction: vi.fn(),
+  setTallyDayAction: vi.fn(),
+}));
+vi.mock("@/tallies/tally-store.ts", () => ({
+  readQuestTallies: vi.fn(() => Promise.resolve(undefined)),
+  readTallyQuests: vi.fn(() => Promise.resolve([])),
+}));

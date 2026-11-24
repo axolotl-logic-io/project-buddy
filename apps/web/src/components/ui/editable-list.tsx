@@ -112,14 +112,17 @@ interface SortContext {
 const SortContext = createContext<SortContext | undefined>(undefined);
 
 // Reordering uses pointer events for mouse, pen and touch, with the same
-// before-item operation for the handle's keyboard controls.
+// before-item operation for the handle's keyboard controls. As cards, the
+// rows wrap into a grid, such as a tally list's counter cards.
 function EditableList({
   children,
   label,
+  layout = "rows",
   onMove,
 }: {
   readonly children: ReactNode;
   readonly label: string;
+  readonly layout?: "rows" | "cards";
   readonly onMove?:
     | ((id: string, before: string | undefined) => Promise<boolean>)
     | undefined;
@@ -237,6 +240,7 @@ function EditableList({
         ref={listRef}
         aria-label={label}
         className="editable-list"
+        data-layout={layout}
         data-dragging={dragging !== undefined}
         data-drop-end={dragging !== undefined && before === undefined}
       >

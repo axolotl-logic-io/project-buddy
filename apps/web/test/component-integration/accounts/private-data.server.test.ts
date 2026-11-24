@@ -26,6 +26,7 @@ import {
   questOpenTo,
   questOwnedBy,
   questPendingFor,
+  tallyDayOpenTo,
 } from "@/accounts/owner-scope.ts";
 import type { User } from "@/accounts/users-store.ts";
 import QuestsPage from "@/app/(workspace)/quests/(list)/page.tsx";
@@ -37,6 +38,7 @@ import { listItems, lists } from "@/db/tables/lists.ts";
 import { performanceMessages, performances } from "@/db/tables/performances.ts";
 import { questInvitations, questMembers } from "@/db/tables/quest-members.ts";
 import { quests } from "@/db/tables/quests.ts";
+import { tallyDays } from "@/db/tables/tallies.ts";
 import { readExperience } from "@/experience/experience-store.ts";
 import type { UserId } from "@/ids.ts";
 import { saveListAction } from "@/lists/list-actions.ts";
@@ -68,10 +70,16 @@ import { getQuest, listQuests, type Quest } from "@/quests/store.ts";
 import { markTaskDayAction } from "@/streaks/streak-actions.ts";
 import { readStreakQuests } from "@/streaks/streak-store.ts";
 import { addDays, localDate } from "@/streaks/streaks.ts";
+import {
+  incrementTallyAction,
+  setTallyDayAction,
+} from "@/tallies/tally-actions.ts";
+import { readQuestTallies, readTallyQuests } from "@/tallies/tally-store.ts";
 import { HOME_COPY } from "@/ui/copy/home.ts";
 import { LISTS_COPY } from "@/ui/copy/lists.ts";
 import { PERFORMANCE_COPY } from "@/ui/copy/performances.ts";
 import { QUICK_ADD_COPY } from "@/ui/copy/quick-add.ts";
+import { TALLIES_COPY } from "@/ui/copy/tallies.ts";
 import { questIdFixture } from "../../support/id-fixtures.ts";
 import { testData } from "../../support/test-database/data-test-kit.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
@@ -261,6 +269,13 @@ async function sharedQuest(): Promise<{
     questId: quest.id,
     source: "1",
   });
+  // A day's total, written directly, so the lists stay as they are.
+  await getDb().insert(tallyDays).values({
+    questId: quest.id,
+    listItemId: first.id,
+    localDate: "2026-11-24",
+    total: "3",
+  });
   return {
     users: {
       owner,
@@ -398,6 +413,13 @@ function predicateProbes(
             and(eq(events.questId, quest.id), checkOffInQuestOpenTo(user)),
           ),
       ),
+    tallyDayOpenTo: (user: UserId): Promise<boolean> =>
+      finds(
+        db
+          .select({ id: tallyDays.listItemId })
+          .from(tallyDays)
+          .where(and(eq(tallyDays.questId, quest.id), tallyDayOpenTo(user))),
+      ),
     // The owner's event for adding the first task.
     eventOwnedBy: (user: UserId): Promise<boolean> =>
       finds(
@@ -434,6 +456,7 @@ const EXPECTED_REACH: Readonly<Record<string, readonly Role[]>> = {
   questInvitationOpenTo: OPEN_TO_OWNER_AND_MEMBER,
   questInvitationTo: ["pending invitee"],
   checkOffInQuestOpenTo: OPEN_TO_OWNER_AND_MEMBER,
+  tallyDayOpenTo: OPEN_TO_OWNER_AND_MEMBER,
   eventOwnedBy: ["owner"],
 };
 
@@ -518,6 +541,8 @@ describe("use_case_quest_member_access", () => {
           readPerformanceMessages(outsider.id, performanceId),
           listQuickAddQuests(),
           readStreakQuests(outsider.id),
+          readTallyQuests(outsider.id),
+          readQuestTallies(outsider.id, quest.id),
         ]),
       ).toEqual([
         [],
@@ -531,6 +556,8 @@ describe("use_case_quest_member_access", () => {
         [],
         [],
         [],
+        [],
+        undefined,
       ]);
       expect(
         await markTaskDayAction({
@@ -540,6 +567,25 @@ describe("use_case_quest_member_access", () => {
           done: true,
         }),
       ).toEqual({ kind: "problem", text: HOME_COPY.markUnavailable });
+      const tallyMissing = {
+        kind: "problem",
+        text: TALLIES_COPY.problems.missing,
+      };
+      expect(
+        await incrementTallyAction({
+          questId: quest.id,
+          id: first.id,
+          amount: "1",
+        }),
+      ).toEqual(tallyMissing);
+      expect(
+        await setTallyDayAction({
+          questId: quest.id,
+          id: first.id,
+          date: "2026-11-24",
+          total: "1",
+        }),
+      ).toEqual(tallyMissing);
 
       expect(
         await startPerformanceAction({

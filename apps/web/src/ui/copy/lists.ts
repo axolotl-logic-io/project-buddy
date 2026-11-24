@@ -7,6 +7,7 @@ const LIST_NOUNS: Readonly<
   plain: { one: "item", many: "items" },
   task: { one: "task", many: "tasks" },
   "quick-note": { one: "note", many: "notes" },
+  tally: { one: "tally", many: "tallies" },
 };
 
 const LISTS_COPY = {
@@ -20,7 +21,7 @@ const LISTS_COPY = {
   changeProblems: {
     missing: "This list or item is unavailable.",
     "invalid-text":
-      "Use 1 to 200 characters on one line for items and tasks, or 1 to 1000 characters for notes.",
+      "Use 1 to 200 characters on one line for items, tasks and tallies, or 1 to 1000 characters for notes.",
     unchanged: "Nothing changed.",
   },
   recurring: "Recurring",
@@ -69,6 +70,7 @@ const LISTS_COPY = {
     plain: "Items",
     task: "Tasks",
     "quick-note": "Notes",
+    tally: "Tallies",
   },
 };
 

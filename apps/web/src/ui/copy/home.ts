@@ -1,8 +1,8 @@
 import { pageTitle } from "@/ui/copy/site.ts";
 
 // Home, the signed-in landing page: the user's experience, then the
-// streaks of every recurring task across their quests, and the site
-// panel's link to it.
+// streaks of every recurring task across their quests, then their tallies
+// (src/ui/copy/tallies.ts), and the site panel's link to it.
 export const HOME_COPY = {
   title: pageTitle("Home"),
   heading: "Home",

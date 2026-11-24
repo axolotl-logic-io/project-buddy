@@ -32,7 +32,7 @@ const lists = pgTable(
     uniqueIndex("lists_quest_position_idx").on(table.questId, table.position),
     check(
       "lists_type_valid",
-      sql`${table.type} in ('plain', 'task', 'quick-note')`,
+      sql`${table.type} in ('plain', 'task', 'quick-note', 'tally')`,
     ),
   ],
 );

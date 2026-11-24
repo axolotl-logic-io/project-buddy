@@ -14,7 +14,7 @@ const LIST_ID = z.guid().toLowerCase().brand<"ListId">();
 type ListId = z.infer<typeof LIST_ID>;
 
 // Every item in a list has the list's type.
-const LIST_TYPE = z.enum(["plain", "task", "quick-note"]);
+const LIST_TYPE = z.enum(["plain", "task", "quick-note", "tally"]);
 type ListType = z.infer<typeof LIST_TYPE>;
 
 const LIST_SETTINGS = z.object({
