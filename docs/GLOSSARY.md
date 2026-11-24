@@ -80,6 +80,10 @@ A task marked to do every day, in any quest. At the next midnight it reads as un
 
 A run of consecutive quest days on which someone checked off a recurring task. A day without a check-off breaks the run. **Day grid** shows each recurring task's marks for up to seven recent dates. [Daily streak use case](../apps/web/use-cases/tasks.md#use_case_daily_streaks)
 
+### Home
+
+The signed-in landing page at the site's root, above Quests in the breadcrumbs. It shows the user's experience, then **Streaks**: every recurring task of the Active quests open to them over the last seven dates, which they can check off in place on any of those dates since the task was added. [Home streaks use case](../apps/web/use-cases/home.md#use_case_home_streaks)
+
 ## Rites and performances
 
 ### Rite

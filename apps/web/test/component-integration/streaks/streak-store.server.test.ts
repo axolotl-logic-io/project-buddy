@@ -19,9 +19,15 @@ import {
   writeListContents,
 } from "@/lists/list-item-store.ts";
 import { readLists } from "@/lists/list-store.ts";
+import { changeQuestStatus } from "@/quests/quest-status-store.ts";
 import type { Quest } from "@/quests/store.ts";
-import { readRecurringTasks, readTaskHistory } from "@/streaks/streak-store.ts";
-import { localDate } from "@/streaks/streaks.ts";
+import {
+  markTaskDay,
+  readRecurringTasks,
+  readStreakQuests,
+  readTaskHistory,
+} from "@/streaks/streak-store.ts";
+import { addDays, localDate, STREAK_TABLE_DAYS } from "@/streaks/streaks.ts";
 import { testData } from "../../support/test-database/data-test-kit.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
 import { addMember } from "../quests/quest-members-test-kit.ts";
@@ -162,6 +168,8 @@ describe("use_case_daily_streaks", () => {
     });
     expect(await readRecurringTasks(owner.id, quest.id)).toEqual([
       {
+        id: stretch.id,
+        listId: tasks.id,
         number: stretch.taskNumber,
         text: "Stretch",
         done: true,
@@ -197,3 +205,104 @@ describe("use_case_daily_streaks", () => {
     expect(await readRecurringTasks(stranger.id, quest.id)).toEqual([]);
   });
 });
+
+describe("use_case_home_streaks", () => {
+  test("Home reads each Active quest open to the user that has a recurring task", async () => {
+    const { owner, quest, tasks, stretch } = await morning();
+    const [member, stranger] = [await testUser(), await testUser()];
+    await addMember(owner, quest.id, member);
+    // A quest without a recurring task has no streaks to show.
+    await testData(owner).quest("Errands");
+
+    const [read] = await readStreakQuests(member.id);
+    expect(await readStreakQuests(owner.id)).toEqual([read]);
+    expect(read).toEqual({
+      quest: { id: quest.id, name: "Morning" },
+      history: expect.objectContaining({ timeZone: "UTC" }),
+      tasks: [expect.objectContaining({ id: stretch.id, listId: tasks.id })],
+    });
+    expect(await readStreakQuests(stranger.id)).toEqual([]);
+  });
+
+  test("marking an earlier date adds or takes back that day's check-off", async () => {
+    const { owner, quest, stretch } = await morning();
+    await passMidnight(quest);
+    await getDb()
+      .update(listItems)
+      .set({ createdAt: sql`${listItems.createdAt} - interval '7 days'` })
+      .where(eq(listItems.questId, quest.id));
+    const today = localDate(new Date(), "UTC");
+    const yesterday = addDays(today, -1);
+    const earlier = addDays(today, -2);
+    const number = stretch.taskNumber ?? 0;
+    const experience = await readExperience(owner.id);
+
+    expect(
+      await markTaskDay(owner.id, quest.id, {
+        localDate: earlier,
+        number,
+        done: true,
+      }),
+    ).toBe(true);
+    expect(await checkOffDates(owner, quest, number)).toEqual([
+      earlier,
+      yesterday,
+    ]);
+    expect(await readExperience(owner.id)).not.toEqual(experience);
+
+    expect(
+      await markTaskDay(owner.id, quest.id, {
+        localDate: yesterday,
+        number,
+        done: false,
+      }),
+    ).toBe(true);
+    expect(await checkOffDates(owner, quest, number)).toEqual([earlier]);
+  });
+
+  test("a mark is refused for today, a date out of the table, a one-off task, a closed quest or a stranger", async () => {
+    const { owner, quest, stretch, water } = await morning();
+    const stranger = await testUser();
+    const today = localDate(new Date(), "UTC");
+    const yesterday = addDays(today, -1);
+    const number = stretch.taskNumber ?? 0;
+    const mark = { localDate: yesterday, number, done: true };
+
+    expect(await markTaskDay(owner.id, quest.id, mark)).toBe(false);
+    await getDb()
+      .update(listItems)
+      .set({ createdAt: sql`${listItems.createdAt} - interval '30 days'` })
+      .where(eq(listItems.questId, quest.id));
+    expect(
+      await Promise.all([
+        markTaskDay(owner.id, quest.id, { ...mark, localDate: today }),
+        markTaskDay(owner.id, quest.id, {
+          ...mark,
+          localDate: addDays(today, -STREAK_TABLE_DAYS),
+        }),
+        markTaskDay(owner.id, quest.id, {
+          ...mark,
+          number: water.taskNumber ?? 0,
+        }),
+        markTaskDay(stranger.id, quest.id, mark),
+      ]),
+    ).toEqual([false, false, false, false]);
+    await changeQuestStatus(owner.id, {
+      questId: quest.id,
+      fromStatus: "active",
+      toStatus: "completed",
+      revision: quest.statusRevision,
+    });
+    expect(await markTaskDay(owner.id, quest.id, mark)).toBe(false);
+    expect(await checkOffDates(owner, quest, number)).toEqual([today]);
+  });
+});
+
+async function checkOffDates(
+  owner: User,
+  quest: Quest,
+  number: number,
+): Promise<readonly string[] | undefined> {
+  const history = await readTaskHistory(owner.id, quest.id);
+  return history?.checkOffs.find((each) => each.number === number)?.dates;
+}

@@ -70,7 +70,8 @@ function localDate(moment: Date, timeZone: string): LocalDate {
   return `${part("year")}-${part("month")}-${part("day")}`;
 }
 
-// A task's mark on a date: before the date it was added, untracked; today,
+// A task's mark on a date: before the date it was added, or after the
+// quest's today, untracked; today,
 // done once checked off and pending until then; before today, done when
 // someone checked it off that day and missed otherwise.
 function markOn(
@@ -79,7 +80,10 @@ function markOn(
   task: TrackedTask,
   date: LocalDate,
 ): DayMark {
-  if (date < localDate(task.createdAt, history.timeZone)) {
+  if (
+    date < localDate(task.createdAt, history.timeZone) ||
+    date > history.today
+  ) {
     return "untracked";
   }
   if (date === history.today) {
@@ -104,6 +108,10 @@ function doneDates(
 }
 
 const MAX_STREAK_LINKS = 30;
+
+// How many dates Home's table of streaks shows, and so how far back it can
+// change a task's mark.
+const STREAK_TABLE_DAYS = 7;
 
 // The recent days of a streak, with a separate link for today.
 interface StreakChain {
@@ -147,6 +155,29 @@ function streakChains(
   return found;
 }
 
+// The count dates up to last, oldest first.
+function datesUpTo(last: LocalDate, count: number): LocalDate[] {
+  return Array.from({ length: count }, (_, place) =>
+    addDays(last, place - count + 1),
+  );
+}
+
+// Each recurring task's mark on each date.
+function markRows(
+  history: TaskHistory,
+  tasks: readonly TrackedTask[],
+  dates: readonly LocalDate[],
+): DayGrid["rows"] {
+  return tasks.map((task) => {
+    const done = doneDates(history, task.number);
+    return {
+      number: task.number,
+      text: task.text,
+      marks: dates.map((each) => markOn(history, done, task, each)),
+    };
+  });
+}
+
 // At most count dates, up to today and from the date the first task was
 // added at the earliest, and each recurring task's mark on each.
 function dayGrid(
@@ -160,19 +191,64 @@ function dayGrid(
       .concat(history.today)
       .toSorted()
       .at(0) ?? history.today;
-  const dates = Array.from({ length: count }, (_, place) =>
-    addDays(history.today, place - count + 1),
-  ).filter((date) => date >= first);
+  const dates = datesUpTo(history.today, count).filter((date) => date >= first);
+  return { dates, rows: markRows(history, tasks, dates) };
+}
+
+// The dates several quests' rows share: count of them, up to the newest of
+// the quests' todays, which differ when their owners' time zones do. With
+// no quests there are none.
+function sharedDates(
+  todays: readonly LocalDate[],
+  count: number,
+): readonly LocalDate[] {
+  const newest = todays.toSorted().at(-1);
+  if (newest === undefined) {
+    return [];
+  }
+  return datesUpTo(newest, count);
+}
+
+// One task's mark on one date, checked or unchecked.
+interface MarkChange {
+  readonly number: number;
+  readonly date: LocalDate;
+  readonly done: boolean;
+}
+
+// A quest's history and recurring tasks after a change of one task's mark
+// on one date: today it is the task's own check, and on an earlier date it
+// is whether someone checked it off that day.
+function withMark<Task extends TrackedTask>(
+  history: TaskHistory,
+  tasks: readonly Task[],
+  { number, date, done }: MarkChange,
+): { readonly history: TaskHistory; readonly tasks: readonly Task[] } {
+  if (date === history.today) {
+    return {
+      history,
+      tasks: tasks.map((task) => {
+        if (task.number !== number) {
+          return task;
+        }
+        return { ...task, done };
+      }),
+    };
+  }
+  const dates = doneDates(history, number);
+  const changed = [...dates].filter((each) => each !== date);
+  if (done) {
+    changed.push(date);
+  }
   return {
-    dates,
-    rows: tasks.map((task) => {
-      const done = doneDates(history, task.number);
-      return {
-        number: task.number,
-        text: task.text,
-        marks: dates.map((each) => markOn(history, done, task, each)),
-      };
-    }),
+    tasks,
+    history: {
+      ...history,
+      checkOffs: [
+        ...history.checkOffs.filter((each) => each.number !== number),
+        { number, dates: changed.toSorted((a, b) => a.localeCompare(b)) },
+      ],
+    },
   };
 }
 
@@ -180,8 +256,20 @@ export type {
   DayGrid,
   DayMark,
   LocalDate,
+  MarkChange,
   StreakChain,
   TaskHistory,
   TrackedTask,
 };
-export { dayGrid, HISTORY_DAYS, localDate, MAX_STREAK_LINKS, streakChains };
+export {
+  addDays,
+  dayGrid,
+  HISTORY_DAYS,
+  localDate,
+  MAX_STREAK_LINKS,
+  markRows,
+  STREAK_TABLE_DAYS,
+  sharedDates,
+  streakChains,
+  withMark,
+};

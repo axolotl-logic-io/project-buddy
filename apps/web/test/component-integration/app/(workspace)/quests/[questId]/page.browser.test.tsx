@@ -4,6 +4,7 @@ import { render } from "vitest-browser-react";
 import QuestLayout from "@/app/(workspace)/quests/[questId]/(overview)/layout.tsx";
 import QuestPage from "@/app/(workspace)/quests/[questId]/(overview)/page.tsx";
 import { LIST_ID } from "@/lists/list.ts";
+import { LIST_ITEM_ID } from "@/lists/list-item.ts";
 import { type List, readLists } from "@/lists/list-store.ts";
 import { listPerformances } from "@/performances/performance-store.ts";
 import { listQuestPeople } from "@/quests/membership-store.ts";
@@ -146,6 +147,8 @@ describe("use_case_daily_streaks", () => {
   test("Day grid shows each recurring task's last seven dates, named for screen readers", async () => {
     vi.mocked(readRecurringTasks).mockResolvedValue([
       {
+        id: LIST_ITEM_ID.parse("5d0f43d4-4b0c-4cb5-9d5c-3a8f3e1c0b21"),
+        listId: LIST_ID.parse("a0c7c952-9f82-4640-9584-45e01b0c2513"),
         number: 1,
         text: STRETCH,
         done: false,

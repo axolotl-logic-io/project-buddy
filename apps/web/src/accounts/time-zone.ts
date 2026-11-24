@@ -40,13 +40,16 @@ function canonicalName(name: string): string {
     .timeZone;
 }
 
+// Formats in the time zone this browser or server runs in.
+const HERE = new Intl.DateTimeFormat();
+
 // The choice naming the time zone this browser or server runs in, if there
 // is one. Engines differ in which of a zone's names they give, such as
 // Asia/Calcutta or Asia/Kolkata, so another name of the same zone matches.
 function localTimeZone(
   choices: readonly TimeZone[] = timeZoneChoices(),
 ): TimeZone | undefined {
-  const here = new Intl.DateTimeFormat().resolvedOptions().timeZone;
+  const here = HERE.resolvedOptions().timeZone;
   const canonical = canonicalName(here);
   return (
     choices.find((name) => name === here) ??

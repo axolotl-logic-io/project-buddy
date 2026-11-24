@@ -3,8 +3,8 @@
 // Where a visitor without a session is sent.
 const SIGN_IN_PATH = "/login";
 
-// Quests is the signed-in landing destination.
-const HOME_PATH = "/quests";
+// Home is the signed-in landing destination.
+const HOME_PATH = "/";
 
 // The page a sign-in link opens, and its parameter naming where continuing
 // leads, when not home.

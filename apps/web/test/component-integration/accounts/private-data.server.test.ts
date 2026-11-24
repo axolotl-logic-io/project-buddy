@@ -64,6 +64,10 @@ import {
 } from "@/performances/performance-store.ts";
 import { removeFromQuest } from "@/quests/membership-store.ts";
 import { getQuest, listQuests, type Quest } from "@/quests/store.ts";
+import { markTaskDayAction } from "@/streaks/streak-actions.ts";
+import { readStreakQuests } from "@/streaks/streak-store.ts";
+import { addDays, localDate } from "@/streaks/streaks.ts";
+import { HOME_COPY } from "@/ui/copy/home.ts";
 import { LISTS_COPY } from "@/ui/copy/lists.ts";
 import { PERFORMANCE_COPY } from "@/ui/copy/performances.ts";
 import { QUICK_ADD_COPY } from "@/ui/copy/quick-add.ts";
@@ -513,8 +517,17 @@ describe("use_case_quest_member_access", () => {
           listPerformances(outsider.id, quest.id),
           readPerformanceMessages(outsider.id, performanceId),
           listQuickAddQuests(),
+          readStreakQuests(outsider.id),
         ]),
-      ).toEqual([[], undefined, [], [], undefined, undefined, [], [], []]);
+      ).toEqual([[], undefined, [], [], undefined, undefined, [], [], [], []]);
+      expect(
+        await markTaskDayAction({
+          questId: quest.id,
+          localDate: addDays(localDate(new Date(), "UTC"), -1),
+          number: 1,
+          done: true,
+        }),
+      ).toEqual({ kind: "problem", text: HOME_COPY.markUnavailable });
 
       expect(
         await startPerformanceAction({

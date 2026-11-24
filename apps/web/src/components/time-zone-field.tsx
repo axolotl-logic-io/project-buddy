@@ -37,7 +37,7 @@ function TimeZoneField({
   readonly saved?: string | undefined;
   readonly error?: string | undefined;
 }): JSX.Element {
-  const [chosen, setChosen] = useState(saved);
+  const [chosen, setChosen] = useState<string | undefined>(undefined);
   const isHydrated = useSyncExternalStore(
     subscribeToNothing,
     hydrated,
@@ -46,7 +46,7 @@ function TimeZoneField({
   const choose = useCallback((event: ChangeEvent<HTMLSelectElement>): void => {
     setChosen(event.currentTarget.value);
   }, []);
-  let value = chosen;
+  let value = chosen ?? saved;
   if (value === undefined && isHydrated) {
     value = localTimeZone(choices);
   }

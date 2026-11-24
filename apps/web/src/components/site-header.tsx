@@ -8,6 +8,7 @@ import { PanelLink, SitePanel } from "@/components/site-panel.tsx";
 import { Icon } from "@/components/ui/icon.tsx";
 import { HOME_PATH } from "@/routes.ts";
 import { GRIMOIRE_COPY } from "@/ui/copy/grimoire.ts";
+import { HOME_COPY } from "@/ui/copy/home.ts";
 import { PROFILE_COPY } from "@/ui/copy/profile.ts";
 import { QUESTS_COPY } from "@/ui/copy/quests.ts";
 import { SETTINGS_COPY } from "@/ui/copy/settings.ts";
@@ -82,9 +83,11 @@ function AccountLinks(): JSX.Element {
       </p>
       <ul aria-labelledby={PLACES_LABEL_ID} className="flex flex-col">
         <li>
+          <PanelLink href="/">{HOME_COPY.headerLink}</PanelLink>
+        </li>
+        <li>
           <PanelLink href="/quests">{QUESTS_COPY.headerLink}</PanelLink>
         </li>
-
         <li>
           <PanelLink href="/grimoire">{GRIMOIRE_COPY.heading}</PanelLink>
         </li>

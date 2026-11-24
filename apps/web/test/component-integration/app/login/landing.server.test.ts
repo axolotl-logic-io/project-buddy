@@ -2,6 +2,7 @@ import { describe, expect, test, vi } from "vitest";
 import { newToken } from "@/accounts/emailed-link.ts";
 import { continueSignInAction } from "@/app/login/link/actions.ts";
 import { currentUser } from "@/auth/current-user.ts";
+import { HOME_PATH } from "@/routes.ts";
 import { testData } from "../../../support/test-database/data-test-kit.ts";
 import { testUser } from "../../../support/test-database/user-test-kit.ts";
 import { expectRedirect } from "../../test-database/navigation-test-kit.ts";
@@ -19,14 +20,14 @@ describe("sign-in landing destination", () => {
     "https://example.test",
     "//example.test",
     "/../account",
-  ])("opens Quests when the return destination is %s", async (destination) => {
+  ])("opens Home when the return destination is %s", async (destination) => {
     const user = await testUser();
     const form = new FormData();
     form.set("token", await emailedLoginToken(user, sent.sendEmail));
     if (destination !== undefined) {
       form.set("next", destination);
     }
-    await expectRedirect(() => continueSignInAction(form), "/quests");
+    await expectRedirect(() => continueSignInAction(form), HOME_PATH);
     expect((await currentUser())?.id).toBe(user.id);
   });
 

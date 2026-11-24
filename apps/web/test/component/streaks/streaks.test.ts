@@ -7,9 +7,12 @@ import {
   dayGrid,
   localDate,
   MAX_STREAK_LINKS,
+  markRows,
+  sharedDates,
   streakChains,
   type TaskHistory,
   type TrackedTask,
+  withMark,
 } from "@/streaks/streaks.ts";
 
 const TODAY = "2026-11-20";
@@ -151,5 +154,57 @@ describe("dayGrid", () => {
     );
     expect(grid.dates.at(0)).toBe("2026-11-19");
     expect(grid.rows[0]?.marks).toEqual(["missed", "pending"]);
+  });
+});
+
+describe("Home's table", () => {
+  test("several quests share the dates up to the newest of their todays", () => {
+    expect(sharedDates([], WEEK)).toEqual([]);
+    expect(sharedDates(["2026-11-19", TODAY], WEEK)).toEqual([
+      ...daysBefore(WEEK - 1),
+      TODAY,
+    ]);
+  });
+
+  test("a date after a quest's today is untracked", () => {
+    const rows = markRows(
+      history({}),
+      [tracked(STRETCH, false)],
+      [TODAY, "2026-11-21"],
+    );
+    expect(rows[0]?.marks).toEqual(["pending", "untracked"]);
+  });
+
+  test("a mark today changes the task's own check", () => {
+    const tasks = [tracked(STRETCH, false)];
+    const before = history({});
+    const after = withMark(before, tasks, {
+      number: STRETCH,
+      date: TODAY,
+      done: true,
+    });
+    expect(after.history).toBe(before);
+    expect(after.tasks).toEqual([tracked(STRETCH, true)]);
+  });
+
+  test("a mark on an earlier date adds or takes back that day", () => {
+    const [d1, d2] = ["2026-11-18", "2026-11-19"];
+    const tasks = [tracked(STRETCH, false)];
+    const marked = withMark(history({ [STRETCH]: [d2] }), tasks, {
+      number: STRETCH,
+      date: d1,
+      done: true,
+    });
+    expect(marked.tasks).toBe(tasks);
+    expect(marked.history.checkOffs).toEqual([
+      { number: STRETCH, dates: [d1, d2] },
+    ]);
+    expect(
+      withMark(marked.history, tasks, {
+        number: STRETCH,
+        date: d2,
+        done: false,
+      }).history.checkOffs,
+    ).toEqual([{ number: STRETCH, dates: [d1] }]);
   });
 });
