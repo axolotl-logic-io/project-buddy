@@ -217,6 +217,29 @@
           }
         }
       }
+    },
+
+    // The production query is a standalone Node command. It reads pulled
+    // settings outside the checkout and reports results on the terminal, so
+    // it needs Node modules, process settings and console output. Its one
+    // import from outside the root, the type of the pg client, comes from
+    // apps/web/package.json.
+    {
+      "includes": ["scripts/ops/query.ts"],
+      "linter": {
+        "rules": {
+          "correctness": {
+            "noNodejsModules": "off",
+            "noUndeclaredDependencies": "off"
+          },
+          "style": {
+            "noProcessEnv": "off"
+          },
+          "suspicious": {
+            "noConsole": "off"
+          }
+        }
+      }
     }
   ]
 }

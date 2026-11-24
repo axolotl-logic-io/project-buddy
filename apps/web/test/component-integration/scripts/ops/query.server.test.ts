@@ -1,4 +1,4 @@
-// `npm run ops:query` must only read. Each test runs the real command,
+// `mise run ops:query` must only read. Each test runs the real command,
 // scripts/ops/query.ts, in its own Node process against a scratch database of
 // this test's own, named by a pulled-style env file in a temporary directory.
 
@@ -7,6 +7,7 @@ import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import process from "node:process";
+import { fileURLToPath } from "node:url";
 import { afterAll, beforeAll, expect, test } from "vitest";
 import { openPool } from "@/db/client.ts";
 import {
@@ -15,14 +16,16 @@ import {
 } from "../../../../scripts/test-db/test-database.ts";
 import { scratchDatabase } from "../../test-database/scratch-database-test-kit.ts";
 
-const QUERY = "scripts/ops/query.ts";
+const QUERY = fileURLToPath(
+  new URL("../../../../../../scripts/ops/query.ts", import.meta.url),
+);
 const RUN_TIMEOUT_MS = 30_000;
 // The setting scripts/ops/query.ts reads its env file's directory from.
 const OPS_DIR_SETTING = "PROJECT_BUDDY_OPS_DIR";
 const database = scratchDatabase("_ops_query");
 let opsDir = "";
 
-// One run of the command, as `npm run ops:query -- production "<sql>"`.
+// One run of the command, as `mise run ops:query production "<sql>"`.
 interface Run {
   readonly status: number | null;
   readonly stdout: string;

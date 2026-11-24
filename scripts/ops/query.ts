@@ -1,5 +1,5 @@
-// `npm run ops:query -- <environment> "<sql>"`: runs one SQL statement against
-// that environment's database, from the file `npm run ops:env` pulled, inside
+// `mise run ops:query <environment> "<sql>"`: runs one SQL statement against
+// that environment's database, from the file `mise run ops:env` pulled, inside
 // a read-only transaction that is always rolled back, with a 15 s statement
 // timeout. Prints the rows as JSON. The connection string is never printed.
 //
@@ -14,7 +14,7 @@ import { join } from "node:path";
 import process from "node:process";
 import { parseEnv } from "node:util";
 import type { PoolClient } from "pg";
-import { openPool } from "../../src/db/client.ts";
+import { openPool } from "../../apps/web/src/db/client.ts";
 
 // A variable's value, or undefined when it's unset or empty. A pulled sensitive
 // variable can come back as an empty string.
@@ -35,7 +35,7 @@ const ENVIRONMENTS: readonly string[] = [
   "development",
 ];
 const USAGE =
-  'Usage: npm run ops:query -- production|preview|development "<sql>"';
+  'Usage: mise run ops:query production|preview|development "<sql>"';
 
 const [environment, sql] = process.argv.slice(2);
 if (
@@ -57,7 +57,7 @@ let variables: NodeJS.Dict<string>;
 try {
   variables = parseEnv(readFileSync(file, "utf8"));
 } catch {
-  console.error(`No ${file}. Run \`npm run ops:env -- ${environment}\` first.`);
+  console.error(`No ${file}. Run \`mise run ops:env ${environment}\` first.`);
   process.exit(1);
 }
 const connectionString: string =
