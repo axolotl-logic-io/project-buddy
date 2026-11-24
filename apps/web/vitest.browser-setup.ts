@@ -124,7 +124,8 @@ vi.mock("@/lists/list-actions.ts", () => ({
 
 vi.mock("@/lists/list-item-store.ts", () => ({
   readListItems: vi.fn(() => Promise.resolve([])),
-  readNextTask: vi.fn(() => Promise.resolve(undefined)),
+  readNextTasks: vi.fn(() => Promise.resolve([])),
+  countListItems: vi.fn(() => Promise.resolve(new Map())),
 }));
 
 vi.mock("@/lists/list-item-actions.ts", () => ({
@@ -160,10 +161,11 @@ vi.mock("@/lists/quick-add-actions.ts", () => ({
   saveQuickAdd: vi.fn(),
 }));
 
-vi.mock("@/dailies/quest-day-actions.ts", () => ({
-  changeQuestDay: vi.fn(),
+vi.mock("@/streaks/streak-actions.ts", () => ({
+  markTaskDayAction: vi.fn(),
 }));
-vi.mock("@/dailies/quest-day-store.ts", () => ({
-  readQuestDays: vi.fn(() => Promise.resolve({ days: [], undoable: false })),
-  readRecurringTasks: vi.fn(() => Promise.resolve({ items: [] })),
+vi.mock("@/streaks/streak-store.ts", () => ({
+  readTaskHistory: vi.fn(() => Promise.resolve(undefined)),
+  readRecurringTasks: vi.fn(() => Promise.resolve([])),
+  readStreakQuests: vi.fn(() => Promise.resolve([])),
 }));

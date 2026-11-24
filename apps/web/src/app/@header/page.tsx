@@ -1,7 +1,7 @@
 import type { JSX } from "react";
-import { SignedInHeader } from "@/components/signed-in-header.tsx";
+import { HeaderLinksAt } from "@/components/header-links.tsx";
 
-// The header at the root redirect.
-export default function RootHeader(): Promise<JSX.Element> {
-  return SignedInHeader();
+// Match Home explicitly so soft navigation replaces the active header slot.
+export default function HomeHeader(): Promise<JSX.Element> {
+  return HeaderLinksAt({ path: [] });
 }

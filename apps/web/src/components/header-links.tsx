@@ -12,7 +12,7 @@ import { TimerPreferences } from "@/components/timer/timer-preferences.tsx";
 import { TimerTrailTools } from "@/components/timer/timer-trail-tools.tsx";
 import type { Construct } from "@/constructs/index.ts";
 
-// The active Dailies quest's construct at the right of the trail band,
+// An active quest's construct at the right of the trail band,
 // opposite the breadcrumbs, clear of the site panel that opens on the left.
 function ConstructTrailTools({
   construct,

@@ -1,6 +1,6 @@
-// The command `npm run check:build-fonts`: checks src/themes/theme-font-urls.ts
-// against the CSS the last `npm run build` wrote under `.next/static/`
-// (build-font-urls.ts). `npm run test:e2e` runs it on the build it tests.
+// The build's font check: checks src/themes/theme-font-urls.ts against the CSS
+// the last `npm run build` wrote under `.next/static/` (build-font-urls.ts).
+// `npm run test:e2e` runs it on the build it tests (playwright.config.ts).
 // Prints each drift and exits with status 1 if the map has drifted or there
 // is no built CSS. As the command's entry point, it is the one place here
 // that reads the build and prints to the terminal.

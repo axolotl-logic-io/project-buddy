@@ -7,7 +7,7 @@ import type { QuestId, UserId } from "@/ids.ts";
 import {
   changeListItem,
   readListItems,
-  readNextTask,
+  readNextTasks,
 } from "@/lists/list-item-store.ts";
 import { readLists, saveList } from "@/lists/list-store.ts";
 import {
@@ -135,5 +135,7 @@ test("use_case_ask_whats_next", async () => {
     id: firstTask.id,
     checkedOff: true,
   });
-  expect((await readNextTask(user.id, quest.id))?.text).toBe("In a later list");
+  expect((await readNextTasks(user.id, quest.id, 1))[0]?.text).toBe(
+    "In a later list",
+  );
 });

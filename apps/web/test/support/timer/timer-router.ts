@@ -9,4 +9,12 @@ function useRouter(): typeof timerRouter {
   return timerRouter;
 }
 
-export { timerRouter, useRouter };
+function usePathname(): string {
+  return "/timer";
+}
+
+function useSearchParams(): URLSearchParams {
+  return new URLSearchParams();
+}
+
+export { timerRouter, usePathname, useRouter, useSearchParams };

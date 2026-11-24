@@ -13,9 +13,9 @@
 // The CSS's `../media/<file>.woff2` is `/_next/static/media/<file>.woff2`.
 // Turbopack names a file `<name>-s.<content hash>.woff2`; a preloaded font
 // would get a `.p` segment too, which theme-fonts.test.ts rejects. After a
-// build, `npm run check:build-fonts` (scripts/check-build-font-urls.ts)
-// fails if this map drifts from the build's `@font-face` URLs, and prints
-// each difference; `npm run test:e2e` runs it on the build it tests.
+// build, scripts/check-build-font-urls.ts fails if this map drifts from the
+// build's `@font-face` URLs, and prints each difference; `npm run test:e2e`
+// runs it on the build it tests.
 //
 import type { ThemeId } from "@/themes/themes.ts";
 

@@ -9,7 +9,7 @@ import { performanceMessages, performances } from "@/db/tables/performances.ts";
 import { quests } from "@/db/tables/quests.ts";
 import { withAppErrors } from "@/errors/to-app-error.ts";
 import { parseQuestId, type QuestId, type UserId } from "@/ids.ts";
-import { readNextTask } from "@/lists/list-item-store.ts";
+import { readNextTasks } from "@/lists/list-item-store.ts";
 import type { QuestSharing } from "@/quests/membership.ts";
 import { SHARING_COLUMNS, sharingOf } from "@/quests/quest-sharing.ts";
 
@@ -54,7 +54,7 @@ function readCurrentQuest(owner: UserId): Promise<CurrentQuest | undefined> {
     return {
       quest: { id, name: latest.name },
       sharing: sharingOf(owner, latest),
-      nextTask: (await readNextTask(owner, id))?.text,
+      nextTask: (await readNextTasks(owner, id, 1))[0]?.text,
     };
   });
 }

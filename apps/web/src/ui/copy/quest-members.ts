@@ -46,7 +46,6 @@ export const QUEST_MEMBERS_COPY = {
   leaveCancel: "Stay in quest",
   leaveConfirmButton: "Leave quest",
   failed: "That change couldn't be made. Refresh and try again.",
-  dailies: "Dailies is just for you, so it has no members.",
   left: (name: string): string => `You left the quest "${name}".`,
 } as const;
 

@@ -15,7 +15,13 @@ import {
   takeBackEvents,
 } from "@/experience/experience-store.ts";
 import type { QuestId, UserId } from "@/ids.ts";
-import { LIST_TYPE, type ListId, type ListType, listItemText } from "./list.ts";
+import {
+  LIST_ID,
+  LIST_TYPE,
+  type ListId,
+  type ListType,
+  listItemText,
+} from "./list.ts";
 import { LIST_ITEM_ID, type ListItemChange } from "./list-item.ts";
 import { type List, readList } from "./list-store.ts";
 import {
@@ -24,6 +30,11 @@ import {
   LIST_INVERSE,
   undoListChange,
 } from "./list-undo.ts";
+import {
+  CHECKED_OFF_NOW,
+  checkedOffOn,
+  LIST_ITEM_COLUMNS,
+} from "./quest-today.ts";
 import { retype } from "./retype.ts";
 
 type Row = typeof listItems.$inferSelect;
@@ -59,7 +70,7 @@ function listRows(
 ): Promise<Row[]> {
   return Promise.resolve(
     tx
-      .select()
+      .select(LIST_ITEM_COLUMNS)
       .from(listItems)
       .where(
         and(
@@ -89,7 +100,6 @@ interface ListWrite {
   readonly listId: ListId;
   readonly nextTaskNumber: number;
   readonly atTop: boolean;
-  readonly dailies: boolean;
   readonly type: ListType;
 }
 
@@ -110,6 +120,7 @@ async function applyChange(
   write: ListWrite,
   rows: readonly Row[],
   change: ForwardChange,
+  index: number,
 ): Promise<ChangeResult> {
   const { tx, user, questId, listId, type } = write;
   if (change.kind === "add") {
@@ -141,9 +152,8 @@ async function applyChange(
     await recordEvents(tx, { user, questId }, "adding", [added.id]);
     return "saved";
   }
-  const index = rows.findIndex(({ id }) => id === change.id);
-  const row = rows.at(index);
-  if (index < 0 || row === undefined) {
+  const row = rows[index];
+  if (row === undefined) {
     return "missing";
   }
   return applyExisting(write, { rows, index, row }, change);
@@ -191,15 +201,14 @@ async function applyExisting(
       }
       await tx
         .update(listItems)
-        .set({ checkedOff: change.checkedOff })
+        .set({
+          checkedOff: change.checkedOff,
+          checkedOffOn: checkedOffOn(change),
+        })
         .where(target);
       return "saved";
     case "recurring":
-      if (
-        !write.dailies ||
-        write.type !== "task" ||
-        row.recurring === change.recurring
-      ) {
+      if (write.type !== "task" || row.recurring === change.recurring) {
         return "unchanged";
       }
       await tx
@@ -323,23 +332,47 @@ async function captureCheckOff(
   return undefined;
 }
 
+async function captureBeforeChange(
+  write: ListWrite,
+  rows: readonly Row[],
+  change: ForwardChange,
+): Promise<{
+  readonly index: number;
+  readonly before: Row | undefined;
+  readonly neighbour: string | undefined;
+  readonly checkOff: Inverse["checkOff"];
+}> {
+  let index = -1;
+  let neighbour: string | undefined;
+  if (change.kind !== "add") {
+    index = rows.findIndex(({ id }) => id === change.id);
+    if (index >= 0) {
+      neighbour = rows[index + 1]?.id;
+    }
+  }
+  const before = rows[index];
+  // Check-off and move can change the event that undo needs to restore.
+  const checkOff = await captureCheckOff(
+    write.tx,
+    write.questId,
+    before,
+    change,
+  );
+  return { index, before, neighbour, checkOff };
+}
+
 async function inverseFor(
   write: ListWrite,
   rows: readonly Row[],
   change: ForwardChange,
 ): Promise<{ readonly result: ChangeResult; readonly inverse?: Inverse }> {
   const { tx, user, questId, listId } = write;
-  let before: Row | undefined;
-  let neighbour: string | undefined;
-  if (change.kind !== "add") {
-    const index = rows.findIndex(({ id }) => id === change.id);
-    if (index >= 0) {
-      before = rows[index];
-      neighbour = rows[index + 1]?.id;
-    }
-  }
-  const checkOff = await captureCheckOff(tx, questId, before, change);
-  const result = await applyChange(write, rows, change);
+  const { index, before, neighbour, checkOff } = await captureBeforeChange(
+    write,
+    rows,
+    change,
+  );
+  const result = await applyChange(write, rows, change, index);
   if (result !== "saved") {
     return { result };
   }
@@ -387,7 +420,6 @@ async function changeWithin(
     .select({
       nextTaskNumber: quests.nextTaskNumber,
       status: quests.status,
-      dailies: quests.dailies,
     })
     .from(quests)
     .where(and(eq(quests.id, questId), questOpenTo(user)))
@@ -419,7 +451,6 @@ async function changeWithin(
       listId,
       atTop,
       nextTaskNumber: quest.nextTaskNumber,
-      dailies: quest.dailies,
       type: LIST_TYPE.parse(list.type),
     },
     rows,
@@ -501,13 +532,22 @@ function writeListContents(
   );
 }
 
-function readNextTask(
+// An open task with the list it is in, whose verbs name checking it off.
+interface OpenTask extends ListItem {
+  readonly listId: ListId;
+}
+
+// The quest's next tasks, up to count of them: its open tasks, taking its
+// task lists in order and each list's tasks in their saved order. The first
+// is the quest's next task.
+function readNextTasks(
   user: UserId,
   questId: QuestId,
-): Promise<ListItem | undefined> {
-  return withAppErrors("readNextTask", async () => {
-    const [row] = await getDb()
-      .select({ item: listItems })
+  count: number,
+): Promise<OpenTask[]> {
+  return withAppErrors("readNextTasks", async () => {
+    const rows = await getDb()
+      .select({ item: LIST_ITEM_COLUMNS })
       .from(listItems)
       .innerJoin(lists, eq(lists.id, listItems.listId))
       .where(
@@ -516,24 +556,58 @@ function readNextTask(
           listItemOpenTo(user),
           listOpenTo(user),
           eq(lists.type, "task"),
-          eq(listItems.checkedOff, false),
+          sql`not ${CHECKED_OFF_NOW}`,
         ),
       )
       .orderBy(lists.position, listItems.position, listItems.id)
-      .limit(1);
-    if (row === undefined) {
-      return;
-    }
-    return toListItem(row.item);
+      .limit(count);
+    return rows.map(({ item }) => ({
+      ...toListItem(item),
+      listId: LIST_ID.parse(item.listId),
+    }));
   });
 }
 
-export type { ListItem };
+// A list's number of list items, and how many of them are open.
+interface ListCount {
+  readonly total: number;
+  readonly open: number;
+}
+
+// How many list items each of the quest's lists holds, and how many of
+// them are open: not checked off now. A list with no items is absent.
+function countListItems(
+  user: UserId,
+  questId: QuestId,
+): Promise<ReadonlyMap<ListId, ListCount>> {
+  return withAppErrors("countListItems", async () => {
+    const rows = await getDb()
+      .select({
+        listId: listItems.listId,
+        total: sql<number>`count(*)`.mapWith(Number),
+        open: sql<number>`count(*) filter (where not ${CHECKED_OFF_NOW})`.mapWith(
+          Number,
+        ),
+      })
+      .from(listItems)
+      .where(and(eq(listItems.questId, questId), listItemOpenTo(user)))
+      .groupBy(listItems.listId);
+    return new Map(
+      rows.map(({ listId, total, open }) => [
+        LIST_ID.parse(listId),
+        { total, open },
+      ]),
+    );
+  });
+}
+
+export type { ListCount, ListItem, OpenTask };
 export {
   changeListItem,
   changeWithin,
+  countListItems,
   readListContents,
   readListItems,
-  readNextTask,
+  readNextTasks,
   writeListContents,
 };

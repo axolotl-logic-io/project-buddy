@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import type { JSX } from "react";
 import { CREDITS_COPY } from "@/ui/copy/credits.ts";
 
@@ -18,14 +19,15 @@ export default function CreditsPage(): JSX.Element {
             <a className="text-link" href="https://lucide.dev" key="lucide">
               {CREDITS_COPY.iconLibrary}
             </a>,
-            <a
+            <Link
               className="text-link"
               href="/licenses/lucide.txt"
               key="isc"
+              prefetch={false}
               rel="license"
             >
               {CREDITS_COPY.iconLicense}
-            </a>,
+            </Link>,
           )}
         </p>
       </div>

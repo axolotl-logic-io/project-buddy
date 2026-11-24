@@ -15,7 +15,6 @@ import {
 } from "@/db/client.ts";
 import { lists } from "@/db/tables/lists.ts";
 import { performanceMessages, performances } from "@/db/tables/performances.ts";
-import { questDays } from "@/db/tables/quest-days.ts";
 import { quests } from "@/db/tables/quests.ts";
 import { withAppErrors } from "@/errors/to-app-error.ts";
 import type { QuestId, UserId } from "@/ids.ts";
@@ -169,39 +168,6 @@ async function stopWithin(
       ),
     })
     .where(and(eq(performances.id, performance.id), performanceOpenTo(user)));
-}
-
-// The caller holds the quest lock while changing a day and its performance.
-async function closePerformanceForDay(
-  tx: Transaction,
-  user: UserId,
-  questId: QuestId,
-): Promise<PerformanceId | undefined> {
-  const performance = await active(tx, user, questId);
-  if (performance === undefined) {
-    return undefined;
-  }
-  await stopWithin(tx, user, performance);
-  return performance.id;
-}
-
-async function restorePerformanceForDay(
-  tx: Transaction,
-  user: UserId,
-  questId: QuestId,
-  id: PerformanceId,
-): Promise<void> {
-  await closePerformanceForDay(tx, user, questId);
-  await tx
-    .update(performances)
-    .set({ endedAt: null, closing: null })
-    .where(
-      and(
-        eq(performances.id, id),
-        eq(performances.questId, questId),
-        performanceOpenTo(user),
-      ),
-    );
 }
 
 function startPerformance(
@@ -359,10 +325,6 @@ function sendMessage(
         performance,
         input,
       );
-      await tx
-        .update(questDays)
-        .set({ undo: null })
-        .where(eq(questDays.questId, questId));
       return entry;
     });
   });
@@ -388,7 +350,7 @@ async function addPerformanceMessage(
     .from(lists)
     .where(and(eq(lists.id, listId), listOpenTo(user)));
   const list = LIST_SETTINGS.parse(row);
-  const [latest] = await tx
+  const latestMessagePosition = tx
     .select({ position: performanceMessages.position })
     .from(performanceMessages)
     .where(
@@ -428,7 +390,7 @@ async function addPerformanceMessage(
       text: input.text,
       reply,
       added,
-      position: (latest?.position ?? -1) + 1,
+      position: sql<number>`coalesce((${latestMessagePosition}), -1) + 1`,
     })
     .returning(PERFORMANCE_MESSAGE_COLUMNS);
   if (entry === undefined) {
@@ -439,12 +401,10 @@ async function addPerformanceMessage(
 
 export type { Performance, PerformanceId, PerformanceMessage };
 export {
-  closePerformanceForDay,
   listPerformances,
   PERFORMANCE_ID,
   PERFORMANCE_MESSAGE,
   readPerformanceMessages,
-  restorePerformanceForDay,
   sendMessage,
   startPerformance,
   stopPerformance,

@@ -141,22 +141,21 @@ describe("use_case_new_quest", () => {
 });
 
 describe("use_case_dailies", () => {
-  test("starting Dailies again opens the same quest, even renamed, and writes nothing", async () => {
+  test("starting Dailies again starts another quest like any other", async () => {
     const user = await testUser();
     await signIn(user);
     const first = await startQuest(user, startForm("dailies"));
-    const before = await readLists(user.id, first.id);
 
     const again = await startQuest(
       user,
       startForm("dailies", { name: "Mornings" }),
     );
 
-    expect(again.id).toBe(first.id);
-    expect(await readLists(user.id, again.id)).toEqual(before);
-    const quests = await listQuests(user.id);
-    expect(quests).toHaveLength(1);
-    expect(quests[0]).toMatchObject({ name: "Dailies", dailies: true });
+    expect(again.id).not.toBe(first.id);
+    expect((await listQuests(user.id)).map(({ name }) => name)).toEqual([
+      "Mornings",
+      "Dailies",
+    ]);
   });
 });
 

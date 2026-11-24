@@ -13,11 +13,11 @@ description = "Run Biome and the type check in every workspace"
 run = "npm run lint"
 
 [tasks.test]
-description = "Run every test but end-to-end in every workspace"
+description = "Run React Doctor and every test but the browser and end-to-end tests in every workspace"
 run = "npm test"
 
 [tasks."test:e2e"]
-description = "Run the end-to-end tests"
+description = "Run the browser tests and the end-to-end tests"
 run = "npm run test:e2e"
 
 [tasks.setup]
@@ -33,15 +33,29 @@ description = "Print a sign-in link for EMAIL, or the developer account, making 
 usage = 'arg "[email]" help="The address to sign in as; developer@project-buddy.test without one"'
 run = 'node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON "{{config_root}}/apps/web/scripts/development/run.ts" sign-in-link {{usage.email}}'
 
-[tasks.review-data]
-description = "Make the empty, typical and crowded review accounts again, with the local site running, and print their sign-in links"
-usage = 'arg "[email]" help="The base address; review@project-buddy.test without one, giving review+empty@, review+typical@ and review+crowded@"'
-run = 'node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON "{{config_root}}/apps/web/scripts/development/run.ts" review-data {{usage.email}}'
+# Vercel operations. They need a personal `vercel login`. Pulled environments
+# are written outside the checkout; see scripts/ops/project.sh.
+[tasks."ops:link"]
+description = "Link this checkout to the site's Vercel project, so the other ops tasks and the vercel CLI work without --scope"
+run = 'bash "{{config_root}}/scripts/ops/link.sh"'
 
-[tasks.visual-compare]
-description = "Screenshot every critical view as the review accounts, in each appearance at each width, beside its mockup; --help for the options"
-run = 'node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON "{{config_root}}/apps/web/scripts/visual/compare.ts"'
+[tasks."ops:env"]
+description = "Pull one environment's variables to a private file outside the checkout, and print their names"
+usage = '''
+arg "[environment]" help="production, preview or development"
+'''
+run = 'bash "{{config_root}}/scripts/ops/pull-env.sh" "$usage_environment"'
 
-[tasks.visual-baseline]
-description = "Measure the critical views' page weight, fonts, LCP, CLS and axe violations in a production build; --help for the options"
-run = 'node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON "{{config_root}}/apps/web/scripts/visual/baseline.ts"'
+[tasks."ops:query"]
+description = "Run one read-only SQL statement against an environment's database, and print the rows as JSON"
+usage = '''
+arg "[environment]" help="production, preview or development"
+arg "[sql]" help="One SQL statement, quoted"
+'''
+run = 'node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON "{{config_root}}/scripts/ops/query.ts" "$usage_environment" "$usage_sql"'
+
+# Which local scripts recent T3 Code threads for this project ran, and which
+# they did not, read from T3 Code's local database.
+[tasks.script-usage]
+description = "List the npm scripts, mise tasks and script files the last N T3 Code threads ran, and those they did not, with where each is defined; --help for the options"
+run = 'node "{{config_root}}/scripts/script-usage.mts"'

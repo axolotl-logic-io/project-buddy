@@ -21,7 +21,7 @@ import {
   readPerformanceMessages,
 } from "@/performances/performance-store.ts";
 import { QUEST_NAME } from "@/quests/quest-name.ts";
-import { createOrResumeQuest, getQuest, type Quest } from "@/quests/store.ts";
+import { createQuest, getQuest, type Quest } from "@/quests/store.ts";
 import { riteReply } from "@/rites/rite.ts";
 import { LISTS_COPY } from "@/ui/copy/lists.ts";
 import { PERFORMANCE_COPY } from "@/ui/copy/performances.ts";
@@ -51,11 +51,9 @@ async function performing(
   constructId: Quest["constructId"] = "vellum",
 ): Promise<Performing> {
   const user = await testUser();
-  const { quest } = await createOrResumeQuest(
-    user.id,
-    QUEST_NAME.parse("Workshop"),
-    { constructId },
-  );
+  const quest = await createQuest(user.id, QUEST_NAME.parse("Workshop"), {
+    constructId,
+  });
   await signIn(user);
   const [list] = await readLists(user.id, quest.id);
   if (list === undefined) {
@@ -147,11 +145,7 @@ test("use_case_leave_during_reply", async () => {
 
 test("use_case_performance_required", async () => {
   const user = await testUser();
-  const { quest } = await createOrResumeQuest(
-    user.id,
-    QUEST_NAME.parse("Workshop"),
-    {},
-  );
+  const quest = await createQuest(user.id, QUEST_NAME.parse("Workshop"), {});
   await signIn(user);
 
   expect(

@@ -7,6 +7,8 @@ import {
 } from "../../../scripts/test-db/test-database.ts";
 import { scratchDatabase } from "../test-database/scratch-database-test-kit.ts";
 
+const MABEL = { name: "Mabel", timeZone: "UTC" };
+
 const LINK_LIFETIME_MS = 60_000;
 
 test("a failed account insert rolls back sign-up consumption and permits exactly one retry", async () => {
@@ -37,20 +39,20 @@ test("a failed account insert rolls back sign-up consumption and permits exactly
     const { confirmSignUp, readSignUpEmail } = await import(
       "@/accounts/sign-up-links.ts"
     );
-    await expect(confirmSignUp(token, now, "Mabel")).rejects.toThrow();
+    await expect(confirmSignUp(token, now, MABEL)).rejects.toThrow();
     expect(await readSignUpEmail(token, now)).toBe(email);
     expect(
       (await pool.query("select id from users where email = $1", [email])).rows,
     ).toEqual([]);
     await pool.query("drop trigger reject_account on users");
-    const grant = await confirmSignUp(token, now, "Mabel");
+    const grant = await confirmSignUp(token, now, MABEL);
     expect(grant).toBeDefined();
     expect(
       (await pool.query("select id, role from users where email = $1", [email]))
         .rows,
     ).toEqual([{ id: grant?.id, role: "user" }]);
     expect(await readSignUpEmail(token, now)).toBeUndefined();
-    expect(await confirmSignUp(token, now, "Mabel")).toBeUndefined();
+    expect(await confirmSignUp(token, now, MABEL)).toBeUndefined();
   } finally {
     const { closeDb } = await import("@/db/client.ts");
     await closeDb();

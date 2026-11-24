@@ -10,7 +10,7 @@ A workspace for something the user wants to learn, make or do, or for their dail
 
 ### Quest starting point
 
-A reusable preset that supplies the initial quest name, starting context, construct and lists. Every starting point creates a Tasks list, which adds tasks, and an Ideas list, which adds plain list items. The four starting points are Dailies, Learn a thing, Make a thing and Do a thing. Dailies and Learn a thing assign Vellum. Make a thing and Do a thing assign Lumen. Starting Dailies again opens the account's existing Dailies quest. [Starting point use case](../apps/web/use-cases/quests.md#use_case_browse_premade_quests)
+A reusable preset that supplies the initial quest name, starting context, construct and lists. Every starting point creates a Tasks list, which adds tasks, and an Ideas list, which adds plain list items. The four starting points are Dailies, Learn a thing, Make a thing and Do a thing. Dailies and Learn a thing assign Vellum. Make a thing and Do a thing assign Lumen. Each start makes a new quest. Dailies asks for no Why. [Starting point use case](../apps/web/use-cases/quests.md#use_case_browse_premade_quests)
 
 ### Quest status
 
@@ -62,23 +62,27 @@ A list item in a quick note list: a thought of up to 1000 characters, on several
 
 The panel, open from any page, that adds a list item to a list of an Active quest without opening the quest. The item takes the list's type. [Quick Add use case](../apps/web/use-cases/lists.md#use_case_quick_add)
 
-## Dailies
+## Days and streaks
 
-### Dailies quest
+### Quest day
 
-The user's one ongoing, private quest for daily work, created from the Dailies starting point. Its identity survives a rename. Naming an ordinary quest Dailies leaves it an ordinary quest. [Dailies use case](../apps/web/use-cases/quests.md#use_case_dailies)
+A day in a quest, from one midnight to the next in the quest owner's time zone. Everyone in the quest shares the owner's days. Nothing runs at midnight: each read of a task works out whether it is still checked off today. [Recurring task use case](../apps/web/use-cases/tasks.md#use_case_recurring_tasks)
 
-### Dailies day
+### Time zone
 
-A day the owner explicitly begins with **Start Day** in an Active Dailies quest. It takes the browser's calendar date under normal conditions. Start Day records the previous day's recurring task results, ends the active performance and unchecks recurring tasks that are checked off. One-off tasks keep their state, and other list items remain, unless the owner chooses lists to empty. **Undo Start Day** is available until someone sends the next message in a performance of the quest or changes a list's type. [Start Day use case](../apps/web/use-cases/quests.md#use_case_start_day) and [Undo Start Day use case](../apps/web/use-cases/quests.md#use_case_undo_start_day)
+The time zone whose midnight starts a new quest day in each quest the user owns. The user chooses it on sign-up, starting at the browser's own, and can change it in Settings. An account made before time zones has UTC. [Set time zone use case](../apps/web/use-cases/accounts.md#use_case_set_time_zone)
 
 ### Recurring task
 
-A Dailies task marked to do every day. Start Day unchecks it if it is checked off, keeping its task number and place in its list. A **one-off task** has no daily reset. [Recurring task use case](../apps/web/use-cases/tasks.md#use_case_recurring_tasks)
+A task marked to do every day, in any quest. At the next midnight it reads as unchecked again if it is checked off, keeping its task number and place in its list. A **one-off task** stays checked off. [Recurring task use case](../apps/web/use-cases/tasks.md#use_case_recurring_tasks)
 
 ### Streak
 
-A run of consecutive calendar dates on which a recurring task was checked off. A missed date or a **gap**, a date with no Dailies day started, breaks the run. Multiple starts on the same date count as one date. **Day grid** shows each recurring task's marks for up to seven recent dates. [Daily streak use case](../apps/web/use-cases/tasks.md#use_case_daily_streaks)
+A run of consecutive quest days on which someone checked off a recurring task. A day without a check-off breaks the run. **Day grid** shows each recurring task's marks for up to seven recent dates. [Daily streak use case](../apps/web/use-cases/tasks.md#use_case_daily_streaks)
+
+### Home
+
+The signed-in landing page at the site's root, above Quests in the breadcrumbs. It shows the user's experience, then **Streaks**: every recurring task of the Active quests open to them over the last seven dates, which they can check off in place on any of those dates since the task was added. [Home streaks use case](../apps/web/use-cases/home.md#use_case_home_streaks)
 
 ## Rites and performances
 
@@ -92,7 +96,7 @@ The rite's answer to a message in a performance, picked at random from the rite'
 
 ### Performance
 
-A rite performed on one list of a quest, from start to stop. Starting a performance saves a **rite snapshot**, a copy of the definition, so editing or forgetting the rite leaves the performance unchanged. The **active performance** is the one in effect for everyone in the quest, and a quest has at most one. **Stop** or Start Day ends it. **Performances** is the quest's record of its past and active performances.
+A rite performed on one list of a quest, from start to stop. Starting a performance saves a **rite snapshot**, a copy of the definition, so editing or forgetting the rite leaves the performance unchanged. The **active performance** is the one in effect for everyone in the quest, and a quest has at most one. **Stop** ends it.
 
 During the active performance, users in the quest send messages. Each message adds one list item to the performance's list, and the rite replies. A message keeps its author's name. [Performance use cases](../apps/web/use-cases/performances.md) and [send a message use case](../apps/web/use-cases/performances.md#use_case_send_message)
 
@@ -124,7 +128,7 @@ A tracked action that earns experience: adding a list item, checking off a task 
 
 ### Experience
 
-The weighted sum of a user's events. Adding a list item earns 1 experience. Checking off a task earns 3, and completing a quest earns 9. Start Day's recurring task reset preserves experience.
+The weighted sum of a user's events. Adding a list item earns 1 experience. Checking off a task earns 3, and completing a quest earns 9. Midnight's uncheck of a recurring task preserves experience.
 
 ### Circle
 
@@ -132,7 +136,7 @@ The user's level determined by experience. Progress starts at Circle 1, titled I
 
 ### Days signed in
 
-The private Profile count of distinct dates with a qualifying signed-in visit. Dates use Coordinated Universal Time (UTC), and each date counts once per account across sessions and devices. This count is independent of Start Day, streaks and experience. [Days signed in use case](../apps/web/use-cases/profile.md#use_case_days_signed_in)
+The private Profile count of distinct dates with a qualifying signed-in visit. Dates use Coordinated Universal Time (UTC), and each date counts once per account across sessions and devices. This count is independent of the user's time zone, streaks and experience. [Days signed in use case](../apps/web/use-cases/profile.md#use_case_days_signed_in)
 
 ## Timer
 

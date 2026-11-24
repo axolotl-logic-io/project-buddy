@@ -3,19 +3,19 @@ import { page } from "vitest/browser";
 import { render } from "vitest-browser-react";
 import QuestLayout from "@/app/(workspace)/quests/[questId]/(overview)/layout.tsx";
 import QuestPage from "@/app/(workspace)/quests/[questId]/(overview)/page.tsx";
-import { type DailiesDay, LOCAL_DATE } from "@/dailies/dailies.ts";
-import { changeQuestDay } from "@/dailies/quest-day-actions.ts";
-import {
-  readQuestDays,
-  readRecurringTasks,
-} from "@/dailies/quest-day-store.ts";
 import { LIST_ID } from "@/lists/list.ts";
+import { LIST_ITEM_ID } from "@/lists/list-item.ts";
+import { changeListItemAction } from "@/lists/list-item-actions.ts";
+import { type OpenTask, readNextTasks } from "@/lists/list-item-store.ts";
 import { type List, readLists } from "@/lists/list-store.ts";
 import { listPerformances } from "@/performances/performance-store.ts";
 import { listQuestPeople } from "@/quests/membership-store.ts";
 import { getQuest, type Quest } from "@/quests/store.ts";
-import { DAY_GRID_COPY } from "@/ui/copy/dailies.ts";
+import { readRecurringTasks, readTaskHistory } from "@/streaks/streak-store.ts";
+import type { TaskHistory } from "@/streaks/streaks.ts";
+import { DAY_GRID_COPY } from "@/ui/copy/day-grid.ts";
 import { PERFORMANCE_COPY } from "@/ui/copy/performances.ts";
+import { QUEST_OVERVIEW_COPY } from "@/ui/copy/quest-overview.ts";
 import { QUEST_SIDEBAR_COPY } from "@/ui/copy/quest-sidebar.ts";
 import { TIMER_COPY } from "@/ui/copy/timer.ts";
 import {
@@ -57,36 +57,35 @@ beforeEach(() => {
   vi.mocked(readLists).mockResolvedValue([LIST]);
   vi.mocked(listQuestPeople).mockResolvedValue(undefined);
   vi.mocked(listPerformances).mockResolvedValue([]);
-  vi.mocked(readQuestDays).mockResolvedValue({ days: [], undoable: false });
-  vi.mocked(readRecurringTasks).mockResolvedValue({ items: [] });
+  vi.mocked(readTaskHistory).mockResolvedValue(HISTORY);
+  vi.mocked(readRecurringTasks).mockResolvedValue([]);
+  vi.mocked(readNextTasks).mockResolvedValue([]);
 });
 
 afterEach(async () => {
   await setViewport(LAPTOP_VIEWPORT);
 });
 
-// A Dailies quest's days: a missed day, a gap, and the day still going.
+// A quest's check-offs of its stretch: a day missed on 2026-11-14 and
+// 2026-11-16, and today, 2026-11-18, with the stretch not done yet.
 const STRETCH = "Stretch";
-function endedDay(date: string, done: boolean): DailiesDay {
-  return {
-    date: LOCAL_DATE.parse(date),
-    startedAt: new Date(`${date}T07:00:00Z`),
-    tasks: [{ number: 1, text: STRETCH, done }],
-  };
-}
-const DAYS: readonly DailiesDay[] = [
-  endedDay("2026-11-10", true),
-  endedDay("2026-11-11", true),
-  endedDay("2026-11-12", true),
-  endedDay("2026-11-13", true),
-  endedDay("2026-11-15", true),
-  endedDay("2026-11-16", false),
-  endedDay("2026-11-17", true),
-  {
-    date: LOCAL_DATE.parse("2026-11-18"),
-    startedAt: new Date("2026-11-18T07:00:00Z"),
-  },
-];
+const HISTORY: TaskHistory = {
+  today: "2026-11-18",
+  timeZone: "UTC",
+  checkOffs: [
+    {
+      number: 1,
+      dates: [
+        "2026-11-10",
+        "2026-11-11",
+        "2026-11-12",
+        "2026-11-13",
+        "2026-11-15",
+        "2026-11-17",
+      ],
+    },
+  ],
+};
 
 // The quest page with and without an active performance.
 const PERFORMANCE_STATES = [
@@ -112,43 +111,90 @@ test("use_case_open_quest", async () => {
     .element(page.getByRole("heading", { name: "Next task" }))
     .toBeVisible();
   await expect
-    .element(page.getByRole("link", { name: LIST.name }))
+    .element(page.getByRole("link", { name: `${LIST.name} 0 open` }))
     .toHaveAttribute("href", `/quests/${FOX_QUEST.id}?section=${LIST.id}`);
   await expect
-    .element(page.getByRole("link", { name: "Rites & status" }))
+    .element(
+      page.getByRole("region", { name: QUEST_OVERVIEW_COPY.performRite }),
+    )
     .toBeVisible();
+  // An Active quest keeps its settings folded away until the user opens them.
+  const dayGrid = page.getByRole("link", { name: QUEST_SIDEBAR_COPY.dayGrid });
+  await expect.element(dayGrid).not.toBeInTheDocument();
+  await page.getByText(QUEST_OVERVIEW_COPY.settings).click();
   await expect
-    .element(page.getByRole("link", { name: "Performances" }))
-    .toBeVisible();
+    .element(dayGrid)
+    .toHaveAttribute("href", `/quests/${FOX_QUEST.id}?section=days`);
   await expect
     .element(page.getByRole("textbox", { name: "Message" }))
     .not.toBeInTheDocument();
 });
 
-test("use_case_dailies", async () => {
-  vi.mocked(changeQuestDay).mockResolvedValue({ kind: "saved" });
-  await open({ ...FOX_QUEST, dailies: true });
-  await page.getByRole("button", { name: "Start Day" }).click();
-  const dialog = page.getByRole("dialog", { name: "Start Day" });
-  const list = dialog.getByRole("checkbox", { name: LIST.name });
-  await expect.element(list).not.toBeChecked();
-  await list.click();
-  await dialog.getByRole("button", { name: "Start Day", exact: true }).click();
-  expect(changeQuestDay).toHaveBeenCalledWith(
-    expect.objectContaining({ emptyLists: [LIST.id], questId: FOX_QUEST.id }),
-  );
+// Bench's next open tasks, in order, numbered from #12.
+const FIRST_NUMBER = 12;
+// The next task's text, after its task number.
+const NEXT_TEXT = /Sand the legs$/u;
+const NEXT: OpenTask[] = [
+  ["e3a1c8b0-5d1f-4a5e-9c2b-1f0e2d3c4b51", "Sand the legs"],
+  ["e3a1c8b0-5d1f-4a5e-9c2b-1f0e2d3c4b52", "Glue the seat"],
+  ["e3a1c8b0-5d1f-4a5e-9c2b-1f0e2d3c4b53", "Oil the top"],
+].map(([id, text], index) => ({
+  id: LIST_ITEM_ID.parse(id),
+  listId: LIST.id,
+  taskNumber: FIRST_NUMBER + index,
+  text: text ?? "",
+  checkedOff: false,
+  recurring: false,
+  createdAt: new Date("2026-11-01T09:00:00Z"),
+}));
+
+test("use_case_open_quest: Overview checks off the next task and recurring tasks in place", async () => {
+  vi.mocked(readNextTasks).mockResolvedValue(NEXT);
+  vi.mocked(readRecurringTasks).mockResolvedValue([
+    {
+      id: LIST_ITEM_ID.parse("5d0f43d4-4b0c-4cb5-9d5c-3a8f3e1c0b21"),
+      listId: LIST.id,
+      number: 1,
+      text: STRETCH,
+      done: false,
+      createdAt: new Date("2026-11-01T09:00:00Z"),
+    },
+  ]);
+  vi.mocked(changeListItemAction).mockReset();
+  vi.mocked(changeListItemAction).mockResolvedValue({ kind: "saved" });
+  await open(FOX_QUEST);
+  const next = page.getByRole("region", { name: QUEST_SIDEBAR_COPY.nextTask });
+  await expect.element(next.getByText(NEXT_TEXT)).toBeVisible();
+  await expect
+    .element(next.getByText("Then: #13 Glue the seat · #14 Oil the top"))
+    .toBeVisible();
+  await next.getByRole("button", { name: LIST.checkOff }).click();
+  expect(changeListItemAction).toHaveBeenLastCalledWith({
+    questId: FOX_QUEST.id,
+    listId: LIST.id,
+    change: { kind: "check", id: NEXT[0]?.id, checkedOff: true },
+  });
+
+  const today = page.getByRole("region", { name: QUEST_OVERVIEW_COPY.today });
+  await today.getByRole("checkbox", { name: STRETCH }).click();
+  await expect
+    .poll(() => changeListItemAction)
+    .toHaveBeenLastCalledWith({
+      questId: FOX_QUEST.id,
+      listId: LIST.id,
+      change: {
+        kind: "check",
+        id: LIST_ITEM_ID.parse("5d0f43d4-4b0c-4cb5-9d5c-3a8f3e1c0b21"),
+        checkedOff: true,
+      },
+    });
 });
 
 test("use_case_tailored_quest_overviews", async () => {
-  await open({
-    ...FOX_QUEST,
-    name: "Morning",
-    dailies: true,
-    status: "completed",
-  });
+  await open({ ...FOX_QUEST, name: "Morning", status: "completed" });
   await expect
-    .element(page.getByRole("link", { name: "Day grid" }))
-    .toBeVisible();
+    .element(page.getByRole("link", { name: QUEST_SIDEBAR_COPY.dayGrid }))
+    .toHaveAttribute("href", `/quests/${FOX_QUEST.id}?section=days`);
   await expect
     .element(page.getByRole("button", { name: "Start Day" }))
     .not.toBeInTheDocument();
@@ -169,11 +215,17 @@ test("use_case_tasks_panel", async () => {
 
 describe("use_case_daily_streaks", () => {
   test("Day grid shows each recurring task's last seven dates, named for screen readers", async () => {
-    vi.mocked(readQuestDays).mockResolvedValue({ undoable: false, days: DAYS });
-    vi.mocked(readRecurringTasks).mockResolvedValue({
-      items: [{ number: 1, text: STRETCH, done: true, recurring: true }],
-    });
-    await open({ ...FOX_QUEST, dailies: true }, "days");
+    vi.mocked(readRecurringTasks).mockResolvedValue([
+      {
+        id: LIST_ITEM_ID.parse("5d0f43d4-4b0c-4cb5-9d5c-3a8f3e1c0b21"),
+        listId: LIST_ID.parse("a0c7c952-9f82-4640-9584-45e01b0c2513"),
+        number: 1,
+        text: STRETCH,
+        done: false,
+        createdAt: new Date("2026-11-01T09:00:00Z"),
+      },
+    ]);
+    await open(FOX_QUEST, "days");
     const grid = page.getByRole("listitem").filter({ hasText: STRETCH });
     await expect
       .element(page.getByRole("heading", { name: DAY_GRID_COPY.heading }))
@@ -182,36 +234,20 @@ describe("use_case_daily_streaks", () => {
     expect(days.elements().map((day) => day.textContent)).toEqual([
       expect.stringContaining("Thu 2026-11-12: done"),
       expect.stringContaining("Fri 2026-11-13: done"),
-      expect.stringContaining("Sat 2026-11-14: no day started"),
+      expect.stringContaining("Sat 2026-11-14: not done"),
       expect.stringContaining("Sun 2026-11-15: done"),
       expect.stringContaining("Mon 2026-11-16: not done"),
       expect.stringContaining("Tue 2026-11-17: done"),
-      expect.stringContaining("Wed 2026-11-18: done"),
+      expect.stringContaining("Wed 2026-11-18: not done yet"),
     ]);
     await expect.element(page.getByText(DAY_GRID_COPY.legend)).toBeVisible();
   });
 
-  test("before the first Start Day, Day grid says Start Day begins counting", async () => {
-    await open({ ...FOX_QUEST, dailies: true }, "days");
-    await expect.element(page.getByText(DAY_GRID_COPY.noDays)).toBeVisible();
-  });
-
   test("with no recurring tasks, Day grid says how to make one", async () => {
-    vi.mocked(readQuestDays).mockResolvedValue({ undoable: false, days: DAYS });
-    await open({ ...FOX_QUEST, dailies: true }, "days");
+    await open(FOX_QUEST, "days");
     await expect
       .element(page.getByText(DAY_GRID_COPY.noRecurring))
       .toBeVisible();
-  });
-
-  test("a quest not started as Dailies has no Day grid", async () => {
-    await open(FOX_QUEST, "days");
-    await expect
-      .element(page.getByRole("heading", { name: DAY_GRID_COPY.heading }))
-      .not.toBeInTheDocument();
-    await expect
-      .element(page.getByRole("link", { name: QUEST_SIDEBAR_COPY.dayGrid }))
-      .not.toBeInTheDocument();
   });
 });
 

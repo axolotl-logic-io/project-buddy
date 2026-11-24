@@ -1,5 +1,5 @@
-// The header's trail for each path: the Timer's public trails, the
-// signed-in sections, and what a quest or rite page's crumb names. The
+// The header's trail for each path: the Timer's public trails, Home and
+// the signed-in sections, and what a quest or rite page's crumb names. The
 // stores are stand-ins, so a foreign or unknown id reads as missing, as the
 // acting-user stores answer it.
 
@@ -30,6 +30,8 @@ function signedIn(): Pick<User, "id" | "role"> {
 }
 
 const MEMBER = signedIn();
+const HOME = { label: "Home", href: "/" };
+const QUESTS = { label: "Quests", href: "/quests" };
 // A schedule that started at the Unix epoch, so it is running now.
 const RUNNING = ["timer", "25", "15", "0"];
 const DAY_MS = 86_400_000;
@@ -46,8 +48,15 @@ beforeEach(() => {
 });
 
 describe("header breadcrumbs", () => {
+  test("Home is the root, and Quests sits under it", async () => {
+    expect(await headerBreadcrumbs(MEMBER, [])).toEqual([{ label: "Home" }]);
+    expect(await headerBreadcrumbs(MEMBER, ["quests"])).toEqual([
+      HOME,
+      { label: "Quests" },
+    ]);
+  });
+
   test.each([
-    { section: "quests", label: "Quests" },
     { section: "grimoire", label: "Grimoire" },
     { section: "profile", label: "Profile" },
     { section: "settings", label: "Settings" },
@@ -84,6 +93,7 @@ describe("header breadcrumbs", () => {
     for (const path of [
       ["quests"],
       ["quests", "x"],
+      [],
       ["grimoire"],
       ["settings"],
     ]) {
@@ -93,39 +103,38 @@ describe("header breadcrumbs", () => {
     expect(stores.readRite).not.toHaveBeenCalled();
   });
 
-  test("the active Dailies quest's crumb carries its construct", async () => {
+  test("an active quest's crumb carries its construct", async () => {
     stores.getQuest.mockResolvedValue({
-      id: "dailies",
+      id: "mornings",
       name: "Mornings",
-      dailies: true,
       status: "active",
       constructId: "vellum",
     });
-    expect(await headerBreadcrumbs(MEMBER, ["quests", "dailies"])).toEqual([
-      { label: "Quests", href: "/quests" },
+    expect(await headerBreadcrumbs(MEMBER, ["quests", "mornings"])).toEqual([
+      HOME,
+      QUESTS,
       {
         label: "Mornings",
-        quest: { id: "dailies", name: "Mornings" },
+        quest: { id: "mornings", name: "Mornings" },
         construct: getConstruct("vellum"),
       },
     ]);
-    expect(stores.getQuest).toHaveBeenCalledWith(USER, "dailies");
+    expect(stores.getQuest).toHaveBeenCalledWith(USER, "mornings");
   });
 
   test.each([
-    { name: "a quest other than Dailies", dailies: false, status: "active" },
-    { name: "a completed Dailies quest", dailies: true, status: "completed" },
-    { name: "an abandoned Dailies quest", dailies: true, status: "abandoned" },
-  ])("$name has no construct in its crumb", async ({ dailies, status }) => {
+    { name: "a completed quest", status: "completed" },
+    { name: "an abandoned quest", status: "abandoned" },
+  ])("$name has no construct in its crumb", async ({ status }) => {
     stores.getQuest.mockResolvedValue({
       id: "quest",
       name: "Fox",
-      dailies,
       status,
       constructId: "lumen",
     });
     expect(await headerBreadcrumbs(MEMBER, ["quests", "quest"])).toEqual([
-      { label: "Quests", href: "/quests" },
+      HOME,
+      QUESTS,
       { label: "Fox", quest: { id: "quest", name: "Fox" } },
     ]);
   });
@@ -142,12 +151,13 @@ describe("header breadcrumbs", () => {
     ]);
   });
 
-  test("only a built-in construct has a trail, under Quests, which names it", async () => {
+  test("only a built-in construct has a trail, under Home and Quests, which names it", async () => {
     expect(await headerBreadcrumbs(MEMBER, ["constructs", "unknown"])).toEqual(
       [],
     );
     expect(await headerBreadcrumbs(MEMBER, ["constructs", "lumen"])).toEqual([
-      { label: "Quests", href: "/quests" },
+      HOME,
+      QUESTS,
       { label: "Lumen" },
     ]);
   });
@@ -175,7 +185,6 @@ describe("header breadcrumbs", () => {
     stores.getQuest.mockResolvedValue({
       id: "quest",
       name: "Fox",
-      dailies: false,
       status: "active",
       constructId: "lumen",
     });

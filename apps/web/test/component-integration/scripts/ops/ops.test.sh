@@ -3,7 +3,7 @@
 # arguments and writes a fake environment file. No network or real login.
 set -euo pipefail
 here="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-scripts="$(cd -- "$here/../../../../scripts/ops" && pwd)"
+scripts="$(cd -- "$here/../../../../../../scripts/ops" && pwd)"
 # Reproduce a path containing the old short fake secret. Paths are public
 # output; fake secret values must be distinct from a random directory suffix.
 work="$(mktemp -d "${TMPDIR:-/tmp}/pb-ops.hush.XXXXXX")"
@@ -14,9 +14,10 @@ die() { echo "FAIL: $*" >&2; exit 1; }
 contains() { grep -Fq -- "$2" "$1" || die "$1 must contain $2"; }
 not_contains() { if grep -Fq -- "$2" "$1"; then die "$1 must not contain $2"; fi; }
 
-# A disposable checkout: repo/apps/web/scripts/ops, with a fake vercel on PATH.
-checkout="$work/repo/apps/web"
-mkdir -p "$checkout/scripts/ops" "$work/bin"
+# A disposable checkout: repo/scripts/ops and repo/apps/web, with a fake vercel
+# on PATH. The scripts run vercel from apps/web, as they do in a real checkout.
+checkout="$work/repo"
+mkdir -p "$checkout/scripts/ops" "$checkout/apps/web" "$work/bin"
 cp "$scripts/"*.sh "$checkout/scripts/ops/"
 cat > "$work/bin/vercel" <<'SH'
 #!/usr/bin/env bash
@@ -32,13 +33,13 @@ export PATH="$work/bin:$PATH" VERCEL_CALLS="$work/calls"
 
 # Linking names the project and team, from apps/web.
 bash "$checkout/scripts/ops/link.sh" > /dev/null
-contains "$work/calls" "$checkout|link --yes --project project-buddy --scope modest-progress"
+contains "$work/calls" "$checkout/apps/web|link --yes --project project-buddy --scope modest-progress"
 
 # Pulling writes a private file outside the checkout and prints names only.
 : > "$work/calls"
 export PROJECT_BUDDY_OPS_DIR="$work/ops"
 bash "$checkout/scripts/ops/pull-env.sh" production > "$work/out"
-contains "$work/calls" "$checkout|env pull $work/ops/production.env --environment=production --yes"
+contains "$work/calls" "$checkout/apps/web|env pull $work/ops/production.env --environment=production --yes"
 not_contains "$work/calls" "|link"
 contains "$work/out" "DATABASE_URL SESSION_SECRET"
 not_contains "$work/out" "postgres://secret-value"
@@ -49,7 +50,7 @@ not_contains "$work/out" "test-session-secret-value"
   die "The ops directory must be private"
 
 # Pulling links first when apps/web isn't linked.
-rm -rf "$checkout/.vercel"
+rm -rf "$checkout/apps/web/.vercel"
 : > "$work/calls"
 bash "$checkout/scripts/ops/pull-env.sh" preview > /dev/null
 contains "$work/calls" "|link --yes"
@@ -96,6 +97,6 @@ fi
 if bash "$checkout/scripts/ops/pull-env.sh" staging > "$work/out" 2>&1; then
   die "An unknown environment must fail"
 fi
-contains "$work/out" "Usage: npm run ops:env"
+contains "$work/out" "Usage: mise run ops:env"
 
 echo "ops scripts: ok"

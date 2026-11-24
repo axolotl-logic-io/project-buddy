@@ -22,6 +22,7 @@ import {
   timerStage,
 } from "../../../support/timer/timer-test-kit.tsx";
 import { applyTheme } from "../../themes/theme-test-kit.ts";
+import { openPanel, sitePanel } from "../site-panel-test-kit.ts";
 
 vi.mock(
   "next/navigation",
@@ -92,6 +93,8 @@ test("use_case_timer_choose_appearance", async () => {
     .not.toBeInTheDocument();
   await shown.unmount();
   await renderTimer(SCHEDULE, minutesAfter(SCHEDULE, SCHEDULE.workMinutes));
+  await expect.element(sitePanel()).not.toBeInTheDocument();
+  await openPanel();
   await expect
     .element(selectedAppearance(THEME_COPY.modes["soot-brass"]))
     .toBeChecked();
@@ -160,6 +163,36 @@ test("the phone drawer traps focus, closes with Escape, and restores focus", asy
     )
     .toHaveFocus();
 });
+
+test.each([PHONE_WIDTH, DESKTOP_WIDTH])(
+  "Timer preferences actions have separate rows at %i CSS pixels",
+  async (width) => {
+    await commands.reduceMotion();
+    await page.viewport(width, HEIGHT);
+    applyTheme("parchment", "dark");
+    await renderTimer(SCHEDULE);
+    await openTimerPreferences();
+
+    const panel = preferences();
+    const close = panel.getByRole("button", {
+      name: TIMER_COPY.closePreferences,
+    });
+    const copy = panel.getByRole("button", { name: TIMER_COPY.copyLink });
+    const timerOnly = panel.getByRole("link", {
+      name: TIMER_COPY.timerOnlyLink,
+    });
+    await expect.element(copy).toBeVisible();
+    await expect.element(timerOnly).toBeVisible();
+
+    const copyBounds = copy.element().getBoundingClientRect();
+    expect(copyBounds.top).toBeGreaterThanOrEqual(
+      close.element().getBoundingClientRect().bottom,
+    );
+    expect(timerOnly.element().getBoundingClientRect().top).toBeGreaterThan(
+      copyBounds.bottom,
+    );
+  },
+);
 
 test.each(THEME_MODES)(
   "%s fits on phones in work, break, and hour-long periods",

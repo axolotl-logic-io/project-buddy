@@ -193,12 +193,12 @@ export default defineConfig({
           name: "repository",
           environment: "node",
           // Discover Node filesystem guards anywhere, including .mts files.
-          // Cheap Vite guards have their own project, also run by test:unit.
+          // Cheap Vite guards have their own project, also run by npm test.
           include: ["**/*.test.{ts,mts}"],
           css: SRC_CSS,
           // Playwright owns test/system/; its specs cannot run under Vitest. The
-          // browser project runs the browser tests, and `npm run
-          // test:server` the server tests.
+          // browser projects run the browser tests (`npm run test:e2e`), and
+          // vitest.server.config.mts the server tests (`npm test`).
           exclude: [
             ...configDefaults.exclude,
             "test/system/**",

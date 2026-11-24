@@ -4,11 +4,12 @@
 // session token names (src/auth/session-token.ts).
 //
 // An account is invited when a quest invitation created it, until its user
-// completes sign-up by continuing from an emailed link with a name
-// (completeSignUp); every other account is signed up. Account state says
+// completes sign-up by continuing from an emailed link with a name and a
+// time zone (completeSignUp); every other account is signed up. Account state says
 // nothing about which quest invitations the user has accepted.
 
-import { and, eq, sql } from "drizzle-orm";
+import { and, eq, exists, type SQL, sql } from "drizzle-orm";
+import { DEFAULT_TIME_ZONE } from "@/accounts/time-zone.ts";
 import { checkUserName } from "@/accounts/user-name.ts";
 import type { SessionUser } from "@/auth/session-token.ts";
 import { type Database, getDb, inTransaction } from "@/db/client.ts";
@@ -32,6 +33,16 @@ interface User {
   // or undefined if they have given no name.
   readonly name: string | undefined;
   readonly accountState: AccountState;
+  // Their IANA time zone, where their quests' days start
+  // (src/accounts/time-zone.ts).
+  readonly timeZone: string;
+}
+
+// What a user gives to complete sign-up: the name for the construct to call
+// them and their time zone.
+interface SignUpDetails {
+  readonly name: string;
+  readonly timeZone: string;
 }
 
 type UserRow = typeof users.$inferSelect;
@@ -67,7 +78,21 @@ function toUser(row: UserRow | undefined): User | undefined {
     sessionEpoch: row.sessionEpoch,
     name: row.name ?? undefined,
     accountState: accountState(row.accountState),
+    timeZone: row.timeZone,
   };
+}
+
+// A time zone name Postgres knows, for the time_zone column.
+function postgresKnows(timeZone: string): SQL {
+  return exists(
+    sql`(select 1 from pg_timezone_names where name = ${timeZone})`,
+  );
+}
+
+// The time zone to save at sign-up: the one given when Postgres knows it,
+// or else UTC.
+function signUpTimeZone(timeZone: string): SQL<string> {
+  return sql<string>`coalesce((select name from pg_timezone_names where name = ${timeZone} limit 1), ${DEFAULT_TIME_ZONE})`;
 }
 
 // The address as it is stored: without surrounding whitespace, in lower
@@ -150,6 +175,19 @@ async function saveUserName(
   );
 }
 
+// Saves the owner's time zone. Answers false, saving nothing, when Postgres
+// doesn't know the name or the owner no longer exists.
+async function saveTimeZone(owner: UserId, timeZone: string): Promise<boolean> {
+  const saved = await withAppErrors("saveTimeZone", () =>
+    getDb()
+      .update(users)
+      .set({ timeZone })
+      .where(and(eq(users.id, owner), postgresKnows(timeZone)))
+      .returning({ id: users.id }),
+  );
+  return saved.length > 0;
+}
+
 // The owner's name, or undefined if they have none or no longer exist. One
 // read by primary key.
 async function readUserName(owner: UserId): Promise<string | undefined> {
@@ -184,11 +222,11 @@ async function findOrInviteAccount(
 
 // Completes sign-up for an invited account and returns its session identity.
 // An invalid name leaves the invited account untouched. A signed-up account
-// keeps its name and session epoch.
+// keeps its name, time zone and session epoch.
 async function completeSignUpIn(
   tx: Database,
   id: UserId,
-  name: string,
+  { name, timeZone }: SignUpDetails,
 ): Promise<SessionUser | undefined> {
   const [row] = await tx
     .select({
@@ -212,6 +250,7 @@ async function completeSignUpIn(
     .set({
       accountState: "signed_up",
       name: sql`coalesce(${users.name}, ${checked.name})`,
+      timeZone: signUpTimeZone(timeZone),
     })
     .where(and(eq(users.id, id), eq(users.accountState, "invited")))
     .returning({ sessionEpoch: users.sessionEpoch });
@@ -229,15 +268,18 @@ async function completeSignUpIn(
   return { id, sessionEpoch: current.sessionEpoch };
 }
 
-async function completeSignUp(id: UserId, name: string): Promise<boolean> {
+async function completeSignUp(
+  id: UserId,
+  details: SignUpDetails,
+): Promise<boolean> {
   return (
     (await withAppErrors("complete sign-up", () =>
-      completeSignUpIn(getDb(), id, name),
+      completeSignUpIn(getDb(), id, details),
     )) !== undefined
   );
 }
 
-export type { AccountState, User };
+export type { AccountState, SignUpDetails, User };
 export {
   completeSignUp,
   completeSignUpIn,
@@ -247,5 +289,7 @@ export {
   normalizeEmail,
   readSessionUser,
   readUserName,
+  saveTimeZone,
   saveUserName,
+  signUpTimeZone,
 };

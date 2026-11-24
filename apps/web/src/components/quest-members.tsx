@@ -6,7 +6,7 @@ import { noteLeftQuest } from "@/components/left-quest.ts";
 import { Button } from "@/components/ui/button.tsx";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog.tsx";
 import { TextField } from "@/components/ui/field.tsx";
-import { Alert, FormStatus, Notice } from "@/components/ui/form-message.tsx";
+import { Alert, FormStatus } from "@/components/ui/form-message.tsx";
 import { useQuestAction } from "@/components/use-quest-action.ts";
 import type { QuestId, UserId } from "@/ids.ts";
 import {
@@ -201,7 +201,6 @@ function QuestMembers({
   readonly quest: {
     readonly id: QuestId;
     readonly name: string;
-    readonly dailies: boolean;
   };
 }): JSX.Element {
   const { run, busy, status, problem } = useQuestAction(removeFromQuestAction);
@@ -222,13 +221,6 @@ function QuestMembers({
     },
     [quest.id, quest.name, router, run, viewer],
   );
-  if (quest.dailies) {
-    return (
-      <section className="page-slot flex flex-col gap-4">
-        <Notice>{QUEST_MEMBERS_COPY.dailies}</Notice>
-      </section>
-    );
-  }
   const rows: PersonWithRole[] = [
     { person: people.owner, role: "owner" },
     ...people.members.map((person) => withRole(person, "member")),

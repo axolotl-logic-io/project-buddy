@@ -130,9 +130,9 @@ function QuickAdd(): JSX.Element {
       }
       setTextProblem(undefined);
       setPending(true);
-      const questName =
-        quests?.find((quest) => quest.id === questId)?.name ?? "";
-      const listName = lists.find(({ id }) => id === listId)?.name ?? "";
+      const quest = quests?.find(({ id }) => id === questId);
+      const questName = quest?.name ?? "";
+      const listName = quest?.lists.find(({ id }) => id === listId)?.name ?? "";
       saveQuickAdd({ questId, listId, text })
         .then((result) => {
           if (result.kind === "problem") {
@@ -145,7 +145,7 @@ function QuickAdd(): JSX.Element {
         .catch(() => setFailure(QUICK_ADD_COPY.failed))
         .finally(() => setPending(false));
     },
-    [questId, quests, listId, lists, text],
+    [questId, quests, listId, text],
   );
 
   let saveLabel: string = QUICK_ADD_COPY.save;

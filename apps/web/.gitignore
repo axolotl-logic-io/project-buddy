@@ -1,4 +1,4 @@
-# `vercel link` (npm run ops:link) adds this file when it finds no .vercel
+# `vercel link` (mise run ops:link) adds this file when it finds no .vercel
 # entry here. The root .gitignore already ignores .vercel/ and .env* files.
 .vercel
 .env*

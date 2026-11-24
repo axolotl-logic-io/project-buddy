@@ -313,7 +313,7 @@
     @apply rounded-control underline decoration-(length:--line-width) decoration-line underline-offset-4 hover:text-primary hover:decoration-primary;
   }
 
-  :is(.circle-progress-ring, .profile-ring) > svg {
+  :is(.circle-progress-ring, .profile-ring, .experience-strip-ring) > svg {
     @apply absolute inset-0 size-full;
   }
 
@@ -1649,13 +1649,13 @@
     padding: 0;
   }
 
-  /* A running timer's count of others and Copy link, at the right end of
-     the trail band. The count gives up its room before the button does. */
+  /* A running timer's count of others and preferences panel at the
+     right end of the trail band. */
   .timer-trail-tools {
     @apply ml-auto flex min-w-min items-center gap-3 self-center;
   }
 
-  /* The active Dailies quest's construct button, at the band's right. On a
+  /* An active quest's construct button, at the band's right. On a
      phone its portrait alone shows, and the button keeps the construct's
      name as its accessible name. A whole target without making the band
      taller. */
@@ -1673,12 +1673,6 @@
 
   .timer-others {
     @apply min-w-0 truncate text-muted text-sm;
-  }
-
-  /* A whole target without making the band taller. */
-  .timer-trail-tools .button-secondary {
-    @apply shrink-0;
-    margin-block: calc((1lh - var(--target-size)) / 2);
   }
 
   .quest-workspace > .workspace-content {
@@ -1803,12 +1797,168 @@
     @apply border-primary;
   }
 
-  .day-grid-day[data-mark="gap"] .day-grid-square {
-    @apply border-muted border-dashed;
-  }
-
   .day-grid-day[data-mark="untracked"] .day-grid-square {
     @apply border-line;
+  }
+
+  /* Home's head: the user's circle in a small ring beside its title, the
+     bar toward the next circle and a link to Profile. */
+  .experience-strip {
+    @apply flex items-center gap-4 border-line/40 border-b pb-6;
+  }
+
+  .experience-strip-ring {
+    @apply relative grid size-15 shrink-0 place-items-center;
+    color: var(--ring-ink);
+  }
+
+  .experience-strip-ring .profile-ring-number {
+    @apply text-2xl;
+  }
+
+  .experience-strip-body {
+    @apply flex min-w-0 flex-1 flex-col gap-1;
+  }
+
+  .experience-strip .profile-progress {
+    @apply mt-0 h-2.5;
+  }
+
+  /* Home's streaks: one row a recurring task, under its quest, with a
+     square for each of the last seven dates and its streak at the end. On a
+     narrow panel a task's name stands
+     above its squares, and its streak beside both. */
+  .streak-panel {
+    @apply @container flex flex-col gap-3;
+  }
+
+  /* Every row is a grid of the same columns, so the columns line up. */
+  .streak-table {
+    --streak-columns: minmax(0, 1fr) repeat(7, var(--target-size))
+      var(--target-size);
+    @apply flex w-full flex-col;
+  }
+
+  .streak-table > :is(thead, tbody) {
+    @apply flex flex-col;
+  }
+
+  .streak-row {
+    display: grid;
+    grid-template-columns: var(--streak-columns);
+    @apply items-center border-line/40 border-t;
+  }
+
+  .streak-head,
+  .streak-quest,
+  .streak-quest + .streak-row {
+    @apply border-t-0;
+  }
+
+  .streak-quest {
+    @apply mt-2 border-line border-t-2 pt-2;
+  }
+
+  .streak-quest > th {
+    @apply col-span-full wrap-anywhere py-1 text-start font-semibold;
+  }
+
+  .streak-task {
+    @apply wrap-anywhere py-2 ps-3 text-start font-normal;
+  }
+
+  .streak-date {
+    @apply flex flex-col items-center self-stretch py-1 text-muted text-xs leading-tight;
+  }
+
+  .streak-date[data-today="true"] {
+    @apply font-bold text-foreground;
+  }
+
+  .streak-weekday-letter {
+    @apply hidden;
+  }
+
+  .streak-count-head {
+    @apply self-end py-1 text-end text-muted text-xs;
+  }
+
+  .streak-cell {
+    @apply grid place-items-center self-stretch;
+  }
+
+  .streak-date:nth-last-child(2),
+  .streak-cell[data-current="true"] {
+    background: color-mix(in oklab, var(--hud-gold) 16%, transparent);
+  }
+
+  .streak-target {
+    @apply grid w-full cursor-pointer place-items-center;
+    min-block-size: var(--target-size);
+  }
+
+  .streak-target:focus-visible {
+    outline: var(--focus-outline);
+    outline-offset: calc(-1 * var(--focus-offset));
+  }
+
+  .streak-square {
+    @apply grid size-6.5 place-items-center rounded-control border-2 border-line bg-field text-on-primary;
+  }
+
+  .streak-square[data-mark="done"] {
+    @apply border-primary bg-primary;
+  }
+
+  .streak-square[data-mark="pending"] {
+    @apply border-primary;
+  }
+
+  .streak-square[data-mark="untracked"] {
+    @apply bg-transparent opacity-40;
+  }
+
+  .streak-target:hover .streak-square {
+    @apply border-primary;
+  }
+
+  .streak-count {
+    @apply pe-1 text-end tabular-nums;
+  }
+
+  .streak-unit {
+    @apply sr-only;
+  }
+
+  @container (width < 30rem) {
+    .streak-table {
+      --streak-columns: repeat(7, minmax(0, 1fr)) 2.5rem;
+    }
+
+    .streak-task-head,
+    .streak-weekday {
+      @apply sr-only;
+    }
+
+    .streak-weekday-letter {
+      @apply inline;
+    }
+
+    .streak-task {
+      @apply col-span-7 row-start-1 pt-2 pb-0 ps-0;
+    }
+
+    .streak-cell {
+      @apply row-start-2;
+    }
+
+    .streak-count {
+      @apply col-start-8 row-span-2 row-start-1;
+    }
+
+    .streak-unit {
+      @apply not-sr-only block text-muted text-xs;
+    }
   }
 
   /* More about an item, on its own line under the text and the actions. */
@@ -1925,19 +2075,27 @@
     pointer-events: none;
   }
 
-  .quest-overview-heading {
+  /* Focus overview: the quest's name and construct, then one card per job
+     — the next task, today's recurring tasks, a rite to perform, the lists
+     and, folded away, the quest's settings. */
+  .quest-focus-head {
     @apply flex items-start justify-between gap-3;
   }
 
-  .quest-overview-heading .construct-avatar {
+  .quest-focus-head .construct-avatar {
     inline-size: clamp(--spacing(10), 6vw, --spacing(16));
     block-size: auto;
     aspect-ratio: 1;
     @apply shrink-0;
   }
 
-  .quest-overview-title {
+  .quest-overview-title,
+  .quest-focus-title {
     @apply wrap-anywhere font-heading text-page-heading-phone leading-tight font-semibold sm:text-page-heading;
+  }
+
+  .quest-focus-title:focus {
+    outline: none;
   }
 
   .quest-overview-meta {
@@ -1960,11 +2118,6 @@
     @apply mt-2 max-w-prose wrap-anywhere whitespace-pre-line text-muted;
   }
 
-  .quest-overview-feature {
-    @apply mt-4 flex flex-col items-start gap-2 border-line/60 border-t pt-3;
-    align-self: stretch;
-  }
-
   .quest-overview-label {
     font-family: var(--label-font);
     color: var(--label-ink);
@@ -1974,17 +2127,119 @@
     @apply text-sm font-semibold;
   }
 
-  .quest-overview-links {
-    @apply mt-2 grid gap-2 sm:grid-cols-2;
+  .quest-next-task {
+    @apply flex flex-col gap-3;
   }
 
-  .quest-overview-link {
+  .quest-next-task-text {
+    @apply wrap-anywhere font-heading text-xl leading-snug font-semibold;
+  }
+
+  .quest-next-task-check {
+    @apply w-full sm:w-auto sm:min-w-48 sm:self-start;
+  }
+
+  .quest-today {
+    @apply grid;
+  }
+
+  .quest-today-task {
+    @apply flex flex-wrap items-center justify-between gap-x-3 border-line/40 border-t first:border-t-0;
+  }
+
+  .quest-today-streak {
+    @apply ms-auto text-end text-muted text-sm;
+  }
+
+  .quest-today-check {
+    @apply grid min-w-0 flex-1 cursor-pointer grid-cols-[auto_minmax(0,1fr)] items-center gap-1;
+  }
+
+  .rite-choices {
+    @apply m-0 flex min-w-0 flex-wrap gap-2 border-0 p-0;
+  }
+
+  .rite-choice {
     min-block-size: var(--target-size);
-    @apply grid h-full grid-cols-[auto_minmax(0,1fr)_auto] items-start gap-2 rounded-box border border-line/60 bg-surface p-3 hover:border-line hover:bg-secondary-surface;
+    @apply relative inline-flex max-w-full cursor-pointer items-center rounded-action border border-line/70 bg-action-paper px-3.5 py-2 font-action font-semibold text-action-ink wrap-anywhere;
   }
 
-  .quest-overview-link .icon {
-    @apply mt-1 text-primary;
+  /* The radio covers its whole chip, unseen, so the chip is its target. */
+  .rite-choice input {
+    @apply absolute inset-0 m-0 size-full cursor-pointer appearance-none opacity-0;
+  }
+
+  .rite-choice:has(input:checked) {
+    @apply border-primary bg-primary text-on-primary;
+  }
+
+  .rite-choice:has(input:focus-visible) {
+    outline: var(--focus-outline);
+    outline-offset: var(--focus-offset);
+  }
+
+  .perform-rite-target {
+    @apply flex flex-wrap items-end gap-3;
+  }
+
+  .perform-rite-target > :first-child {
+    @apply min-w-0 flex-1 basis-40;
+  }
+
+  .quest-list-rows {
+    @apply grid;
+  }
+
+  .quest-list-rows > li + li {
+    @apply border-line/40 border-t;
+  }
+
+  .quest-list-row {
+    min-block-size: var(--target-size);
+    @apply flex items-center gap-3 py-2 hover:text-primary;
+  }
+
+  .quest-list-row > :first-child {
+    @apply min-w-0 flex-1 font-semibold;
+  }
+
+  .quest-list-row .icon {
+    @apply shrink-0 text-muted;
+  }
+
+  .quest-settings > summary {
+    min-block-size: var(--target-size);
+    @apply flex cursor-pointer list-none items-center justify-between gap-3 font-heading text-lg font-semibold;
+  }
+
+  .quest-settings > summary::-webkit-details-marker {
+    display: none;
+  }
+
+  /* A caret that points down when closed and up when open. */
+  .quest-settings > summary::after {
+    content: "";
+    inline-size: --spacing(2);
+    block-size: --spacing(2);
+    rotate: 45deg;
+    translate: 0 -25%;
+    border-block-end: 2px solid currentColor;
+    border-inline-end: 2px solid currentColor;
+    @apply shrink-0 text-muted;
+  }
+
+  .quest-settings[open] > summary::after {
+    rotate: 225deg;
+    translate: 0 25%;
+  }
+
+  .quest-settings h4 {
+    @apply mt-3;
+  }
+
+  /* Closed, the card is just its summary line. */
+  .quest-settings:not([open]) {
+    @apply gap-0 py-2 sm:py-2;
   }
 
   .quest-section-body {

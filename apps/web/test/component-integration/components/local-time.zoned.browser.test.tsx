@@ -173,7 +173,6 @@ describe("use_case_view_quests", () => {
             createdAt: INSTANT,
             status: "active",
             statusRevision: 0,
-            dailies: false,
             constructId: "lumen",
             sharing: { kind: "personal" },
           },

@@ -11,6 +11,7 @@ const LIST_ITEM_RECORD = z.object({
   text: z.string(),
   taskNumber: z.number().int().positive().nullable(),
   checkedOff: z.boolean(),
+  checkedOffOn: z.iso.date().nullable(),
   recurring: z.boolean(),
   createdAt: z.union([
     z.date(),

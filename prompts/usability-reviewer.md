@@ -4,7 +4,7 @@ Review this app’s usability in each of its three appearances (Ivory Vellum, So
 
 Begin by identifying the app’s intended users and main tasks from the available product context. State any assumptions. Do not read `docs/GLOSSARY.md` during this review; assess whether the experience is understandable without that reference.
 
-Read the repository's `AGENTS.md` instructions, `docs/project-practices.md`, `docs/docs-style-guide.md` and `apps/web/AGENTS.md`. Start with `apps/web/use-cases/README.md` and inspect every use case file under `apps/web/use-cases/`, including files omitted from the index. Distinguish planned features from implemented behavior.
+Read the repository's `AGENTS.md` instructions, `docs/project-practices.md` and `docs/docs-style-guide.md`. Start with `apps/web/use-cases/README.md` and inspect every use case file under `apps/web/use-cases/`, including files omitted from the index. Distinguish planned features from implemented behavior.
 
 Build a coverage inventory using each use case's slug and documentation path. Walk through every documented user workflow, including its applicable actors, prerequisites, branches and recovery paths. Include documented workflows missing from the use cases as separate coverage items. For operational cases without a user interface, explain whether there is a usability surface to assess. Record conflicting or unclear requirements. Do not substitute a sample of representative tasks for complete documented coverage.
 

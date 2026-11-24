@@ -2,6 +2,7 @@ import { sql } from "drizzle-orm";
 import {
   boolean,
   check,
+  date,
   foreignKey,
   index,
   integer,
@@ -48,6 +49,9 @@ const listItems = pgTable(
     text: text("text").notNull(),
     taskNumber: integer("task_number"),
     checkedOff: boolean("checked_off").notNull().default(false),
+    // The quest owner's calendar date when the task was checked off. A
+    // recurring task counts as checked off only on that date.
+    checkedOffOn: date("checked_off_on", { mode: "string" }),
     recurring: boolean("recurring").notNull().default(false),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()

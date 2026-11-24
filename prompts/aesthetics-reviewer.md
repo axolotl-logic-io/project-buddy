@@ -6,7 +6,7 @@ Begin by stating the product's intended tone and audience from the available pro
 
 ## Sources
 
-Read the repository's `AGENTS.md` instructions, `docs/project-practices.md`, `docs/docs-style-guide.md`, `apps/web/AGENTS.md`, `docs/GLOSSARY.md` and the relevant use cases under `apps/web/use-cases/`. Distinguish current behavior from tasks and historical design records.
+Read the repository's `AGENTS.md` instructions, `docs/project-practices.md`, `docs/docs-style-guide.md`, `docs/GLOSSARY.md` and the relevant use cases under `apps/web/use-cases/`. Distinguish current behavior from tasks and historical design records.
 
 The "Site UI" section of the practices defines the theme rules: one parchment theme with three fixed appearances (Ivory Vellum, Soot & Brass and Espresso Leather), and semantic tokens for every color, font, radius, shadow, border width, page decoration and spacing step. Read `apps/web/src/themes/contract.css`, `apps/web/src/themes/parchment.css`, `apps/web/src/app/page-roles.css` and `apps/web/src/components/chat/chat.css`. Read `docs/button-system.md` for action roles and `apps/web/src/components/constructs/construct-visual.tsx` for construct artwork and framing.
 

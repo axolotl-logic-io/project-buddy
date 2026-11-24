@@ -8,12 +8,11 @@ The user starts a performance on one of the quest's lists, then stops it.
 
 - **Prerequisites:** a quest open to the user, as its owner or a member. A start or Stop applies to everyone in the quest.
 - **Steps:**
-  - The user opens Rites & status from Overview, chooses a built-in or own rite and one of the quest's lists, and chooses Perform.
+  - On the quest's Overview, under Perform a rite, the user chooses a built-in or own rite and one of the quest's lists, and chooses Perform.
   - Later, they choose Stop beside the performance.
-- **Outcome:** the performance opens below the workspace with a message the site writes from the rite's name and the list's words, such as "Brainstorm begins on Ideas." It stays active across visits, for everyone in the quest, until Stop or Start Day ends it. Starting saves the rite's name and replies as a rite snapshot, so editing or forgetting the rite leaves the performance unchanged. Starting another performance ends the active one, because a quest has at most one. Stop closes the performance and the composer with a closing message written the same way, such as "Brainstorm ends. 4 ideas added." The list items it added stay in the list.
+- **Outcome:** the performance takes the place of Perform a rite on Overview with a message the site writes from the rite's name and the list's words, such as "Brainstorm begins on Ideas." It stays active across visits, for everyone in the quest, until Stop ends it. Starting saves the rite's name and replies as a rite snapshot, so editing or forgetting the rite leaves the performance unchanged. Starting another performance ends the active one, because a quest has at most one. Stop closes the performance and the composer with a closing message written the same way, such as "Brainstorm ends. 4 ideas added." The list items it added stay in the list.
 - **Next:**
   - `use_case_send_message`: send a message.
-  - `use_case_view_performances`: look back at past performances.
   - [`use_case_customize_rite`](grimoire.md#use_case_customize_rite): write a rite of their own.
 
 ## use_case_send_message
@@ -72,14 +71,6 @@ The user returns to the active performance.
 - **Steps:** reopen the quest and send another message.
 - **Outcome:** the active performance keeps its transcript. The new message adds a list item to the performance's list, and the rite replies.
 - **Next:** `use_case_send_message`.
-
-## use_case_view_performances
-
-The user looks back at the quest's performances.
-
-- **Prerequisites:** `use_case_perform_rite`, stopped at least once.
-- **Steps:** the user opens Performances from Overview and chooses a past performance.
-- **Outcome:** Performances lists the quest's performances newest first, each with its rite, its list, when it started and ended and how many list items it added. The active performance, if any, is marked. A past performance opens read-only, with its messages, their authors and the replies. Everyone in the quest sees the same record.
 
 ## use_case_construct_voice_consistent
 

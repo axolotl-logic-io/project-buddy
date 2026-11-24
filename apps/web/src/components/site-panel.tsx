@@ -1,9 +1,11 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname, useSearchParams } from "next/navigation";
 import {
   type JSX,
   type KeyboardEvent,
+  type MouseEvent,
   type ReactNode,
   useCallback,
   useEffect,
@@ -13,16 +15,13 @@ import {
   useSyncExternalStore,
 } from "react";
 import { AppearanceChoices } from "@/components/appearance-choices.tsx";
-import { closePanelAround } from "@/components/close-panel-around.ts";
 import { Button } from "@/components/ui/button.tsx";
 import { Icon } from "@/components/ui/icon.tsx";
 import { useWideScreen } from "@/components/use-wide-screen.ts";
 import { CREDITS_COPY } from "@/ui/copy/credits.ts";
 import { SITE_PANEL_COPY } from "@/ui/copy/site.ts";
 
-// Whether the panel is docked on a wide screen is the user's choice, kept
-// in this browser, so it stays docked from page to page and after a reload.
-// It starts closed.
+// The Timer panel remembers whether it is docked on a wide screen.
 const DOCKED = "docked";
 const dockedListeners = new Set<() => void>();
 
@@ -54,8 +53,21 @@ function setDocked(key: string, docked: boolean): void {
   }
 }
 
-// A link in the site panel. Following it closes the panel's drawer, since
-// the page may change without reloading.
+function closeForLink(event: MouseEvent<HTMLAnchorElement>): void {
+  if (
+    event.defaultPrevented ||
+    event.button !== 0 ||
+    event.metaKey ||
+    event.ctrlKey ||
+    event.shiftKey ||
+    event.altKey
+  ) {
+    return;
+  }
+  event.currentTarget.closest("dialog")?.close();
+}
+
+// Close even when the user follows a link to the page they are already on.
 function PanelLink({
   href,
   children,
@@ -64,7 +76,7 @@ function PanelLink({
   readonly children: string;
 }): JSX.Element {
   return (
-    <Link className="panel-link" href={href} onClick={closePanelAround}>
+    <Link className="panel-link" href={href} onClick={closeForLink}>
       {children}
     </Link>
   );
@@ -104,8 +116,7 @@ function containDrawerFocus(event: KeyboardEvent<HTMLDialogElement>): void {
 // page. The open panel hides that button and puts its own close button
 // at the same point.
 // It opens over the page and never changes the page's size or flow. On a
-// wide screen it docks there, leaving the page in reach, and stays open
-// from page to page until the user closes it. Narrower, it is a
+// wide screen it docks there, leaving the page in reach. Narrower, it is a
 // modal drawer over the page, so the keyboard stays in it, and Escape, its
 // close button, following a link or a click beside it (where the browser
 // supports closedby) closes it. The page beside it isn't dimmed, so a theme
@@ -117,18 +128,20 @@ function SidePanel({
   children,
   title,
   closeLabel,
+  location,
   storageKey,
   side = "left",
 }: {
   readonly children: ReactNode;
   readonly title: string;
   readonly closeLabel: string;
-  readonly storageKey: string;
+  readonly location?: string;
+  readonly storageKey?: string;
   readonly side?: "left" | "right";
 }): JSX.Element {
   const wide = useWideScreen();
   const readDocked = useCallback(
-    (): boolean => isDocked(storageKey),
+    (): boolean => storageKey !== undefined && isDocked(storageKey),
     [storageKey],
   );
   const docked = useSyncExternalStore(
@@ -144,9 +157,14 @@ function SidePanel({
     toggleClass += " timer-panel-toggle";
     icon = "sidebar";
   }
-  const [drawerOpen, setDrawerOpen] = useState(false);
-  let panelOpen: boolean = drawerOpen;
-  if (wide) {
+  const [panelLocation, setPanelLocation] = useState(location);
+  const [open, setOpen] = useState(false);
+  if (panelLocation !== location) {
+    setPanelLocation(location);
+    setOpen(false);
+  }
+  let panelOpen: boolean = open;
+  if (wide && storageKey !== undefined) {
     panelOpen = docked;
   }
   const dialogRef = useRef<HTMLDialogElement>(null);
@@ -195,31 +213,26 @@ function SidePanel({
   // where a click doesn't focus a button, as in Safari.
   const toggle = useCallback((): void => {
     toggleRef.current?.focus({ preventScroll: true });
-    if (wide) {
+    if (wide && storageKey !== undefined) {
       setDocked(storageKey, !docked);
     } else {
-      setDrawerOpen(true);
+      setOpen(true);
     }
   }, [docked, storageKey, wide]);
   const close = useCallback((): void => {
-    if (wide) {
+    if (wide && storageKey !== undefined) {
       setDocked(storageKey, false);
     } else {
-      dialogRef.current?.close();
+      setOpen(false);
     }
   }, [storageKey, wide]);
-  // The drawer closes itself on Escape, a click beside it or a link; the
+  // The dialog can close itself on Escape, a click beside it or a link; the
   // panel follows. A panel the effect has opened again since stays open.
   const markClosed = useCallback((): void => {
-    if (dialogRef.current?.open === true) {
-      return;
+    if (dialogRef.current?.open !== true) {
+      close();
     }
-    if (wide) {
-      setDocked(storageKey, false);
-    } else {
-      setDrawerOpen(false);
-    }
-  }, [storageKey, wide]);
+  }, [close]);
 
   return (
     <>
@@ -268,11 +281,13 @@ function SidePanel({
 }
 
 function SitePanel({ links }: { readonly links: ReactNode }): JSX.Element {
+  const pathname = usePathname();
+  const search = useSearchParams();
   return (
     <SidePanel
       title={SITE_PANEL_COPY.title}
       closeLabel={SITE_PANEL_COPY.close}
-      storageKey="site-panel"
+      location={`${pathname}?${search}`}
     >
       {links}
       <hr className="panel-rule" />

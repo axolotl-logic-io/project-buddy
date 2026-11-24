@@ -20,6 +20,9 @@ import {
 // until its user completes sign-up, and "signed_up" otherwise. It says
 // nothing about which quest invitations the user has accepted
 // (quest_invitations, quest_members).
+// time_zone is the IANA time zone the user chose at sign-up or in Settings.
+// Their quests' days start at midnight there (src/lists/quest-today.ts).
+// It is UTC until they choose one.
 export const users = pgTable(
   "users",
   {
@@ -32,6 +35,7 @@ export const users = pgTable(
       .defaultNow(),
     role: text("role").notNull().default("user"),
     accountState: text("account_state").notNull().default("signed_up"),
+    timeZone: text("time_zone").notNull().default("UTC"),
   },
   (table) => [
     check("users_role_valid", sql`${table.role} in ('user', 'admin')`),

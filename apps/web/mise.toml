@@ -6,11 +6,11 @@ description = "Biome and the type check"
 run = "npm run lint"
 
 [tasks.test]
-description = "Every test but end-to-end: script, repository and Vite guards, browser tests, and server tests against the test database"
+description = "React Doctor, then script, repository and Vite guards, and server tests against the test database"
 run = "npm test"
 
 [tasks."test:e2e"]
-description = "Reset the test database and run the Playwright end-to-end tests against a production build"
+description = "The Vitest browser tests, then reset the test database and run the Playwright end-to-end tests against a production build"
 run = "npm run test:e2e"
 
 [tasks.build]

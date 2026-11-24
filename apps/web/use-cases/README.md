@@ -2,7 +2,7 @@
 
 How users use Project Buddy, described from the user's side of the screen. Tests are derived from these cases.
 
-Playwright e2e tests in `test/system/` cover only the auth workflows: sign-up, sign-in, sign-out, the sign-in limits, and the signed-out access gate. Every other case is tested in Vitest, as `apps/web/AGENTS.md` describes: a server test for a case that needs a real server or database, and a browser-mode component integration or feature-entrypoint test (`*.browser.test.tsx`) for a case that needs only the UI.
+Playwright e2e tests in `test/system/` cover only the auth workflows: sign-up, sign-in, sign-out, the sign-in limits, and the signed-out access gate. Every other case is tested in Vitest, as `docs/project-practices.md` describes: a server test for a case that needs a real server or database, and a browser-mode component integration or feature-entrypoint test (`*.browser.test.tsx`) for a case that needs only the UI.
 
 `test/component-integration/use-cases/use-cases.test.ts` guards this rule and the use cases themselves: slugs are unique and known, each titles a test, only the auth cases listed in `auth-cases.ts` have e2e tests, every area file is in the Areas index, and every relative link in the cases leads to an existing file and heading.
 
@@ -38,6 +38,7 @@ Every environment picks replies locally from the rite's reply list. Tests fix th
 Each area's cases are in their own file:
 
 - [Access](access.md)
+- [Home](home.md): experience and every recurring task's streaks, checked off in place.
 - [Accounts](accounts.md)
 - [Quests](quests.md)
 - [Quest status](quest-status.md)

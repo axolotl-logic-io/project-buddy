@@ -15,6 +15,7 @@ import {
   timerPhaseAt,
 } from "@/timer/schedule.ts";
 import { GRIMOIRE_COPY } from "@/ui/copy/grimoire.ts";
+import { HOME_COPY } from "@/ui/copy/home.ts";
 import { PROFILE_COPY } from "@/ui/copy/profile.ts";
 import { QUESTS_COPY } from "@/ui/copy/quests.ts";
 import { SETTINGS_COPY } from "@/ui/copy/settings.ts";
@@ -32,6 +33,10 @@ const CHILD_DEPTH = 3;
 // /timer/<work>/<break>/<start>.
 const TIMER_LINK_DEPTH = 4;
 
+const HOME: Breadcrumb & { readonly href: Route } = {
+  label: HOME_COPY.heading,
+  href: "/",
+};
 const QUESTS: Breadcrumb & { readonly href: Route } = {
   label: QUESTS_COPY.heading,
   href: "/quests",
@@ -43,7 +48,7 @@ const TIMER_ROOT: Breadcrumb & { readonly href: Route } = {
 
 const ROOTS: ReadonlyMap<string, Breadcrumb & { readonly href: Route }> =
   new Map([
-    ["quests", { label: QUESTS_COPY.heading, href: "/quests" }],
+    ["quests", QUESTS],
     ["constructs", QUESTS],
     ["grimoire", { label: GRIMOIRE_COPY.heading, href: "/grimoire" }],
     ["profile", { label: PROFILE_COPY.heading, href: "/profile" }],
@@ -104,10 +109,16 @@ async function headerBreadcrumbs(
   if (section === "timer") {
     return publicBreadcrumbs(path);
   }
+  if (path.length === 0) {
+    return [{ label: HOME.label }];
+  }
   const root = ROOTS.get(section);
   if (id === undefined) {
     if (root === undefined) {
       return [];
+    }
+    if (root === QUESTS) {
+      return [HOME, { label: root.label }];
     }
     return [{ label: root.label }];
   }
@@ -123,10 +134,14 @@ async function headerBreadcrumbs(
       label: quest.name,
       quest: { id: quest.id, name: quest.name },
     };
-    if (quest.dailies && quest.status === "active") {
-      return [QUESTS, { ...crumb, construct: getConstruct(quest.constructId) }];
+    if (quest.status === "active") {
+      return [
+        HOME,
+        QUESTS,
+        { ...crumb, construct: getConstruct(quest.constructId) },
+      ];
     }
-    return [QUESTS, crumb];
+    return [HOME, QUESTS, crumb];
   }
   if (root === undefined || path.length !== DETAIL_DEPTH) {
     return [];
@@ -145,6 +160,9 @@ async function headerBreadcrumbs(
   }
   if (name === undefined) {
     return [];
+  }
+  if (root === QUESTS) {
+    return [HOME, root, { label: name }];
   }
   return [root, { label: name }];
 }

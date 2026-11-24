@@ -10,7 +10,6 @@ const FOX_QUEST: Quest = {
   createdAt: new Date("2026-10-09T12:00:00Z"),
   status: "active",
   statusRevision: 0,
-  dailies: false,
   constructId: "lumen",
   sharing: { kind: "personal" },
 };
