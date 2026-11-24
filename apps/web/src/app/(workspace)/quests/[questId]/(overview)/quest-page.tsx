@@ -135,8 +135,8 @@ async function questPage(
               <span className="quest-status-mark">
                 {QUEST_STATUS_COPY.labels[quest.status]}
               </span>
-              {quest.sharing.kind === "personal" && (
-                <span>{QUEST_OVERVIEW_COPY.personal}</span>
+              {quest.sharing.kind === "private" && (
+                <span>{QUEST_OVERVIEW_COPY.private}</span>
               )}
               <QuestSharingMark sharing={quest.sharing} />
             </p>

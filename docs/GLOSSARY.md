@@ -28,6 +28,10 @@ The account that started the quest. The owner can work in the quest and manage s
 
 An account that has accepted an invitation to the quest. Members share the quest's lists and performances with the owner. They can rename the quest, change its status, start or stop a performance, invite others and remove other members. A member's own rites and other quests keep their existing access rules. [Quest member access](../apps/web/use-cases/quest-members.md#use_case_quest_member_access)
 
+### Private and shared quests
+
+A **private** quest has only its owner. A **shared** quest has at least one quest member. A quest's overview says **Private** or **Shared**. Wherever quests are listed or chosen, a shared quest is marked **Shared**, or **Shared by** its owner's name for a member. [Quest member access](../apps/web/use-cases/quest-members.md#use_case_quest_member_access)
+
 ### Quest invitation
 
 An offer sent to an email address to join a specific quest. A **pending invitee** can see their invitation in **Pending**. Accepting grants quest access and declining closes the invitation. An invitation to an address without an account sets aside an invited account for that address. [Quest invitation use cases](../apps/web/use-cases/quest-members.md)

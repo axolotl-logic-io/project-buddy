@@ -112,7 +112,7 @@ async function linkCardFocus(): Promise<
             status: "active",
             statusRevision: 0,
             constructId: "lumen",
-            sharing: { kind: "personal" },
+            sharing: { kind: "private" },
           },
         ]}
       />

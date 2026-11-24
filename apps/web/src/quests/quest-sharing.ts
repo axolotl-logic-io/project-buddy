@@ -1,6 +1,6 @@
 // Reads how each quest is shared, alongside the quest, for whoever it is
 // open to: whether it has members, and whose it is. Lists of quests, the
-// quest to continue and the Quick Add choice show it, since a personal
+// quest to continue and the Quick Add choice show it, since a private
 // quest and a multi-user one often have the same name.
 
 import { type SQL, sql } from "drizzle-orm";
@@ -37,7 +37,7 @@ function sharingOf(viewer: UserId, row: SharingRow): QuestSharing {
   if (row.hasMembers) {
     return { kind: "shared" };
   }
-  return { kind: "personal" };
+  return { kind: "private" };
 }
 
 export type { SharingRow };

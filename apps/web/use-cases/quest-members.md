@@ -67,7 +67,7 @@ A member manages the quest as its owner does.
 
 - **Prerequisites:** `use_case_quest_member_access`, as a member.
 - **Steps:** the member renames the quest, marks it Completed, answers a status card someone else asked for, invites someone, and removes another member.
-- **Outcome:** each change takes effect for everyone in the quest. No one, owner or member, can remove the owner, including by a direct request; the site has no way to delete a quest. Wherever quests are listed or chosen (Quests' tabs, Continue and the Quick Add choice), a multi-user quest is marked "Shared", or "Shared by" its owner's name for a member, so it can't be mistaken for a personal quest of the same name.
+- **Outcome:** each change takes effect for everyone in the quest. No one, owner or member, can remove the owner, including by a direct request; the site has no way to delete a quest. Wherever quests are listed or chosen (Quests' tabs, Continue and the Quick Add choice), a multi-user quest is marked "Shared", or "Shared by" its owner's name for a member, so it can't be mistaken for a private quest of the same name.
 - **Next:**
   - `use_case_remove_quest_member`: someone leaves the quest.
 
