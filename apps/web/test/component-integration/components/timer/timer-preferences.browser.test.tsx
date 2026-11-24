@@ -22,6 +22,7 @@ import {
   timerStage,
 } from "../../../support/timer/timer-test-kit.tsx";
 import { applyTheme } from "../../themes/theme-test-kit.ts";
+import { openPanel, sitePanel } from "../site-panel-test-kit.ts";
 
 vi.mock(
   "next/navigation",
@@ -92,6 +93,8 @@ test("use_case_timer_choose_appearance", async () => {
     .not.toBeInTheDocument();
   await shown.unmount();
   await renderTimer(SCHEDULE, minutesAfter(SCHEDULE, SCHEDULE.workMinutes));
+  await expect.element(sitePanel()).not.toBeInTheDocument();
+  await openPanel();
   await expect
     .element(selectedAppearance(THEME_COPY.modes["soot-brass"]))
     .toBeChecked();

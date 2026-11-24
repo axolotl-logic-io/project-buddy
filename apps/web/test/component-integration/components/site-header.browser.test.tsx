@@ -66,6 +66,7 @@ import {
   setViewport,
   type ViewportSize,
 } from "../viewports-test-kit.ts";
+import { usePathname, useSearchParams } from "./router-test-kit.ts";
 import {
   closeButton,
   closePanel,
@@ -154,7 +155,7 @@ const PAGE_TEXT = "The page";
 function signedInFrame(): JSX.Element {
   return (
     <>
-      <SiteHeader panel={SIGNED_IN_PANEL} />
+      <SiteHeader panel={<SitePanel links={<AccountLinks />} />} />
       <main>
         <p>{PAGE_TEXT}</p>
       </main>
@@ -170,6 +171,8 @@ beforeAll(async () => {
 
 beforeEach(() => {
   applyTheme("parchment");
+  usePathname.mockReset();
+  useSearchParams.mockReset();
 });
 
 afterEach(async () => {
@@ -410,24 +413,60 @@ describe("the site panel", () => {
     });
   }
 
-  test("following one of its links closes its drawer", async () => {
-    await setViewport(PHONE_VIEWPORT);
-    // Keep the test's page: the link's own navigation is Next's to test.
-    globalThis.addEventListener("click", stayOnThisPage, { capture: true });
-    try {
+  for (const viewport of [PHONE_VIEWPORT, LAPTOP_VIEWPORT]) {
+    test(`following its link to the current page closes it at ${viewport.width} px`, async () => {
+      await setViewport(viewport);
+      usePathname.mockReturnValue("/quests");
       await renderSignedIn();
       await openPanel();
-      await sitePanel()
-        .getByRole("link", { name: QUESTS_COPY.headerLink })
-        .click();
+      // Stop the browser's navigation after React handles the click.
+      globalThis.addEventListener("click", stayOnThisPage);
+      try {
+        await sitePanel()
+          .getByRole("link", { name: QUESTS_COPY.headerLink })
+          .click();
+      } finally {
+        globalThis.removeEventListener("click", stayOnThisPage);
+      }
 
-      await expect.poll(() => sitePanel().query()).toBeNull();
-    } finally {
-      globalThis.removeEventListener("click", stayOnThisPage, {
-        capture: true,
-      });
-    }
-  });
+      await expect
+        .element(panelButton())
+        .toHaveAttribute("aria-expanded", "false");
+    });
+
+    test(`navigation closes it at ${viewport.width} px`, async () => {
+      await setViewport(viewport);
+      usePathname.mockReturnValue("/grimoire");
+      const screen = await render(signedInFrame());
+      await openPanel();
+
+      useSearchParams.mockReturnValue(new URLSearchParams("filter=forgotten"));
+      await screen.rerender(signedInFrame());
+      await expect
+        .element(panelButton())
+        .toHaveAttribute("aria-expanded", "false");
+
+      await openPanel();
+      usePathname.mockReturnValue("/quests");
+      await screen.rerender(signedInFrame());
+      await expect
+        .element(panelButton())
+        .toHaveAttribute("aria-expanded", "false");
+
+      usePathname.mockReturnValue("/grimoire");
+      await screen.rerender(signedInFrame());
+      await expect
+        .element(panelButton())
+        .toHaveAttribute("aria-expanded", "false");
+      await openPanel();
+
+      await screen.unmount();
+      await render(signedInFrame());
+      await expect
+        .element(panelButton())
+        .toHaveAttribute("aria-expanded", "false");
+    });
+  }
 
   test("leaves the page beside its drawer undimmed", async () => {
     await setViewport(PHONE_VIEWPORT);
@@ -440,62 +479,33 @@ describe("the site panel", () => {
     );
   });
 
-  test("on a wide screen, docks over the page, which keeps its size and flow, and stays open from page to page until closed", async () => {
-    applyTheme("parchment");
+  test("on a wide screen, docks over the page, which keeps its size and flow", async () => {
     await setViewport(LAPTOP_VIEWPORT);
-    // Keep the test's page: the link's own navigation is Next's to test.
-    globalThis.addEventListener("click", stayOnThisPage, { capture: true });
-    try {
-      const screen = await render(signedInFrame());
-      // Where the page's content starts, and how wide it is.
-      function pageBox(): { readonly left: number; readonly width: number } {
-        const { left, width } = page
-          .getByText(PAGE_TEXT)
-          .element()
-          .getBoundingClientRect();
-        return { left, width };
-      }
-      const closedBox = pageBox();
-      await openPanel();
-      expect(
-        sitePanel().element().matches(":modal"),
-        "the page beside it stays in reach",
-      ).toBe(false);
-      await expect.element(closeButton()).toHaveFocus();
-      const panel = sitePanel().element().getBoundingClientRect();
-      expect(pageBox(), "the page stays where it was").toEqual(closedBox);
-      expect(
-        panel.right,
-        "the panel lies over the page's left edge",
-      ).toBeGreaterThan(closedBox.left);
-      expect(document.documentElement.scrollWidth).toBeLessThanOrEqual(
-        LAPTOP_VIEWPORT.width,
-      );
-
-      await sitePanel()
-        .getByRole("link", { name: QUESTS_COPY.headerLink })
-        .click();
-      await expect.element(sitePanel()).toBeVisible();
-
-      // The next page, or the same one reloaded, renders the panel afresh.
-      await screen.unmount();
-      await render(signedInFrame());
-      await expect.element(sitePanel()).toBeVisible();
-      expect(closeButton().element()).toHaveAttribute("aria-expanded", "true");
-      expect(
-        document.activeElement,
-        "a panel docked on load leaves focus on the page",
-      ).not.toBe(closeButton().element());
-
-      await closeButton().click();
-      await expect.poll(() => sitePanel().query()).toBeNull();
-      await expect.element(panelButton()).toHaveFocus();
-      expect(pageBox(), "the page stays where it was").toEqual(closedBox);
-    } finally {
-      globalThis.removeEventListener("click", stayOnThisPage, {
-        capture: true,
-      });
+    await render(signedInFrame());
+    // Where the page's content starts, and how wide it is.
+    function pageBox(): { readonly left: number; readonly width: number } {
+      const { left, width } = page
+        .getByText(PAGE_TEXT)
+        .element()
+        .getBoundingClientRect();
+      return { left, width };
     }
+    const closedBox = pageBox();
+    await openPanel();
+    expect(
+      sitePanel().element().matches(":modal"),
+      "the page beside it stays in reach",
+    ).toBe(false);
+    await expect.element(closeButton()).toHaveFocus();
+    const panel = sitePanel().element().getBoundingClientRect();
+    expect(pageBox(), "the page stays where it was").toEqual(closedBox);
+    expect(
+      panel.right,
+      "the panel lies over the page's left edge",
+    ).toBeGreaterThan(closedBox.left);
+    expect(document.documentElement.scrollWidth).toBeLessThanOrEqual(
+      LAPTOP_VIEWPORT.width,
+    );
   });
 
   test("offers a visitor the appearance choices and Credits", async () => {
