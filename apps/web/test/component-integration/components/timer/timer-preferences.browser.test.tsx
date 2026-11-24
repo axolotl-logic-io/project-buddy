@@ -171,7 +171,7 @@ test.each(THEME_MODES)(
     await renderTimer(longSchedule);
     await openTimerPreferences();
     // The illustration sits on the page's own texture and adds no second
-    // paper surface (docs/timer.md).
+    // paper surface.
     expect(
       parse(getComputedStyle(timerStage()).backgroundColor)?.alpha,
       "the timer's stage paints no surface of its own",
@@ -322,14 +322,14 @@ test.each([
       .getByText(TIMER_COPY.next("break"), { exact: true })
       .element();
     const time = countdown().element();
-    const edgeSpace = 16;
+    const edgeList = 16;
     const readableNumberSize = 64;
     expect(time.getBoundingClientRect().top).toBeGreaterThanOrEqual(0);
     expect(time.getBoundingClientRect().bottom).toBeLessThanOrEqual(
-      height - edgeSpace,
+      height - edgeList,
     );
     expect(next.getBoundingClientRect().bottom).toBeLessThanOrEqual(
-      height - edgeSpace,
+      height - edgeList,
     );
     expect(
       Number.parseFloat(getComputedStyle(time).fontSize),

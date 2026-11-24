@@ -3,10 +3,9 @@
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { requireUser } from "@/auth/current-user.ts";
-import { startPremadeQuest } from "@/conversations/start-premade-quest.ts";
 import { PREMADE_QUEST_ID } from "@/quests/premade-quests.ts";
 import { checkQuestName, QUEST_NAME_MAX_LENGTH } from "@/quests/quest-name.ts";
-import { OPENING_COPY } from "@/ui/copy/chat.ts";
+import { startPremadeQuest } from "@/quests/start-premade-quest.ts";
 import { QUEST_START_COPY, QUESTS_COPY } from "@/ui/copy/quests.ts";
 
 const START_DETAILS = z.object({
@@ -21,7 +20,7 @@ const START_DETAILS = z.object({
 type StartQuestState =
   | { readonly kind: "idle" }
   | {
-      readonly kind: "invalid" | "claudeUnavailable";
+      readonly kind: "invalid";
       readonly message: string;
     };
 
@@ -49,10 +48,7 @@ export async function startQuestAction(
     context,
     motivation,
   });
-  if (result.kind === "claudeUnavailable") {
-    return { kind: result.kind, message: OPENING_COPY.claudeUnavailable };
-  }
-  redirect(`/quests/${result.chat.quest.id}`);
+  redirect(`/quests/${result.quest.id}`);
 }
 
 export type { StartQuestState };

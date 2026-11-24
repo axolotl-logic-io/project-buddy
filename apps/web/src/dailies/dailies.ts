@@ -2,12 +2,11 @@
 // Day begins a day, dated by the user's own calendar, and ends the one
 // before it, recording whether each recurring task was done. A streak is a
 // recurring task's run of consecutive calendar days with it done, and its
-// chain leads to its next milestone; a calendar day on which no day was
+// chain shows its recent days. A calendar day on which no day was
 // started is a gap, and a gap ends every streak. It imports nothing from
 // the server, because the browser shows the streaks of the tasks as they
 // change.
 import { z } from "zod";
-import type { Tasks } from "@/tasks/tasks.ts";
 
 const LOCAL_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/u;
 
@@ -37,6 +36,12 @@ const DAY_TASK = z.object({
 
 type DayTask = z.infer<typeof DAY_TASK>;
 
+interface DayTasks {
+  readonly items: readonly (DayTask & {
+    readonly recurring?: boolean | undefined;
+  })[];
+}
+
 // A started day: its date and when it started, and, once the next Start Day
 // has ended it, its recurring tasks as they ended. The newest day has no
 // tasks while it is still going.
@@ -47,7 +52,7 @@ interface DailiesDay {
 }
 
 // A Dailies quest's days, oldest first, and whether the newest Start Day can
-// still be undone: until someone sends a message in its conversation.
+// still be undone: until someone makes a message.
 interface DailiesRecord {
   readonly days: readonly DailiesDay[];
   readonly undoable: boolean;
@@ -114,7 +119,7 @@ function todayHere(now: Date): LocalDate {
 // which no day was started is a gap.
 function doneOn(
   days: readonly DailiesDay[],
-  tasks: Tasks,
+  tasks: DayTasks,
   number: number,
   date: LocalDate,
 ): DayMark {
@@ -137,7 +142,7 @@ function doneOn(
 
 function markOf(
   day: DailiesDay,
-  tasks: Tasks,
+  tasks: DayTasks,
   number: number,
 ): Exclude<DayMark, "gap"> {
   if (day.tasks === undefined) {
@@ -160,37 +165,15 @@ function markOf(
   return "missed";
 }
 
-// The milestones in days, before they settle into steps of MILESTONE_STEP
-// days.
-const FIRST_MILESTONES: readonly { readonly days: number }[] = [
-  { days: 3 },
-  { days: 7 },
-  { days: 14 },
-  { days: 30 },
-];
-const MILESTONE_STEP = 30;
+const MAX_STREAK_LINKS = 30;
 
-// The first milestone longer than days.
-function milestoneAfter(days: number): number {
-  const fixed = FIRST_MILESTONES.find((milestone) => milestone.days > days);
-  if (fixed !== undefined) {
-    return fixed.days;
-  }
-  return (Math.floor(days / MILESTONE_STEP) + 1) * MILESTONE_STEP;
-}
-
-// A recurring task's streak, drawn as a chain of links that ends at its
-// next milestone. The links before earned stand for days of the streak
-// before the current day, and the one at earned for the current day, done
-// when doneToday. Past MILESTONE_STEP days the chain starts at the last multiple
-// of MILESTONE_STEP, so it never has more than MILESTONE_STEP links.
+// The recent days of a streak, with a separate link for today.
 interface StreakChain {
   // How many consecutive calendar days, up to the newest day's date, the
   // task was done: the newest day counts once the task is done; until then
   // the streak runs to the day before.
   readonly streak: number;
   readonly doneToday: boolean;
-  readonly milestone: number;
   readonly links: number;
   readonly earned: number;
 }
@@ -200,18 +183,8 @@ function chainOf(streak: number, doneToday: boolean): StreakChain {
   if (doneToday) {
     before -= 1;
   }
-  const milestone = milestoneAfter(before);
-  let start = 0;
-  if (before >= MILESTONE_STEP) {
-    start = Math.floor(before / MILESTONE_STEP) * MILESTONE_STEP;
-  }
-  return {
-    streak,
-    doneToday,
-    milestone,
-    links: milestone - start,
-    earned: before - start,
-  };
+  const earned = Math.min(before, MAX_STREAK_LINKS - 1);
+  return { streak, doneToday, links: earned + 1, earned };
 }
 
 // Each recurring task's streak chain, by its number. A gap, or a day that
@@ -219,7 +192,7 @@ function chainOf(streak: number, doneToday: boolean): StreakChain {
 // one-off tasks, there are none.
 function streakChains(
   days: readonly DailiesDay[],
-  tasks: Tasks,
+  tasks: DayTasks,
 ): ReadonlyMap<number, StreakChain> {
   const found = new Map<number, StreakChain>();
   const newest = days.at(-1);
@@ -246,7 +219,7 @@ function streakChains(
 // first day's at the earliest, and each recurring task's mark on each.
 function dayGrid(
   days: readonly DailiesDay[],
-  tasks: Tasks,
+  tasks: DayTasks,
   count: number,
 ): DayGrid {
   const first = days.at(0);
@@ -278,6 +251,7 @@ export type {
   DayGrid,
   DayMark,
   DayTask,
+  DayTasks,
   LocalDate,
   StreakChain,
 };

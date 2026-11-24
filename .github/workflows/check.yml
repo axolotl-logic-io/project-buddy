@@ -1,7 +1,9 @@
-# Runs every workspace's check on each PR and on each push to integration:
-# Biome, typecheck, the script tests and the unit tests. It needs no secrets
-# and no services. Branch protection on integration requires this job, and
-# requires a PR's branch to be up to date with integration before it merges.
+# Runs on each PR and on each push to integration: `npm run lint` (Biome and
+# the type check in every workspace), React Doctor, the site's unit tests and the
+# instruction counter's tests. It needs no secrets and no services. The Full suite
+# workflow runs the rest of `npm test` and the end-to-end tests. Branch
+# protection on integration requires this job, and requires a PR's branch
+# to be up to date with integration before it merges.
 name: Check
 
 on:
@@ -24,6 +26,9 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v5
+        with:
+          # React Doctor compares findings with the base commit.
+          fetch-depth: 0
 
       - uses: actions/setup-node@v5
         with:
@@ -32,4 +37,13 @@ jobs:
           cache: npm
 
       - run: npm ci --no-audit --no-fund
-      - run: npm run check --workspaces
+      - name: React Doctor
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: |
+          git merge-base --is-ancestor "$BASE_SHA" HEAD
+          npm run doctor --workspace @project-buddy/web -- \
+            --scope changed --base "$BASE_SHA" --blocking error --verbose
+      - run: npm run lint
+      - run: npm run test:unit --workspace @project-buddy/web
+      - run: npm test --workspace @project-buddy/instruction-counter

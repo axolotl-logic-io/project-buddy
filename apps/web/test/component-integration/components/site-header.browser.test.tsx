@@ -40,11 +40,12 @@ import { SitePanel } from "@/components/site-panel.tsx";
 import { THEME_IDS } from "@/themes/themes.ts";
 import { CREDITS_COPY } from "@/ui/copy/credits.ts";
 import { EXPERIENCE_COPY } from "@/ui/copy/experience.ts";
+import { GRIMOIRE_COPY } from "@/ui/copy/grimoire.ts";
 import { PROFILE_COPY } from "@/ui/copy/profile.ts";
 import { QUESTS_COPY } from "@/ui/copy/quests.ts";
+import { QUICK_ADD_COPY } from "@/ui/copy/quick-add.ts";
 import { SETTINGS_COPY } from "@/ui/copy/settings.ts";
 import { SITE_COPY, SITE_PANEL_COPY } from "@/ui/copy/site.ts";
-import { SPELLBOOK_COPY } from "@/ui/copy/spells.ts";
 import { THEME_COPY } from "@/ui/copy/theme.ts";
 import { TIMER_COPY } from "@/ui/copy/timer.ts";
 import { animationsSettled } from "../../support/animations-test-kit.ts";
@@ -94,7 +95,7 @@ const PHONE_LAYOUT_BELOW_PX = 512;
 // The site panel's links, in their groups and order, by their names.
 const PLACES = [
   QUESTS_COPY.headerLink,
-  SPELLBOOK_COPY.heading,
+  GRIMOIRE_COPY.heading,
   TIMER_COPY.panelLink,
 ] as const;
 const YOU = [PROFILE_COPY.headerLink, SETTINGS_COPY.headerLink] as const;
@@ -186,7 +187,10 @@ describe("use_case_use_on_phone", () => {
           await expect.element(panelButton()).toBeVisible();
           await expect
             .element(
-              page.getByRole("link", { name: "Quick Note", exact: true }),
+              page.getByRole("link", {
+                name: QUICK_ADD_COPY.panelItem,
+                exact: true,
+              }),
             )
             .not.toBeInTheDocument();
           await loadFonts();
@@ -346,7 +350,7 @@ describe("use_case_experience_ring", () => {
 });
 
 describe("the site panel", () => {
-  test("groups Quests and Spellbook apart from Profile and Settings, above the appearance choices and Credits", async () => {
+  test("groups Quests and Grimoire apart from Profile and Settings, above the appearance choices and Credits", async () => {
     await renderSignedIn();
     await openPanel();
 
@@ -512,7 +516,7 @@ describe("the site panel", () => {
 });
 
 const LONG_NAME_REPEATS = 20;
-const LONG_NAME = "Long quest and conversation name ".repeat(LONG_NAME_REPEATS);
+const LONG_NAME = "Long quest and performance name ".repeat(LONG_NAME_REPEATS);
 // Enough lines of page to scroll the header away, on any screen.
 const SCROLL_LINES = Array.from({ length: 200 }, (_, line) => `Line ${line}`);
 const QUESTS: Breadcrumb = { label: QUESTS_COPY.heading, href: "/quests" };
@@ -606,7 +610,7 @@ describe("the trail band", () => {
       bandedHeader([
         QUESTS,
         { label: "Our quest", href: "/quests/quest" },
-        { label: "Journal" },
+        { label: "Day grid" },
       ]),
     );
     await loadFonts();
@@ -615,7 +619,7 @@ describe("the trail band", () => {
       QUESTS_COPY.heading,
       "Our quest",
     ]);
-    await expect.element(pageHeading()).toHaveTextContent("Journal");
+    await expect.element(pageHeading()).toHaveTextContent("Day grid");
     expect(
       page.getByRole("heading", { level: 1 }).elements(),
       "one heading",
@@ -698,7 +702,7 @@ describe("the trail band", () => {
         bandedHeader([
           QUESTS,
           { label: LONG_NAME, href: "/quests/quest" },
-          { label: "Journal" },
+          { label: "Day grid" },
         ]),
       );
       await loadFonts();
@@ -721,7 +725,7 @@ describe("the trail band", () => {
       const bounds = parent.element().getBoundingClientRect();
       expect(bounds.width).toBeGreaterThanOrEqual(BUTTON_HEIGHT_PX);
       expect(bounds.height).toBeGreaterThanOrEqual(BUTTON_HEIGHT_PX);
-      await expect.element(pageHeading()).toHaveTextContent("Journal");
+      await expect.element(pageHeading()).toHaveTextContent("Day grid");
       expect(document.documentElement.scrollWidth).toBeLessThanOrEqual(
         NARROWEST_VIEWPORT.width,
       );
@@ -764,7 +768,7 @@ describe("the trail band", () => {
       bandedHeader([
         QUESTS,
         { label: "Our quest", href: "/quests/quest" },
-        { label: "Journal" },
+        { label: "Day grid" },
       ]),
     );
     await expect

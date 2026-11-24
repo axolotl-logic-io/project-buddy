@@ -11,6 +11,8 @@ interface MaterialPixels {
   readonly width: number;
   readonly height: number;
   readonly channels: number[];
+  // Where each pixel in channels sits in the screenshot, as y * width + x.
+  readonly positions: number[];
 }
 
 async function materialPixels(
@@ -31,6 +33,7 @@ async function materialPixels(
     .raw()
     .toBuffer({ resolveWithObject: true });
   const pixels: number[] = [];
+  const positions: number[] = [];
   const { width, height, channels } = info;
   const offsetX = bounds.x - Math.floor(bounds.x);
   const offsetY = bounds.y - Math.floor(bounds.y);
@@ -59,10 +62,11 @@ async function materialPixels(
       if (!outsideMaterial) {
         const start = (y * width + x) * channels;
         pixels.push(...data.subarray(start, start + channels));
+        positions.push(y * width + x);
       }
     }
   }
-  return { width, height, channels: pixels };
+  return { width, height, channels: pixels, positions };
 }
 
 export { type MaterialPixels, materialPixels };

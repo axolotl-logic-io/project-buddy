@@ -97,7 +97,7 @@ function containDrawerFocus(event: KeyboardEvent<HTMLDialogElement>): void {
   }
 }
 
-// The site panel, on the left of every page, mirroring the chat panel on
+// The site panel, on the left of every page, mirroring the quest panel on
 // the right: a button at the breadcrumb row's left end opens it from
 // that row, holding links (the @header slot's, or none for a visitor),
 // the appearance choices, and, for everyone, a link to the Credits

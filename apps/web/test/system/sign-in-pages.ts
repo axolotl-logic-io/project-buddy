@@ -36,7 +36,7 @@ async function askForSignInLink(page: Page, address: string): Promise<void> {
 }
 
 // Opens the link, and continues on the page it opens, which signs the
-// page's browser in and shows the new chat page.
+// page's browser in and shows the home page.
 async function continueSignIn(page: Page, link: string): Promise<void> {
   await page.goto(link);
   await page.getByRole("button", { name: LINK_PAGE_COPY.continue }).click();

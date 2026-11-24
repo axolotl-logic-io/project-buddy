@@ -1,7 +1,8 @@
 # Runs the site's costly test stages on each PR and on each push to
 # integration, beside the Check workflow: the browser tests (Chromium and
-# WebKit), the server tests against a local test database, and the Playwright
-# end-to-end tests against a production build. Each is its own job, so they
+# WebKit) and the server tests against a local test database, which with
+# Check's unit tests make up `npm test`, and the Playwright end-to-end tests
+# (`npm run test:e2e`) against a production build. Each is its own job, so they
 # run at once and a failure names its stage.
 #
 # It needs no secrets and reaches no outside service but the package, image
@@ -95,10 +96,9 @@ jobs:
 
       - run: npm run test-env:init
       - run: npm run test-db:up
-      # test:playwright uses the database as it finds it, so migrate it first.
-      - run: npm run test-db:reset
-      # Builds the site and serves it on .env.test's port for the tests.
-      - run: npm run test:playwright
+      # Resets and migrates the test database, then builds the site and
+      # serves it on .env.test's port for the tests.
+      - run: npm run test:e2e
 
       # The HTML report holds each failed test's trace (playwright.config.ts).
       - name: Upload the Playwright report

@@ -2,20 +2,7 @@
 // fixture makes a new random id, or the id that a given value names, and
 // throws instead of returning undefined, so a test reads like the fixture it
 // builds. Add a fixture for a new id type as one more `idFixture` line.
-import {
-  type ChatId,
-  type MessageId,
-  type MilestoneId,
-  type OwnPromptId,
-  parseChatId,
-  parseMessageId,
-  parseMilestoneId,
-  parseOwnPromptId,
-  parseQuestId,
-  parseUserId,
-  type QuestId,
-  type UserId,
-} from "@/ids.ts";
+import { parseQuestId, parseUserId, type QuestId, type UserId } from "@/ids.ts";
 
 // Makes the id that value names, by default a new random UUID; throws,
 // naming the fixture and the value, if it names none.
@@ -43,30 +30,5 @@ const questIdFixture: IdFixture<QuestId> = idFixture(
   "questIdFixture",
   parseQuestId,
 );
-const chatIdFixture: IdFixture<ChatId> = idFixture(
-  "chatIdFixture",
-  parseChatId,
-);
-const messageIdFixture: IdFixture<MessageId> = idFixture(
-  "messageIdFixture",
-  parseMessageId,
-);
 
-const milestoneIdFixture: IdFixture<MilestoneId> = idFixture(
-  "milestoneIdFixture",
-  parseMilestoneId,
-);
-
-const ownSpellIdFixture: IdFixture<OwnPromptId> = idFixture(
-  "spellIdFixture",
-  parseOwnPromptId,
-);
-
-export {
-  chatIdFixture,
-  messageIdFixture,
-  milestoneIdFixture,
-  ownSpellIdFixture,
-  questIdFixture,
-  userIdFixture,
-};
+export { questIdFixture, userIdFixture };

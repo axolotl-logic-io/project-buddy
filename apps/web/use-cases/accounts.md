@@ -81,30 +81,30 @@ The user, or someone else, asks for many sign-in emails in a short time.
 
 ## use_case_private_data
 
-Two users each see only the quests open to them, their own and those they are an accepted member of, with their conversations, Tasks, Ideas and Progress, and only their own private definitions.
+Two users each see only the quests open to them, their own and those they are an accepted member of, with their lists, list items and performances, and only their own rites.
 
 - **Prerequisites:** two signed-in accounts, each with a quest.
-- **Steps:** the second user tries to open and change the first user's quest, conversation, Tasks, Ideas, milestones and own spells, including by using their addresses directly.
-- **Outcome:** foreign data looks exactly like missing data. Reads reveal nothing and writes change nothing. Lists and choices include only accessible definitions and the quests open to the user: their own and those they are a member of ([`use_case_quest_member_access`](quest-members.md#use_case_quest_member_access)).
+- **Steps:** the second user tries to open and change the first user's quest, lists, list items, performances and own rites, including by using their addresses directly.
+- **Outcome:** foreign data looks exactly like missing data. Reads reveal nothing and writes change nothing. Lists and choices include only built-in rites, their own rites and the quests open to the user: their own and those they are a member of ([`use_case_quest_member_access`](quest-members.md#use_case_quest_member_access)).
 - **Next:** [`use_case_view_quests`](quests.md#use_case_view_quests).
 
 ## use_case_set_name
 
-The user tells the construct what to call them, so a construct that says `{{name}}` uses their name.
+The user tells the construct what to call them, so a rite reply that says `{user}` uses their name.
 
 - **Prerequisites:** `use_case_sign_in_by_link`.
 - **Steps:**
   - On Profile, the user chooses Rename beside their name, types their name, such as "Mabel", and saves. A user with no saved name finds the field already open.
   - The page says it is saved, the field closes, and Profile's card shows their name, also after a reload.
-  - The user casts an own spell whose replies use `{{name}}` ([`use_case_customize_spell`](spellbook.md#use_case_customize_spell)).
-- **Outcome:** their name is saved trimmed. Spell reply templates replace `{{name}}` with that acting user’s name, or "the user" when unset. Another user’s saved name is never used. The field’s hint explains the placeholder.
+  - The user performs an own rite whose replies use `{user}` ([`use_case_customize_rite`](grimoire.md#use_case_customize_rite)).
+- **Outcome:** their name is saved trimmed. Rite replies replace `{user}` with that acting user’s name, or "the user" when unset. Another user’s saved name is never used. The field’s hint explains the placeholder.
 - **Variations:**
   - The user empties the field and saves: the form requires a name and keeps the previous saved name.
   - The user chooses Cancel: the field closes, their draft is dropped and the saved name stays.
   - A name with a line break, over 60 characters, or with `{` or `}` is refused: the field says why, keeps what the user typed, and nothing is saved.
   - Signed out, the page shows the sign-in page and nothing is saved.
 - **Next:**
-  - [`use_case_customize_spell`](spellbook.md#use_case_customize_spell): put `{{name}}` in an own spell’s replies.
+  - [`use_case_customize_rite`](grimoire.md#use_case_customize_rite): put `{user}` in an own rite’s replies.
 
 ## use_case_sign_out
 
@@ -129,7 +129,7 @@ The user signs out of every browser and device at once, for example after signin
   - The site asks them to confirm. The user confirms.
   - The site shows the sign-in page.
   - In the other browser, the user opens a page.
-- **Outcome:** this browser and every other one are signed out: the other browser shows the sign-in page when it next opens a page that requires sign-in, and a conversation left open there says the user has been signed out when the user next sends a message ([`use_case_session_expired_in_chat`](access.md#use_case_session_expired_in_chat)). Every sign-in link sent before no longer signs them in, even within its 30 minutes. If the user cancels instead of confirming, nothing changes and the user stays signed in everywhere. A new link signs them in as usual.
+- **Outcome:** this browser and every other one are signed out: the other browser shows the sign-in page when it next opens a page that requires sign-in, and a performance left open there says the user has been signed out when the user next sends a message ([`use_case_session_expired_in_performance`](access.md#use_case_session_expired_in_performance)). Every sign-in link sent before no longer signs them in, even within its 30 minutes. If the user cancels instead of confirming, nothing changes and the user stays signed in everywhere. A new link signs them in as usual.
 - **Next:**
   - `use_case_sign_in_by_link`: sign in again where the user wants to be.
 

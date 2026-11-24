@@ -119,7 +119,7 @@ export function TextAreaField({
   );
 }
 
-// A labelled choice of one option from a list, such as a chat's quest.
+// A labelled choice of one option from a list, such as a quest's list.
 // children are its <option>s.
 export function SelectField({
   label,

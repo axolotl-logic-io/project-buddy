@@ -6,7 +6,7 @@
 // (it follows the operating system, not the user's mode). So every theme,
 // in every appearance, restyles all of them. contract.css clears Tailwind's own
 // colours, radii, shadows and font families, so of those scales only the
-// contract's utilities compile, plus Streamdown's names, which chat.css maps
+// contract's utilities compile, plus Streamdown's names, which performances.css maps
 // for the Markdown alone and no component writes (streamdown-names.test.ts).
 //
 // The browser's fixed appearance choice lives in
@@ -37,7 +37,7 @@
 //   foreground      text, on any surface above         text-foreground
 //   muted           secondary text: hints, dates,      text-muted
 //                   empty states (not inside .markdown,
-//                   where chat.css makes --muted
+//                   where performances.css makes --muted
 //                   Streamdown's surface colour)
 //   line            borders of controls and panels     border-line
 //   primary         the main action's fill; also text, bg-primary,
@@ -69,9 +69,6 @@
 //   --body-font       body text (set on <body>)         font-body
 //   --heading-font    headings (set on h1 to h6)        font-heading
 //   --mono-font       code                              font-mono
-// Conversation roles in chat.css use --conversation-font, --conversation-text-size
-// and --conversation-leading for manuscript prose, and --conversation-field-radius
-// for the composer's field. These do not restyle shared buttons or other pages.
 // Spacing, one value for all three appearances:
 //   --space-unit      the step of every spacing         any spacing
 //                     utility, such as 0.25rem          utility: p-4,
@@ -121,9 +118,9 @@
 //   --control-shadow  fields and content surfaces                shadow-control
 //   --raised-shadow   panels that float: menus, cards   shadow-raised
 //   --focus-glow      a box-shadow layer added to the   (set on
-//                     focused element's shadows, such   :focus-visible and
-//                     as `0 0 6px <colour>`, or         the focused
-//                     `0 0 transparent` for none        .field-box)
+//                     focused element's shadows, such   :focus-visible)
+//                     as `0 0 6px <colour>`, or
+//                     `0 0 transparent` for none
 // Decoration:
 //   --page-decoration a background-image behind the     (set on <body>)
 //                     page, or `none`

@@ -16,7 +16,7 @@ function alertIn(page: Page): Locator {
 
 // Waits until React has hydrated target. A page shows its server-rendered
 // HTML before it hydrates, and WebKit hydrates well after the load event
-// that goto waits for (waitForComposer in chat-page.ts): typing there before
+// that goto waits for: typing there before
 // then fills the box but not the form's state, and a click there does
 // nothing.
 async function waitForHydrated(target: Locator): Promise<void> {
@@ -32,8 +32,7 @@ async function waitForHydrated(target: Locator): Promise<void> {
 }
 
 // Types text into field once React has hydrated it, so a fill right after
-// page.goto never types into a page that hasn't hydrated. The chat's
-// composer has its own, stronger wait: sendMessage in chat-page.ts.
+// page.goto never types into a page that hasn't hydrated.
 async function fillWhenReady(field: Locator, text: string): Promise<void> {
   await waitForHydrated(field);
   await field.clear();

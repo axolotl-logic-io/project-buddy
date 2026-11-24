@@ -14,7 +14,7 @@ import { signIn, signOut } from "../test-database/session-test-kit.ts";
 import { twoUsers } from "../test-database/two-users-test-kit.ts";
 import { callApi, dataOf } from "./api-test-kit.ts";
 
-describe("use_case_cli_api_quests", () => {
+describe("use_case_api_quests", () => {
   test("a request without a session answers 401 with a problem, never a redirect", async () => {
     signOut();
     const answer = await callApi(listQuests, { params: {} });
@@ -29,7 +29,7 @@ describe("use_case_cli_api_quests", () => {
     });
   });
 
-  test("whoami names the signed-in user", async () => {
+  test("me names the signed-in user", async () => {
     const { her } = await twoUsers();
     await signIn(her);
     const answer = await callApi(getMe, { params: {} });
@@ -41,7 +41,6 @@ describe("use_case_cli_api_quests", () => {
   test("the owner lists, reads, renames and completes a quest with its revision", async () => {
     const { her, herData } = await twoUsers();
     const quest = await herData.quest("Prototype");
-    const chat = await herData.chat(quest);
     await signIn(her);
 
     const listed = await callApi(listQuests, {
@@ -58,7 +57,6 @@ describe("use_case_cli_api_quests", () => {
         id: quest.id,
         status: "active",
         revision: 0,
-        conversationId: chat.id,
       }),
     });
 
@@ -139,7 +137,6 @@ describe("use_case_cli_api_quests", () => {
         name: "Make a thing",
         status: "active",
         resumed: false,
-        conversationId: expect.any(String),
       }),
     });
 

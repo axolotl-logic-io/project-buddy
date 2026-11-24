@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import type { JSX } from "react";
 import { requireUser } from "@/auth/current-user.ts";
-import { AbilityTiles } from "@/components/experience/ability-tiles.tsx";
+import { EventTiles } from "@/components/experience/event-tiles.tsx";
 import { ExperienceCard } from "@/components/experience/experience-card.tsx";
 import { readExperience } from "@/experience/experience-store.ts";
 import { PROFILE_COPY } from "@/ui/copy/profile.ts";
@@ -12,7 +12,7 @@ import { NameForm } from "./name-form.tsx";
 export const metadata: Metadata = { title: PROFILE_COPY.title };
 
 // The user's name, which constructs and members see, on a card with their
-// circle and experience, followed by their visiting-day total and abilities.
+// circle and experience, followed by their visiting-day total and events.
 export default async function ProfilePage(): Promise<JSX.Element> {
   const user = await requireUser();
   const [experience, days] = await Promise.all([
@@ -25,7 +25,7 @@ export default async function ProfilePage(): Promise<JSX.Element> {
         <NameForm name={user.name} />
       </ExperienceCard>
       <SignedInDaysCard days={days} />
-      <AbilityTiles points={experience.points} />
+      <EventTiles counts={experience.counts} />
     </div>
   );
 }

@@ -3,7 +3,7 @@
    - src/themes/themes.css: the token contract and the themes;
    - page-roles.css: the roles that pages share, such as headings, links,
      buttons and fields;
-   - src/components/chat/chat.css: the chat and the Markdown;
+   - src/components/performances.css: performances and Markdown;
    - src/components/constructs/: the character profile and the built-in
      constructs' drawings. */
 
@@ -15,11 +15,11 @@
 
 @import "../themes/themes.css" layer(base);
 @import "./page-roles.css" layer(components);
-@import "../components/chat/chat.css" layer(components);
+@import "../components/performances.css" layer(components);
 @import "../components/constructs/construct-discovery.css" layer(components);
 @import "../components/constructs/construct-art.css" layer(components);
 
-/* The Markdown (chat.css): Tailwind skips node_modules, so name the files
+/* The Markdown (performances.css): Tailwind skips node_modules, so name the files
    whose classes Streamdown and its code highlighter render. npm hoists them
    to the repo root's node_modules. */
 @source "../../../../node_modules/streamdown/dist/*.js";

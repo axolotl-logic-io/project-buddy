@@ -1,7 +1,7 @@
 import type { JSX } from "react";
 
 // The shapes a page's skeleton is built from, top to bottom: a line of text,
-// a list of cards, a panel (such as a form), or a chat's messages. A page's
+// a list of cards, a panel (such as a form), or a performance's entries. A page's
 // heading is the trail band's, which shows while the page loads.
 type SkeletonShape = "line" | "cards" | "panel" | "messages";
 

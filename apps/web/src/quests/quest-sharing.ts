@@ -1,11 +1,11 @@
 // Reads how each quest is shared, alongside the quest, for whoever it is
 // open to: whether it has members, and whose it is. Lists of quests, the
-// quest to continue and the Quick Note choice show it, since a personal
+// quest to continue and the Quick Add choice show it, since a personal
 // quest and a multi-user one often have the same name.
 
 import { type SQL, sql } from "drizzle-orm";
 import { questMembers } from "@/db/tables/quest-members.ts";
-import { quests } from "@/db/tables/quests-and-chats.ts";
+import { quests } from "@/db/tables/quests.ts";
 import { users } from "@/db/tables/users.ts";
 import type { UserId } from "@/ids.ts";
 import type { QuestSharing } from "@/quests/membership.ts";

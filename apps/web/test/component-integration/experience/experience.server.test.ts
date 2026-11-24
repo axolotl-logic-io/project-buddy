@@ -1,190 +1,154 @@
-// Experience in the test database: the points each ability gains from the
-// stores that save tasks, ideas, Quick Notes and quest status, the points
-// reopening and undo take back, and the points Start Day and removal keep.
-
-import { describe, expect, test, vi } from "vitest";
-import type { User } from "@/accounts/users-store.ts";
-import { getDb } from "@/db/client.ts";
-import type { AbilityPoints } from "@/experience/experience.ts";
+import { expect, test, vi } from "vitest";
+import { NO_EVENTS } from "@/experience/experience.ts";
 import { readExperience } from "@/experience/experience-store.ts";
-import { changeIdea, listIdeas } from "@/ideas/idea-store.ts";
-import type { QuestId } from "@/ids.ts";
-import { saveNote } from "@/notes/note-store.ts";
-import { changeQuestStatus } from "@/quests/quest-status-store.ts";
-import type { TasksUndoOperation } from "@/tasks/tasks.ts";
+import { writeListContents } from "@/lists/list-item-store.ts";
+import { readLists } from "@/lists/list-store.ts";
+import { saveQuickAdd } from "@/lists/quick-add-actions.ts";
 import {
-  changeTasks,
-  startTasksDay,
-  undoTasksChange,
-} from "@/tasks/tasks-store.ts";
+  PERFORMANCE_MESSAGE,
+  sendMessage,
+  startPerformance,
+} from "@/performances/performance-store.ts";
+import { changeQuestStatus } from "@/quests/quest-status-store.ts";
 import { testData } from "../../support/test-database/data-test-kit.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
 import { addMember } from "../quests/quest-members-test-kit.ts";
-import type { SendEmail } from "../test-database/sign-in-link-test-kit.ts";
+import { signIn } from "../test-database/session-test-kit.ts";
 
-const sent = vi.hoisted(() => ({ sendEmail: vi.fn<SendEmail>() }));
-vi.mock("@/email/send-email.ts", () => sent);
+vi.mock("next/cache", () => ({ refresh: vi.fn() }));
 
-// Makes the change to the quest's Tasks as user and answers its version.
-async function change(
-  user: User,
-  questId: QuestId,
-  operations: readonly TasksUndoOperation[],
-): Promise<number> {
-  const outcome = await changeTasks(
-    user.id,
-    { questId, author: "person" },
-    operations,
-  );
-  if (outcome?.kind !== "changed") {
-    throw new Error(`Changing Tasks answered ${outcome?.kind}`);
+// The experience the first circle ends at, where the second starts.
+const SECOND_CIRCLE_START = 5;
+
+// A new user's quest and its two starting lists.
+async function ownQuest(): Promise<{
+  readonly owner: Awaited<ReturnType<typeof testUser>>;
+  readonly quest: Awaited<ReturnType<ReturnType<typeof testData>["quest"]>>;
+  readonly tasks: Awaited<ReturnType<typeof readLists>>[number];
+  readonly ideas: Awaited<ReturnType<typeof readLists>>[number];
+}> {
+  const owner = await testUser();
+  const quest = await testData(owner).quest();
+  const [tasks, ideas] = await readLists(owner.id, quest.id);
+  if (tasks === undefined || ideas === undefined) {
+    throw new Error("Missing lists");
   }
-  return outcome.change.version;
+  return { owner, quest, tasks, ideas };
 }
 
-async function pointsOf(user: User): Promise<AbilityPoints> {
-  return (await readExperience(user.id)).points;
-}
-
-async function questOf(user: User): Promise<QuestId> {
-  return (await testData(user).quest()).id;
-}
-
-const ADD_TWO: readonly TasksUndoOperation[] = [
-  { op: "add", text: "Wedge the clay" },
-  { op: "add", text: "Throw the bowl" },
-];
-
-describe("use_case_experience", () => {
-  test("a new user is in the first circle with no points", async () => {
-    const user = await testUser();
-    expect(await readExperience(user.id)).toMatchObject({
-      experience: 0,
-      circle: 1,
-      title: "Initiate",
-      nextCircleStart: 5,
-    });
+test("use_case_experience", async () => {
+  const [owner, member] = await Promise.all([testUser(), testUser()]);
+  const quest = await testData(owner).quest();
+  await addMember(owner, quest.id, member);
+  const [list] = await readLists(member.id, quest.id);
+  if (list === undefined) {
+    throw new Error("Missing list");
+  }
+  const added = await writeListContents(member.id, quest.id, list.id, {
+    kind: "add",
+    text: "Pack lunch",
   });
-
-  test("each ability gains a point for each thing done, weighted into experience", async () => {
-    const user = await testUser();
-    const questId = await questOf(user);
-    await change(user, questId, ADD_TWO);
-    await change(user, questId, [{ op: "complete", task: 1 }]);
-    await changeIdea(user.id, { op: "add", questId, text: "A lidded jar" });
-    await saveNote(user.id, { questId, text: "The kiln runs hot" });
-    await changeQuestStatus(user.id, {
-      questId,
-      fromStatus: "active",
-      toStatus: "completed",
-      revision: 0,
-    });
-    expect(await readExperience(user.id)).toMatchObject({
-      points: {
-        "adding-tasks": 2,
-        ideating: 1,
-        noting: 1,
-        "completing-tasks": 1,
-        "completing-quests": 1,
-      },
-      experience: 16,
-      circle: 3,
-    });
+  const task = added.list?.listItems[0];
+  if (task === undefined) {
+    throw new Error("Missing task");
+  }
+  await writeListContents(owner.id, quest.id, list.id, {
+    kind: "check",
+    id: task.id,
+    checkedOff: true,
   });
-
-  test("reopening a task or undoing its completion takes the point back", async () => {
-    const user = await testUser();
-    const questId = await questOf(user);
-    await change(user, questId, ADD_TWO);
-    await change(user, questId, [{ op: "complete", task: 1 }]);
-    await change(user, questId, [{ op: "reopen", task: 1 }]);
-    expect(await pointsOf(user)).toMatchObject({ "completing-tasks": 0 });
-    const completed = await change(user, questId, [
-      { op: "complete", task: 2 },
-    ]);
-    expect(await pointsOf(user)).toMatchObject({ "completing-tasks": 1 });
-    await undoTasksChange(user.id, { questId, author: "person" }, completed);
-    expect(await pointsOf(user)).toMatchObject({
-      "adding-tasks": 2,
-      "completing-tasks": 0,
-    });
+  await changeQuestStatus(member.id, {
+    questId: quest.id,
+    fromStatus: "active",
+    toStatus: "completed",
+    revision: 0,
   });
-
-  test("Start Day keeps a recurring task's points, so completing it again gains more, and its undo gains none", async () => {
-    const user = await testUser();
-    const questId = await questOf(user);
-    await change(user, questId, ADD_TWO);
-    await change(user, questId, [
-      { op: "recur", task: 1, recurring: true },
-      { op: "complete", task: 1 },
-    ]);
-    const { version } = await startTasksDay(user.id, questId, getDb(), false);
-    expect(await pointsOf(user)).toMatchObject({ "completing-tasks": 1 });
-    if (version === undefined) {
-      throw new Error("Start Day reopened nothing");
-    }
-    await undoTasksChange(user.id, { questId, author: "person" }, version, {
-      database: getDb(),
-      points: false,
-    });
-    expect(await pointsOf(user)).toMatchObject({ "completing-tasks": 1 });
-    await startTasksDay(user.id, questId, getDb(), false);
-    await change(user, questId, [{ op: "complete", task: 1 }]);
-    expect(await pointsOf(user)).toMatchObject({ "completing-tasks": 2 });
+  expect((await readExperience(member.id)).counts).toMatchObject({
+    adding: 1,
+    "completing-quests": 1,
   });
-
-  test("removing a task or idea keeps its points, and restoring gains none", async () => {
-    const user = await testUser();
-    const questId = await questOf(user);
-    await change(user, questId, ADD_TWO);
-    const removed = await change(user, questId, [{ op: "remove", task: 1 }]);
-    await undoTasksChange(user.id, { questId, author: "person" }, removed);
-    await changeIdea(user.id, { op: "add", questId, text: "A lidded jar" });
-    const [idea] = await listIdeas(user.id, questId);
-    if (idea === undefined) {
-      throw new Error("The idea wasn't saved");
-    }
-    await changeIdea(user.id, { op: "remove", questId, id: idea.id });
-    expect(await pointsOf(user)).toMatchObject({
-      "adding-tasks": 2,
-      ideating: 1,
-    });
+  expect((await readExperience(owner.id)).counts["checking-off"]).toBe(1);
+  await writeListContents(member.id, quest.id, list.id, {
+    kind: "check",
+    id: task.id,
+    checkedOff: false,
   });
-
-  test("a member gains their own points, and reopening takes back whoever's completion it was", async () => {
-    const owner = await testUser();
-    const member = await testUser();
-    const questId = await questOf(owner);
-    await addMember(owner, questId, member);
-    await change(member, questId, ADD_TWO);
-    await change(owner, questId, [{ op: "complete", task: 1 }]);
-    expect(await pointsOf(member)).toMatchObject({ "adding-tasks": 2 });
-    expect(await pointsOf(owner)).toMatchObject({
-      "adding-tasks": 0,
-      "completing-tasks": 1,
-    });
-    await change(member, questId, [{ op: "reopen", task: 1 }]);
-    expect(await pointsOf(owner)).toMatchObject({ "completing-tasks": 0 });
+  await changeQuestStatus(owner.id, {
+    questId: quest.id,
+    fromStatus: "completed",
+    toStatus: "active",
+    revision: 1,
   });
+  expect((await readExperience(member.id)).experience).toBe(1);
+  expect((await readExperience(owner.id)).experience).toBe(0);
+});
 
-  test("reopening a completed quest takes its point back", async () => {
-    const user = await testUser();
-    const questId = await questOf(user);
-    const completed = await changeQuestStatus(user.id, {
-      questId,
-      fromStatus: "active",
-      toStatus: "completed",
-      revision: 0,
-    });
-    if (completed === undefined) {
-      throw new Error("The quest wasn't completed");
-    }
-    expect(await pointsOf(user)).toMatchObject({ "completing-quests": 1 });
-    await changeQuestStatus(user.id, {
-      ...completed,
-      fromStatus: "completed",
-      toStatus: "active",
-    });
-    expect(await pointsOf(user)).toMatchObject({ "completing-quests": 0 });
+test("use_case_experience: a new user starts at Circle 1 · Initiate with no events", async () => {
+  const user = await testUser();
+
+  expect(await readExperience(user.id)).toEqual({
+    counts: NO_EVENTS,
+    experience: 0,
+    circle: 1,
+    title: "Initiate",
+    circleStart: 0,
+    nextCircleStart: SECOND_CIRCLE_START,
+  });
+});
+
+test("use_case_experience: removing a list item keeps its event", async () => {
+  const { owner, quest, tasks } = await ownQuest();
+  const added = await writeListContents(owner.id, quest.id, tasks.id, {
+    kind: "add",
+    text: "Sweep the studio",
+  });
+  const [listItem] = added.list?.listItems ?? [];
+  if (listItem === undefined) {
+    throw new Error("Missing list item");
+  }
+
+  expect(
+    await writeListContents(owner.id, quest.id, tasks.id, {
+      kind: "remove",
+      id: listItem.id,
+    }),
+  ).toMatchObject({ result: "saved", list: { listItems: [] } });
+  expect((await readExperience(owner.id)).counts.adding).toBe(1);
+});
+
+test("use_case_experience: Quick Add and a message each earn Adding", async () => {
+  const { owner, quest, tasks, ideas } = await ownQuest();
+  await signIn(owner);
+
+  expect(
+    await saveQuickAdd({
+      questId: quest.id,
+      listId: tasks.id,
+      text: "Order cones",
+    }),
+  ).toEqual({ kind: "saved" });
+  expect((await readExperience(owner.id)).counts.adding).toBe(1);
+
+  const performance = await startPerformance(owner.id, quest.id, {
+    listId: ideas.id,
+    riteId: "capture",
+  });
+  if (performance === undefined) {
+    throw new Error("The performance did not start");
+  }
+  expect(
+    await sendMessage(
+      owner.id,
+      quest.id,
+      PERFORMANCE_MESSAGE.parse({
+        id: crypto.randomUUID(),
+        performanceId: performance.id,
+        text: "Try a celadon glaze",
+      }),
+    ),
+  ).toMatchObject({ added: 1 });
+  expect((await readExperience(owner.id)).counts).toEqual({
+    ...NO_EVENTS,
+    adding: 2,
   });
 });

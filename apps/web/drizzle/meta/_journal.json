@@ -554,6 +554,69 @@
       "when": 1795287595321,
       "tag": "0078_drop_legacy_columns_and_data",
       "breakpoints": true
+    },
+    {
+      "idx": 79,
+      "version": "7",
+      "when": 1795387182018,
+      "tag": "0079_spaces",
+      "breakpoints": true
+    },
+    {
+      "idx": 80,
+      "version": "7",
+      "when": 1795387480147,
+      "tag": "0080_task_numbers",
+      "breakpoints": true
+    },
+    {
+      "idx": 81,
+      "version": "7",
+      "when": 1795387713289,
+      "tag": "0081_performances",
+      "breakpoints": true
+    },
+    {
+      "idx": 82,
+      "version": "7",
+      "when": 1795390566805,
+      "tag": "0082_remove_milestones",
+      "breakpoints": true
+    },
+    {
+      "idx": 83,
+      "version": "7",
+      "when": 1795390916722,
+      "tag": "0083_events",
+      "breakpoints": true
+    },
+    {
+      "idx": 84,
+      "version": "7",
+      "when": 1795391254545,
+      "tag": "0084_quest_days_and_space_changes",
+      "breakpoints": true
+    },
+    {
+      "idx": 85,
+      "version": "7",
+      "when": 1795391879167,
+      "tag": "0085_retire_superseded_tables",
+      "breakpoints": true
+    },
+    {
+      "idx": 86,
+      "version": "7",
+      "when": 1795479882591,
+      "tag": "0086_lists_and_list_items",
+      "breakpoints": true
+    },
+    {
+      "idx": 87,
+      "version": "7",
+      "when": 1795480276596,
+      "tag": "0087_lists_retire_old_names",
+      "breakpoints": true
     }
   ]
 }

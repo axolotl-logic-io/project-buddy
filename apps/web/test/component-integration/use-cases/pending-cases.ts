@@ -1,8 +1,7 @@
 // Use cases written before their tests; each lane removes its entries.
 
-// No lanes have pending cases. When a case is written before its test, add its
-// lane here.
-type Lane = never;
+// The lane that brings the site in line with the rites-and-lists glossary.
+type Lane = "rites-and-lists";
 
 interface PendingCase {
   readonly slug: `use_case_${string}`;

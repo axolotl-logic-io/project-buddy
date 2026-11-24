@@ -10,15 +10,11 @@ import {
   type Page,
 } from "@playwright/test";
 import type { User } from "@/accounts/users-store.ts";
-import { userMessage } from "@/errors/app-error.ts";
 import { HOME_PATH } from "@/routes.ts";
-import { setSpell } from "@/spells/spell-store.ts";
 import { ACCOUNT_COPY } from "@/ui/copy/account.ts";
 import { LINK_PAGE_COPY } from "@/ui/copy/login.ts";
-import { sendMessage } from "./chat-page.ts";
 import { test } from "./fixtures.ts";
 import { logIn } from "./log-in.ts";
-import { alertIn, clickWhenReady } from "./page-helpers.ts";
 import { newSignInLink, signInByLink } from "./sign-in-pages.ts";
 
 // A page in another browser, signed in as account, at address.
@@ -97,9 +93,9 @@ async function answerSignOutEverywhere(
   answer: string,
 ): Promise<void> {
   const dialog = signOutEverywhereDialog(page);
-  await clickWhenReady(
-    page.getByRole("button", { name: ACCOUNT_COPY.signOutEverywhere }),
-  );
+  await page
+    .getByRole("button", { name: ACCOUNT_COPY.signOutEverywhere })
+    .click();
   await expect(dialog).toHaveAccessibleDescription(
     ACCOUNT_COPY.signOutEverywhereDescription,
   );
@@ -112,18 +108,11 @@ test("use_case_sign_out_everywhere", async ({
   page,
   testData,
 }) => {
-  const chat = await testData.chat(await testData.quest());
-  expect(await setSpell(account.id, { chatId: chat.id, spell: "tasks" })).toBe(
-    true,
-  );
+  const quest = await testData.quest();
   const link = await newSignInLink(page, account.email);
   await logIn(page, account);
   await openSecurity(page);
-  const other = await anotherBrowser(
-    browser,
-    account,
-    `/quests/${chat.quest.id}`,
-  );
+  const other = await anotherBrowser(browser, account, `/quests/${quest.id}`);
 
   await test.step("cancelling changes nothing", async () => {
     await answerSignOutEverywhere(page, ACCOUNT_COPY.stay);
@@ -138,12 +127,6 @@ test("use_case_sign_out_everywhere", async ({
     await answerSignOutEverywhere(page, ACCOUNT_COPY.signOutEverywhere);
 
     await expect(page).toHaveURL("/login");
-  });
-
-  await test.step("the chat left open in the other browser says she was signed out", async () => {
-    await sendMessage(other, "Still there?");
-
-    await expect(alertIn(other)).toContainText(userMessage("signed-out"));
   });
 
   await test.step("the other browser shows the sign-in page at its next page", async () => {

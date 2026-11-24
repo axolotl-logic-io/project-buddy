@@ -14,7 +14,7 @@ ln -s "$here/fake-docker.sh" "$work/bin/docker"
 export PATH="$work/bin:$PATH"
 unset ISSUE_PIPELINE_LANE_SLOT ISSUE_PIPELINE_LANE_SLOTS DATABASE_URL E2E_PORT
 unset BUDDY_MODEL EMAIL_TRANSPORT EMAIL_OUTBOX_DIR SESSION_SECRET
-unset FAKE_INSPECTION FAKE_SETUP_FAILURE FAIL_PUBLICATION FAIL_SERVER
+unset FAKE_INSPECTION FAKE_SETUP_FAILURE FAIL_PUBLICATION FAIL_RESET
 
 die() { echo "FAIL: $*" >&2; exit 1; }
 contains() { grep -Fq -- "$2" "$1" || die "$1 must contain $2"; }
@@ -280,7 +280,7 @@ done
 # Every public environment-dependent command fails before Docker/DB/test work.
 rm "$checkout/.env.test"
 clear_log
-for command in test:server test:playwright test:e2e test-db:up test-db:down test-db:reset; do
+for command in test:server test:e2e test-db:up test-db:down test-db:reset; do
   fails bash -c 'cd "$1" && npm run "$2"' -- "$checkout" "$command"
   contains "$work/error" 'Missing apps/web/.env.test'
   contains "$work/error" 'orchestrator provides'
@@ -297,7 +297,7 @@ cat > "$work/record.mjs" <<'JS'
 import fs from 'node:fs';
 const entry = process.argv[1].split('/').at(-1);
 fs.appendFileSync(process.env.COMMAND_LOG, JSON.stringify({entry, args: process.argv.slice(2), database: process.env.DATABASE_URL, port: process.env.E2E_PORT}) + '\n');
-if (entry === 'vitest.mjs' && process.env.FAIL_SERVER === '1') process.exitCode = 17;
+if (entry === 'reset.ts' && process.env.FAIL_RESET === '1') process.exitCode = 17;
 JS
 cp "$work/record.mjs" "$work/checkout two/node_modules/vitest/vitest.mjs"
 cp "$work/record.mjs" "$work/checkout two/node_modules/@playwright/test/cli.js"
@@ -305,29 +305,31 @@ cp "$work/record.mjs" "$checkout/scripts/test-db/reset.ts"
 cp "$work/lane-two-env" "$checkout/.env.test"
 export COMMAND_LOG="$work/command-log"
 : > "$COMMAND_LOG"
-(cd "$checkout" && npm run test:playwright -- test/system/sign-in.spec.ts) > "$work/npm-output" 2>&1
-contains "$COMMAND_LOG" '"args":["test","test/system/sign-in.spec.ts"]'
-not_contains "$COMMAND_LOG" vitest
-not_contains "$COMMAND_LOG" reset
-: > "$COMMAND_LOG"
-(cd "$checkout" && npm run test:e2e) > "$work/npm-output" 2>&1
-[[ "$(wc -l < "$COMMAND_LOG" | tr -d ' ')" == 3 ]] || die 'Wrong e2e stage count'
-sed -n '1p' "$COMMAND_LOG" > "$work/line"; contains "$work/line" '"entry":"reset.ts"'
-sed -n '2p' "$COMMAND_LOG" > "$work/line"; contains "$work/line" '"entry":"vitest.mjs"'
-sed -n '3p' "$COMMAND_LOG" > "$work/line"; contains "$work/line" '"entry":"cli.js"'
-[[ "$(grep -Fc '"database":"postgres://postgres:postgres@127.0.0.1:5433/pb_lane_2","port":"20020"' "$COMMAND_LOG")" == 3 ]] || die 'Stages did not share supplied environment'
-# Options and file filters must reach Playwright, not the intermediate npm run
-# or the database/server stages. In particular, npm consumes --workers without
-# its own `--` separator and leaves the value as an unintended test-file filter.
-: > "$COMMAND_LOG"
-(cd "$checkout" && npm run test:e2e -- --workers 4 --project=chromium test/system/sign-in.spec.ts) > "$work/npm-output" 2>&1
-[[ "$(wc -l < "$COMMAND_LOG" | tr -d ' ')" == 3 ]] || die 'Wrong e2e stage count with options'
+# test:server resets the database, then runs the server tests alone.
+(cd "$checkout" && npm run test:server) > "$work/npm-output" 2>&1
+[[ "$(wc -l < "$COMMAND_LOG" | tr -d ' ')" == 2 ]] || die 'Wrong server stage count'
 sed -n '1p' "$COMMAND_LOG" > "$work/line"; contains "$work/line" '"entry":"reset.ts","args":[]'
 sed -n '2p' "$COMMAND_LOG" > "$work/line"; contains "$work/line" '"entry":"vitest.mjs","args":["run","--config","vitest.server.config.mts"]'
-sed -n '3p' "$COMMAND_LOG" > "$work/line"; contains "$work/line" '"entry":"cli.js","args":["test","--workers","4","--project=chromium","test/system/sign-in.spec.ts"]'
+not_contains "$COMMAND_LOG" '"entry":"cli.js"'
+: > "$COMMAND_LOG"
+# test:e2e resets the database, then runs Playwright alone.
+(cd "$checkout" && npm run test:e2e) > "$work/npm-output" 2>&1
+[[ "$(wc -l < "$COMMAND_LOG" | tr -d ' ')" == 2 ]] || die 'Wrong e2e stage count'
+sed -n '1p' "$COMMAND_LOG" > "$work/line"; contains "$work/line" '"entry":"reset.ts"'
+sed -n '2p' "$COMMAND_LOG" > "$work/line"; contains "$work/line" '"entry":"cli.js"'
+not_contains "$COMMAND_LOG" vitest
+[[ "$(grep -Fc '"database":"postgres://postgres:postgres@127.0.0.1:5433/pb_lane_2","port":"20020"' "$COMMAND_LOG")" == 2 ]] || die 'Stages did not share supplied environment'
+# Options and file filters must reach Playwright, not the intermediate npm run
+# or the database stage. In particular, npm consumes --workers without its own
+# `--` separator and leaves the value as an unintended test-file filter.
+: > "$COMMAND_LOG"
+(cd "$checkout" && npm run test:e2e -- --workers 4 --project=chromium test/system/sign-in.spec.ts) > "$work/npm-output" 2>&1
+[[ "$(wc -l < "$COMMAND_LOG" | tr -d ' ')" == 2 ]] || die 'Wrong e2e stage count with options'
+sed -n '1p' "$COMMAND_LOG" > "$work/line"; contains "$work/line" '"entry":"reset.ts","args":[]'
+sed -n '2p' "$COMMAND_LOG" > "$work/line"; contains "$work/line" '"entry":"cli.js","args":["test","--workers","4","--project=chromium","test/system/sign-in.spec.ts"]'
 same "$work/lane-two-env" "$checkout/.env.test"
 : > "$COMMAND_LOG"
-fails bash -c 'cd "$1" && FAIL_SERVER=1 npm run test:e2e -- --workers 4' -- "$checkout"
+fails bash -c 'cd "$1" && FAIL_RESET=1 npm run test:e2e -- --workers 4' -- "$checkout"
 not_contains "$COMMAND_LOG" '"entry":"cli.js"'
 same "$work/lane-two-env" "$checkout/.env.test"
 
@@ -336,7 +338,7 @@ cp "$checkout/.env.test.example" "$checkout/.env.test"
 cp "$checkout/.env.test" "$work/manual-before"
 clear_log
 : > "$COMMAND_LOG"
-(cd "$checkout" && npm run test:playwright -- test/system/sign-in.spec.ts) > "$work/npm-output" 2>&1
+(cd "$checkout" && npm run test:e2e -- test/system/sign-in.spec.ts) > "$work/npm-output" 2>&1
 contains "$COMMAND_LOG" '"database":"postgres://postgres:postgres@localhost:5433/project_buddy_e2e","port":"3100"'
 not_contains "$COMMAND_LOG" vitest
 same "$work/manual-before" "$checkout/.env.test"

@@ -1,0 +1,539 @@
+import { and, eq, inArray, sql } from "drizzle-orm";
+import {
+  listItemOpenTo,
+  listOpenTo,
+  questOpenTo,
+} from "@/accounts/owner-scope.ts";
+import { getDb, inTransaction, type Transaction } from "@/db/client.ts";
+import { listChanges } from "@/db/tables/list-changes.ts";
+import { listItems, lists } from "@/db/tables/lists.ts";
+import { quests } from "@/db/tables/quests.ts";
+import { withAppErrors } from "@/errors/to-app-error.ts";
+import {
+  latestCheckOff,
+  recordEvents,
+  takeBackEvents,
+} from "@/experience/experience-store.ts";
+import type { QuestId, UserId } from "@/ids.ts";
+import { LIST_TYPE, type ListId, type ListType, listItemText } from "./list.ts";
+import { LIST_ITEM_ID, type ListItemChange } from "./list-item.ts";
+import { type List, readList } from "./list-store.ts";
+import {
+  CHECK_OFF,
+  type Inverse,
+  LIST_INVERSE,
+  undoListChange,
+} from "./list-undo.ts";
+import { retype } from "./retype.ts";
+
+type Row = typeof listItems.$inferSelect;
+
+function toListItem(row: Row): {
+  id: ReturnType<typeof LIST_ITEM_ID.parse>;
+  text: string;
+  taskNumber: number | null;
+  checkedOff: boolean;
+  recurring: boolean;
+  createdAt: Date;
+} {
+  return {
+    id: LIST_ITEM_ID.parse(row.id),
+    text: row.text,
+    taskNumber: row.taskNumber,
+    checkedOff: row.checkedOff,
+    recurring: row.recurring,
+    createdAt: row.createdAt,
+  };
+}
+
+type ListItem = ReturnType<typeof toListItem>;
+
+type ChangeResult = "saved" | "missing" | "invalid-text" | "unchanged";
+type ForwardChange = Exclude<ListItemChange, { kind: "undo" }>;
+
+function listRows(
+  tx: Transaction | ReturnType<typeof getDb>,
+  user: UserId,
+  questId: QuestId,
+  listId: ListId,
+): Promise<Row[]> {
+  return Promise.resolve(
+    tx
+      .select()
+      .from(listItems)
+      .where(
+        and(
+          eq(listItems.questId, questId),
+          eq(listItems.listId, listId),
+          listItemOpenTo(user),
+        ),
+      )
+      .orderBy(listItems.position, listItems.id),
+  );
+}
+
+function readListItems(
+  user: UserId,
+  questId: QuestId,
+  listId: ListId,
+): Promise<ListItem[]> {
+  return withAppErrors("readListItems", async () =>
+    (await listRows(getDb(), user, questId, listId)).map(toListItem),
+  );
+}
+
+interface ListWrite {
+  readonly tx: Transaction;
+  readonly user: UserId;
+  readonly questId: QuestId;
+  readonly listId: ListId;
+  readonly nextTaskNumber: number;
+  readonly atTop: boolean;
+  readonly dailies: boolean;
+  readonly type: ListType;
+}
+
+async function takeTaskNumber({
+  tx,
+  user,
+  questId,
+  nextTaskNumber,
+}: ListWrite): Promise<number> {
+  await tx
+    .update(quests)
+    .set({ nextTaskNumber: nextTaskNumber + 1 })
+    .where(and(eq(quests.id, questId), questOpenTo(user)));
+  return nextTaskNumber;
+}
+
+async function applyChange(
+  write: ListWrite,
+  rows: readonly Row[],
+  change: ForwardChange,
+): Promise<ChangeResult> {
+  const { tx, user, questId, listId, type } = write;
+  if (change.kind === "add") {
+    const text = listItemText(type).safeParse(change.text).data;
+    if (text === undefined) {
+      return "invalid-text";
+    }
+    let taskNumber: number | null = null;
+    if (type === "task") {
+      taskNumber = await takeTaskNumber(write);
+    }
+    let position = (rows.at(-1)?.position ?? -1) + 1;
+    if (write.atTop) {
+      position = (rows[0]?.position ?? 1) - 1;
+    }
+    const [added] = await tx
+      .insert(listItems)
+      .values({
+        questId,
+        listId,
+        text,
+        taskNumber,
+        position,
+      })
+      .returning({ id: listItems.id });
+    if (added === undefined) {
+      throw new Error("Inserting a list item returned no list item");
+    }
+    await recordEvents(tx, { user, questId }, "adding", [added.id]);
+    return "saved";
+  }
+  const index = rows.findIndex(({ id }) => id === change.id);
+  const row = rows.at(index);
+  if (index < 0 || row === undefined) {
+    return "missing";
+  }
+  return applyExisting(write, { rows, index, row }, change);
+}
+
+async function applyExisting(
+  write: ListWrite,
+  {
+    rows,
+    index,
+    row,
+  }: {
+    readonly rows: readonly Row[];
+    readonly index: number;
+    readonly row: Row;
+  },
+  change: Exclude<ForwardChange, { kind: "add" }>,
+): Promise<ChangeResult> {
+  const { tx, user, questId, listId } = write;
+  const target = and(eq(listItems.id, row.id), listItemOpenTo(user));
+  switch (change.kind) {
+    case "edit": {
+      const text = listItemText(write.type).safeParse(change.text).data;
+      if (text === undefined) {
+        return "invalid-text";
+      }
+      if (text === row.text) {
+        return "unchanged";
+      }
+      await tx.update(listItems).set({ text }).where(target);
+      return "saved";
+    }
+    case "check":
+      if (write.type !== "task" || change.checkedOff === row.checkedOff) {
+        return "unchanged";
+      }
+      if (change.checkedOff) {
+        await recordEvents(tx, { user, questId }, "checking-off", [
+          String(row.taskNumber),
+        ]);
+      } else {
+        await takeBackEvents(tx, "checking-off", questId, [
+          String(row.taskNumber),
+        ]);
+      }
+      await tx
+        .update(listItems)
+        .set({ checkedOff: change.checkedOff })
+        .where(target);
+      return "saved";
+    case "recurring":
+      if (
+        !write.dailies ||
+        write.type !== "task" ||
+        row.recurring === change.recurring
+      ) {
+        return "unchanged";
+      }
+      await tx
+        .update(listItems)
+        .set({ recurring: change.recurring })
+        .where(target);
+      return "saved";
+    case "remove":
+      await tx.delete(listItems).where(target);
+      return "saved";
+    case "move": {
+      if (change.destination === listId) {
+        return "unchanged";
+      }
+      const [destination] = await tx
+        .select({ type: lists.type })
+        .from(lists)
+        .where(
+          and(
+            eq(lists.id, change.destination),
+            eq(lists.questId, questId),
+            listOpenTo(user),
+          ),
+        );
+      if (destination === undefined) {
+        return "missing";
+      }
+      const retyped = await retype(tx, { user, questId }, [row], {
+        from: write.type,
+        to: LIST_TYPE.parse(destination.type),
+      });
+      if (retyped !== "saved") {
+        return retyped;
+      }
+      const destinationRows = await listRows(
+        tx,
+        user,
+        questId,
+        change.destination,
+      );
+      await tx
+        .update(listItems)
+        .set({
+          listId: change.destination,
+          position: (destinationRows.at(-1)?.position ?? -1) + 1,
+        })
+        .where(target);
+      return "saved";
+    }
+    case "place": {
+      const reordered = rows.filter(({ id }) => id !== row.id);
+      let before = reordered.length;
+      if (change.before !== undefined) {
+        before = reordered.findIndex(({ id }) => id === change.before);
+        if (before < 0) {
+          return "missing";
+        }
+      }
+      if (before === index) {
+        return "unchanged";
+      }
+      reordered.splice(before, 0, row);
+      const positions = sql.join(
+        reordered.map(
+          (item, position) =>
+            sql`when ${item.id}::uuid then ${position}::integer`,
+        ),
+        sql` `,
+      );
+      await tx
+        .update(listItems)
+        .set({ position: sql`case ${listItems.id} ${positions} end` })
+        .where(and(eq(listItems.listId, listId), listItemOpenTo(user)));
+      return "saved";
+    }
+    case "reorder": {
+      let neighbourIndex = index + 1;
+      if (change.direction === "up") {
+        neighbourIndex = index - 1;
+      }
+      const neighbour = rows[neighbourIndex];
+      if (neighbour === undefined) {
+        return "unchanged";
+      }
+      await tx
+        .update(listItems)
+        .set({
+          position: sql`case when ${listItems.id} = ${row.id} then ${neighbour.position}::integer else ${row.position}::integer end`,
+        })
+        .where(
+          and(
+            inArray(listItems.id, [row.id, neighbour.id]),
+            listItemOpenTo(user),
+          ),
+        );
+      return "saved";
+    }
+    default: {
+      const exhaustive: never = change;
+      return exhaustive;
+    }
+  }
+}
+
+async function captureCheckOff(
+  tx: Transaction,
+  questId: QuestId,
+  row: Row | undefined,
+  change: ForwardChange,
+): Promise<Inverse["checkOff"]> {
+  if (
+    (change.kind === "check" || change.kind === "move") &&
+    row !== undefined &&
+    row.taskNumber !== null
+  ) {
+    const event = await latestCheckOff(tx, questId, row.taskNumber);
+    if (event !== undefined) {
+      return CHECK_OFF.parse(event);
+    }
+  }
+  return undefined;
+}
+
+async function inverseFor(
+  write: ListWrite,
+  rows: readonly Row[],
+  change: ForwardChange,
+): Promise<{ readonly result: ChangeResult; readonly inverse?: Inverse }> {
+  const { tx, user, questId, listId } = write;
+  let before: Row | undefined;
+  let neighbour: string | undefined;
+  if (change.kind !== "add") {
+    const index = rows.findIndex(({ id }) => id === change.id);
+    if (index >= 0) {
+      before = rows[index];
+      neighbour = rows[index + 1]?.id;
+    }
+  }
+  const checkOff = await captureCheckOff(tx, questId, before, change);
+  const result = await applyChange(write, rows, change);
+  if (result !== "saved") {
+    return { result };
+  }
+  let destination = listId;
+  if (change.kind === "move") {
+    ({ destination } = change);
+  }
+  const saved = await listRows(tx, user, questId, destination);
+  let after = saved.find(({ id }) => id === before?.id);
+  if (change.kind === "add") {
+    const previous = new Set(rows.map(({ id }) => id));
+    after = saved.find(({ id }) => !previous.has(id));
+  }
+  const checkOffAfter = await captureCheckOff(tx, questId, after, change);
+  return {
+    result,
+    inverse: LIST_INVERSE.parse({
+      kind: change.kind,
+      before,
+      after,
+      neighbour,
+      checkOff,
+      checkOffAfter,
+    }),
+  };
+}
+
+async function changeWithin(
+  tx: Transaction,
+  user: UserId,
+  {
+    questId,
+    listId,
+    activeOnly = false,
+    atTop = false,
+  }: {
+    readonly questId: QuestId;
+    readonly listId: ListId;
+    readonly activeOnly?: boolean;
+    readonly atTop?: boolean;
+  },
+  change: ListItemChange,
+): Promise<ChangeResult> {
+  const [quest] = await tx
+    .select({
+      nextTaskNumber: quests.nextTaskNumber,
+      status: quests.status,
+      dailies: quests.dailies,
+    })
+    .from(quests)
+    .where(and(eq(quests.id, questId), questOpenTo(user)))
+    .for("update");
+  if (
+    quest === undefined ||
+    (activeOnly === true && quest.status !== "active")
+  ) {
+    return "missing";
+  }
+  const [list] = await tx
+    .select({ type: lists.type })
+    .from(lists)
+    .where(
+      and(eq(lists.questId, questId), eq(lists.id, listId), listOpenTo(user)),
+    );
+  if (list === undefined) {
+    return "missing";
+  }
+  if (change.kind === "undo") {
+    return undoListChange(tx, user, { questId, listId }, change.version);
+  }
+  const rows = await listRows(tx, user, questId, listId);
+  const { result, inverse } = await inverseFor(
+    {
+      tx,
+      user,
+      questId,
+      listId,
+      atTop,
+      nextTaskNumber: quest.nextTaskNumber,
+      dailies: quest.dailies,
+      type: LIST_TYPE.parse(list.type),
+    },
+    rows,
+    change,
+  );
+  if (inverse !== undefined) {
+    const changed = [listId];
+    if (change.kind === "move") {
+      changed.push(change.destination);
+    }
+    const versions = await tx
+      .update(lists)
+      .set({ version: sql`${lists.version} + 1` })
+      .where(and(inArray(lists.id, changed), listOpenTo(user)))
+      .returning({ listId: lists.id, version: lists.version });
+    await tx
+      .insert(listChanges)
+      .values(versions.map((version) => ({ ...version, inverse })));
+  }
+  return result;
+}
+
+function changeListItem(
+  user: UserId,
+  questId: QuestId,
+  listId: ListId,
+  change: ListItemChange,
+): Promise<ChangeResult> {
+  return withAppErrors("changeListItem", () =>
+    inTransaction((tx) => changeWithin(tx, user, { questId, listId }, change)),
+  );
+}
+
+interface ListContents extends List {
+  readonly listItems: readonly ListItem[];
+}
+
+async function listContents(
+  db: ReturnType<typeof getDb>,
+  user: UserId,
+  questId: QuestId,
+  listId: ListId,
+): Promise<ListContents | undefined> {
+  const list = await readList(db, user, questId, listId);
+  if (list === undefined) {
+    return undefined;
+  }
+  const rows = await listRows(db, user, questId, listId);
+  return { ...list, listItems: rows.map(toListItem) };
+}
+
+function readListContents(
+  user: UserId,
+  questId: QuestId,
+  listId: ListId,
+): Promise<ListContents | undefined> {
+  return withAppErrors("readListContents", () =>
+    listContents(getDb(), user, questId, listId),
+  );
+}
+
+function writeListContents(
+  user: UserId,
+  questId: QuestId,
+  listId: ListId,
+  change: ListItemChange,
+): Promise<{
+  readonly result: ChangeResult;
+  readonly list?: ListContents | undefined;
+}> {
+  return withAppErrors("writeListContents", () =>
+    inTransaction(async (tx) => {
+      const result = await changeWithin(tx, user, { questId, listId }, change);
+      if (result !== "saved") {
+        return { result };
+      }
+      return { result, list: await listContents(tx, user, questId, listId) };
+    }),
+  );
+}
+
+function readNextTask(
+  user: UserId,
+  questId: QuestId,
+): Promise<ListItem | undefined> {
+  return withAppErrors("readNextTask", async () => {
+    const [row] = await getDb()
+      .select({ item: listItems })
+      .from(listItems)
+      .innerJoin(lists, eq(lists.id, listItems.listId))
+      .where(
+        and(
+          eq(listItems.questId, questId),
+          listItemOpenTo(user),
+          listOpenTo(user),
+          eq(lists.type, "task"),
+          eq(listItems.checkedOff, false),
+        ),
+      )
+      .orderBy(lists.position, listItems.position, listItems.id)
+      .limit(1);
+    if (row === undefined) {
+      return;
+    }
+    return toListItem(row.item);
+  });
+}
+
+export type { ListItem };
+export {
+  changeListItem,
+  changeWithin,
+  readListContents,
+  readListItems,
+  readNextTask,
+  writeListContents,
+};

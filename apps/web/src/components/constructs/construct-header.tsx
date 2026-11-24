@@ -15,9 +15,9 @@ import {
 } from "@/ui/copy/construct-discovery.ts";
 
 interface ConstructHeaderProps {
-  /** The conversation's saved identity, including its visual metadata. */
+  /** The quest's saved identity, including its visual metadata. */
   readonly construct: Construct;
-  /** The surrounding conversation heading already names the construct. */
+  /** The surrounding quest heading already names the construct. */
   readonly compact?: boolean;
 }
 

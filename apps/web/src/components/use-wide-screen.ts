@@ -3,7 +3,7 @@
 import { useSyncExternalStore } from "react";
 
 // From this width (the lg breakpoint) the site's side panels, the site panel
-// on the left and the chat panel on the right, dock beside the page instead
+// on the left and the quest panel on the right, dock beside the page instead
 // of opening as drawers over it.
 const WIDE_SCREEN = "(min-width: 64rem)";
 

@@ -42,7 +42,7 @@ interface Site {
 }
 
 // A review account signed in to the site: its session cookie, and where its
-// quests and spells are.
+// quests and rites are.
 interface SignedIn {
   readonly email: string;
   readonly cookie: { readonly name: string; readonly value: string };
@@ -316,18 +316,18 @@ async function signIn(
       `The site at ${origin} didn't sign ${account.email} in: it must use this worktree's development database and SESSION_SECRET.`,
     );
   }
-  const [questData, spellData] = await Promise.all([
+  const [questData, riteData] = await Promise.all([
     getJson(origin, "/api/v1/quests", cookie),
-    getJson(origin, "/api/v1/spells", cookie),
+    getJson(origin, "/api/v1/rites", cookie),
   ]);
   const quests = NAMED_ITEMS.parse(questData);
-  const spells = NAMED_ITEMS.parse(spellData);
+  const rites = NAMED_ITEMS.parse(riteData);
   return {
     email: account.email,
     cookie: { name: SESSION_COOKIE_NAME, value },
     find: {
       quest: finder(quests.items, "/quests", account.email),
-      spell: finder(spells.items, "/spellbook", account.email),
+      rite: finder(rites.items, "/grimoire", account.email),
     },
   };
 }

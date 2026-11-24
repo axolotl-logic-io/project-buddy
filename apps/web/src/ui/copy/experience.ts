@@ -1,8 +1,8 @@
-import type { Ability } from "@/experience/experience.ts";
+import type { Event } from "@/experience/experience.ts";
 
-// Profile's experience card and Abilities, the construct's reply to the exp
+// Profile's experience card and Events, the construct's reply to the exp
 // command, and the ring in the site header: the user's circle, its title, the
-// experience they have and still need, and their points in each ability.
+// experience they have and still need, and their counts in each event.
 export const EXPERIENCE_COPY = {
   // The experience card's accessible name.
   heading: "Experience",
@@ -28,41 +28,30 @@ export const EXPERIENCE_COPY = {
   progressLabel: (next: number): string => `Progress to circle ${next}`,
   nextTitle: (title: string, circle: number): string =>
     `${title} awaits at circle ${circle}`,
-  abilitiesLabel: "Abilities",
-  abilities: {
-    "adding-tasks": "Adding tasks",
-    ideating: "Ideating",
-    noting: "Quick Notes",
-    "completing-tasks": "Completing tasks",
+  eventsLabel: "Events",
+  events: {
+    adding: "Adding",
+    "checking-off": "Checking off",
     "completing-quests": "Completing quests",
-  } satisfies Record<Ability, string>,
-  points: (points: number): string => {
-    if (points === 1) {
-      return "1 point";
+  } satisfies Record<Event, string>,
+  eventUnit: (counts: number): "event" | "events" => {
+    if (counts === 1) {
+      return "event";
     }
-    return `${points} points`;
+    return "events";
   },
-  // The word after an ability tile's count of points.
-  pointUnit: (points: number): "point" | "points" => {
-    if (points === 1) {
-      return "point";
-    }
-    return "points";
-  },
-  // The experience an ability's points are worth, on its tile.
+  // The experience an event's counts are worth, on its tile.
   worth: (experience: number): string => `+${experience} experience`,
-  // The badge on the ability that earned the most experience.
+  // The badge on the event that earned the most experience.
   mostExperience: "Most experience",
-  // The first thing to do in each ability, for an untried ability's tile.
+  // The first thing to do in each event, for an untried event's tile.
   firstSteps: {
-    "adding-tasks": "Add your first task",
-    ideating: "Add your first idea",
-    noting: "Save your first Quick Note",
-    "completing-tasks": "Complete your first task",
+    adding: "Add your first list item",
+    "checking-off": "Check off your first task",
     "completing-quests": "Complete your first quest",
-  } satisfies Record<Ability, string>,
-  // What an ability with no points says: its first step (from firstSteps)
-  // and what that first point is worth.
+  } satisfies Record<Event, string>,
+  // What an event with no counts says: its first step (from firstSteps)
+  // and what that first event is worth.
   untried: (firstStep: string, worth: number): string =>
     `Not yet tried. ${firstStep} for +${worth}.`,
 } as const;

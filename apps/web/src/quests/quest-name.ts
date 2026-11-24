@@ -1,5 +1,5 @@
 // The rule for a new quest's name, shared by the New Quest form, the
-// new-chat form's name dialog and the construct's create_quest tool: trimmed,
+// quest form's name dialog: trimmed,
 // at least one character and at most QUEST_NAME_MAX_LENGTH. Its length is
 // counted in UTF-16 code units, as an input's maxLength counts, so the
 // browser and the server agree; an emoji takes 2 or more. A QuestName

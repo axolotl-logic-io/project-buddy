@@ -39,7 +39,6 @@ const LAST_PAUSE_MS = 300;
 const NAVIGATION_TIMEOUT_MS = 120_000;
 const THEME_COOKIE = "theme";
 // Requests a view holds on purpose (quest--loading-reply), which never end.
-const HELD_REQUESTS = /\/api\/chat/u;
 
 // A page, and how long since it last had a request in flight.
 interface WatchedPage {
@@ -71,10 +70,8 @@ function watch(page: Page): WatchedPage {
   const inFlight = new Set<Request>();
   let changed = Date.now();
   function started(request: Request): void {
-    if (!HELD_REQUESTS.test(request.url())) {
-      inFlight.add(request);
-      changed = Date.now();
-    }
+    inFlight.add(request);
+    changed = Date.now();
   }
   function ended(request: Request): void {
     inFlight.delete(request);
@@ -215,7 +212,7 @@ function resolvePath(path: ViewPath, find: ViewFinder | undefined): string {
     return path;
   }
   if (find === undefined) {
-    throw new Error("A signed-out view can't look up a quest or spell.");
+    throw new Error("A signed-out view can't look up a quest or rite.");
   }
   return path(find);
 }

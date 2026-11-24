@@ -15,9 +15,10 @@ import { Button } from "@/components/ui/button.tsx";
 import { Alert, FormStatus } from "@/components/ui/form-message.tsx";
 import { useQuestAction } from "@/components/use-quest-action.ts";
 import { todayHere } from "@/dailies/dailies.ts";
-import { changeDayAction } from "@/dailies/day-actions.ts";
-import type { ChatId, QuestId } from "@/ids.ts";
-import { QUEST_CONVERSATION_COPY } from "@/ui/copy/conversation.ts";
+import { changeQuestDay } from "@/dailies/quest-day-actions.ts";
+import type { QuestId } from "@/ids.ts";
+import type { List } from "@/lists/list-store.ts";
+import { DAY_GRID_COPY } from "@/ui/copy/dailies.ts";
 
 const MINUTE_MS = 60_000;
 
@@ -55,42 +56,38 @@ function LastStarted({
     noMinute,
   );
   if (startedAt === undefined) {
-    return (
-      <p className="text-muted text-sm">{QUEST_CONVERSATION_COPY.noDayYet}</p>
-    );
+    return <p className="text-muted text-sm">{DAY_GRID_COPY.noDayYet}</p>;
   }
   if (minute === NOT_HYDRATED) {
     return (
       <p className="invisible text-muted text-sm">
-        {QUEST_CONVERSATION_COPY.lastDayStarted(0)}
+        {DAY_GRID_COPY.lastDayStarted(0)}
       </p>
     );
   }
   return (
     <p className="text-muted text-sm">
-      {QUEST_CONVERSATION_COPY.lastDayStarted(
-        minute * MINUTE_MS - startedAt.getTime(),
-      )}
+      {DAY_GRID_COPY.lastDayStarted(minute * MINUTE_MS - startedAt.getTime())}
     </p>
   );
 }
 
 function StartDay({
   questId,
-  chatId,
+  lists,
   lastStartedAt,
   undoable,
   children,
 }: {
   readonly questId: QuestId;
-  readonly chatId: ChatId | undefined;
+  readonly lists: readonly List[];
   readonly lastStartedAt: Date | undefined;
   readonly undoable: boolean;
   readonly children?: ReactNode;
 }): JSX.Element {
   const [open, setOpen] = useState(false);
   const startRef = useRef<HTMLButtonElement>(null);
-  const { run, busy, status, problem } = useQuestAction(changeDayAction);
+  const { run, busy, status, problem } = useQuestAction(changeQuestDay);
   const start = useCallback(
     (event: SubmitEvent<HTMLFormElement>): void => {
       event.preventDefault();
@@ -98,10 +95,8 @@ function StartDay({
       run({
         op: "start",
         questId,
-        chatId,
         localDate: todayHere(new Date()),
-        clearTasks: form.get("clearTasks") === "on",
-        clearIdeas: form.get("clearIdeas") === "on",
+        emptyLists: form.getAll("emptyLists"),
       })
         .then((saved) => {
           if (saved) {
@@ -110,21 +105,21 @@ function StartDay({
         })
         .catch(() => undefined);
     },
-    [questId, chatId, run],
+    [questId, run],
   );
   const undo = useCallback((): void => {
-    run({ op: "undo", questId, chatId })
+    run({ op: "undo", questId })
       .finally(() => startRef.current?.focus())
       .catch(() => undefined);
-  }, [questId, chatId, run]);
-  const label = QUEST_CONVERSATION_COPY.startDay;
+  }, [questId, run]);
+  const label = DAY_GRID_COPY.startDay;
   return (
     <div className="flex flex-col items-start gap-1">
       <FormDialog
         open={open}
         onOpenChange={setOpen}
         title={label}
-        closeLabel={QUEST_CONVERSATION_COPY.cancel}
+        closeLabel={DAY_GRID_COPY.cancel}
         trigger={
           <Button ref={startRef} variant="secondary">
             {label}
@@ -132,20 +127,17 @@ function StartDay({
         }
       >
         <form onSubmit={start} className="flex flex-col gap-3">
-          <p>{QUEST_CONVERSATION_COPY.confirmStartDay}</p>
-          <label>
-            <input type="checkbox" name="clearTasks" />{" "}
-            {QUEST_CONVERSATION_COPY.clearTasks}
-          </label>
-          <p className="text-muted">{QUEST_CONVERSATION_COPY.keepTasks}</p>
-          <label>
-            <input type="checkbox" name="clearIdeas" />{" "}
-            {QUEST_CONVERSATION_COPY.clearIdeas}
-          </label>
+          <p>{DAY_GRID_COPY.confirmStartDay}</p>
+          <fieldset className="flex flex-col gap-2">
+            <legend>{DAY_GRID_COPY.emptyLists}</legend>
+            {lists.map(({ id, name }) => (
+              <label key={id}>
+                <input type="checkbox" name="emptyLists" value={id} /> {name}
+              </label>
+            ))}
+          </fieldset>
           <Dialog.Close asChild={true}>
-            <Button variant="secondary">
-              {QUEST_CONVERSATION_COPY.cancel}
-            </Button>
+            <Button variant="secondary">{DAY_GRID_COPY.cancel}</Button>
           </Dialog.Close>
           <Button
             type="submit"
@@ -167,11 +159,9 @@ function StartDay({
             disabled={busy}
             onClick={undo}
           >
-            {QUEST_CONVERSATION_COPY.undoStartDay}
+            {DAY_GRID_COPY.undoStartDay}
           </Button>
-          <p className="text-muted text-sm">
-            {QUEST_CONVERSATION_COPY.undoNote}
-          </p>
+          <p className="text-muted text-sm">{DAY_GRID_COPY.undoNote}</p>
         </div>
       )}
       {children}

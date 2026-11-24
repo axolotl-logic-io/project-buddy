@@ -1,5 +1,5 @@
 // Times show in the zone of her browser, not the server's: a quest's
-// start ("use_case_view_quests"), a chat's start ("use_case_open_quest")
+// start ("use_case_view_quests"), a performance's start ("use_case_open_quest")
 // that falls on a different day in New York than in Tokyo. The server
 // renders them in UTC, unseen, and hydrating shows the browser's time with
 // no mismatch. The browser-<zone> quests in vitest.config.mts run this
@@ -19,17 +19,15 @@ import {
   vi,
 } from "vitest";
 import { page } from "vitest/browser";
-import { ForgottenSpellDetail } from "@/app/(workspace)/spellbook/forgotten-detail.tsx";
-import { ForgottenSpellList } from "@/app/(workspace)/spellbook/forgotten-list.tsx";
+
 import { LocalTime } from "@/components/local-time.tsx";
 import { QuestList } from "@/components/quest-list.tsx";
 import { formatTime, type TimeDetail } from "@/components/time-format.ts";
-import { getRetiredDefinition } from "@/retirement/retirement-store.ts";
+
 import { DEFAULT_THEME_CHOICE } from "@/themes/themes.ts";
 import { QUESTS_COPY } from "@/ui/copy/quests.ts";
 import { questIdFixture } from "../../support/id-fixtures.ts";
-import { SIGNED_IN_USER, signInAs } from "../auth/current-user-test-kit.ts";
-import { RETIRED_SPELL } from "../retirement/retirement-fixtures.ts";
+
 import {
   installThemeFonts,
   loadFonts,
@@ -165,7 +163,7 @@ afterEach(() => {
 });
 
 describe("use_case_view_quests", () => {
-  test(`a project's start shows on her day, in ${browserZone()}`, async () => {
+  test(`a quest's start shows on her day, in ${browserZone()}`, async () => {
     const hydration = serverRenderThenHydrate(
       <QuestList
         quests={[
@@ -176,6 +174,7 @@ describe("use_case_view_quests", () => {
             status: "active",
             statusRevision: 0,
             dailies: false,
+            constructId: "lumen",
             sharing: { kind: "personal" },
           },
         ]}
@@ -214,25 +213,3 @@ vi.mock(
   "@/auth/current-user.ts",
   () => import("../auth/current-user-test-kit.ts"),
 );
-vi.mock("@/retirement/retirement-store.ts", () => ({
-  getRetiredDefinition: vi.fn(),
-}));
-vi.mock("@/app/(workspace)/spellbook/forgotten-actions.ts", () => ({
-  restoreDefinitionAction: vi.fn(),
-  deleteRetiredDefinitionAction: vi.fn(),
-}));
-
-test("Retirement list and detail show the local retirement day", async () => {
-  signInAs(SIGNED_IN_USER);
-  const definition = { ...RETIRED_SPELL, retiredAt: INSTANT };
-  vi.mocked(getRetiredDefinition).mockResolvedValue(definition);
-  serverRenderThenHydrate(<ForgottenSpellList definitions={[definition]} />);
-  await expect.element(page.getByText(zoneTimes().day)).toBeVisible();
-  root?.unmount();
-  container?.remove();
-  const detail = await ForgottenSpellDetail({
-    definition,
-  });
-  serverRenderThenHydrate(detail);
-  await expect.element(page.getByText(zoneTimes().day)).toBeVisible();
-});

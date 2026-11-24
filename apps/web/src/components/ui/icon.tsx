@@ -35,21 +35,21 @@ const ICON_PATHS = {
   "chevron-right": { stroke: "m6 4 4 4-4 4" },
   // A cross, for closing a panel.
   close: { stroke: "M4 4l8 8M12 4l-8 8" },
-  // A flag on its pole, for a milestone of a quest's progress.
+  // A flag on its pole, for completed quests.
   flag: { stroke: "M3.5 14V2.5M3.5 3h8.5l-2.25 3 2.25 3H3.5" },
-  // A page with a panel docked on its right, for the chat panel.
+  // A page with a panel docked on its right, for the quest panel.
   sidebar: { stroke: "M2 2.5h12v11H2zM10 2.5v11" },
   // The mirror image, a page with a panel docked on its left, for the site
   // panel, with lines standing for the links in it.
   "site-panel": { stroke: "M2 2.5h12v11H2zM6 2.5v11M3.5 5h1M3.5 7h1" },
   // Three dots, for additional actions.
   more: { stroke: "M3 8h.01M8 8h.01M13 8h.01" },
-  // A four-pointed star, for an idea.
+  // A four-pointed star, for a highlight.
   sparkle: {
     stroke:
       "M8 2c.5 3 1.5 4.5 5 6-3.5 1.5-4.5 3-5 6-.5-3-1.5-4.5-5-6 3.5-1.5 4.5-3 5-6z",
   },
-  // A page with a folded corner and two lines, for a Quick Note.
+  // A page with a folded corner and two lines, for Quick Add.
   note: { stroke: "M3.5 2h6l3 3v9h-9zM9.5 2v3h3M5.5 8.5h5M5.5 11h3.5" },
   // A plus sign, for making something new.
   hourglass: {
