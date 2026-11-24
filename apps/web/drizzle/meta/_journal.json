@@ -610,6 +610,13 @@
       "when": 1795479882591,
       "tag": "0086_lists_and_list_items",
       "breakpoints": true
+    },
+    {
+      "idx": 87,
+      "version": "7",
+      "when": 1795480276596,
+      "tag": "0087_lists_retire_old_names",
+      "breakpoints": true
     }
   ]
 }
