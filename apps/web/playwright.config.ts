@@ -27,7 +27,7 @@ interface RunSettings {
 const CI_RUN: RunSettings = {
   forbidOnly: true,
   // Annotations on the PR, and an HTML report with each failure's trace,
-  // which the Full suite workflow uploads when the run fails.
+  // which the CI workflow uploads when the run fails.
   reporter: [["github"], ["html", { open: "never" }]],
   trace: "retain-on-failure",
   // Playwright's default, half the cores: more is unmeasured on CI's runners.
@@ -86,7 +86,7 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: `npm run build && npm run check:build-fonts && npm run start -- --port ${port}`,
+    command: `npm run build && node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/check-build-font-urls.ts && npm run start -- --port ${port}`,
     wait: { stdout: OWN_SERVER_LISTENING },
     // Never use URL health as readiness: this process must bind successfully.
     reuseExistingServer: false,
