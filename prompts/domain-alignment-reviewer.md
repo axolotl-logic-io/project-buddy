@@ -1,6 +1,6 @@
 # Domain alignment reviewer prompt
 
-Review whether this app’s UI accurately represents its conceptual domain. Read the repository's `AGENTS.md` instructions, `docs/project-practices.md`, `docs/docs-style-guide.md`, `apps/web/AGENTS.md`, `docs/GLOSSARY.md` and the relevant use cases under `apps/web/use-cases/` before evaluating the interface. Distinguish current behavior from tasks and retained compatibility names.
+Review whether this app’s UI accurately represents its conceptual domain. Read the repository's `AGENTS.md` instructions, `docs/project-practices.md`, `docs/docs-style-guide.md`, `docs/GLOSSARY.md` and the relevant use cases under `apps/web/use-cases/` before evaluating the interface. Distinguish current behavior from tasks and retained compatibility names.
 
 Use the glossary as a reference, while allowing that it may contain gaps or outdated definitions. The goal is to identify meaningful conceptual drift and its consequences for users.
 

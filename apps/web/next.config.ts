@@ -4,6 +4,10 @@ const nextConfig: NextConfig = {
   /* config options here */
   cacheComponents: true,
   partialPrefetching: true,
+  // `next dev` would otherwise write its Next.js rules into apps/web/AGENTS.md
+  // whenever it detects an AI coding agent. The agent rules live in the root
+  // AGENTS.md instead.
+  agentRules: false,
   experimental: {
     // Every page renders per request and waits for the session lookup, as
     // the root layout's `instant = false` declares (src/app/layout.tsx).
