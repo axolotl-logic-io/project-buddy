@@ -110,6 +110,7 @@ async function applyChange(
   write: ListWrite,
   rows: readonly Row[],
   change: ForwardChange,
+  index: number,
 ): Promise<ChangeResult> {
   const { tx, user, questId, listId, type } = write;
   if (change.kind === "add") {
@@ -141,9 +142,8 @@ async function applyChange(
     await recordEvents(tx, { user, questId }, "adding", [added.id]);
     return "saved";
   }
-  const index = rows.findIndex(({ id }) => id === change.id);
-  const row = rows.at(index);
-  if (index < 0 || row === undefined) {
+  const row = rows[index];
+  if (row === undefined) {
     return "missing";
   }
   return applyExisting(write, { rows, index, row }, change);
@@ -323,23 +323,47 @@ async function captureCheckOff(
   return undefined;
 }
 
+async function captureBeforeChange(
+  write: ListWrite,
+  rows: readonly Row[],
+  change: ForwardChange,
+): Promise<{
+  readonly index: number;
+  readonly before: Row | undefined;
+  readonly neighbour: string | undefined;
+  readonly checkOff: Inverse["checkOff"];
+}> {
+  let index = -1;
+  let neighbour: string | undefined;
+  if (change.kind !== "add") {
+    index = rows.findIndex(({ id }) => id === change.id);
+    if (index >= 0) {
+      neighbour = rows[index + 1]?.id;
+    }
+  }
+  const before = rows[index];
+  // Check-off and move can change the event that undo needs to restore.
+  const checkOff = await captureCheckOff(
+    write.tx,
+    write.questId,
+    before,
+    change,
+  );
+  return { index, before, neighbour, checkOff };
+}
+
 async function inverseFor(
   write: ListWrite,
   rows: readonly Row[],
   change: ForwardChange,
 ): Promise<{ readonly result: ChangeResult; readonly inverse?: Inverse }> {
   const { tx, user, questId, listId } = write;
-  let before: Row | undefined;
-  let neighbour: string | undefined;
-  if (change.kind !== "add") {
-    const index = rows.findIndex(({ id }) => id === change.id);
-    if (index >= 0) {
-      before = rows[index];
-      neighbour = rows[index + 1]?.id;
-    }
-  }
-  const checkOff = await captureCheckOff(tx, questId, before, change);
-  const result = await applyChange(write, rows, change);
+  const { index, before, neighbour, checkOff } = await captureBeforeChange(
+    write,
+    rows,
+    change,
+  );
+  const result = await applyChange(write, rows, change, index);
   if (result !== "saved") {
     return { result };
   }

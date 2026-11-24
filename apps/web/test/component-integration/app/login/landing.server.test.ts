@@ -1,4 +1,5 @@
 import { describe, expect, test, vi } from "vitest";
+import { newToken } from "@/accounts/emailed-link.ts";
 import { continueSignInAction } from "@/app/login/link/actions.ts";
 import { currentUser } from "@/auth/current-user.ts";
 import { testData } from "../../../support/test-database/data-test-kit.ts";
@@ -40,13 +41,16 @@ describe("sign-in landing destination", () => {
     expect((await currentUser())?.id).toBe(user.id);
   });
 
-  test("an invalid sign-in link cannot open a return destination or create a session", async () => {
-    const form = new FormData();
-    form.set("token", "invalid");
-    form.set("next", "/quests");
-    await expectRedirect(() => continueSignInAction(form), "/login/link", {
-      token: "invalid",
-    });
-    expect(await currentUser()).toBeUndefined();
-  });
+  test.each(["invalid", newToken()])(
+    "an unrecognized sign-in token cannot open a return destination or create a session",
+    async (token) => {
+      const form = new FormData();
+      form.set("token", token);
+      form.set("next", "/quests");
+      await expectRedirect(() => continueSignInAction(form), "/login/link", {
+        token,
+      });
+      expect(await currentUser()).toBeUndefined();
+    },
+  );
 });

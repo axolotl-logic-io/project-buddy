@@ -179,7 +179,6 @@ function startQuestDay(
           return false;
         }
       }
-      const [previous] = await recentDays(owner, questId, tx, 1);
       const rows = await questListItems(tx, owner, questId);
       const removedLists = new Set<string>(emptyLists);
       const removed = rows.filter(({ listId }) => removedLists.has(listId));
@@ -187,20 +186,24 @@ function startQuestDay(
         (row) =>
           !removedLists.has(row.listId) && row.recurring && row.checkedOff,
       );
-      if (previous !== undefined) {
-        const tasks = rows.flatMap((row) => {
-          if (!row.recurring || row.taskNumber === null) {
-            return [];
-          }
-          return [
-            { number: row.taskNumber, text: row.text, done: row.checkedOff },
-          ];
-        });
-        await tx
-          .update(questDays)
-          .set({ tasks, undo: null })
-          .where(and(eq(questDays.id, previous.id), dayScope(owner, questId)));
-      }
+      const previousDay = tx
+        .select({ id: questDays.id })
+        .from(questDays)
+        .where(dayScope(owner, questId))
+        .orderBy(desc(questDays.startedAt), desc(questDays.id))
+        .limit(1);
+      const tasks = rows.flatMap((row) => {
+        if (!row.recurring || row.taskNumber === null) {
+          return [];
+        }
+        return [
+          { number: row.taskNumber, text: row.text, done: row.checkedOff },
+        ];
+      });
+      await tx
+        .update(questDays)
+        .set({ tasks, undo: null })
+        .where(and(eq(questDays.id, previousDay), dayScope(owner, questId)));
       if (removed.length > 0) {
         await tx.delete(listItems).where(
           and(

@@ -3,13 +3,9 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { z } from "zod";
-import { readSignInLinkUser } from "@/accounts/sign-in-links.ts";
-import { confirmSignUp, readSignUpEmail } from "@/accounts/sign-up-links.ts";
-import { checkUserName } from "@/accounts/user-name.ts";
-import { completeSignUp } from "@/accounts/users-store.ts";
-import { type SessionUser, sessionCookie } from "@/auth/session-token.ts";
+import { authenticateEmailedLink } from "@/accounts/authenticate-emailed-link.ts";
+import { sessionCookie } from "@/auth/session-token.ts";
 import { readSessionSecret } from "@/env.ts";
-import { acceptInvitationLink } from "@/quests/membership-store.ts";
 import {
   HOME_PATH,
   localPath,
@@ -48,35 +44,20 @@ export async function continueSignInAction(
   const name = TOKEN_FIELD.parse(formData.get("name"));
   const destination = localPath(formData.get(SIGN_IN_DESTINATION_PARAMETER));
   const now = new Date();
-  const invitation = await acceptInvitationLink(token, now, name);
-  if (invitation.kind === "needs-name") {
+  const authentication = await authenticateEmailedLink(token, name, now);
+  if (authentication.kind === "needs-name") {
     return NAME_INVALID;
   }
-  if (invitation.kind === "accepted") {
-    (await cookies()).set(
-      await sessionCookie(invitation.user, readSessionSecret(), now),
-    );
-    return redirect(`/quests/${invitation.questId}`);
-  }
-  const linked = await readSignInLinkUser(token, now);
-  if (linked?.needsName === true && !(await completeSignUp(linked.id, name))) {
-    return NAME_INVALID;
-  }
-  let found: SessionUser | undefined = linked;
-  if (
-    found === undefined &&
-    (await readSignUpEmail(token, now)) !== undefined
-  ) {
-    if (checkUserName(name).kind !== "valid") {
-      return NAME_INVALID;
-    }
-    found = await confirmSignUp(token, now, name);
-  }
-  if (found === undefined) {
+  if (authentication.kind !== "authenticated") {
     const linkPage = new URLSearchParams({ token });
     return redirect(`${SIGN_IN_LINK_PATH}?${linkPage.toString()}`);
   }
-  (await cookies()).set(await sessionCookie(found, readSessionSecret(), now));
+  (await cookies()).set(
+    await sessionCookie(authentication.user, readSessionSecret(), now),
+  );
+  if (authentication.questId !== undefined) {
+    return redirect(`/quests/${authentication.questId}`);
+  }
   return redirect(destination ?? HOME_PATH);
 }
 

@@ -42,6 +42,8 @@ Node is pinned to 24 in the root `mise.toml`. Use mise shell activation or prefi
 
 Three npm scripts check quality: `npm run lint` runs Biome and the type check, `npm test` runs every test but the end-to-end tests, and `npm run test:e2e` runs the end-to-end tests. From the repository root they run in every workspace, and in a workspace folder they run there alone. The mise tasks of the same names do the same, as `mise //:test` for every workspace or `mise //apps/web:test` for the site. Run `npm run lint` and `npm test` before committing. See [Tests](#tests) for what each runs.
 
+Run `npm run doctor --workspace @project-buddy/web` to scan the whole site with React Doctor. The required `check` job scans for new findings against the pull request base or the previous `integration` commit. New errors fail the job. Warnings appear in its log.
+
 [Biome](https://biomejs.dev) lints and formats the code. The root `biome.jsonc` holds the policy for the whole repository, and `apps/web/biome.jsonc` extends it with the site's scoped overrides, whose globs are relative to `apps/web/`. Tailwind class order is checked by the lint rule `useSortedClasses`, not by the formatter, so `npm run format` does not sort classes. To apply the sort, run `npx biome lint --write --unsafe --only=nursery/useSortedClasses`.
 
 ### Database
