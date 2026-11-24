@@ -7,7 +7,6 @@ const QUEST_OVERVIEW_COPY = {
   onlyYou: "Just you",
   people: (count: number): string => `${count} people in this quest`,
   check: "Check off",
-  day: "Today",
 };
 
 export { QUEST_OVERVIEW_COPY };

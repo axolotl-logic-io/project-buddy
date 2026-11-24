@@ -617,6 +617,13 @@
       "when": 1795480276596,
       "tag": "0087_lists_retire_old_names",
       "breakpoints": true
+    },
+    {
+      "idx": 88,
+      "version": "7",
+      "when": 1795528599368,
+      "tag": "0088_quest_days_at_midnight",
+      "breakpoints": true
     }
   ]
 }

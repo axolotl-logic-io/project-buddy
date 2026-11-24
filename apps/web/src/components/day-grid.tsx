@@ -1,17 +1,17 @@
 import type { JSX } from "react";
 import {
-  type DailiesDay,
-  type DayTasks,
   dayGrid,
   type LocalDate,
-} from "@/dailies/dailies.ts";
-import { DAY_GRID_COPY } from "@/ui/copy/dailies.ts";
+  type TaskHistory,
+  type TrackedTask,
+} from "@/streaks/streaks.ts";
+import { DAY_GRID_COPY } from "@/ui/copy/day-grid.ts";
 
 // How many calendar dates the grid shows.
 const DAYS_SHOWN = 7;
 
-// The weekday of a calendar date, the same on the server and in every
-// browser, since the date already is the user's own.
+// The weekday of a date, the same on the server and in every browser,
+// since the date is already in the quest owner's time zone.
 const WEEKDAY = new Intl.DateTimeFormat("en", {
   weekday: "short",
   timeZone: "UTC",
@@ -21,23 +21,19 @@ function weekdayOf(date: LocalDate): string {
   return WEEKDAY.format(new Date(`${date}T00:00:00Z`));
 }
 
-// The Dailies quest's recurring tasks over their last seven calendar dates:
-// one row of squares a task, filled when it was done, empty when it wasn't,
-// and dashed on a gap, a date with no day started. It follows the tasks as
-// they change, so checking off a task fills today's square at once. Outside
-// the Dailies quest it shows nothing.
+// A quest's recurring tasks over their last seven dates: one row of squares
+// a task, filled when it was done and empty when it wasn't, and none before
+// the task was added.
 function DayGrid({
-  days,
+  history,
   tasks,
 }: {
-  readonly days: readonly DailiesDay[];
-  readonly tasks: DayTasks;
+  readonly history: TaskHistory;
+  readonly tasks: readonly TrackedTask[];
 }): JSX.Element {
-  const grid = dayGrid(days, tasks, DAYS_SHOWN);
+  const grid = dayGrid(history, tasks, DAYS_SHOWN);
   let body: JSX.Element;
-  if (grid.dates.length === 0) {
-    body = <p className="text-muted text-sm">{DAY_GRID_COPY.noDays}</p>;
-  } else if (grid.rows.length === 0) {
+  if (grid.rows.length === 0) {
     body = <p className="text-muted text-sm">{DAY_GRID_COPY.noRecurring}</p>;
   } else {
     body = (

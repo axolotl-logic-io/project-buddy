@@ -18,7 +18,8 @@ interface RetypedRow {
 
 // Gives the rows the type `to`, coming from a list of type `from`. A task
 // keeps its task number, check-off and recurrence only while it stays a
-// task; leaving the task type takes back a check-off's experience, and
+// task; leaving the task type takes back the experience of a check-off
+// that still counts (src/lists/quest-today.ts), and
 // becoming a task takes a new task number. Answers "invalid-text", and
 // changes nothing, when any row's text doesn't fit the new type.
 async function retype(
@@ -45,7 +46,12 @@ async function retype(
   if (to !== "task") {
     await tx
       .update(listItems)
-      .set({ taskNumber: null, checkedOff: false, recurring: false })
+      .set({
+        taskNumber: null,
+        checkedOff: false,
+        checkedOffOn: null,
+        recurring: false,
+      })
       .where(target);
     return "saved";
   }
@@ -69,6 +75,7 @@ async function retype(
     .set({
       taskNumber: sql`case ${listItems.id} ${numbers} end`,
       checkedOff: false,
+      checkedOffOn: null,
       recurring: false,
     })
     .where(target);

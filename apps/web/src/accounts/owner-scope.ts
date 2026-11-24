@@ -9,17 +9,20 @@
 // their list items and changes, its performances and their messages, and
 // the quest's members and pending invitations, which any of them may see,
 // add to or remove. The owner is never a member row, so no one can remove
-// them. The one action left to the owner alone is finding a quest as their
-// Dailies, with its days (quest_days).
+// them. The quest's day starts at midnight in its owner's time zone, so
+// reading a quest reads its owner's time zone too
+// (src/lists/quest-today.ts), which names no one.
 //
 // A pending quest invitation is not membership: it opens nothing of the
 // quest to its invitee but the quest's name, the inviter's name and the
 // invitation itself, which the invitee alone may accept or decline.
 //
 // Own rites belong to their user alone, and so do events and a timer
-// presence report. The one read across users is how many other accounts
-// follow a schedule, a count that names no one and reaches no quest
-// (src/timer/presence-store.ts). A performance keeps a snapshot of its
+// presence report, with one exception: everyone a quest is open to may see
+// the dates its tasks were checked off, which give the tasks' streaks
+// (src/streaks/streak-store.ts), and never who checked them off. The other
+// read across users is how many other accounts follow a schedule, a count
+// that names no one and reaches no quest (src/timer/presence-store.ts). A performance keeps a snapshot of its
 // rite, so a member sees the snapshot of an own rite used in the quest,
 // never the rite itself.
 //
@@ -34,15 +37,13 @@ import {
   performances,
   rites,
 } from "@/db/tables/performances.ts";
-import { questDays } from "@/db/tables/quest-days.ts";
 import { questInvitations, questMembers } from "@/db/tables/quest-members.ts";
 import { quests } from "@/db/tables/quests.ts";
 import { signedInDays } from "@/db/tables/signed-in-days.ts";
 import { timerPresence } from "@/db/tables/timer-presence.ts";
 import type { QuestId, UserId } from "@/ids.ts";
 
-// A `quests` row of owner's: one owner made, which only they may use as
-// their Dailies.
+// A `quests` row of owner's: one owner made.
 function questOwnedBy(owner: UserId): SQL {
   return eq(quests.userId, owner);
 }
@@ -121,16 +122,6 @@ function listChangeOpenTo(user: UserId): SQL {
   );
 }
 
-function questDayOwnedBy(user: UserId): SQL {
-  return inArray(
-    questDays.questId,
-    new QueryBuilder()
-      .select({ id: quests.id })
-      .from(quests)
-      .where(questOwnedBy(user)),
-  );
-}
-
 // True when the quest is open to user, whatever table the query reads: for
 // an insert … select, which writes a row only into a quest open to them.
 function opensQuest(user: UserId, questId: QuestId): SQL {
@@ -171,12 +162,22 @@ function eventOwnedBy(owner: UserId): SQL {
   return eq(events.userId, owner);
 }
 
+// A checking-off event in a quest open to user, for its task's streak:
+// read its task and date alone, never who gained it.
+function checkOffInQuestOpenTo(user: UserId): SQL {
+  return sql`(${eq(events.event, "checking-off")} and ${inArray(
+    events.questId,
+    openQuestIds(user),
+  )})`;
+}
+
 // A visiting date belongs to its account alone, regardless of membership.
 function signedInDayOwnedBy(owner: UserId): SQL {
   return eq(signedInDays.userId, owner);
 }
 
 export {
+  checkOffInQuestOpenTo,
   eventOwnedBy,
   listChangeOpenTo,
   listItemOpenTo,
@@ -184,7 +185,6 @@ export {
   opensQuest,
   performanceMessageOpenTo,
   performanceOpenTo,
-  questDayOwnedBy,
   questInvitationOpenTo,
   questInvitationTo,
   questMemberOpenTo,

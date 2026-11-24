@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import {
   type ComponentProps,
   type JSX,
@@ -22,7 +21,6 @@ import { Button } from "@/components/ui/button.tsx";
 import { TextAreaField } from "@/components/ui/field.tsx";
 import { Alert, FormStatus } from "@/components/ui/form-message.tsx";
 import { Icon } from "@/components/ui/icon.tsx";
-import type { QuestId } from "@/ids.ts";
 import {
   PREMADE_QUESTS,
   type PremadeQuest,
@@ -124,16 +122,14 @@ function QuestStartTileFace({
 }
 
 // One starting point as a single target, opening its form in the chosen
-// presentation. The user's existing Dailies opens directly.
+// presentation.
 function QuestStartTile({
   quest,
-  dailiesId,
   onChoose,
   preset,
   presentation,
 }: {
   readonly quest: PremadeQuest;
-  readonly dailiesId: QuestId | undefined;
   readonly onChoose: (id: PremadeQuestId) => void;
   readonly preset: QuestStartPreset;
   readonly presentation: "dialog" | "inline";
@@ -143,15 +139,6 @@ function QuestStartTile({
     onChoose(id);
   }, [onChoose, id]);
   const face = <QuestStartTileFace quest={quest} />;
-  if (id === "dailies" && dailiesId !== undefined) {
-    return (
-      <li>
-        <Link className="quest-start-tile" href={`/quests/${dailiesId}`}>
-          {face}
-        </Link>
-      </li>
-    );
-  }
   if (presentation === "dialog") {
     return (
       <li>
@@ -180,18 +167,16 @@ function QuestStartTile({
 
 // Starting points open a form dialog by default. An existing
 // dialog, inline presentation keeps the choice and form in that dialog.
-// A preset supplies the starting context.
-// An existing Dailies opens directly. Browsing and cancelling save nothing.
+// A preset supplies the starting context. Browsing and cancelling save
+// nothing.
 function QuestStartChoices({
   preset = NO_PRESET,
   initialChoice,
-  dailiesId,
   presentation = "dialog",
 }: {
   readonly preset?: QuestStartPreset;
   readonly presentation?: "dialog" | "inline";
   readonly initialChoice?: PremadeQuestId | undefined;
-  readonly dailiesId?: QuestId | undefined;
 }): JSX.Element {
   const headingId = useId();
   const headingRef = useRef<HTMLHeadingElement>(null);
@@ -251,7 +236,6 @@ function QuestStartChoices({
           <QuestStartTile
             key={offering.id}
             quest={offering}
-            dailiesId={dailiesId}
             onChoose={show}
             preset={preset}
             presentation={presentation}

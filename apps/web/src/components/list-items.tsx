@@ -15,11 +15,6 @@ import { SelectField } from "@/components/ui/field.tsx";
 import { Alert, FormStatus } from "@/components/ui/form-message.tsx";
 import { Icon } from "@/components/ui/icon.tsx";
 import { useQuestAction } from "@/components/use-quest-action.ts";
-import {
-  type DailiesDay,
-  type StreakChain,
-  streakChains,
-} from "@/dailies/dailies.ts";
 import type { QuestId } from "@/ids.ts";
 import {
   LIST_ID,
@@ -31,6 +26,11 @@ import { LIST_ITEM_CHANGE, type ListItemChange } from "@/lists/list-item.ts";
 import { changeListItemAction } from "@/lists/list-item-actions.ts";
 import type { ListItem } from "@/lists/list-item-store.ts";
 import type { List } from "@/lists/list-store.ts";
+import {
+  type StreakChain,
+  streakChains,
+  type TaskHistory,
+} from "@/streaks/streaks.ts";
 import { LISTS_COPY } from "@/ui/copy/lists.ts";
 
 interface ListItemsProps {
@@ -38,7 +38,8 @@ interface ListItemsProps {
   readonly list: List;
   readonly contents: readonly ListItem[];
   readonly destinations: readonly List[];
-  readonly days?: readonly DailiesDay[] | undefined;
+  // The quest's check-off history, which gives recurring tasks' streaks.
+  readonly history?: TaskHistory | undefined;
 }
 
 type RunChange = (change: ListItemChange) => Promise<boolean>;
@@ -67,9 +68,8 @@ function ListItemRow({
   destinations,
   run,
   busy,
-  days,
   chain,
-}: Omit<ListItemsProps, "contents" | "questId"> & {
+}: Omit<ListItemsProps, "contents" | "questId" | "history"> & {
   readonly item: ListItem;
   readonly run: RunChange;
   readonly busy: boolean;
@@ -183,7 +183,7 @@ function ListItemRow({
       <EditableListAction icon="arrow-down" onSelect={down}>
         {LISTS_COPY.moveDown}
       </EditableListAction>
-      {days !== undefined && list.type === "task" && (
+      {list.type === "task" && (
         <EditableListAction icon="repeat" onSelect={recurring}>
           {recurringLabel}
         </EditableListAction>
@@ -221,7 +221,7 @@ function ListItems({
   list,
   contents,
   destinations,
-  days,
+  history,
 }: ListItemsProps): JSX.Element {
   const {
     run: save,
@@ -259,21 +259,26 @@ function ListItems({
     },
     [run],
   );
-  const chains = streakChains(days ?? [], {
-    items: contents.flatMap(({ taskNumber, text, checkedOff, recurring }) => {
-      if (taskNumber === null) {
-        return [];
-      }
-      return [{ number: taskNumber, text, done: checkedOff, recurring }];
-    }),
-  });
+  let chains: ReturnType<typeof streakChains> = new Map();
+  if (history !== undefined) {
+    chains = streakChains(
+      history,
+      contents.flatMap(
+        ({ taskNumber, text, checkedOff, recurring, createdAt }) => {
+          if (taskNumber === null || !recurring) {
+            return [];
+          }
+          return [{ number: taskNumber, text, done: checkedOff, createdAt }];
+        },
+      ),
+    );
+  }
   function row(item: ListItem): JSX.Element {
     const chain = chains.get(item.taskNumber ?? 0);
     return (
       <ListItemRow
         key={item.id}
         item={item}
-        days={days}
         chain={chain}
         list={list}
         destinations={destinations}

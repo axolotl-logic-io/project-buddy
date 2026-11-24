@@ -13,7 +13,6 @@ import {
 } from "@/db/client.ts";
 import { listChanges } from "@/db/tables/list-changes.ts";
 import { listItems, lists } from "@/db/tables/lists.ts";
-import { questDays } from "@/db/tables/quest-days.ts";
 import { quests } from "@/db/tables/quests.ts";
 import { withAppErrors } from "@/errors/to-app-error.ts";
 import type { QuestId, UserId } from "@/ids.ts";
@@ -24,6 +23,7 @@ import {
   type ListSettings,
   STARTING_LISTS,
 } from "./list.ts";
+import { LIST_ITEM_COLUMNS } from "./quest-today.ts";
 import { retype } from "./retype.ts";
 
 interface List extends ListSettings {
@@ -102,7 +102,7 @@ function saveList(
           return;
         }
         const items = await tx
-          .select()
+          .select(LIST_ITEM_COLUMNS)
           .from(listItems)
           .where(and(eq(listItems.listId, listId), listItemOpenTo(user)));
         const retyped = await retype(tx, { user, questId }, items, {
@@ -113,16 +113,12 @@ function saveList(
           return retyped;
         }
         if (current.type !== settings.type) {
-          // Undoing an earlier change, or the start of the day, would bring
-          // back items of the old type.
+          // Undoing an earlier change would bring back items of the old
+          // type.
           await tx
             .update(listChanges)
             .set({ inverse: null })
             .where(and(eq(listChanges.listId, listId), listChangeOpenTo(user)));
-          await tx
-            .update(questDays)
-            .set({ undo: null })
-            .where(eq(questDays.questId, questId));
         }
         const [updated] = await tx
           .update(lists)

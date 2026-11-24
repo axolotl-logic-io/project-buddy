@@ -39,6 +39,7 @@ function unstoredUser(): User {
     sessionEpoch: 0,
     name: undefined,
     accountState: "signed_up",
+    timeZone: "UTC",
   };
 }
 

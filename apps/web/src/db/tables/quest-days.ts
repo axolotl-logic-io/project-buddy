@@ -8,6 +8,8 @@ import {
 } from "drizzle-orm/pg-core";
 import { quests } from "./quests.ts";
 
+// Retired: Start Day recorded these days, and no code reads or writes them
+// now. The next release drops the table, once no live build reads it.
 const questDays = pgTable(
   "quest_days",
   {

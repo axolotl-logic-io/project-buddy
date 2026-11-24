@@ -26,7 +26,6 @@ export default async function QuestsPage({
     readCurrentQuest(user.id),
     listPendingQuests(user.id),
   ]);
-  const dailies = quests.find((quest) => quest.dailies);
   let initialStatus: QuestTab = parseQuestTab(status) ?? "active";
   if (status === undefined && quests.length === 0 && pending.length > 0) {
     initialStatus = "pending";
@@ -34,7 +33,7 @@ export default async function QuestsPage({
   return (
     <>
       <CurrentQuestCard quest={current} />
-      <QuestStartChoices dailiesId={dailies?.id} />
+      <QuestStartChoices />
       <section className="flex min-w-0 flex-1 flex-col gap-3">
         <h2 className="section-heading">{QUESTS_COPY.collectionHeading}</h2>
         <QuestStatusTabs

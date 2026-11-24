@@ -42,13 +42,13 @@ export async function startQuestAction(
     }
     return { kind: "invalid", message };
   }
-  const result = await startPremadeQuest(user.id, {
+  const quest = await startPremadeQuest(user.id, {
     premadeId,
     name: checked.name,
     context,
     motivation,
   });
-  redirect(`/quests/${result.quest.id}`);
+  redirect(`/quests/${quest.id}`);
 }
 
 export type { StartQuestState };

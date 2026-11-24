@@ -28,6 +28,8 @@ export const quests = pgTable(
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),
+    // Retired: no code reads or writes it. The next release drops it, once
+    // no live build reads it.
     dailies: boolean("dailies").notNull().default(false),
     constructId: text("construct_id").notNull().default("vellum"),
     nextTaskNumber: integer("next_task_number").notNull().default(1),

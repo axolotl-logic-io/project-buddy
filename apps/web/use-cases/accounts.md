@@ -7,8 +7,8 @@ The conventions for these cases are in [the index](README.md#conventions).
 Anyone can create an account by verifying their email address.
 
 - **Prerequisites:** The address has no account.
-- **Steps:** Open Log in or sign up, or Sign up, enter an email address and request a link. Open the emailed link, enter a required Name, and choose Continue.
-- **Outcome:** Requesting a link and opening it create no account or session. Confirmation validates and saves the name and creates one ordinary account for the verified, normalized address, signs the browser in for 30 days, reaching Quests. No invitation, code or password is required. Verification links expire after 30 minutes, are replaced by a fresh request, and can be confirmed once. Invalid, expired, replaced and used links create no account or session. Concurrent confirmations create at most one account; a failed account insert preserves the link for retry. Public sign-up shares sign-in request limits.
+- **Steps:** Open Log in or sign up, or Sign up, enter an email address and request a link. Open the emailed link, enter a required Name, check the Time zone, which starts at the browser's own, and choose Continue.
+- **Outcome:** Requesting a link and opening it create no account or session. Confirmation validates and saves the name and the time zone, or UTC for a time zone the site doesn't know, and creates one ordinary account for the verified, normalized address, signs the browser in for 30 days, reaching Quests. No invitation, code or password is required. Verification links expire after 30 minutes, are replaced by a fresh request, and can be confirmed once. Invalid, expired, replaced and used links create no account or session. Concurrent confirmations create at most one account; a failed account insert preserves the link for retry. Public sign-up shares sign-in request limits.
 
 ## use_case_sign_up_existing_email
 
@@ -105,6 +105,17 @@ The user tells the construct what to call them, so a rite reply that says `{user
   - Signed out, the page shows the sign-in page and nothing is saved.
 - **Next:**
   - [`use_case_customize_rite`](grimoire.md#use_case_customize_rite): put `{user}` in an own rite’s replies.
+
+## use_case_set_time_zone
+
+The user changes the time zone whose midnight starts a new day in their quests.
+
+- **Prerequisites:** `use_case_sign_in_by_link`.
+- **Steps:** on Settings, under Time zone, the user chooses a time zone, such as America/Chicago, and chooses Save time zone.
+- **Outcome:** the page says the time zone is saved, and Settings shows it after a reload. From then on, a new day in each quest they own starts at midnight in that time zone, for every member: recurring tasks read as unchecked again, and streaks and Day grid count dates there ([`use_case_recurring_tasks`](tasks.md#use_case_recurring_tasks)). Another user's time zone is never changed.
+- **Variations:**
+  - A time zone the site doesn't know is refused: the field says to choose one from the list, and the saved time zone stays.
+  - An account made before time zones has UTC until the user changes it.
 
 ## use_case_sign_out
 

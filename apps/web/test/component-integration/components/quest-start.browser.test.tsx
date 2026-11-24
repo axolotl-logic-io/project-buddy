@@ -7,14 +7,11 @@ import type { startQuestAction } from "@/app/(workspace)/quests/actions.ts";
 import { QuestStartChoices } from "@/components/quest-start.tsx";
 import { PREMADE_QUESTS } from "@/quests/premade-quests.ts";
 import { QUEST_START_COPY, QUESTS_COPY } from "@/ui/copy/quests.ts";
-import { questIdFixture } from "../../support/id-fixtures.ts";
 
 const actions = vi.hoisted(() => ({
   startQuestAction: vi.fn<typeof startQuestAction>(),
 }));
 vi.mock("@/app/(workspace)/quests/actions.ts", () => actions);
-
-const DAILIES_ID = questIdFixture("1f2e3d4c-5b6a-4987-8a6b-5c4d3e2f1a0b");
 
 function choose(name: string): ReturnType<typeof page.getByRole> {
   return page.getByRole("button", { name, exact: false });
@@ -88,7 +85,7 @@ describe("use_case_browse_premade_quests", () => {
     },
   );
 
-  test("the first Dailies start needs no construct selection or Why", async () => {
+  test("Dailies starts with no construct selection or Why", async () => {
     actions.startQuestAction.mockResolvedValue({ kind: "idle" });
     await render(<QuestStartChoices />);
     await choose("Dailies").click();
@@ -133,15 +130,6 @@ describe("use_case_browse_premade_quests", () => {
     await expect
       .element(page.getByRole("textbox", { name: QUESTS_COPY.motivationLabel }))
       .toHaveValue("");
-  });
-
-  test("the user's Dailies opens instead of starting again", async () => {
-    await render(<QuestStartChoices dailiesId={DAILIES_ID} />);
-
-    await expect
-      .element(page.getByRole("link", { name: "Dailies", exact: false }))
-      .toHaveAttribute("href", `/quests/${DAILIES_ID}`);
-    await expect.element(choose("Dailies")).not.toBeInTheDocument();
   });
 
   test("a preset starting context opens its choice at once, and isn't offered to Dailies", async () => {

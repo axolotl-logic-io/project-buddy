@@ -125,7 +125,7 @@ describe("use_case_api_quests", () => {
     });
   });
 
-  test("starting from a starting point opens a quest, and Dailies resumes", async () => {
+  test("starting from a starting point opens a new quest each time", async () => {
     const { her } = await twoUsers();
     await signIn(her);
     const made = await callApi(startQuest, {
@@ -136,7 +136,6 @@ describe("use_case_api_quests", () => {
       data: expect.objectContaining({
         name: "Make a thing",
         status: "active",
-        resumed: false,
       }),
     });
 
@@ -148,12 +147,10 @@ describe("use_case_api_quests", () => {
       params: {},
       body: { from: "dailies" },
     });
-    expect(dataOf(first)).toMatchObject({ dailies: true, resumed: false });
+    expect(dataOf(first)).toMatchObject({ name: "Dailies" });
     const { id } = dataOf(first);
-    expect(dataOf(again)).toMatchObject({
-      id,
-      resumed: true,
-    });
+    expect(dataOf(again)).not.toMatchObject({ id });
+    expect(dataOf(first)).not.toHaveProperty("resumed");
 
     const invalid = await callApi(startQuest, {
       params: {},

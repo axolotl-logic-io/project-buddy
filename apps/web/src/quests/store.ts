@@ -4,8 +4,8 @@
 // route parameter, is looked up as a string; anything malformed, unknown or
 // another user's is not found.
 
-import { and, desc, eq, sql } from "drizzle-orm";
-import { questOpenTo, questOwnedBy } from "@/accounts/owner-scope.ts";
+import { and, desc, eq } from "drizzle-orm";
+import { questOpenTo } from "@/accounts/owner-scope.ts";
 import {
   type ConstructId,
   DEFAULT_CONSTRUCT_ID,
@@ -32,8 +32,6 @@ interface Quest {
   status: QuestStatus;
   statusRevision: number;
   startingContext?: string | undefined;
-  // Whether it is the user’s Dailies quest.
-  dailies: boolean;
   constructId: ConstructId;
   // How it is shared, as the user reading it sees it.
   sharing: QuestSharing;
@@ -45,7 +43,6 @@ interface QuestRow {
   readonly createdAt: Date;
   readonly status: string;
   readonly statusRevision: number;
-  readonly dailies: boolean;
   readonly constructId: string;
   readonly startingContext: string | null;
 }
@@ -58,7 +55,6 @@ const QUEST_COLUMNS: {
   readonly id: typeof quests.id;
   readonly name: typeof quests.name;
   readonly createdAt: typeof quests.createdAt;
-  readonly dailies: typeof quests.dailies;
   readonly constructId: typeof quests.constructId;
 } = {
   startingContext: quests.startingContext,
@@ -67,7 +63,6 @@ const QUEST_COLUMNS: {
   id: quests.id,
   name: quests.name,
   createdAt: quests.createdAt,
-  dailies: quests.dailies,
   constructId: quests.constructId,
 };
 
@@ -94,7 +89,6 @@ function toQuests(
         createdAt: row.createdAt,
         status: QUEST_STATUS.parse(row.status),
         statusRevision: row.statusRevision,
-        dailies: row.dailies,
         constructId,
         sharing: sharingOf(viewer, row),
       },
@@ -139,28 +133,19 @@ async function getQuest(user: UserId, id: string): Promise<Quest | undefined> {
 interface QuestStartOptions {
   readonly constructId?: ConstructId;
   readonly startingContext?: string;
-  readonly dailies?: boolean;
 }
 
-interface StartedQuest {
-  readonly quest: Quest;
-  readonly resumed: boolean;
-}
-
-// A new quest with its starting lists, or the owner's Dailies quest when
-// they start Dailies again: a user has one Dailies quest, so a second start
-// resumes it.
-function createOrResumeQuest(
+// A new quest with its starting lists.
+function createQuest(
   owner: UserId,
   name: QuestName,
-  options: QuestStartOptions,
-): Promise<StartedQuest> {
-  return withAppErrors("createOrResumeQuest", () =>
+  options: QuestStartOptions = {},
+): Promise<Quest> {
+  return withAppErrors("createQuest", () =>
     inTransaction(async (tx) => {
       const inserted = await tx
         .insert(quests)
         .values({ ...options, userId: owner, name })
-        .onConflictDoNothing({ target: quests.userId, where: sql`dailies` })
         .returning(QUEST_COLUMNS);
       // A new quest is its owner's own, with no members yet.
       const [quest] = toQuests(
@@ -172,29 +157,13 @@ function createOrResumeQuest(
           hasMembers: false,
         })),
       );
-      if (quest !== undefined) {
-        await seedLists(tx, quest.id);
-        return { quest, resumed: false };
+      if (quest === undefined) {
+        throw new Error("Inserting a quest returned no quest");
       }
-      const [existing] = toQuests(
-        owner,
-        await tx
-          .select({ ...QUEST_COLUMNS, ...SHARING_COLUMNS })
-          .from(quests)
-          .where(and(questOwnedBy(owner), eq(quests.dailies, true))),
-      );
-      if (existing === undefined) {
-        throw new Error("The active Dailies quest could not be read");
-      }
-      return { quest: existing, resumed: true };
+      await seedLists(tx, quest.id);
+      return quest;
     }),
   );
-}
-
-// A new quest with its starting lists.
-async function createQuest(owner: UserId, name: QuestName): Promise<Quest> {
-  const { quest } = await createOrResumeQuest(owner, name, {});
-  return quest;
 }
 
 // The owner or a member can rename a quest. Unknown or inaccessible ids
@@ -214,5 +183,5 @@ function renameQuest(
   });
 }
 
-export type { Quest, StartedQuest };
-export { createOrResumeQuest, createQuest, getQuest, listQuests, renameQuest };
+export type { Quest };
+export { createQuest, getQuest, listQuests, renameQuest };

@@ -12,6 +12,7 @@ import { and, eq, type SQL } from "drizzle-orm";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, test, vi } from "vitest";
 import {
+  checkOffInQuestOpenTo,
   eventOwnedBy,
   listChangeOpenTo,
   listItemOpenTo,
@@ -19,7 +20,6 @@ import {
   opensQuest,
   performanceMessageOpenTo,
   performanceOpenTo,
-  questDayOwnedBy,
   questInvitationOpenTo,
   questInvitationTo,
   questMemberOpenTo,
@@ -35,7 +35,6 @@ import { events } from "@/db/tables/events.ts";
 import { listChanges } from "@/db/tables/list-changes.ts";
 import { listItems, lists } from "@/db/tables/lists.ts";
 import { performanceMessages, performances } from "@/db/tables/performances.ts";
-import { questDays } from "@/db/tables/quest-days.ts";
 import { questInvitations, questMembers } from "@/db/tables/quest-members.ts";
 import { quests } from "@/db/tables/quests.ts";
 import { readExperience } from "@/experience/experience-store.ts";
@@ -166,13 +165,11 @@ type Role = (typeof ROLES)[number];
 // The roles the quest is closed to.
 const OUTSIDERS = ["pending invitee", "removed member", "stranger"] as const;
 
-// A Dailies day's date, for the day row the test writes itself.
-const DAY = "2026-11-02";
-
 // The owner's quest shared with a member, with a pending invitee and a
 // removed member, and a stranger beside it: two tasks in its Tasks list,
 // the change version of the second, an active performance on Ideas with a
-// message the removed member made before their removal, and a day.
+// message the removed member made before their removal, and the member's
+// check-off of the first task.
 async function sharedQuest(): Promise<{
   readonly users: Readonly<Record<Role, User>>;
   readonly quest: Quest;
@@ -251,9 +248,14 @@ async function sharedQuest(): Promise<{
   ) {
     throw new Error("The member was not removed");
   }
-  // Only Start Day writes a day, and only in a Dailies quest, which can't
-  // be shared, so the test writes one to show members can't reach it.
-  await getDb().insert(questDays).values({ questId: quest.id, localDate: DAY });
+  // The test writes the member's check-off itself, so the tasks stay as
+  // they are for the tests that change them.
+  await getDb().insert(events).values({
+    userId: member.id,
+    event: "checking-off",
+    questId: quest.id,
+    source: "1",
+  });
   return {
     users: {
       owner,
@@ -381,12 +383,15 @@ function predicateProbes(
             ),
           ),
       ),
-    questDayOwnedBy: (user: UserId): Promise<boolean> =>
+    // The member's check-off, which streaks read for everyone in the quest.
+    checkOffInQuestOpenTo: (user: UserId): Promise<boolean> =>
       finds(
         db
-          .select({ id: questDays.id })
-          .from(questDays)
-          .where(and(eq(questDays.questId, quest.id), questDayOwnedBy(user))),
+          .select({ id: events.id })
+          .from(events)
+          .where(
+            and(eq(events.questId, quest.id), checkOffInQuestOpenTo(user)),
+          ),
       ),
     // The owner's event for adding the first task.
     eventOwnedBy: (user: UserId): Promise<boolean> =>
@@ -423,7 +428,7 @@ const EXPECTED_REACH: Readonly<Record<string, readonly Role[]>> = {
   questMemberOpenTo: OPEN_TO_OWNER_AND_MEMBER,
   questInvitationOpenTo: OPEN_TO_OWNER_AND_MEMBER,
   questInvitationTo: ["pending invitee"],
-  questDayOwnedBy: ["owner"],
+  checkOffInQuestOpenTo: OPEN_TO_OWNER_AND_MEMBER,
   eventOwnedBy: ["owner"],
 };
 

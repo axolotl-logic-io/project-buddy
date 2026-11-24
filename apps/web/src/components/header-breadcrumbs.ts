@@ -123,7 +123,7 @@ async function headerBreadcrumbs(
       label: quest.name,
       quest: { id: quest.id, name: quest.name },
     };
-    if (quest.dailies && quest.status === "active") {
+    if (quest.status === "active") {
       return [QUESTS, { ...crumb, construct: getConstruct(quest.constructId) }];
     }
     return [QUESTS, crumb];

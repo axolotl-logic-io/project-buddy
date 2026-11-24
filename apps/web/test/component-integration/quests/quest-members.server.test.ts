@@ -34,7 +34,6 @@ import {
 import { QUEST_NAME } from "@/quests/quest-name.ts";
 import { changeQuestStatus } from "@/quests/quest-status-store.ts";
 import {
-  createOrResumeQuest,
   getQuest,
   listQuests,
   type Quest,
@@ -146,30 +145,18 @@ describe("use_case_invite_to_quest", () => {
     ]);
   });
 
-  test("inviting the owner, a member, or into a Dailies quest changes nothing", async () => {
+  test("inviting the owner or a member changes nothing", async () => {
     const [{ owner, first }, member] = await Promise.all([
       ownerWithTwoQuests(),
       testUser(),
     ]);
     await addMember(owner, first.id, member);
-    const dailies = await createOrResumeQuest(
-      owner.id,
-      QUEST_NAME.parse("Dailies"),
-      {
-        dailies: true,
-        startingContext: "Make room for creativity",
-        constructId: "vellum",
-      },
-    );
 
     expect(await invite(owner, first.id, owner.email)).toEqual({
       kind: "in-quest",
     });
     expect(await invite(member, first.id, member.email)).toEqual({
       kind: "in-quest",
-    });
-    expect(await invite(owner, dailies.quest.id, testAddress())).toEqual({
-      kind: "not-found",
     });
   });
 

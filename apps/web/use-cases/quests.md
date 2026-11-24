@@ -83,48 +83,13 @@ The site receives a quest start request with a name longer than 80 characters.
 
 ## use_case_dailies
 
-The user starts their day in Dailies, their one ongoing quest for it.
+The user starts a quest for the things they do every day.
 
 - **Prerequisites:** [`use_case_sign_in_by_link`](accounts.md#use_case_sign_in_by_link).
-- **Steps:**
-  - Under Start a quest, they choose Dailies and choose Start quest. The first start offers no Why field.
-  - On a later day, they choose Dailies under Start a quest again, which opens their Dailies quest, or open it from their quests list or Continue.
-  - They begin each new day with Start Day in the Dailies day controls.
-- **Outcome:** Dailies opens on Overview with its day controls and a link to Day grid. Starting Dailies again, even twice at once, opens the same quest; renaming it doesn't make another. While it is Active, the construct's portrait and name sit after the breadcrumbs and before the Timer panel control, clear of docked panels, and open the construct's profile ([`use_case_view_character_profile`](constructs.md#use_case_view_character_profile)). Any other quest's trail band shows no construct.
-- **Variations:**
-  - A quest the user named Dailies by hand has no Start Day, recurring tasks or streaks: only a quest started as Dailies offers them.
+- **Steps:** under Start a quest, they choose Dailies and choose Start quest. Dailies offers no Why field.
+- **Outcome:** a new quest named Dailies opens on Overview. It works like any other quest: it has Next task and Day grid, members can join it, and any of its tasks can be made recurring. Each start makes a new quest, as for the other starting points.
 - **Next:**
-  - `use_case_start_day`: begin a new day.
   - [`use_case_recurring_tasks`](tasks.md#use_case_recurring_tasks): mark the tasks to do every day.
-
-## use_case_start_day
-
-The user begins a new day in Dailies.
-
-- **Prerequisites:** `use_case_dailies`.
-- **Steps:**
-  - The user opens Dailies Overview. Under Start Day, a line says how long ago the last day started.
-  - The user chooses Start Day. They can choose lists to empty; none is chosen by default.
-  - The user confirms in the dialog.
-- **Outcome:** a new day is recorded with the calendar date of the user's browser. The active performance ends. Checked-off recurring tasks are unchecked, keeping their text, numbers and order. One-off tasks stay as they are, checked off or open. Other list items and quest status remain. Each recurring task's streak counts the day just ended ([`use_case_daily_streaks`](tasks.md#use_case_daily_streaks)). The line under Start Day now says the last day started less than an hour ago, and Undo Start Day appears.
-- **Variations:**
-  - A list chosen to empty has no list items in the new day.
-  - Before the first Start Day, the line says no day has started yet.
-  - The line counts in hours for the first two days, then in days.
-  - Another user's Dailies quest, or a quest not started as Dailies, can't have a day started.
-- **Next:**
-  - `use_case_undo_start_day`: take it back if the day was started by mistake.
-
-## use_case_undo_start_day
-
-The user takes back a Start Day chosen by mistake.
-
-- **Prerequisites:** `use_case_start_day`, with no message made since.
-- **Steps:** the user chooses Undo Start Day on Overview.
-- **Outcome:** the performance that Start Day ended is active again, with its transcript. The lists come back as they were before Start Day, and a list item added by hand since stays. The day is no longer recorded, so the streaks are as they were. Undo Start Day is gone.
-- **Variations:**
-  - Once anyone sends a message, Undo Start Day is gone and the day stays.
-  - Another user can't undo it.
 
 ## use_case_browse_premade_quests
 
@@ -132,7 +97,7 @@ The user looks at the ways to start a quest without starting one.
 
 - **Prerequisites:** signed in on Quests.
 - **Steps:** under Start a quest, they read the four starting points, choose one, review its description and optional Why, then cancel.
-- **Outcome:** Dailies, Learn a thing, Make a thing and Do a thing are tiles, each with an icon, its name and one short line on what it is for. A whole tile is one target, named by its starting point; there is no separate Choose button. Choosing one opens a modal dialog with what it is for in full. Learn a thing, Make a thing and Do a thing also offer an optional Why field; Dailies requires no additional fields. Focus stays in the dialog until Cancel, Escape or a click outside closes it and returns focus to its tile. Opening and closing details makes no quest and no model call, and spends nothing. Once they have a Dailies quest, its tile opens it instead.
+- **Outcome:** Dailies, Learn a thing, Make a thing and Do a thing are tiles, each with an icon, its name and one short line on what it is for. A whole tile is one target, named by its starting point; there is no separate Choose button. Choosing one opens a modal dialog with what it is for in full. Learn a thing, Make a thing and Do a thing also offer an optional Why field; Dailies requires no additional fields. Focus stays in the dialog until Cancel, Escape or a click outside closes it and returns focus to its tile. Opening and closing details makes no quest and no model call, and spends nothing.
 
 ## use_case_rename_quest
 
@@ -144,5 +109,5 @@ Anyone in the quest, its owner or an accepted member, changes the quest title in
 
 ## use_case_tailored_quest_overviews
 
-- **Steps:** Open a renamed Dailies quest and an ordinary quest named Dailies.
-- **Outcome:** Dailies shows Start Day, Undo Start Day when available, and Day grid. A Completed or Abandoned Dailies quest offers Start Day after restoration. The ordinary quest shows Next task.
+- **Steps:** Open an Active quest, then a Completed one.
+- **Outcome:** each quest's Overview shows Next task and links to its lists, Rites & status, Performances, Day grid and Members, whichever starting point it came from. While a quest is Active, its construct's portrait and name sit after the breadcrumbs and before the Timer panel control, clear of docked panels, and open the construct's profile ([`use_case_view_character_profile`](constructs.md#use_case_view_character_profile)). A Completed or Abandoned quest's trail band shows no construct.
