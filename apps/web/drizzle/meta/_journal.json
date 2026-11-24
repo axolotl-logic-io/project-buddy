@@ -638,6 +638,13 @@
       "when": 1795540243336,
       "tag": "0090_lists_verbs_default",
       "breakpoints": true
+    },
+    {
+      "idx": 91,
+      "version": "7",
+      "when": 1795541416880,
+      "tag": "0091_tally_lists",
+      "breakpoints": true
     }
   ]
 }

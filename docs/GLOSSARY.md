@@ -44,7 +44,7 @@ A quest the user owns or has joined as a quest member. Use **open to** for acces
 
 ### List
 
-A named, ordered collection of list items in a quest. Every list belongs to one quest and has one type: **plain**, **task** or **quick note**. Every list item in a list has the list's type, and the type names the items on screen: items, tasks or notes. Changing a list's type converts every list item in it. The site refuses the change when an item's text is too long for the new type. Themed wording belongs in a rite's replies rather than in the glossary. [List use cases](../apps/web/use-cases/lists.md)
+A named, ordered collection of list items in a quest. Every list belongs to one quest and has one type: **plain**, **task**, **quick note** or **tally**. Every list item in a list has the list's type, and the type names the items on screen: items, tasks, notes or tallies. Changing a list's type converts every list item in it. The site refuses the change when an item's text is too long for the new type. Themed wording belongs in a rite's replies rather than in the glossary. [List use cases](../apps/web/use-cases/lists.md)
 
 ### List item
 
@@ -61,6 +61,10 @@ The first open task in the quest, taking its task lists in order and each list's
 ### Quick note
 
 A list item in a quick note list: a thought of up to 1000 characters, on several lines if needed, that shows the date it was added. A plain item or a task takes one line of up to 200 characters.
+
+### Tally
+
+A list item in a tally list: a count of something done each day, such as words written, mantras recited or books read. A tally has a **day total** on each quest day, 0 until it changes. To **increment** a tally is to add an amount to today's day total. Its **total** is the sum of all its day totals. Amounts can be fractional or negative, and show decimal places only when they aren't 0. Changing a tally earns no experience. A tally takes one line of up to 200 characters. [Tally list use case](../apps/web/use-cases/lists.md#use_case_tally_lists)
 
 ### Quick Add
 
@@ -86,7 +90,7 @@ A run of consecutive quest days on which someone checked off a recurring task. A
 
 ### Home
 
-The signed-in landing page at the site's root, above Quests in the breadcrumbs. It shows the user's experience, then **Streaks**: every recurring task of the Active quests open to them over the last seven dates, which they can check off in place on any of those dates since the task was added. [Home streaks use case](../apps/web/use-cases/home.md#use_case_home_streaks)
+The signed-in landing page at the site's root, above Quests in the breadcrumbs. It shows the user's experience, then **Streaks**: every recurring task of the Active quests open to them over the last seven dates, which they can check off in place on any of those dates since the task was added. Then **Tallies**: every tally of those quests with its day totals over the same dates, each of which they can change, and an Increment for today. [Home streaks use case](../apps/web/use-cases/home.md#use_case_home_streaks), [Home tallies use case](../apps/web/use-cases/home.md#use_case_home_tallies)
 
 ## Rites and performances
 

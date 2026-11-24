@@ -7,8 +7,13 @@ import {
   useCallback,
   useId,
   useOptimistic,
-  useSyncExternalStore,
 } from "react";
+import {
+  dayOfMonth,
+  useBrowserToday,
+  weekdayOf,
+} from "@/components/calendar-days.ts";
+import { DateHeading } from "@/components/date-heading.tsx";
 import { Alert, FormStatus } from "@/components/ui/form-message.tsx";
 import { Icon } from "@/components/ui/icon.tsx";
 import { useQuestAction } from "@/components/use-quest-action.ts";
@@ -19,7 +24,6 @@ import type { StreakQuest } from "@/streaks/streak-store.ts";
 import {
   type DayMark,
   type LocalDate,
-  localDate,
   type MarkChange,
   markRows,
   STREAK_TABLE_DAYS,
@@ -33,39 +37,6 @@ import { HOME_COPY } from "@/ui/copy/home.ts";
 // The marks a square can be checked or unchecked on: the task had been
 // added by that date, and the date isn't after the quest's today.
 const CHECKABLE: ReadonlySet<DayMark> = new Set(["done", "missed", "pending"]);
-
-// The weekday of a calendar date, the same on the server and in every
-// browser, since the date already is the user's own.
-const WEEKDAY = new Intl.DateTimeFormat("en", {
-  weekday: "short",
-  timeZone: "UTC",
-});
-
-function weekdayOf(date: LocalDate): string {
-  return WEEKDAY.format(new Date(`${date}T00:00:00Z`));
-}
-
-function dayOfMonth(date: LocalDate): string {
-  return String(Number(date.slice(-2)));
-}
-
-function subscribeToNothing(): () => void {
-  return (): void => {
-    // The date a page opened on is the one it shows until it reloads.
-  };
-}
-
-function browserToday(): LocalDate {
-  return localDate(
-    new Date(),
-    Intl.DateTimeFormat().resolvedOptions().timeZone,
-  );
-}
-
-// The server can't know the browser's date, so it marks no column Today.
-function noToday(): string {
-  return "";
-}
 
 // One task's mark on one date in one quest, checked or unchecked.
 interface Mark extends MarkChange {
@@ -82,35 +53,6 @@ function marked(
     }
     return { ...each, ...withMark(each.history, each.tasks, change) };
   });
-}
-
-// A date's column heading: its weekday and day of the month, or Today on
-// the browser's own date. On a phone the weekday shrinks to its letter.
-function DateHeading({
-  date,
-  today,
-}: {
-  readonly date: LocalDate;
-  readonly today: string;
-}): JSX.Element {
-  const weekday = weekdayOf(date);
-  let name = (
-    <>
-      <span className="streak-weekday">{weekday}</span>
-      <span aria-hidden="true" className="streak-weekday-letter">
-        {weekday.slice(0, 1)}
-      </span>
-    </>
-  );
-  if (date === today) {
-    name = <span>{HOME_COPY.today}</span>;
-  }
-  return (
-    <th className="streak-date" data-today={date === today} scope="col">
-      {name}
-      <span>{dayOfMonth(date)}</span>
-    </th>
-  );
 }
 
 // One task's square on one date. A date since the task was added, up to
@@ -238,7 +180,7 @@ function StreakTable({
 }): JSX.Element {
   const headingId = useId();
   const [shown, showMark] = useOptimistic(quests, marked);
-  const today = useSyncExternalStore(subscribeToNothing, browserToday, noToday);
+  const today = useBrowserToday();
   const { run: runCheck, ...check } = useQuestAction(changeListItemAction);
   const { run: runRecord, ...record } = useQuestAction(markTaskDayAction);
   const dates = sharedDates(

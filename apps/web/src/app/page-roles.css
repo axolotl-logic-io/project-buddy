@@ -1961,6 +1961,132 @@
     }
   }
 
+  /* Home's ledger of tallies: the streaks' rows and columns, with each
+     day's total in place of a square and Increment at the end. */
+  .tally-ledger {
+    --streak-columns: minmax(0, 1fr) repeat(7, 3.25rem) var(--target-size);
+  }
+
+  .tally-cell-value {
+    @apply wrap-anywhere px-0.5 text-center text-xs tabular-nums;
+  }
+
+  .tally-cell-value[data-zero="true"] {
+    @apply text-muted;
+  }
+
+  .tally-increment {
+    @apply grid size-6.5 place-items-center rounded-control border-2 border-primary text-primary;
+  }
+
+  .streak-target:hover .tally-increment {
+    @apply bg-primary text-on-primary;
+  }
+
+  .tally-ledger-field > td {
+    @apply col-span-full py-2;
+  }
+
+  @container (width < 30rem) {
+    .tally-ledger {
+      --streak-columns: repeat(7, minmax(0, 1fr)) var(--target-size);
+    }
+  }
+
+  .tally-card {
+    @apply flex flex-col gap-3;
+  }
+
+  .tally-today {
+    @apply flex flex-wrap items-baseline gap-2;
+  }
+
+  .tally-today-value {
+    @apply wrap-anywhere font-semibold text-3xl tabular-nums leading-none;
+  }
+
+  .tally-caption {
+    @apply text-muted text-xs;
+  }
+
+  /* A bar a day, oldest first, by its total's size; below zero it is the
+     danger color. */
+  .tally-bars {
+    @apply m-0 flex h-12 list-none items-end gap-1 p-0;
+  }
+
+  .tally-day {
+    @apply flex h-full flex-1 flex-col justify-end;
+  }
+
+  .tally-bar {
+    @apply block bg-line/30;
+    border-start-start-radius: 2px;
+    border-start-end-radius: 2px;
+    min-block-size: 2px;
+  }
+
+  .tally-bar[data-sign="positive"]:not([data-level="0"]) {
+    @apply bg-primary;
+  }
+
+  .tally-bar[data-sign="negative"] {
+    @apply bg-danger;
+  }
+
+  .tally-day[data-today="true"] .tally-bar {
+    @apply outline-2 outline-primary outline-offset-1;
+  }
+
+  .tally-bar[data-level="1"] {
+    block-size: 12.5%;
+  }
+
+  .tally-bar[data-level="2"] {
+    block-size: 25%;
+  }
+
+  .tally-bar[data-level="3"] {
+    block-size: 37.5%;
+  }
+
+  .tally-bar[data-level="4"] {
+    block-size: 50%;
+  }
+
+  .tally-bar[data-level="5"] {
+    block-size: 62.5%;
+  }
+
+  .tally-bar[data-level="6"] {
+    block-size: 75%;
+  }
+
+  .tally-bar[data-level="7"] {
+    block-size: 87.5%;
+  }
+
+  .tally-bar[data-level="8"] {
+    block-size: 100%;
+  }
+
+  .tally-total {
+    @apply flex items-baseline justify-between gap-2 border-line/40 border-t pt-2 tabular-nums;
+  }
+
+  .tally-buttons,
+  .tally-form-actions {
+    @apply flex flex-wrap gap-2;
+  }
+
+  .tally-form {
+    @apply flex flex-wrap items-end gap-2;
+  }
+
+  .tally-form > .field {
+    @apply min-w-0 flex-1 basis-40;
+  }
+
   /* More about an item, on its own line under the text and the actions. */
   .editable-detail {
     @apply col-start-1 -col-end-1 -mt-1.5 min-w-0 pb-2.5;
@@ -1968,6 +2094,23 @@
 
   .editable-row:has(.editable-check) > .editable-detail {
     @apply col-start-2;
+  }
+
+  /* A tally list's items as counter cards, wrapping into a grid. */
+  .editable-list[data-layout="cards"] {
+    @apply grid grid-cols-[repeat(auto-fill,minmax(min(100%,16rem),1fr))] gap-3;
+  }
+
+  .editable-list[data-layout="cards"] > .editable-row {
+    @apply border border-line/60 bg-surface px-3 pb-3 hover:bg-surface focus-within:bg-surface;
+  }
+
+  .editable-list[data-layout="cards"] .editable-text {
+    @apply font-semibold;
+  }
+
+  .editable-list[data-layout="cards"] .editable-detail {
+    @apply mt-0 pb-0;
   }
 
   /* A recurring task's recent streak and its current day. */
