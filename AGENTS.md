@@ -1,11 +1,4 @@
 # Agent rules
 
-- Start work by running `mise setup` from the repository root to install dependencies and prepare the local development and test environments.
-- The issue pipeline that works this repo's issues lives in the [ecosystem repository](https://github.com/axolotl-logic-io/ecosystem) and runs from an installed copy; change it there.
 - Follow the [project practices](docs/project-practices.md) and, for docs, the [docs style guide](docs/docs-style-guide.md).
-- The [docs index](docs/README.md) links to the repository references and web use cases.
 - Use the domain words in the [glossary](docs/GLOSSARY.md) in code, copy, prompts, docs and issues.
-- The site's commands, checks and test kit are in [`apps/web/AGENTS.md`](apps/web/AGENTS.md).
-- To reach the Vercel project or query production read-only, use the `ops:*` scripts in [Reaching Vercel and production](docs/Site-Operations.md#reaching-vercel-and-production); don't search for the project or link it by hand.
-
-- Put tests in `test/<level>/` under their subject's path, and kits shared across levels in `test/support/`, as the project practices define.
