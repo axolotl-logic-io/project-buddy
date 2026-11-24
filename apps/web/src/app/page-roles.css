@@ -313,7 +313,7 @@
     @apply rounded-control underline decoration-(length:--line-width) decoration-line underline-offset-4 hover:text-primary hover:decoration-primary;
   }
 
-  :is(.circle-progress-ring, .profile-ring) > svg {
+  :is(.circle-progress-ring, .profile-ring, .experience-strip-ring) > svg {
     @apply absolute inset-0 size-full;
   }
 
@@ -1809,6 +1809,170 @@
 
   .day-grid-day[data-mark="untracked"] .day-grid-square {
     @apply border-line;
+  }
+
+  /* Home's head: the user's circle in a small ring beside its title, the
+     bar toward the next circle and a link to Profile. */
+  .experience-strip {
+    @apply flex items-center gap-4 border-line/40 border-b pb-6;
+  }
+
+  .experience-strip-ring {
+    @apply relative grid size-15 shrink-0 place-items-center;
+    color: var(--ring-ink);
+  }
+
+  .experience-strip-ring .profile-ring-number {
+    @apply text-2xl;
+  }
+
+  .experience-strip-body {
+    @apply flex min-w-0 flex-1 flex-col gap-1;
+  }
+
+  .experience-strip .profile-progress {
+    @apply mt-0 h-2.5;
+  }
+
+  /* Home's streaks: one row a recurring task, under its quest, with a
+     square for each of the last seven dates and its streak at the end. On a
+     narrow panel a task's name stands
+     above its squares, and its streak beside both. */
+  .streak-panel {
+    @apply @container flex flex-col gap-3;
+  }
+
+  /* Every row is a grid of the same columns, so the columns line up. */
+  .streak-table {
+    --streak-columns: minmax(0, 1fr) repeat(7, var(--target-size))
+      var(--target-size);
+    @apply flex w-full flex-col;
+  }
+
+  .streak-table > :is(thead, tbody) {
+    @apply flex flex-col;
+  }
+
+  .streak-row {
+    display: grid;
+    grid-template-columns: var(--streak-columns);
+    @apply items-center border-line/40 border-t;
+  }
+
+  .streak-head,
+  .streak-quest,
+  .streak-quest + .streak-row {
+    @apply border-t-0;
+  }
+
+  .streak-quest {
+    @apply mt-2 border-line border-t-2 pt-2;
+  }
+
+  .streak-quest > th {
+    @apply col-span-full wrap-anywhere py-1 text-start font-semibold;
+  }
+
+  .streak-task {
+    @apply wrap-anywhere py-2 ps-3 text-start font-normal;
+  }
+
+  .streak-date {
+    @apply flex flex-col items-center self-stretch py-1 text-muted text-xs leading-tight;
+  }
+
+  .streak-date[data-today="true"] {
+    @apply font-bold text-foreground;
+  }
+
+  .streak-weekday-letter {
+    @apply hidden;
+  }
+
+  .streak-count-head {
+    @apply self-end py-1 text-end text-muted text-xs;
+  }
+
+  .streak-cell {
+    @apply grid place-items-center self-stretch;
+  }
+
+  .streak-date:nth-last-child(2),
+  .streak-cell[data-current="true"] {
+    background: color-mix(in oklab, var(--hud-gold) 16%, transparent);
+  }
+
+  .streak-target {
+    @apply grid w-full cursor-pointer place-items-center;
+    min-block-size: var(--target-size);
+  }
+
+  .streak-target:focus-visible {
+    outline: var(--focus-outline);
+    outline-offset: calc(-1 * var(--focus-offset));
+  }
+
+  .streak-square {
+    @apply grid size-6.5 place-items-center rounded-control border-2 border-line bg-field text-on-primary;
+  }
+
+  .streak-square[data-mark="done"] {
+    @apply border-primary bg-primary;
+  }
+
+  .streak-square[data-mark="pending"] {
+    @apply border-primary;
+  }
+
+  .streak-square[data-mark="gap"] {
+    @apply border-muted border-dashed bg-transparent;
+  }
+
+  .streak-square[data-mark="untracked"] {
+    @apply bg-transparent opacity-40;
+  }
+
+  .streak-target:hover .streak-square {
+    @apply border-primary;
+  }
+
+  .streak-count {
+    @apply pe-1 text-end tabular-nums;
+  }
+
+  .streak-unit {
+    @apply sr-only;
+  }
+
+  @container (width < 30rem) {
+    .streak-table {
+      --streak-columns: repeat(7, minmax(0, 1fr)) 2.5rem;
+    }
+
+    .streak-task-head,
+    .streak-weekday {
+      @apply sr-only;
+    }
+
+    .streak-weekday-letter {
+      @apply inline;
+    }
+
+    .streak-task {
+      @apply col-span-7 row-start-1 pt-2 pb-0 ps-0;
+    }
+
+    .streak-cell {
+      @apply row-start-2;
+    }
+
+    .streak-count {
+      @apply col-start-8 row-span-2 row-start-1;
+    }
+
+    .streak-unit {
+      @apply not-sr-only block text-muted text-xs;
+    }
   }
 
   /* More about an item, on its own line under the text and the actions. */

@@ -2,6 +2,7 @@ import { z } from "zod";
 import { LIST_ID } from "./list.ts";
 
 const LIST_ITEM_ID = z.guid().toLowerCase().brand<"ListItemId">();
+type ListItemId = z.infer<typeof LIST_ITEM_ID>;
 
 const LIST_ITEM_CHANGE = z.discriminatedUnion("kind", [
   z.object({ kind: z.literal("add"), text: z.string() }),
@@ -33,5 +34,5 @@ const LIST_ITEM_CHANGE = z.discriminatedUnion("kind", [
 
 type ListItemChange = z.infer<typeof LIST_ITEM_CHANGE>;
 
-export type { ListItemChange };
+export type { ListItemChange, ListItemId };
 export { LIST_ITEM_CHANGE, LIST_ITEM_ID };

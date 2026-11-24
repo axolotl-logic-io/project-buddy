@@ -1,18 +1,12 @@
 import { NextRequest } from "next/server";
 import { afterEach, describe, expect, test, vi } from "vitest";
-import Root from "@/app/page.tsx";
 import { proxy } from "@/proxy.ts";
-import { expectRedirect } from "../test-database/navigation-test-kit.ts";
 
 afterEach(() => {
   vi.unstubAllEnvs();
 });
 
-describe("Quests landing navigation", () => {
-  test("the root address leads directly to Quests", async () => {
-    await expect(expectRedirect(Root, "/quests")).resolves.toBeUndefined();
-  });
-
+describe("Home landing navigation", () => {
   test.each(["/", "/quests"])(
     "%s still requires sign-in before reading quests",
     async (path) => {

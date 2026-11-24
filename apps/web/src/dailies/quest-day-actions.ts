@@ -7,8 +7,13 @@ import type { QuestActionResult } from "@/components/use-quest-action.ts";
 import { QUEST_ID } from "@/ids.ts";
 import { LIST_ID } from "@/lists/list.ts";
 import { DAY_GRID_COPY } from "@/ui/copy/dailies.ts";
-import { dayDate } from "./dailies.ts";
-import { startQuestDay, undoQuestDay } from "./quest-day-store.ts";
+import { HOME_COPY } from "@/ui/copy/home.ts";
+import { dayDate, LOCAL_DATE } from "./dailies.ts";
+import {
+  markQuestDayTask,
+  startQuestDay,
+  undoQuestDay,
+} from "./quest-day-store.ts";
 
 const DAY_REQUEST = z.discriminatedUnion("op", [
   z.object({
@@ -18,6 +23,13 @@ const DAY_REQUEST = z.discriminatedUnion("op", [
     emptyLists: z.array(LIST_ID),
   }),
   z.object({ op: z.literal("undo"), questId: QUEST_ID }),
+  z.object({
+    op: z.literal("mark"),
+    questId: QUEST_ID,
+    localDate: LOCAL_DATE,
+    number: z.number().int().positive(),
+    done: z.boolean(),
+  }),
 ]);
 
 async function changeQuestDay(request: unknown): Promise<QuestActionResult> {
@@ -25,6 +37,14 @@ async function changeQuestDay(request: unknown): Promise<QuestActionResult> {
   const change = DAY_REQUEST.safeParse(request).data;
   if (change === undefined) {
     return { kind: "problem", text: DAY_GRID_COPY.unavailable };
+  }
+  if (change.op === "mark") {
+    const marked = await markQuestDayTask(user.id, change.questId, change);
+    refresh();
+    if (!marked) {
+      return { kind: "problem", text: HOME_COPY.markUnavailable };
+    }
+    return { kind: "saved" };
   }
   if (change.op === "undo") {
     const undone = await undoQuestDay(user.id, change.questId);
