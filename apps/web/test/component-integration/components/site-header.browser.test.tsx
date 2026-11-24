@@ -41,6 +41,7 @@ import { THEME_IDS } from "@/themes/themes.ts";
 import { CREDITS_COPY } from "@/ui/copy/credits.ts";
 import { EXPERIENCE_COPY } from "@/ui/copy/experience.ts";
 import { GRIMOIRE_COPY } from "@/ui/copy/grimoire.ts";
+import { HOME_COPY } from "@/ui/copy/home.ts";
 import { PROFILE_COPY } from "@/ui/copy/profile.ts";
 import { QUESTS_COPY } from "@/ui/copy/quests.ts";
 import { QUICK_ADD_COPY } from "@/ui/copy/quick-add.ts";
@@ -95,6 +96,7 @@ const PHONE_LAYOUT_BELOW_PX = 512;
 
 // The site panel's links, in their groups and order, by their names.
 const PLACES = [
+  HOME_COPY.headerLink,
   QUESTS_COPY.headerLink,
   GRIMOIRE_COPY.heading,
   TIMER_COPY.panelLink,
@@ -353,7 +355,7 @@ describe("use_case_experience_ring", () => {
 });
 
 describe("the site panel", () => {
-  test("groups Quests and Grimoire apart from Profile and Settings, above the appearance choices and Credits", async () => {
+  test("groups Home, Quests and Grimoire apart from Profile and Settings, above the appearance choices and Credits", async () => {
     await renderSignedIn();
     await openPanel();
 

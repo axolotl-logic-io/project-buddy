@@ -166,4 +166,5 @@ vi.mock("@/dailies/quest-day-actions.ts", () => ({
 vi.mock("@/dailies/quest-day-store.ts", () => ({
   readQuestDays: vi.fn(() => Promise.resolve({ days: [], undoable: false })),
   readRecurringTasks: vi.fn(() => Promise.resolve({ items: [] })),
+  readStreakQuests: vi.fn(() => Promise.resolve([])),
 }));

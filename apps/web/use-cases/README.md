@@ -38,6 +38,7 @@ Every environment picks replies locally from the rite's reply list. Tests fix th
 Each area's cases are in their own file:
 
 - [Access](access.md)
+- [Home](home.md): experience and every recurring task's streaks, checked off in place.
 - [Accounts](accounts.md)
 - [Quests](quests.md)
 - [Quest status](quest-status.md)

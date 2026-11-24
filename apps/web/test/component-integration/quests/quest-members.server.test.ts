@@ -41,6 +41,7 @@ import {
   renameQuest,
 } from "@/quests/store.ts";
 
+import { HOME_PATH } from "@/routes.ts";
 import { LINK_PAGE_COPY } from "@/ui/copy/login.ts";
 import { QUEST_INVITATION_EMAIL_COPY } from "@/ui/copy/quest-members.ts";
 import { testData } from "../../support/test-database/data-test-kit.ts";
@@ -457,7 +458,7 @@ describe("use_case_join_quest_by_link", () => {
     });
     await expectRedirect(
       () => continueSignInAction(continueForm(token, "Rae")),
-      "/quests",
+      HOME_PATH,
     );
     expect(await currentUser()).toMatchObject({
       name: "Rae",

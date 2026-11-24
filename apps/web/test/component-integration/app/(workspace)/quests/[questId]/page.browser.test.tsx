@@ -10,6 +10,7 @@ import {
   readRecurringTasks,
 } from "@/dailies/quest-day-store.ts";
 import { LIST_ID } from "@/lists/list.ts";
+import { LIST_ITEM_ID } from "@/lists/list-item.ts";
 import { type List, readLists } from "@/lists/list-store.ts";
 import { listPerformances } from "@/performances/performance-store.ts";
 import { listQuestPeople } from "@/quests/membership-store.ts";
@@ -171,7 +172,16 @@ describe("use_case_daily_streaks", () => {
   test("Day grid shows each recurring task's last seven dates, named for screen readers", async () => {
     vi.mocked(readQuestDays).mockResolvedValue({ undoable: false, days: DAYS });
     vi.mocked(readRecurringTasks).mockResolvedValue({
-      items: [{ number: 1, text: STRETCH, done: true, recurring: true }],
+      items: [
+        {
+          id: LIST_ITEM_ID.parse("5d0f43d4-4b0c-4cb5-9d5c-3a8f3e1c0b21"),
+          listId: LIST_ID.parse("a0c7c952-9f82-4640-9584-45e01b0c2513"),
+          number: 1,
+          text: STRETCH,
+          done: true,
+          recurring: true,
+        },
+      ],
     });
     await open({ ...FOX_QUEST, dailies: true }, "days");
     const grid = page.getByRole("listitem").filter({ hasText: STRETCH });

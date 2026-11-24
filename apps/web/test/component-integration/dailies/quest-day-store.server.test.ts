@@ -1,9 +1,13 @@
 import { expect, test } from "vitest";
 import {
+  markQuestDayTask,
   readQuestDays,
+  readStreakQuests,
   startQuestDay,
   undoQuestDay,
 } from "@/dailies/quest-day-store.ts";
+import { getDb } from "@/db/client.ts";
+import { questMembers } from "@/db/tables/quest-members.ts";
 import { readExperience } from "@/experience/experience-store.ts";
 import { readListItems, writeListContents } from "@/lists/list-item-store.ts";
 import { readLists } from "@/lists/list-store.ts";
@@ -221,5 +225,92 @@ test("use_case_dailies: starting Dailies twice at once makes one quest, and each
   expect(lists.map(({ name: listName }) => listName)).toEqual([
     "Tasks",
     "Ideas",
+  ]);
+});
+
+test("use_case_home_streaks: the owner reads their streaks and changes an ended day's mark", async () => {
+  const { owner, quest, first } = await dailies();
+  const added = await writeListContents(owner.id, quest.id, first.id, {
+    kind: "add",
+    text: "Feed the cat",
+  });
+  const [task] = added.list?.listItems ?? [];
+  if (task === undefined || task.taskNumber === null) {
+    throw new Error("The task was not saved");
+  }
+  const number = task.taskNumber;
+  await writeListContents(owner.id, quest.id, first.id, {
+    kind: "recurring",
+    id: task.id,
+    recurring: true,
+  });
+  await startQuestDay(owner.id, quest.id, {
+    localDate: FIRST_DATE,
+    emptyLists: [],
+  });
+  await writeListContents(owner.id, quest.id, first.id, {
+    kind: "check",
+    id: task.id,
+    checkedOff: true,
+  });
+  await startQuestDay(owner.id, quest.id, {
+    localDate: SECOND_DATE,
+    emptyLists: [],
+  });
+  const [member, stranger] = await Promise.all([testUser(), testUser()]);
+  // A Dailies quest can't be shared, so the test adds the member itself to
+  // show a member still has no streaks there.
+  await getDb()
+    .insert(questMembers)
+    .values({ questId: quest.id, userId: member.id });
+
+  expect(await readStreakQuests(owner.id)).toEqual([
+    {
+      quest: { id: quest.id, name: "Morning" },
+      days: [
+        {
+          date: FIRST_DATE,
+          startedAt: expect.any(Date),
+          tasks: [{ number, text: "Feed the cat", done: true }],
+        },
+        { date: SECOND_DATE, startedAt: expect.any(Date), tasks: undefined },
+      ],
+      tasks: {
+        items: [
+          {
+            id: task.id,
+            listId: first.id,
+            number,
+            text: "Feed the cat",
+            done: false,
+            recurring: true,
+          },
+        ],
+      },
+    },
+  ]);
+  expect(await readStreakQuests(member.id)).toEqual([]);
+  expect(await readStreakQuests(stranger.id)).toEqual([]);
+
+  const unmark = { localDate: FIRST_DATE, number, done: false };
+  expect(await markQuestDayTask(member.id, quest.id, unmark)).toBe(false);
+  expect(await markQuestDayTask(stranger.id, quest.id, unmark)).toBe(false);
+  expect(
+    await markQuestDayTask(owner.id, quest.id, { ...unmark, number: 99 }),
+  ).toBe(false);
+  // The day still going is the task's own check, not a recorded day.
+  expect(
+    await markQuestDayTask(owner.id, quest.id, {
+      ...unmark,
+      localDate: SECOND_DATE,
+    }),
+  ).toBe(false);
+  expect((await readQuestDays(owner.id, quest.id)).days[0]?.tasks).toEqual([
+    { number, text: "Feed the cat", done: true },
+  ]);
+
+  expect(await markQuestDayTask(owner.id, quest.id, unmark)).toBe(true);
+  expect((await readQuestDays(owner.id, quest.id)).days[0]?.tasks).toEqual([
+    { number, text: "Feed the cat", done: false },
   ]);
 });

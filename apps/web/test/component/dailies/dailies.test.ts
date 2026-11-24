@@ -9,8 +9,11 @@ import {
   dayDate,
   dayGrid,
   LOCAL_DATE,
+  markRows,
+  sharedDates,
   streakChains,
   todayHere,
+  withMark,
 } from "@/dailies/dailies.ts";
 
 // The task numbers, and the grid's usual week.
@@ -249,5 +252,67 @@ describe("Dailies days", () => {
       "untracked",
       "pending",
     ]);
+  });
+
+  test("several quests share the dates up to the newest day among them", () => {
+    const behind = [ended("2026-11-10", [1]), going("2026-11-12")];
+    const ahead = [going("2026-11-14")];
+    expect(sharedDates([behind, ahead, []], SHOWN)).toEqual([
+      "2026-11-12",
+      "2026-11-13",
+      "2026-11-14",
+    ]);
+    expect(sharedDates([[], []], WEEK)).toEqual([]);
+  });
+
+  test("dates before a quest's first day, or after its newest, are marked", () => {
+    const days = [ended("2026-11-12", [2]), going("2026-11-13")];
+    const dates = ["2026-11-11", "2026-11-12", "2026-11-13", "2026-11-14"];
+    expect(markRows(days, TASKS, dates)).toEqual([
+      {
+        number: 1,
+        text: "Stretch",
+        marks: ["untracked", "missed", "pending", "gap"],
+      },
+      {
+        number: 2,
+        text: "Sketch",
+        marks: ["untracked", "done", "done", "gap"],
+      },
+    ]);
+  });
+
+  test("a mark on the newest day's date changes the task's own check", () => {
+    const days = [ended("2026-11-12", []), going("2026-11-13")];
+    const changed = withMark(days, TASKS, {
+      number: STRETCH,
+      date: "2026-11-13",
+      done: true,
+    });
+    expect(changed.days).toBe(days);
+    expect(changed.tasks.items[0]).toEqual({
+      number: 1,
+      text: "Stretch",
+      done: true,
+      recurring: true,
+    });
+  });
+
+  test("a mark on an earlier date changes what that day recorded", () => {
+    const days = [ended("2026-11-12", []), going("2026-11-13")];
+    const changed = withMark(days, TASKS, {
+      number: SKETCH,
+      date: "2026-11-12",
+      done: true,
+    });
+    expect(changed.tasks).toBe(TASKS);
+    expect(changed.days[0]?.tasks).toEqual([
+      { number: 1, text: "Stretch", done: false },
+      { number: 2, text: "Sketch", done: true },
+    ]);
+    expect(
+      withMark(days, TASKS, { number: SKETCH, date: "2026-11-01", done: true })
+        .days,
+    ).toEqual(days);
   });
 });

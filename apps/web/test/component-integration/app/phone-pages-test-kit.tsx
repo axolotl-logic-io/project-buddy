@@ -14,6 +14,7 @@ import { readSignInLinkUser } from "@/accounts/sign-in-links.ts";
 import ConstructPage from "@/app/(workspace)/constructs/[constructId]/page.tsx";
 import RitePage from "@/app/(workspace)/grimoire/[riteId]/page.tsx";
 import GrimoirePage from "@/app/(workspace)/grimoire/page.tsx";
+import HomePage from "@/app/(workspace)/page.tsx";
 import ProfileLayout from "@/app/(workspace)/profile/layout.tsx";
 import ProfilePage from "@/app/(workspace)/profile/page.tsx";
 import QuestListLayout from "@/app/(workspace)/quests/(list)/layout.tsx";
@@ -31,6 +32,7 @@ import SignInLinkPage from "@/app/login/link/page.tsx";
 import LoginPage from "@/app/login/page.tsx";
 import SignUpPage from "@/app/signup/page.tsx";
 
+import { readStreakQuests } from "@/dailies/quest-day-store.ts";
 import { readCurrentQuest } from "@/quests/current-quest-store.ts";
 import { getQuest, listQuests } from "@/quests/store.ts";
 
@@ -46,6 +48,7 @@ import {
   signOut,
 } from "../auth/current-user-test-kit.ts";
 
+import { STREAK_QUEST } from "../dailies/streak-quest-fixtures.ts";
 import { inWorkspace } from "./workspace-test-kit.tsx";
 
 // One page as the phone checks render it.
@@ -176,6 +179,21 @@ function questPageFor(
 const questPage = questPageFor();
 
 const PHONE_PAGES: readonly PhonePage[] = [
+  {
+    name: "Home, with a quest's streaks",
+    path: [],
+    render: workspacePage(
+      () => {
+        vi.mocked(readStreakQuests).mockResolvedValue([
+          {
+            ...STREAK_QUEST,
+            quest: { ...STREAK_QUEST.quest, name: LONG_QUEST_NAME },
+          },
+        ]);
+      },
+      () => HomePage(),
+    ),
+  },
   {
     name: "the Grimoire",
     path: ["grimoire"],
