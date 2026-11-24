@@ -112,6 +112,17 @@ afterEach(async () => {
   await setViewport(LAPTOP_VIEWPORT);
 });
 
+describe("use_case_perform_rite", () => {
+  test("the rite's first message opens the performance, naming the list", async () => {
+    await openPerformance();
+    await expect
+      .element(
+        page.getByText("Let’s brainstorm for Bench. What comes to mind first?"),
+      )
+      .toBeVisible();
+  });
+});
+
 describe("use_case_read_formatted_reply", () => {
   test("headings, emphasis, lists, tables and code are formatted, and the message is as typed", async () => {
     await openPerformance();

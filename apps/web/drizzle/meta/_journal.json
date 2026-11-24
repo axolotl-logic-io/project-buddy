@@ -624,6 +624,13 @@
       "when": 1795528599368,
       "tag": "0088_quest_days_at_midnight",
       "breakpoints": true
+    },
+    {
+      "idx": 89,
+      "version": "7",
+      "when": 1795539932479,
+      "tag": "0089_rite_first_message",
+      "breakpoints": true
     }
   ]
 }

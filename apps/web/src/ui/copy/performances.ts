@@ -13,7 +13,6 @@ const PERFORMANCE_COPY = {
   unavailable: "This performance is unavailable.",
   required: "Start a performance to send a message.",
   unnamed: "Quest member",
-  opening: (rite: string, list: string): string => `${rite} begins on ${list}.`,
   closing: (rite: string, count: number, noun: string): string =>
     `${rite} ends. ${count} ${noun} added.`,
   refused: (limit: number, noun: string): string =>

@@ -25,13 +25,22 @@ async function RitePage({
         <RiteEditor viewer={user.id} rite={rite} />
       )}
       {(rite.source === "built-in" || rite.forgottenAt !== undefined) && (
-        <ol className="grid gap-3">
-          {Array.from(new Set(rite.replies)).map((reply) => (
-            <li key={reply} className="whitespace-pre-wrap">
-              {reply}
-            </li>
-          ))}
-        </ol>
+        <>
+          <section className="grid gap-2">
+            <h2 className="section-heading">{GRIMOIRE_COPY.firstMessage}</h2>
+            <p className="whitespace-pre-wrap">{rite.firstMessage}</p>
+          </section>
+          <section className="grid gap-2">
+            <h2 className="section-heading">{GRIMOIRE_COPY.replies}</h2>
+            <ol className="grid gap-3">
+              {Array.from(new Set(rite.replies)).map((reply) => (
+                <li key={reply} className="whitespace-pre-wrap">
+                  {reply}
+                </li>
+              ))}
+            </ol>
+          </section>
+        </>
       )}
       {rite.forgottenAt === undefined && (
         <form action={copyRiteAction}>

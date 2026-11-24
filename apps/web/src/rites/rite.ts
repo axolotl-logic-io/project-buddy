@@ -13,6 +13,7 @@ const RITE_DEFINITION = z.object({
     .min(1)
     .max(MAX_RITE_NAME)
     .refine((name) => !LINE_BREAK.test(name)),
+  firstMessage: z.string().trim().min(1).max(MAX_REPLY),
   replies: z
     .array(z.string().trim().min(1).max(MAX_REPLY))
     .min(1)
@@ -34,12 +35,14 @@ const BUILT_IN_RITES: readonly Rite[] = [
     id: "capture",
     source: "built-in",
     name: "Capture",
+    firstMessage: "Send me anything for {list}, and I’ll add it.",
     replies: ["Added to {list}.", "Saved to {list}."],
   },
   {
     id: "brainstorm",
     source: "built-in",
     name: "Brainstorm",
+    firstMessage: "Let’s brainstorm for {list}. What comes to mind first?",
     replies: [
       "What else comes to mind?",
       "What would you try if you had twice as much time?",
@@ -48,6 +51,27 @@ const BUILT_IN_RITES: readonly Rite[] = [
     ],
   },
 ];
+
+// Fills a template's placeholders from the words; a placeholder with no
+// word stays as written.
+function fill(
+  template: string,
+  words: Partial<Record<string, string>>,
+): string {
+  return template.replace(PLACEHOLDER, (match: string, key: string): string => {
+    const { [key]: value } = words;
+    return value ?? match;
+  });
+}
+
+// The rite's first message in a performance on the list, before anyone has
+// written. It fills {rite} and {list}.
+function riteFirstMessage(
+  rite: RiteDefinition,
+  list: { readonly name: string },
+): string {
+  return fill(rite.firstMessage, { rite: rite.name, list: list.name });
+}
 
 function riteReply(
   rite: RiteDefinition,
@@ -59,15 +83,11 @@ function riteReply(
   if (template === undefined) {
     throw new Error("A rite needs a reply");
   }
-  const words: Partial<Record<string, string>> = {
+  return fill(template, {
     rite: rite.name,
     list: list.name,
     text: message.text,
     user: message.author,
-  };
-  return template.replace(PLACEHOLDER, (match: string, key: string): string => {
-    const { [key]: value } = words;
-    return value ?? match;
   });
 }
 
@@ -78,5 +98,6 @@ export {
   MAX_REPLY,
   MAX_RITE_NAME,
   RITE_DEFINITION,
+  riteFirstMessage,
   riteReply,
 };

@@ -88,7 +88,11 @@ The signed-in landing page at the site's root, above Quests in the breadcrumbs. 
 
 ### Rite
 
-A named way to add list items to a list and reply to the user. A **rite definition** supplies the name and a list of replies. The site writes the messages for starting and stopping a performance, and for a message the list can't hold, from the rite's name and the list's type. The built-in rites are **Capture**, which confirms each message, and **Brainstorm**, which replies with brainstorming cues. Either can be performed on any list. [Customize rite use case](../apps/web/use-cases/grimoire.md#use_case_customize_rite)
+A named way to add list items to a list and reply to the user. A **rite definition** supplies the name, a first message and a list of replies. The site writes the messages for stopping a performance, and for a message the list can't hold, from the rite's name and the list's type. The built-in rites are **Capture**, which confirms each message, and **Brainstorm**, which replies with brainstorming cues. Either can be performed on any list. [Customize rite use case](../apps/web/use-cases/grimoire.md#use_case_customize_rite)
+
+### First message
+
+The rite's opening line in a performance, shown before anyone sends a message. It tells the user what the rite does and what to send. It can use the rite's name and the list's name.
 
 ### Reply
 
