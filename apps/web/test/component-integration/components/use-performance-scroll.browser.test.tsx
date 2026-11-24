@@ -1,5 +1,5 @@
 // "use_case_follow_latest_messages" in use-cases/performances.md, in Chromium
-// and WebKit: the active performance follows its newest conjuration and
+// and WebKit: the active performance follows its newest message and
 // reply while the user stays at the end, and keeps their place while they
 // read earlier ones. No clock paces these tests: each waits for the
 // browser's own frames and scroll events.
@@ -8,13 +8,13 @@ import { afterEach, describe, expect, onTestFinished, test, vi } from "vitest";
 import { commands, page, userEvent } from "vitest/browser";
 import { render } from "vitest-browser-react";
 import { getConstruct } from "@/constructs/index.ts";
-import { conjureAction } from "@/performances/performance-actions.ts";
-import type { Conjuration } from "@/performances/performance-store.ts";
+import { sendMessageAction } from "@/performances/performance-actions.ts";
+import type { PerformanceMessage } from "@/performances/performance-store.ts";
 import { PERFORMANCE_COPY } from "@/ui/copy/performances.ts";
 import { questIdFixture, userIdFixture } from "../../support/id-fixtures.ts";
 import {
-  conjuration,
   performanceView,
+  sentMessage,
 } from "../performances/performance-test-kit.tsx";
 import {
   LAPTOP_VIEWPORT,
@@ -42,12 +42,12 @@ const VIEWPORT_JITTER = -0.23;
 const WHEEL_STEP = 120;
 const TOUCH_START_Y = 200;
 const TOUCH_MOVE_Y = 300;
-const HISTORY: readonly Conjuration[] = [
-  conjuration("Tell me everything", LONG_TEXT),
+const HISTORY: readonly PerformanceMessage[] = [
+  sentMessage("Tell me everything", LONG_TEXT),
 ];
 
 const composer = page.getByRole("textbox", {
-  name: PERFORMANCE_COPY.conjuration,
+  name: PERFORMANCE_COPY.message,
 });
 
 function bottomGap(): number {
@@ -56,7 +56,7 @@ function bottomGap(): number {
   );
 }
 
-function view(entries: readonly Conjuration[]): React.JSX.Element {
+function view(entries: readonly PerformanceMessage[]): React.JSX.Element {
   return performanceView({
     questId: QUEST_ID,
     viewer: VIEWER,
@@ -66,7 +66,7 @@ function view(entries: readonly Conjuration[]): React.JSX.Element {
 }
 
 async function openPerformance(
-  entries: readonly Conjuration[] = HISTORY,
+  entries: readonly PerformanceMessage[] = HISTORY,
 ): Promise<Awaited<ReturnType<typeof render>>> {
   const screen = await render(view(entries));
   await document.fonts.ready;
@@ -74,7 +74,7 @@ async function openPerformance(
   return screen;
 }
 
-// The transcript's list of conjurations, where late content, such as a
+// The transcript's list of messages, where late content, such as a
 // reply's laid-out code or images, grows the performance.
 function transcript(): Element {
   return page.getByRole("list").first().element();
@@ -137,22 +137,22 @@ function stubVisualViewport(height: number): EventTarget & {
 afterEach(async () => {
   vi.restoreAllMocks();
   vi.unstubAllGlobals();
-  vi.mocked(conjureAction).mockReset();
+  vi.mocked(sendMessageAction).mockReset();
   await setViewport(LAPTOP_VIEWPORT);
 });
 
 describe("use_case_follow_latest_messages", () => {
   for (const size of [LAPTOP_VIEWPORT, PHONE_VIEWPORT]) {
-    test(`opens at the latest reply, follows a conjuration and its reply, and keeps an earlier reading place at ${size.width}px`, async () => {
+    test(`opens at the latest reply, follows a message and its reply, and keeps an earlier reading place at ${size.width}px`, async () => {
       await setViewport(size);
       const reply = Promise.withResolvers<string | undefined>();
-      vi.mocked(conjureAction).mockReturnValueOnce(reply.promise);
+      vi.mocked(sendMessageAction).mockReturnValueOnce(reply.promise);
       const screen = await openPerformance();
       await expect.element(firstParagraph).toBeInTheDocument();
       await expect.poll(bottomGap).toBeLessThanOrEqual(1);
       expect(window.scrollY).toBeGreaterThan(0);
 
-      // Conjuring from an earlier place brings the conjuration into view.
+      // Sending a message from an earlier place brings the message into view.
       await composer.fill("Continue");
       await readEarlier();
       await page
@@ -166,7 +166,7 @@ describe("use_case_follow_latest_messages", () => {
       // The reply arrives with the page's refresh, and comes into view.
       const answered = [
         ...HISTORY,
-        conjuration("Continue", `First reply.\n\n${LONG_TEXT}`),
+        sentMessage("Continue", `First reply.\n\n${LONG_TEXT}`),
       ];
       reply.resolve(undefined);
       await screen.rerender(view(answered));
@@ -180,7 +180,7 @@ describe("use_case_follow_latest_messages", () => {
       await screen.rerender(
         view([
           ...answered,
-          conjuration("More", `Second reply.\n\n${LONG_TEXT}`, "Sam"),
+          sentMessage("More", `Second reply.\n\n${LONG_TEXT}`, "Sam"),
         ]),
       );
       await expect

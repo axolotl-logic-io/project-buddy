@@ -15,6 +15,7 @@ import { getDb, inTransaction } from "@/db/client.ts";
 import { quests } from "@/db/tables/quests.ts";
 import { withAppErrors } from "@/errors/to-app-error.ts";
 import { parseQuestId, type QuestId, type UserId } from "@/ids.ts";
+import { seedLists } from "@/lists/list-store.ts";
 import type { QuestSharing } from "@/quests/membership.ts";
 import type { QuestName } from "@/quests/quest-name.ts";
 import {
@@ -23,7 +24,6 @@ import {
   sharingOf,
 } from "@/quests/quest-sharing.ts";
 import { QUEST_STATUS, type QuestStatus } from "@/quests/quest-status.ts";
-import { seedSpaces } from "@/spaces/space-store.ts";
 
 interface Quest {
   id: QuestId;
@@ -147,7 +147,7 @@ interface StartedQuest {
   readonly resumed: boolean;
 }
 
-// A new quest with its starting spaces, or the owner's Dailies quest when
+// A new quest with its starting lists, or the owner's Dailies quest when
 // they start Dailies again: a user has one Dailies quest, so a second start
 // resumes it.
 function createOrResumeQuest(
@@ -173,7 +173,7 @@ function createOrResumeQuest(
         })),
       );
       if (quest !== undefined) {
-        await seedSpaces(tx, quest.id);
+        await seedLists(tx, quest.id);
         return { quest, resumed: false };
       }
       const [existing] = toQuests(
@@ -191,7 +191,7 @@ function createOrResumeQuest(
   );
 }
 
-// A new quest with its starting spaces.
+// A new quest with its starting lists.
 async function createQuest(owner: UserId, name: QuestName): Promise<Quest> {
   const { quest } = await createOrResumeQuest(owner, name, {});
   return quest;

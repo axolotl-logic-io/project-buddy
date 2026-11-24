@@ -40,13 +40,13 @@ export const DAY_GRID_COPY = {
   cancel: "Cancel",
   confirmStartDay:
     "Start a new day? This ends the active performance and unchecks recurring tasks.",
-  emptySpaces: "Spaces to empty",
+  emptyLists: "Lists to empty",
   lastDayStarted,
   noDayYet: "No day started yet",
   undoStartDay: "Undo Start Day",
   undoNote:
-    "Undo restores the emptied spaces and the performance that ended. It is available until the next conjuration.",
-  unavailable: "Start Day is unavailable for this quest or space.",
+    "Undo restores the emptied lists and the performance that ended. It is available until the next message.",
+  unavailable: "Start Day is unavailable for this quest or list.",
   undoUnavailable: "This Start Day can no longer be undone.",
   started: "Started a new day.",
   undone: "Restored the previous day.",
@@ -54,7 +54,7 @@ export const DAY_GRID_COPY = {
   noDays:
     "Start Day begins counting. Each day, the grid shows which recurring tasks you did.",
   noRecurring:
-    "No recurring tasks yet. To track a task every day, open its menu in its space and choose Make recurring.",
+    "No recurring tasks yet. To track a task every day, open its menu in its list and choose Make recurring.",
   legend:
     "A filled square is done, an empty one is not, and a dashed one is a gap: a day you didn’t start, which ends a streak.",
   // One day's square, for screen readers: the date and the mark.

@@ -290,7 +290,7 @@
     @apply font-heading font-semibold text-page-heading-phone tracking-tight sm:text-page-heading;
   }
 
-  /* A heading inside a page, such as a quest's list of spaces. */
+  /* A heading inside a page, such as a quest's list of lists. */
   .section-heading {
     @apply font-heading font-semibold text-section-heading;
   }
@@ -632,7 +632,7 @@
   }
 
   /* A list whose items are rows divided by rules rather than cards, as the
-     Quests index lists its quests, with Quick Notes,
+     Quests index lists its quests, with Quick Add,
      and other lists of records. Inside
      a framed workspace, a card for each item would stack a second layer of
      borders. */
@@ -697,7 +697,7 @@
     }
   }
 
-  /* Leave room under the pinned trail band when jumping to a conjuration. */
+  /* Leave room under the pinned trail band when jumping to a message. */
   html:has(.quest-workspace) {
     scroll-padding-top: calc(var(--site-header-height) + --spacing(4));
   }

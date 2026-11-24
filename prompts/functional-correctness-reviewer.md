@@ -17,7 +17,7 @@ Exercise the documented paths through the app in each of the site's three appear
 - Successful actions produce the expected result and persist after reloading or reopening.
 - Invalid input and disallowed actions are rejected without unintended changes.
 - Relevant actors and variants behave correctly, including quest owners, unrelated users, admins, built-in definitions, own definitions and quest conversations. A quest is open to its owner and its accepted members only; a pending invitee, a removed member and an unrelated user get no access, and former membership grants none.
-- Connected effects agree: conversation snapshots, tasks steps, Ideas, recorded milestones, Quick Notes and saved images change only as documented.
+- Connected effects agree: conversation snapshots, tasks steps, Ideas, recorded milestones, Quick Add and saved images change only as documented.
 - Empty states, failures, interrupted requests, repeated submission, stale drafts, concurrent edits and lost access preserve the documented guarantees.
 - Retry, cancellation, restoration, retirement and permanent deletion have their documented effects, including what remains unchanged.
 - Local construct commands and replies, spell selection and casting, tool effects and Tasks updates fulfill the applicable use cases. Check saved effects as well as the visible reply.

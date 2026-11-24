@@ -81,10 +81,10 @@ The user, or someone else, asks for many sign-in emails in a short time.
 
 ## use_case_private_data
 
-Two users each see only the quests open to them, their own and those they are an accepted member of, with their spaces, murmlings and performances, and only their own rites.
+Two users each see only the quests open to them, their own and those they are an accepted member of, with their lists, list items and performances, and only their own rites.
 
 - **Prerequisites:** two signed-in accounts, each with a quest.
-- **Steps:** the second user tries to open and change the first user's quest, spaces, murmlings, performances and own rites, including by using their addresses directly.
+- **Steps:** the second user tries to open and change the first user's quest, lists, list items, performances and own rites, including by using their addresses directly.
 - **Outcome:** foreign data looks exactly like missing data. Reads reveal nothing and writes change nothing. Lists and choices include only built-in rites, their own rites and the quests open to the user: their own and those they are a member of ([`use_case_quest_member_access`](quest-members.md#use_case_quest_member_access)).
 - **Next:** [`use_case_view_quests`](quests.md#use_case_view_quests).
 
@@ -129,7 +129,7 @@ The user signs out of every browser and device at once, for example after signin
   - The site asks them to confirm. The user confirms.
   - The site shows the sign-in page.
   - In the other browser, the user opens a page.
-- **Outcome:** this browser and every other one are signed out: the other browser shows the sign-in page when it next opens a page that requires sign-in, and a performance left open there says the user has been signed out when the user next makes a conjuration ([`use_case_session_expired_in_performance`](access.md#use_case_session_expired_in_performance)). Every sign-in link sent before no longer signs them in, even within its 30 minutes. If the user cancels instead of confirming, nothing changes and the user stays signed in everywhere. A new link signs them in as usual.
+- **Outcome:** this browser and every other one are signed out: the other browser shows the sign-in page when it next opens a page that requires sign-in, and a performance left open there says the user has been signed out when the user next sends a message ([`use_case_session_expired_in_performance`](access.md#use_case_session_expired_in_performance)). Every sign-in link sent before no longer signs them in, even within its 30 minutes. If the user cancels instead of confirming, nothing changes and the user stays signed in everywhere. A new link signs them in as usual.
 - **Next:**
   - `use_case_sign_in_by_link`: sign in again where the user wants to be.
 

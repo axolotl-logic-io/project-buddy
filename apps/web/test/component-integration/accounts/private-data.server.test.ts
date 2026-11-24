@@ -12,10 +12,12 @@ import { and, eq, type SQL } from "drizzle-orm";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, test, vi } from "vitest";
 import {
-  conjurationOpenTo,
   eventOwnedBy,
-  murmlingOpenTo,
+  listChangeOpenTo,
+  listItemOpenTo,
+  listOpenTo,
   opensQuest,
+  performanceMessageOpenTo,
   performanceOpenTo,
   questDayOwnedBy,
   questInvitationOpenTo,
@@ -24,53 +26,48 @@ import {
   questOpenTo,
   questOwnedBy,
   questPendingFor,
-  spaceChangeOpenTo,
-  spaceOpenTo,
 } from "@/accounts/owner-scope.ts";
 import type { User } from "@/accounts/users-store.ts";
 import QuestsPage from "@/app/(workspace)/quests/(list)/page.tsx";
 import QuestPage from "@/app/(workspace)/quests/[questId]/(overview)/page.tsx";
 import { getDb } from "@/db/client.ts";
 import { events } from "@/db/tables/events.ts";
-import { conjurations, performances } from "@/db/tables/performances.ts";
+import { listChanges } from "@/db/tables/list-changes.ts";
+import { listItems, lists } from "@/db/tables/lists.ts";
+import { performanceMessages, performances } from "@/db/tables/performances.ts";
 import { questDays } from "@/db/tables/quest-days.ts";
 import { questInvitations, questMembers } from "@/db/tables/quest-members.ts";
 import { quests } from "@/db/tables/quests.ts";
-import { spaceChanges } from "@/db/tables/space-changes.ts";
-import { murmlings, spaces } from "@/db/tables/spaces.ts";
 import { readExperience } from "@/experience/experience-store.ts";
 import type { UserId } from "@/ids.ts";
+import { saveListAction } from "@/lists/list-actions.ts";
+import type { ListItemChange } from "@/lists/list-item.ts";
+import { changeListItemAction } from "@/lists/list-item-actions.ts";
 import {
-  conjureAction,
+  readListContents,
+  readListItems,
+  readNextTask,
+  writeListContents,
+} from "@/lists/list-item-store.ts";
+import { readLists } from "@/lists/list-store.ts";
+import { listQuickAddQuests, saveQuickAdd } from "@/lists/quick-add-actions.ts";
+import {
+  sendMessageAction,
   startPerformanceAction,
   stopPerformanceAction,
 } from "@/performances/performance-actions.ts";
 import {
-  CONJURATION,
-  conjure,
   listPerformances,
-  readConjurations,
+  PERFORMANCE_MESSAGE,
+  readPerformanceMessages,
+  sendMessage,
   startPerformance,
 } from "@/performances/performance-store.ts";
 import { removeFromQuest } from "@/quests/membership-store.ts";
 import { getQuest, listQuests, type Quest } from "@/quests/store.ts";
-import type { MurmlingChange } from "@/spaces/murmling.ts";
-import { changeMurmlingAction } from "@/spaces/murmling-actions.ts";
-import {
-  listMurmlings,
-  readNextMurmling,
-  readSpaceContents,
-  writeSpaceContents,
-} from "@/spaces/murmling-store.ts";
-import {
-  listQuickNoteQuests,
-  saveQuickNote,
-} from "@/spaces/quick-note-actions.ts";
-import { saveSpaceAction } from "@/spaces/space-actions.ts";
-import { listSpaces } from "@/spaces/space-store.ts";
-import { QUICK_NOTE_COPY } from "@/ui/copy/notes.ts";
+import { LISTS_COPY } from "@/ui/copy/lists.ts";
 import { PERFORMANCE_COPY } from "@/ui/copy/performances.ts";
-import { SPACES_COPY } from "@/ui/copy/spaces.ts";
+import { QUICK_ADD_COPY } from "@/ui/copy/quick-add.ts";
 import { questIdFixture } from "../../support/id-fixtures.ts";
 import { testData } from "../../support/test-database/data-test-kit.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
@@ -173,17 +170,17 @@ const OUTSIDERS = ["pending invitee", "removed member", "stranger"] as const;
 const DAY = "2026-11-02";
 
 // The owner's quest shared with a member, with a pending invitee and a
-// removed member, and a stranger beside it: two tasks in its Tasks space,
+// removed member, and a stranger beside it: two tasks in its Tasks list,
 // the change version of the second, an active performance on Ideas with a
-// conjuration the removed member made before their removal, and a day.
+// message the removed member made before their removal, and a day.
 async function sharedQuest(): Promise<{
   readonly users: Readonly<Record<Role, User>>;
   readonly quest: Quest;
   readonly otherQuest: Quest;
-  readonly tasks: Awaited<ReturnType<typeof listSpaces>>[number];
-  readonly ideas: Awaited<ReturnType<typeof listSpaces>>[number];
-  readonly first: Awaited<ReturnType<typeof listMurmlings>>[number];
-  readonly second: Awaited<ReturnType<typeof listMurmlings>>[number];
+  readonly tasks: Awaited<ReturnType<typeof readLists>>[number];
+  readonly ideas: Awaited<ReturnType<typeof readLists>>[number];
+  readonly first: Awaited<ReturnType<typeof readListItems>>[number];
+  readonly second: Awaited<ReturnType<typeof readListItems>>[number];
   readonly version: number;
   readonly performanceId: Awaited<
     ReturnType<typeof listPerformances>
@@ -211,40 +208,40 @@ async function sharedQuest(): Promise<{
     addMember(owner, quest.id, removed),
     addInvitee(owner, quest.id, pending),
   ]);
-  const [tasks, ideas] = await listSpaces(owner.id, quest.id);
+  const [tasks, ideas] = await readLists(owner.id, quest.id);
   if (tasks === undefined || ideas === undefined) {
-    throw new Error("The starting spaces were not saved");
+    throw new Error("The starting lists were not saved");
   }
-  await writeSpaceContents(owner.id, quest.id, tasks.id, {
+  await writeListContents(owner.id, quest.id, tasks.id, {
     kind: "add",
     text: "Wedge clay",
   });
-  const { space } = await writeSpaceContents(owner.id, quest.id, tasks.id, {
+  const { list } = await writeListContents(owner.id, quest.id, tasks.id, {
     kind: "add",
     text: "Throw bowls",
   });
-  const [first, second] = space?.murmlings ?? [];
-  if (space === undefined || first === undefined || second === undefined) {
+  const [first, second] = list?.listItems ?? [];
+  if (list === undefined || first === undefined || second === undefined) {
     throw new Error("The tasks were not saved");
   }
   const performance = await startPerformance(owner.id, quest.id, {
-    spaceId: ideas.id,
+    listId: ideas.id,
     riteId: "capture",
   });
   if (performance === undefined) {
     throw new Error("The performance did not start");
   }
-  const kept = await conjure(
+  const kept = await sendMessage(
     removed.id,
     quest.id,
-    CONJURATION.parse({
+    PERFORMANCE_MESSAGE.parse({
       id: crypto.randomUUID(),
       performanceId: performance.id,
       text: "Bisque first",
     }),
   );
   if (kept === undefined) {
-    throw new Error("The member's conjuration was not saved");
+    throw new Error("The member's message was not saved");
   }
   if (
     !(await removeFromQuest(owner.id, {
@@ -271,7 +268,7 @@ async function sharedQuest(): Promise<{
     ideas,
     first,
     second,
-    version: space.version,
+    version: list.version,
     performanceId: performance.id,
   };
 }
@@ -309,28 +306,26 @@ function predicateProbes(
       questRow(quest.id, opensQuest(user, quest.id)),
     questPendingFor: (user: UserId): Promise<boolean> =>
       questRow(quest.id, questPendingFor(user)),
-    spaceOpenTo: (user: UserId): Promise<boolean> =>
+    listOpenTo: (user: UserId): Promise<boolean> =>
       finds(
         db
-          .select({ id: spaces.id })
-          .from(spaces)
-          .where(and(eq(spaces.questId, quest.id), spaceOpenTo(user))),
+          .select({ id: lists.id })
+          .from(lists)
+          .where(and(eq(lists.questId, quest.id), listOpenTo(user))),
       ),
-    murmlingOpenTo: (user: UserId): Promise<boolean> =>
+    listItemOpenTo: (user: UserId): Promise<boolean> =>
       finds(
         db
-          .select({ id: murmlings.id })
-          .from(murmlings)
-          .where(and(eq(murmlings.questId, quest.id), murmlingOpenTo(user))),
+          .select({ id: listItems.id })
+          .from(listItems)
+          .where(and(eq(listItems.questId, quest.id), listItemOpenTo(user))),
       ),
-    spaceChangeOpenTo: (user: UserId): Promise<boolean> =>
+    listChangeOpenTo: (user: UserId): Promise<boolean> =>
       finds(
         db
-          .select({ id: spaceChanges.id })
-          .from(spaceChanges)
-          .where(
-            and(eq(spaceChanges.spaceId, tasks.id), spaceChangeOpenTo(user)),
-          ),
+          .select({ id: listChanges.id })
+          .from(listChanges)
+          .where(and(eq(listChanges.listId, tasks.id), listChangeOpenTo(user))),
       ),
     performanceOpenTo: (user: UserId): Promise<boolean> =>
       finds(
@@ -341,15 +336,15 @@ function predicateProbes(
             and(eq(performances.questId, quest.id), performanceOpenTo(user)),
           ),
       ),
-    conjurationOpenTo: (user: UserId): Promise<boolean> =>
+    performanceMessageOpenTo: (user: UserId): Promise<boolean> =>
       finds(
         db
-          .select({ id: conjurations.id })
-          .from(conjurations)
+          .select({ id: performanceMessages.id })
+          .from(performanceMessages)
           .where(
             and(
-              eq(conjurations.performanceId, performanceId),
-              conjurationOpenTo(user),
+              eq(performanceMessages.performanceId, performanceId),
+              performanceMessageOpenTo(user),
             ),
           ),
       ),
@@ -420,11 +415,11 @@ const EXPECTED_REACH: Readonly<Record<string, readonly Role[]>> = {
   "questOpenTo, the owner's other quest": ["owner"],
   opensQuest: OPEN_TO_OWNER_AND_MEMBER,
   questPendingFor: ["pending invitee"],
-  spaceOpenTo: OPEN_TO_OWNER_AND_MEMBER,
-  murmlingOpenTo: OPEN_TO_OWNER_AND_MEMBER,
-  spaceChangeOpenTo: OPEN_TO_OWNER_AND_MEMBER,
+  listOpenTo: OPEN_TO_OWNER_AND_MEMBER,
+  listItemOpenTo: OPEN_TO_OWNER_AND_MEMBER,
+  listChangeOpenTo: OPEN_TO_OWNER_AND_MEMBER,
   performanceOpenTo: OPEN_TO_OWNER_AND_MEMBER,
-  conjurationOpenTo: OPEN_TO_OWNER_AND_MEMBER,
+  performanceMessageOpenTo: OPEN_TO_OWNER_AND_MEMBER,
   questMemberOpenTo: OPEN_TO_OWNER_AND_MEMBER,
   questInvitationOpenTo: OPEN_TO_OWNER_AND_MEMBER,
   questInvitationTo: ["pending invitee"],
@@ -438,28 +433,26 @@ function ownerView(shared: Shared): Promise<unknown> {
   const owner = users.owner.id;
   return Promise.all([
     getQuest(owner, quest.id),
-    listSpaces(owner, quest.id),
-    listMurmlings(owner, quest.id, tasks.id),
-    listMurmlings(owner, quest.id, ideas.id),
+    readLists(owner, quest.id),
+    readListItems(owner, quest.id, tasks.id),
+    readListItems(owner, quest.id, ideas.id),
     listPerformances(owner, quest.id),
-    readConjurations(owner, performanceId),
+    readPerformanceMessages(owner, performanceId),
     readExperience(owner),
   ]);
 }
 
-// The Space settings form for a space of the quest, or a new one.
-function spaceForm(shared: Shared, spaceId?: string): FormData {
+// The List settings form for a list of the quest, or a new one.
+function listForm(shared: Shared, listId?: string): FormData {
   const form = formOf({
     questId: shared.quest.id,
     name: "Firings",
-    singular: "firing",
-    plural: "firings",
     checkOff: "Fire",
     uncheck: "Unload",
-    newType: "task",
+    type: "task",
   });
-  if (spaceId !== undefined) {
-    form.set("spaceId", spaceId);
+  if (listId !== undefined) {
+    form.set("listId", listId);
   }
   return form;
 }
@@ -487,7 +480,10 @@ describe("use_case_quest_member_access", () => {
 
     expect(reach).toEqual(EXPECTED_REACH);
     expect(
-      await readConjurations(shared.users.owner.id, shared.performanceId),
+      await readPerformanceMessages(
+        shared.users.owner.id,
+        shared.performanceId,
+      ),
     ).toMatchObject([{ text: "Bisque first", added: 1 }]);
   });
 
@@ -505,20 +501,20 @@ describe("use_case_quest_member_access", () => {
         await Promise.all([
           listQuests(outsider.id),
           getQuest(outsider.id, quest.id),
-          listSpaces(outsider.id, quest.id),
-          listMurmlings(outsider.id, quest.id, tasks.id),
-          readSpaceContents(outsider.id, quest.id, tasks.id),
-          readNextMurmling(outsider.id, quest.id),
+          readLists(outsider.id, quest.id),
+          readListItems(outsider.id, quest.id, tasks.id),
+          readListContents(outsider.id, quest.id, tasks.id),
+          readNextTask(outsider.id, quest.id),
           listPerformances(outsider.id, quest.id),
-          readConjurations(outsider.id, performanceId),
-          listQuickNoteQuests(),
+          readPerformanceMessages(outsider.id, performanceId),
+          listQuickAddQuests(),
         ]),
       ).toEqual([[], undefined, [], [], undefined, undefined, [], [], []]);
 
       expect(
         await startPerformanceAction({
           questId: quest.id,
-          spaceId: tasks.id,
+          listId: tasks.id,
           riteId: "capture",
         }),
       ).toBe(PERFORMANCE_COPY.unavailable);
@@ -526,7 +522,7 @@ describe("use_case_quest_member_access", () => {
         await stopPerformanceAction({ questId: quest.id, performanceId }),
       ).toBe(PERFORMANCE_COPY.unavailable);
       expect(
-        await conjureAction({
+        await sendMessageAction({
           questId: quest.id,
           performanceId,
           id: crypto.randomUUID(),
@@ -534,10 +530,9 @@ describe("use_case_quest_member_access", () => {
         }),
       ).toBe(PERFORMANCE_COPY.required);
 
-      const changes: readonly MurmlingChange[] = [
+      const changes: readonly ListItemChange[] = [
         { kind: "add", text: "Sweep the studio" },
         { kind: "edit", id: first.id, text: "Wedge porcelain" },
-        { kind: "type", id: first.id, type: "plain" },
         { kind: "check", id: first.id, checkedOff: true },
         { kind: "recurring", id: first.id, recurring: true },
         { kind: "move", id: first.id, destination: ideas.id },
@@ -549,9 +544,9 @@ describe("use_case_quest_member_access", () => {
       expect(
         await Promise.all(
           changes.map((change) =>
-            changeMurmlingAction({
+            changeListItemAction({
               questId: quest.id,
-              spaceId: tasks.id,
+              listId: tasks.id,
               change,
             }),
           ),
@@ -559,33 +554,33 @@ describe("use_case_quest_member_access", () => {
       ).toEqual(
         changes.map(() => ({
           kind: "problem",
-          text: SPACES_COPY.changeProblems.missing,
+          text: LISTS_COPY.changeProblems.missing,
         })),
       );
 
       expect(
         await Promise.all([
-          saveSpaceAction({}, spaceForm(shared)),
-          saveSpaceAction({}, spaceForm(shared, tasks.id)),
+          saveListAction({}, listForm(shared)),
+          saveListAction({}, listForm(shared, tasks.id)),
         ]),
       ).toMatchObject([
-        { error: SPACES_COPY.unavailable },
-        { error: SPACES_COPY.unavailable },
+        { error: LISTS_COPY.unavailable },
+        { error: LISTS_COPY.unavailable },
       ]);
       expect(
-        await saveQuickNote({
+        await saveQuickAdd({
           questId: quest.id,
-          spaceId: tasks.id,
+          listId: tasks.id,
           text: "Order more cones",
         }),
-      ).toEqual({ kind: "problem", text: QUICK_NOTE_COPY.spaceUnavailable });
+      ).toEqual({ kind: "problem", text: QUICK_ADD_COPY.listUnavailable });
 
       expect(await ownerView(shared)).toEqual(before);
     },
   );
 
   test.each(["owner", "member"] as const)(
-    "the %s performs, conjures and changes the quest's spaces",
+    "the %s performs, sends messages and changes the quest's lists",
     async (role) => {
       const shared = await sharedQuest();
       const { quest, tasks, ideas, first, second } = shared;
@@ -598,7 +593,7 @@ describe("use_case_quest_member_access", () => {
       expect(
         await startPerformanceAction({
           questId: quest.id,
-          spaceId: ideas.id,
+          listId: ideas.id,
           riteId: "capture",
         }),
       ).toBeUndefined();
@@ -607,18 +602,18 @@ describe("use_case_quest_member_access", () => {
         throw new Error("The performance was not listed");
       }
       expect([active, stopped]).toMatchObject([
-        { spaceId: ideas.id, endedAt: null },
+        { listId: ideas.id, endedAt: null },
         { id: shared.performanceId, endedAt: expect.any(Date) },
       ]);
       expect(
-        await conjureAction({
+        await sendMessageAction({
           questId: quest.id,
           performanceId: active.id,
           id: crypto.randomUUID(),
           text: "Glaze it blue",
         }),
       ).toBeUndefined();
-      expect(await readConjurations(user.id, active.id)).toMatchObject([
+      expect(await readPerformanceMessages(user.id, active.id)).toMatchObject([
         { text: "Glaze it blue", added: 1 },
       ]);
       expect(
@@ -629,20 +624,17 @@ describe("use_case_quest_member_access", () => {
       ).toBeUndefined();
 
       function change(
-        body: MurmlingChange,
-      ): ReturnType<typeof changeMurmlingAction> {
-        return changeMurmlingAction({
+        body: ListItemChange,
+      ): ReturnType<typeof changeListItemAction> {
+        return changeListItemAction({
           questId: quest.id,
-          spaceId: tasks.id,
+          listId: tasks.id,
           change: body,
         });
       }
       const saved = { kind: "saved" };
       expect(
         await change({ kind: "edit", id: first.id, text: "Wedge porcelain" }),
-      ).toMatchObject(saved);
-      expect(
-        await change({ kind: "type", id: second.id, type: "plain" }),
       ).toMatchObject(saved);
       expect(
         await change({ kind: "reorder", id: first.id, direction: "down" }),
@@ -658,16 +650,16 @@ describe("use_case_quest_member_access", () => {
       expect(
         await change({ kind: "undo", version: moved.undoVersion }),
       ).toMatchObject(saved);
-      expect(await listMurmlings(user.id, quest.id, tasks.id)).toMatchObject([
-        { id: second.id, type: "plain" },
+      expect(await readListItems(user.id, quest.id, tasks.id)).toMatchObject([
+        { id: second.id, taskNumber: second.taskNumber },
         { id: first.id, text: "Wedge porcelain" },
       ]);
 
-      expect(await saveSpaceAction({}, spaceForm(shared))).toEqual({
+      expect(await saveListAction({}, listForm(shared))).toEqual({
         saved: true,
       });
       expect(
-        (await listSpaces(shared.users.owner.id, quest.id)).map(
+        (await readLists(shared.users.owner.id, quest.id)).map(
           ({ name }) => name,
         ),
       ).toEqual(["Tasks", "Ideas", "Firings"]);

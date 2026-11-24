@@ -8,13 +8,13 @@ import {
   questRoute,
   readApiBody,
 } from "@/api/api-route.ts";
+import { LIST_ID } from "@/lists/list.ts";
 import {
   listPerformances,
   startPerformance,
 } from "@/performances/performance-store.ts";
-import { SPACE_ID } from "@/spaces/space.ts";
 
-const START = z.object({ riteId: z.string().min(1), spaceId: SPACE_ID });
+const START = z.object({ riteId: z.string().min(1), listId: LIST_ID });
 
 export const GET = questRoute(
   async ({ user, quest }: QuestCall<QuestParams>): Promise<Response> =>

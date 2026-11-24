@@ -5,19 +5,19 @@ import {
   DELETE as stop,
 } from "@/app/api/v1/quests/[questId]/performances/[performanceId]/route.ts";
 import { POST as start } from "@/app/api/v1/quests/[questId]/performances/route.ts";
+import { readListItems } from "@/lists/list-item-store.ts";
+import { readLists } from "@/lists/list-store.ts";
 import {
-  conjureAction,
+  sendMessageAction,
   startPerformanceAction,
   stopPerformanceAction,
 } from "@/performances/performance-actions.ts";
 import {
   listPerformances,
-  readConjurations,
+  readPerformanceMessages,
 } from "@/performances/performance-store.ts";
 import { QUEST_NAME } from "@/quests/quest-name.ts";
 import { createQuest } from "@/quests/store.ts";
-import { listMurmlings } from "@/spaces/murmling-store.ts";
-import { listSpaces } from "@/spaces/space-store.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
 import { callApi, dataOf } from "../api/api-test-kit.ts";
 import { signIn } from "../test-database/session-test-kit.ts";
@@ -26,8 +26,8 @@ vi.mock("next/cache", () => ({ refresh: vi.fn() }));
 
 async function setup(): Promise<{
   user: Awaited<ReturnType<typeof testUser>>;
-  questId: Parameters<typeof listSpaces>[1];
-  spaces: Awaited<ReturnType<typeof listSpaces>>;
+  questId: Parameters<typeof readLists>[1];
+  lists: Awaited<ReturnType<typeof readLists>>;
 }> {
   const user = await testUser();
   const { id: questId } = await createQuest(
@@ -35,22 +35,22 @@ async function setup(): Promise<{
     QUEST_NAME.parse("Workshop"),
   );
   await signIn(user);
-  return { user, questId, spaces: await listSpaces(user.id, questId) };
+  return { user, questId, lists: await readLists(user.id, questId) };
 }
 
 test("use_case_perform_rite", async () => {
   const {
     user,
     questId,
-    spaces: [tasks, ideas],
+    lists: [tasks, ideas],
   } = await setup();
   if (tasks === undefined || ideas === undefined) {
-    throw new Error("The quest has no starting spaces");
+    throw new Error("The quest has no starting lists");
   }
   expect(
     await startPerformanceAction({
       questId,
-      spaceId: ideas.id,
+      listId: ideas.id,
       riteId: "capture",
     }),
   ).toBeUndefined();
@@ -60,28 +60,28 @@ test("use_case_perform_rite", async () => {
   }
   expect(first).toMatchObject({
     rite: { name: "Capture" },
-    spaceId: ideas.id,
+    listId: ideas.id,
     endedAt: null,
   });
 
-  const conjuration = {
+  const message = {
     questId,
     performanceId: first.id,
     id: crypto.randomUUID(),
     text: "Try a paper prototype",
   };
-  await Promise.all([conjureAction(conjuration), conjureAction(conjuration)]);
-  expect(await listMurmlings(user.id, questId, ideas.id)).toMatchObject([
-    { type: "plain", text: conjuration.text },
+  await Promise.all([sendMessageAction(message), sendMessageAction(message)]);
+  expect(await readListItems(user.id, questId, ideas.id)).toMatchObject([
+    { text: message.text },
   ]);
-  expect(await readConjurations(user.id, first.id)).toMatchObject([
-    { text: conjuration.text, added: 1 },
+  expect(await readPerformanceMessages(user.id, first.id)).toMatchObject([
+    { text: message.text, added: 1 },
   ]);
 
   expect(
     await startPerformanceAction({
       questId,
-      spaceId: tasks.id,
+      listId: tasks.id,
       riteId: "brainstorm",
     }),
   ).toBeUndefined();
@@ -91,12 +91,12 @@ test("use_case_perform_rite", async () => {
   }
   expect(second).toMatchObject({
     rite: { name: "Brainstorm" },
-    spaceId: tasks.id,
+    listId: tasks.id,
     endedAt: null,
   });
   expect(ended).toMatchObject({
     id: first.id,
-    closing: "Capture ends. 1 idea added.",
+    closing: "Capture ends. 1 item added.",
   });
   expect(
     await stopPerformanceAction({ questId, performanceId: second.id }),
@@ -112,14 +112,14 @@ test("use_case_view_performances", async () => {
   const {
     user,
     questId,
-    spaces: [space],
+    lists: [list],
   } = await setup();
-  if (space === undefined) {
-    throw new Error("The quest has no starting spaces");
+  if (list === undefined) {
+    throw new Error("The quest has no starting lists");
   }
   await startPerformanceAction({
     questId,
-    spaceId: space.id,
+    listId: list.id,
     riteId: "capture",
   });
   const [performance] = await listPerformances(user.id, questId);
@@ -132,34 +132,36 @@ test("use_case_view_performances", async () => {
     id: crypto.randomUUID(),
     text: "Prepare materials",
   };
-  expect(await conjureAction(first)).toBeUndefined();
+  expect(await sendMessageAction(first)).toBeUndefined();
   expect(
     await stopPerformanceAction({ questId, performanceId: performance.id }),
   ).toBeUndefined();
-  expect(await conjureAction({ ...first, id: crypto.randomUUID() })).toBe(
-    "Start a performance to conjure.",
+  expect(await sendMessageAction({ ...first, id: crypto.randomUUID() })).toBe(
+    "Start a performance to send a message.",
   );
-  expect(await readConjurations(user.id, performance.id)).toMatchObject([
+  expect(await readPerformanceMessages(user.id, performance.id)).toMatchObject([
     { text: first.text, added: 1, author: "Quest member" },
   ]);
 
   const stranger = await testUser();
   expect(await listPerformances(stranger.id, questId)).toEqual([]);
-  expect(await readConjurations(stranger.id, performance.id)).toEqual([]);
+  expect(await readPerformanceMessages(stranger.id, performance.id)).toEqual(
+    [],
+  );
 });
 
 test("use_case_api_performance", async () => {
   const {
     user,
     questId,
-    spaces: [space],
+    lists: [list],
   } = await setup();
-  if (space === undefined) {
-    throw new Error("The quest has no starting spaces");
+  if (list === undefined) {
+    throw new Error("The quest has no starting lists");
   }
   const started = await callApi(start, {
     params: { questId },
-    body: { riteId: "capture", spaceId: space.id },
+    body: { riteId: "capture", listId: list.id },
   });
   const { id: performanceId } = dataOf(started);
   if (typeof performanceId !== "string") {
@@ -171,15 +173,15 @@ test("use_case_api_performance", async () => {
   expect(sent.body).toMatchObject({
     data: { text: body.text, added: 1, reply: expect.any(String) },
   });
-  expect(await listMurmlings(user.id, questId, space.id)).toMatchObject([
-    { text: body.text, type: "task" },
+  expect(await readListItems(user.id, questId, list.id)).toMatchObject([
+    { text: body.text },
   ]);
 
   expect((await callApi(stop, { params, method: "DELETE" })).body).toEqual({
     data: { id: performanceId },
   });
   expect((await callApi(read, { params })).body).toMatchObject({
-    data: { id: performanceId, conjurations: [{ text: body.text }] },
+    data: { id: performanceId, messages: [{ text: body.text }] },
   });
   expect(
     (

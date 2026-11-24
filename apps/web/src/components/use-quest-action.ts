@@ -1,5 +1,5 @@
 import { useCallback, useState } from "react";
-import { SPACES_COPY } from "@/ui/copy/spaces.ts";
+import { LISTS_COPY } from "@/ui/copy/lists.ts";
 
 type QuestActionResult =
   | {
@@ -39,7 +39,7 @@ function useQuestAction<Request>(
         setUndoVersion(result.undoVersion);
         return true;
       } catch {
-        setProblem(SPACES_COPY.saveFailed);
+        setProblem(LISTS_COPY.saveFailed);
         return false;
       } finally {
         setBusy(false);

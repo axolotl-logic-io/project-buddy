@@ -9,6 +9,7 @@ import {
   startQuestAction,
 } from "@/app/(workspace)/quests/actions.ts";
 import { getConstruct, listConstructs } from "@/constructs/index.ts";
+import { readLists } from "@/lists/list-store.ts";
 import { listPerformances } from "@/performances/performance-store.ts";
 import {
   PREMADE_QUESTS,
@@ -16,7 +17,6 @@ import {
 } from "@/quests/premade-quests.ts";
 import { QUEST_NAME_MAX_LENGTH } from "@/quests/quest-name.ts";
 import { listQuests, type Quest } from "@/quests/store.ts";
-import { listSpaces } from "@/spaces/space-store.ts";
 import { QUESTS_COPY } from "@/ui/copy/quests.ts";
 import { testData } from "../../../../support/test-database/data-test-kit.ts";
 import { testUser } from "../../../../support/test-database/user-test-kit.ts";
@@ -80,7 +80,7 @@ describe("use_case_view_quests", () => {
 });
 
 // A next step written into a starting context, which belongs in the
-// quest's Tasks space instead.
+// quest's Tasks list instead.
 const NEXT_STEP = /next step/iu;
 
 describe("use_case_new_quest", () => {
@@ -91,7 +91,7 @@ describe("use_case_new_quest", () => {
   });
 
   test.each(["learn", "make", "do"] as const)(
-    "%s opens its quest with starting spaces and no active performance",
+    "%s opens its quest with starting lists and no active performance",
     async (id) => {
       const user = await testUser();
       await signIn(user);
@@ -101,7 +101,7 @@ describe("use_case_new_quest", () => {
       expect(started.constructId).toBe(premade(id).constructId);
       expect(await listPerformances(user.id, started.id)).toEqual([]);
       expect(
-        (await listSpaces(user.id, started.id)).map(({ newType }) => newType),
+        (await readLists(user.id, started.id)).map(({ type }) => type),
       ).toEqual(["task", "plain"]);
     },
   );
@@ -145,7 +145,7 @@ describe("use_case_dailies", () => {
     const user = await testUser();
     await signIn(user);
     const first = await startQuest(user, startForm("dailies"));
-    const before = await listSpaces(user.id, first.id);
+    const before = await readLists(user.id, first.id);
 
     const again = await startQuest(
       user,
@@ -153,7 +153,7 @@ describe("use_case_dailies", () => {
     );
 
     expect(again.id).toBe(first.id);
-    expect(await listSpaces(user.id, again.id)).toEqual(before);
+    expect(await readLists(user.id, again.id)).toEqual(before);
     const quests = await listQuests(user.id);
     expect(quests).toHaveLength(1);
     expect(quests[0]).toMatchObject({ name: "Dailies", dailies: true });

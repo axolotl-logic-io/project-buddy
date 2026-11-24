@@ -322,14 +322,14 @@ test.each([
       .getByText(TIMER_COPY.next("break"), { exact: true })
       .element();
     const time = countdown().element();
-    const edgeSpace = 16;
+    const edgeList = 16;
     const readableNumberSize = 64;
     expect(time.getBoundingClientRect().top).toBeGreaterThanOrEqual(0);
     expect(time.getBoundingClientRect().bottom).toBeLessThanOrEqual(
-      height - edgeSpace,
+      height - edgeList,
     );
     expect(next.getBoundingClientRect().bottom).toBeLessThanOrEqual(
-      height - edgeSpace,
+      height - edgeList,
     );
     expect(
       Number.parseFloat(getComputedStyle(time).fontSize),

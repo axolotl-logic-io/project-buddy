@@ -12,14 +12,14 @@
 type QuestStep =
   | { readonly kind: "perform"; readonly name: string }
   | { readonly kind: "stop" }
-  // A conjuration made during a performance through the site's API.
+  // A message made during a performance through the site's API.
   | { readonly kind: "send"; readonly text: string }
   | { readonly kind: "plain"; readonly text: string }
   | { readonly kind: "task"; readonly text: string }
   | { readonly kind: "check"; readonly number: number }
   // Tasks added from the Tasks panel, in one change, as a panel adds them.
   | { readonly kind: "tasks"; readonly texts: readonly string[] }
-  // A Quick Note, from the Quick Note box.
+  // A note, added with Quick Add to the quest's notes list.
   | { readonly kind: "note"; readonly text: string }
   // A message and a construct reply written in Markdown.
   | { readonly kind: "reply"; readonly message: string; readonly reply: string }
@@ -47,7 +47,7 @@ interface ReviewContent {
   readonly quests: readonly ReviewQuest[];
 }
 
-const LATIN_MAP_REPLY = `Good work. Reading a whole legend unaided is the step this quest was for, and you can keep it in the space at the end of your performance.
+const LATIN_MAP_REPLY = `Good work. Reading a whole legend unaided is the step this quest was for, and you can keep it in the list at the end of your performance.
 
 Next, try the cartouche on the **Blaeu** sheet: its abbreviations are harder than the legend's.`;
 

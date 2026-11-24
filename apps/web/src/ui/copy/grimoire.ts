@@ -10,7 +10,7 @@ const GRIMOIRE_COPY = {
   edit: "Edit",
   name: "Rite name",
   replies: "Replies",
-  hint: "Use {rite}, {space}, {singular}, {plural}, {text} and {user} in replies.",
+  hint: "Use {rite}, {list}, {text} and {user} in replies.",
   save: "Save rite",
   saved: "Rite saved.",
   cancel: "Cancel",

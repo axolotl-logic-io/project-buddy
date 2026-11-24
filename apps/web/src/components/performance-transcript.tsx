@@ -6,8 +6,8 @@ import {
 import { Markdown } from "@/components/markdown.tsx";
 import type { Construct } from "@/constructs/index.ts";
 import type {
-  Conjuration,
   Performance,
+  PerformanceMessage,
 } from "@/performances/performance-store.ts";
 import { PERFORMANCE_COPY } from "@/ui/copy/performances.ts";
 
@@ -17,7 +17,7 @@ function PerformanceTranscript({
   construct,
 }: {
   readonly performance: Performance;
-  readonly entries: readonly Conjuration[];
+  readonly entries: readonly PerformanceMessage[];
   readonly construct: Construct;
 }): JSX.Element {
   return (
@@ -30,7 +30,7 @@ function PerformanceTranscript({
         />
       </div>
       <p>
-        {PERFORMANCE_COPY.opening(performance.rite.name, performance.spaceName)}
+        {PERFORMANCE_COPY.opening(performance.rite.name, performance.listName)}
       </p>
       <ol className="grid gap-3">
         {entries.map((entry) => (

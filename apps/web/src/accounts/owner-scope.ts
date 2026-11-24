@@ -5,8 +5,8 @@
 //
 // A quest belongs to its owner, the user who made it, and is open to its
 // owner and its accepted members (quest_members). Everything reached
-// through a quest is open to everyone the quest is open to: its spaces and
-// their murmlings and changes, its performances and their conjurations, and
+// through a quest is open to everyone the quest is open to: its lists and
+// their list items and changes, its performances and their messages, and
 // the quest's members and pending invitations, which any of them may see,
 // add to or remove. The owner is never a member row, so no one can remove
 // them. The one action left to the owner alone is finding a quest as their
@@ -27,13 +27,17 @@
 import { and, eq, exists, inArray, type SQL, sql } from "drizzle-orm";
 import { QueryBuilder } from "drizzle-orm/pg-core";
 import { events } from "@/db/tables/events.ts";
-import { conjurations, performances, rites } from "@/db/tables/performances.ts";
+import { listChanges } from "@/db/tables/list-changes.ts";
+import { listItems, lists } from "@/db/tables/lists.ts";
+import {
+  performanceMessages,
+  performances,
+  rites,
+} from "@/db/tables/performances.ts";
 import { questDays } from "@/db/tables/quest-days.ts";
 import { questInvitations, questMembers } from "@/db/tables/quest-members.ts";
 import { quests } from "@/db/tables/quests.ts";
 import { signedInDays } from "@/db/tables/signed-in-days.ts";
-import { spaceChanges } from "@/db/tables/space-changes.ts";
-import { murmlings, spaces } from "@/db/tables/spaces.ts";
 import { timerPresence } from "@/db/tables/timer-presence.ts";
 import type { QuestId, UserId } from "@/ids.ts";
 
@@ -81,21 +85,21 @@ function questPendingFor(invitee: UserId): SQL {
   );
 }
 
-function spaceOpenTo(user: UserId): SQL {
-  return inArray(spaces.questId, openQuestIds(user));
+function listOpenTo(user: UserId): SQL {
+  return inArray(lists.questId, openQuestIds(user));
 }
 
-function murmlingOpenTo(user: UserId): SQL {
-  return inArray(murmlings.questId, openQuestIds(user));
+function listItemOpenTo(user: UserId): SQL {
+  return inArray(listItems.questId, openQuestIds(user));
 }
 
 function performanceOpenTo(user: UserId): SQL {
   return inArray(performances.questId, openQuestIds(user));
 }
 
-function conjurationOpenTo(user: UserId): SQL {
+function performanceMessageOpenTo(user: UserId): SQL {
   return inArray(
-    conjurations.performanceId,
+    performanceMessages.performanceId,
     new QueryBuilder()
       .select({ id: performances.id })
       .from(performances)
@@ -107,13 +111,13 @@ function riteOwnedBy(user: UserId): SQL {
   return eq(rites.userId, user);
 }
 
-function spaceChangeOpenTo(user: UserId): SQL {
+function listChangeOpenTo(user: UserId): SQL {
   return inArray(
-    spaceChanges.spaceId,
+    listChanges.listId,
     new QueryBuilder()
-      .select({ id: spaces.id })
-      .from(spaces)
-      .where(spaceOpenTo(user)),
+      .select({ id: lists.id })
+      .from(lists)
+      .where(listOpenTo(user)),
   );
 }
 
@@ -173,10 +177,12 @@ function signedInDayOwnedBy(owner: UserId): SQL {
 }
 
 export {
-  conjurationOpenTo,
   eventOwnedBy,
-  murmlingOpenTo,
+  listChangeOpenTo,
+  listItemOpenTo,
+  listOpenTo,
   opensQuest,
+  performanceMessageOpenTo,
   performanceOpenTo,
   questDayOwnedBy,
   questInvitationOpenTo,
@@ -187,7 +193,5 @@ export {
   questPendingFor,
   riteOwnedBy,
   signedInDayOwnedBy,
-  spaceChangeOpenTo,
-  spaceOpenTo,
   timerPresenceOwnedBy,
 };

@@ -203,7 +203,7 @@ function usePerformanceScroll(): RefObject<HTMLDivElement | null> {
       follow();
     }
 
-    element.addEventListener("conjure", onSend);
+    element.addEventListener("send-message", onSend);
     const observer = new ResizeObserver(follow);
     observer.observe(element);
     element.addEventListener("focusin", onFocusIn);
@@ -220,7 +220,7 @@ function usePerformanceScroll(): RefObject<HTMLDivElement | null> {
     onResize();
     return (): void => {
       cancelAnimationFrame(resizeFrame);
-      element.removeEventListener("conjure", onSend);
+      element.removeEventListener("send-message", onSend);
       observer.disconnect();
       element.removeEventListener("focusin", onFocusIn);
       globalThis.removeEventListener("pointerdown", onPointerDown);

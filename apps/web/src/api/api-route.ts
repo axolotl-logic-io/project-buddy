@@ -119,7 +119,7 @@ function apiData(data: unknown): Response {
 }
 
 // A list, in its domain's order, with anything else the list has, such as
-// the space version.
+// the list version.
 function apiItems(
   items: readonly unknown[],
   meta: Readonly<Record<string, unknown>> = {},

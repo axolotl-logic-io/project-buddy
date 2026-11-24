@@ -5,9 +5,14 @@ import { z } from "zod";
 import type { User } from "@/accounts/users-store.ts";
 import { ConstructAvatar } from "@/components/constructs/construct-visual.tsx";
 import { DayGrid } from "@/components/dailies/day-grid.tsx";
+import { ListItems } from "@/components/list-items.tsx";
+import { ListSettings } from "@/components/list-settings.tsx";
 import { LocalTime } from "@/components/local-time.tsx";
 import { NextTask } from "@/components/next-task.tsx";
-import { Conjure, PerformRite } from "@/components/performance-controls.tsx";
+import {
+  MessageComposer,
+  PerformRite,
+} from "@/components/performance-controls.tsx";
 import { PerformanceTranscript } from "@/components/performance-transcript.tsx";
 import { QuestMembers } from "@/components/quest-members.tsx";
 import { QuestPerformances } from "@/components/quest-performances.tsx";
@@ -17,8 +22,6 @@ import {
   QuestStatusControls,
   QuestStatusFeedback,
 } from "@/components/quest-status-controls.tsx";
-import { SpaceMurmlings } from "@/components/space-murmlings.tsx";
-import { SpaceSettings } from "@/components/space-settings.tsx";
 import { StartDay } from "@/components/start-day.tsx";
 import { QuestTimer } from "@/components/timer/quest-timer.tsx";
 import { Button } from "@/components/ui/button.tsx";
@@ -31,22 +34,22 @@ import {
   readRecurringTasks,
 } from "@/dailies/quest-day-store.ts";
 import type { QuestId, UserId } from "@/ids.ts";
+import { LIST_ID } from "@/lists/list.ts";
+import { readListItems, readNextTask } from "@/lists/list-item-store.ts";
+import { type List, readLists } from "@/lists/list-store.ts";
 import {
   listPerformances,
-  readConjurations,
+  readPerformanceMessages,
 } from "@/performances/performance-store.ts";
 import { listQuestPeople } from "@/quests/membership-store.ts";
 import { getQuest, type Quest } from "@/quests/store.ts";
 import { listRites } from "@/rites/rite-store.ts";
-import { listMurmlings, readNextMurmling } from "@/spaces/murmling-store.ts";
-import { SPACE_ID } from "@/spaces/space.ts";
-import { listSpaces, type Space } from "@/spaces/space-store.ts";
+import { LISTS_COPY } from "@/ui/copy/lists.ts";
 import { PERFORMANCE_COPY } from "@/ui/copy/performances.ts";
 import { QUEST_MEMBERS_COPY } from "@/ui/copy/quest-members.ts";
 import { QUEST_OVERVIEW_COPY } from "@/ui/copy/quest-overview.ts";
 import { QUEST_SIDEBAR_COPY } from "@/ui/copy/quest-sidebar.ts";
 import { QUEST_STATUS_COPY } from "@/ui/copy/quest-status.ts";
-import { SPACES_COPY } from "@/ui/copy/spaces.ts";
 import { TIMER_COPY } from "@/ui/copy/timer.ts";
 
 const SECTION = z.enum(["members", "days", "rites", "performances"]);
@@ -63,7 +66,7 @@ function dayControls(
   quest: Quest,
   record: DailiesRecord | undefined,
   today: Date,
-  spaces: readonly Space[],
+  lists: readonly List[],
 ): JSX.Element {
   const gridLink = (
     <Button asChild={true} variant="quiet">
@@ -83,7 +86,7 @@ function dayControls(
     controls = (
       <StartDay
         questId={quest.id}
-        spaces={spaces}
+        lists={lists}
         lastStartedAt={record?.days.at(-1)?.startedAt}
         undoable={record?.undoable === true}
       >
@@ -126,28 +129,28 @@ async function questPage(
   if (quest === undefined) {
     return undefined;
   }
-  const [people, record, spaces, performances] = await Promise.all([
+  const [people, record, lists, performances] = await Promise.all([
     listQuestPeople(user, quest.id),
     dailiesRecord(user, quest),
-    listSpaces(user, quest.id),
+    readLists(user, quest.id),
     listPerformances(user, quest.id),
   ]);
-  const spaceId = SPACE_ID.safeParse(section).data;
-  const space = spaces.find(({ id }) => id === spaceId);
-  let contents: Awaited<ReturnType<typeof listMurmlings>> = [];
-  if (space !== undefined) {
-    contents = await listMurmlings(user, quest.id, space.id);
+  const listId = LIST_ID.safeParse(section).data;
+  const list = lists.find(({ id }) => id === listId);
+  let contents: Awaited<ReturnType<typeof readListItems>> = [];
+  if (list !== undefined) {
+    contents = await readListItems(user, quest.id, list.id);
   }
   const running = performances.find(({ endedAt }) => endedAt === null);
   const selected = performances.find(({ id }) => id === performanceParam);
   const construct = getConstruct(quest.constructId);
   let runningContent: ReactNode;
   if (running !== undefined) {
-    const entries = await readConjurations(user, running.id);
+    const entries = await readPerformanceMessages(user, running.id);
     runningContent = (
       <section aria-label={running.rite.name} className="quest-section-body">
         <h2 className="section-heading">{running.rite.name}</h2>
-        <Conjure
+        <MessageComposer
           key={running.id}
           questId={quest.id}
           performanceId={running.id}
@@ -161,7 +164,7 @@ async function questPage(
             entries={entries}
             construct={construct}
           />
-        </Conjure>
+        </MessageComposer>
       </section>
     );
   }
@@ -174,7 +177,7 @@ async function questPage(
       historyContent = (
         <PerformanceTranscript
           performance={selected}
-          entries={await readConjurations(user, selected.id)}
+          entries={await readPerformanceMessages(user, selected.id)}
           construct={construct}
         />
       );
@@ -197,7 +200,7 @@ async function questPage(
         <PerformRite
           questId={quest.id}
           rites={await listRites(user)}
-          spaces={spaces}
+          lists={lists}
         />
         <h3 className="section-heading">{QUEST_OVERVIEW_COPY.status}</h3>
         <QuestStatusControls quest={quest} />
@@ -206,12 +209,12 @@ async function questPage(
   }
   const onOverview =
     current === undefined &&
-    space === undefined &&
+    list === undefined &&
     section !== "performances" &&
     section !== "rites";
-  let nextTask: Awaited<ReturnType<typeof readNextMurmling>>;
+  let nextTask: Awaited<ReturnType<typeof readNextTask>>;
   if (onOverview && !quest.dailies) {
-    nextTask = await readNextMurmling(user, quest.id);
+    nextTask = await readNextTask(user, quest.id);
   }
   let dayGrid: JSX.Element | undefined;
   if (current === "days" && record !== undefined) {
@@ -261,7 +264,7 @@ async function questPage(
                   </p>
                 )}
               {quest.dailies === true &&
-                dayControls(quest, record, today, spaces)}
+                dayControls(quest, record, today, lists)}
               {!quest.dailies && <NextTask task={nextTask} />}
             </section>
           )}
@@ -270,10 +273,10 @@ async function questPage(
           )}
           {onOverview === true && (
             <>
-              <nav aria-label={SPACES_COPY.heading}>
-                <h2 className="section-heading">{SPACES_COPY.heading}</h2>
+              <nav aria-label={LISTS_COPY.heading}>
+                <h2 className="section-heading">{LISTS_COPY.heading}</h2>
                 <ul className="quest-overview-links">
-                  {spaces.map((entry) => (
+                  {lists.map((entry) => (
                     <li key={entry.id}>
                       <Link
                         href={`/quests/${quest.id}?section=${entry.id}`}
@@ -285,7 +288,7 @@ async function questPage(
                     </li>
                   ))}
                 </ul>
-                <SpaceSettings questId={quest.id} />
+                <ListSettings questId={quest.id} />
               </nav>
               <ul className="quest-overview-links">
                 <li>
@@ -313,24 +316,24 @@ async function questPage(
               </Link>
             </>
           )}
-          {space !== undefined && (
-            <section className="quest-section-body" aria-label={space.name}>
+          {list !== undefined && (
+            <section className="quest-section-body" aria-label={list.name}>
               <Button asChild={true} variant="quiet">
                 <Link href={sectionPath(quest.id)}>
                   <Icon name="arrow-left" />
                   {QUEST_OVERVIEW_COPY.back}
                 </Link>
               </Button>
-              <h2 className="quest-overview-title">{space.name}</h2>
-              <SpaceMurmlings
-                key={space.id}
-                space={space}
+              <h2 className="quest-overview-title">{list.name}</h2>
+              <ListItems
+                key={list.id}
+                list={list}
                 questId={quest.id}
                 contents={contents}
                 days={record?.days}
-                destinations={spaces.filter(({ id }) => id !== space.id)}
+                destinations={lists.filter(({ id }) => id !== list.id)}
               />
-              <SpaceSettings key={space.id} questId={quest.id} space={space} />
+              <ListSettings key={list.id} questId={quest.id} list={list} />
             </section>
           )}
           {current !== undefined && (

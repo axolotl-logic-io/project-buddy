@@ -13,4 +13,4 @@ The owner or a member finds a completed or abandoned quest and restores it.
 - **Steps:** Open Quests, choose Completed or Abandoned, and choose Restore quest on a card. Alternatively, open the quest and choose Restore quest in Rites & status.
 - **Outcome:** The quest returns to Active with its contents intact. The list offers Undo even after the restored card leaves the selected list. Status tabs support keyboard navigation; the selected status is preserved in the URL.
 
-Completed and Abandoned quests keep their spaces and performances. Status changes and Undo replace previous feedback and focus the current result, including when a restored card leaves the list.
+Completed and Abandoned quests keep their lists and performances. Status changes and Undo replace previous feedback and focus the current result, including when a restored card leaves the list.

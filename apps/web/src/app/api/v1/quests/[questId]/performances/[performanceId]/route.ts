@@ -8,11 +8,11 @@ import {
   readApiBody,
 } from "@/api/api-route.ts";
 import {
-  CONJURATION,
-  conjure,
   listPerformances,
   PERFORMANCE_ID,
-  readConjurations,
+  PERFORMANCE_MESSAGE,
+  readPerformanceMessages,
+  sendMessage,
   stopPerformance,
 } from "@/performances/performance-store.ts";
 import { PERFORMANCE_COPY } from "@/ui/copy/performances.ts";
@@ -21,7 +21,7 @@ interface PerformanceParams extends QuestParams {
   readonly performanceId: string;
 }
 
-const CONJURE = CONJURATION.omit({ performanceId: true });
+const SEND_MESSAGE = PERFORMANCE_MESSAGE.omit({ performanceId: true });
 
 export const GET = questRoute(
   async ({
@@ -38,7 +38,7 @@ export const GET = questRoute(
     }
     return apiData({
       ...performance,
-      conjurations: await readConjurations(user.id, performance.id),
+      messages: await readPerformanceMessages(user.id, performance.id),
     });
   },
 );
@@ -54,11 +54,14 @@ export const POST = questRoute(
     if (performanceId === undefined) {
       return apiNotFound();
     }
-    const input = await readApiBody(request, CONJURE);
+    const input = await readApiBody(request, SEND_MESSAGE);
     if (input instanceof Response) {
       return input;
     }
-    const entry = await conjure(user.id, quest.id, { ...input, performanceId });
+    const entry = await sendMessage(user.id, quest.id, {
+      ...input,
+      performanceId,
+    });
     if (entry === undefined) {
       return apiProblem("performance_required", PERFORMANCE_COPY.required);
     }

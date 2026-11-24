@@ -2,7 +2,7 @@
 // gate for a session that lapsed, an auth workflow, so it stays in
 // Playwright (e2e-auth-only). The other failure cases are
 // Vitest's: test/component-integration/errors/missing-page.server.test.ts,
-// test/component-integration/performances/conjurations.server.test.ts and
+// test/component-integration/performances/messages.server.test.ts and
 // the storage-unavailable.server.test.ts files.
 
 import { type BrowserContext, expect, type Page } from "@playwright/test";
