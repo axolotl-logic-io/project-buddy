@@ -159,7 +159,7 @@ async function questPage(
         {quest.status !== "active" && (
           <Notice>{QUEST_STATUS_COPY.effects}</Notice>
         )}
-        <NextTask questId={quest.id} tasks={next} lists={lists} />
+        <NextTask questId={quest.id} tasks={next} />
         {history !== undefined && recurring.length > 0 && (
           <TodayTasks questId={quest.id} history={history} tasks={recurring} />
         )}

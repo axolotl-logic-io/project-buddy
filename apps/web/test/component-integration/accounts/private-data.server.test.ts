@@ -457,8 +457,6 @@ function listForm(shared: Shared, listId?: string): FormData {
   const form = formOf({
     questId: shared.quest.id,
     name: "Firings",
-    checkOff: "Fire",
-    uncheck: "Unload",
     type: "task",
   });
   if (listId !== undefined) {

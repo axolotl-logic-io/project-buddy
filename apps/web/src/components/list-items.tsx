@@ -120,7 +120,7 @@ function ListItemRow({
     );
   }
   let checked: boolean | undefined;
-  let toggleLabel = list.checkOff;
+  let toggleLabel = LISTS_COPY.checkOff;
   let menuLabel: string | undefined;
   let detail: JSX.Element | undefined;
   let leading: JSX.Element | undefined;
@@ -128,7 +128,7 @@ function ListItemRow({
     checked = checkedOff;
   }
   if (checkedOff) {
-    toggleLabel = list.uncheck;
+    ({ uncheck: toggleLabel } = LISTS_COPY);
   }
   if (item.taskNumber !== null) {
     menuLabel = LISTS_COPY.taskNumber(item.taskNumber);

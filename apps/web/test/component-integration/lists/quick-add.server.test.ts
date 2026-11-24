@@ -115,8 +115,6 @@ test("use_case_quick_add: empty or over-long text is refused with its reason", a
   const { owner, quest } = await ownerWithQuest("Pottery");
   const notes = await saveList(owner.id, quest.id, {
     name: "Notes",
-    checkOff: "Complete",
-    uncheck: "Reopen",
     type: "quick-note",
   });
   if (notes === undefined || notes === "invalid-text") {

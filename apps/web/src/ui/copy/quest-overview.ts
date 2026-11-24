@@ -7,8 +7,6 @@ const QUEST_OVERVIEW_COPY = {
   quest: "Quest",
   status: "Quest status",
   personal: "Personal",
-  // The next task's action when its list can't be found.
-  checkOff: "Check off",
   // The open tasks that follow the next task.
   followedBy: (tasks: readonly string[]): string =>
     `Then: ${tasks.join(" · ")}`,

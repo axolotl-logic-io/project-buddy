@@ -40,7 +40,7 @@ A quest the user owns or has joined as a quest member. Use **open to** for acces
 
 ### List
 
-A named, ordered collection of list items in a quest. Every list belongs to one quest and has one type: **plain**, **task** or **quick note**. Every list item in a list has the list's type, and the type names the items on screen: items, tasks or notes. A list also sets the verbs for checking off and unchecking its tasks. Changing a list's type converts every list item in it. The site refuses the change when an item's text is too long for the new type. Themed wording, such as spooky verbs, belongs in a list's verbs and a rite's replies rather than in the glossary. [List use cases](../apps/web/use-cases/lists.md)
+A named, ordered collection of list items in a quest. Every list belongs to one quest and has one type: **plain**, **task** or **quick note**. Every list item in a list has the list's type, and the type names the items on screen: items, tasks or notes. Changing a list's type converts every list item in it. The site refuses the change when an item's text is too long for the new type. Themed wording belongs in a rite's replies rather than in the glossary. [List use cases](../apps/web/use-cases/lists.md)
 
 ### List item
 
@@ -48,7 +48,7 @@ Anything in a list. A list item has its list's type. To **move** a list item is 
 
 ### Task
 
-A list item in a task list: a piece of work the user has committed to. To **check off** a task is to mark it done. To **uncheck** it is to make it open again. The list's verbs name these actions on screen. A task number identifies a task within its quest and stays the same when the task moves to another task list. [Task use cases](../apps/web/use-cases/tasks.md)
+A list item in a task list: a piece of work the user has committed to. To **check off** a task is to mark it done. To **uncheck** it is to make it open again. A task number identifies a task within its quest and stays the same when the task moves to another task list. [Task use cases](../apps/web/use-cases/tasks.md)
 
 ### Next task
 

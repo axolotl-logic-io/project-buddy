@@ -24,8 +24,6 @@ const lists = pgTable(
       .references(() => quests.id, { onDelete: "cascade" }),
     position: integer("position").notNull(),
     name: text("name").notNull(),
-    checkOff: text("check_off").notNull(),
-    uncheck: text("uncheck").notNull(),
     type: text("type").notNull(),
     version: integer("version").notNull().default(0),
   },

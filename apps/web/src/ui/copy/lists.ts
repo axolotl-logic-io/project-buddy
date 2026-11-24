@@ -37,15 +37,10 @@ const LISTS_COPY = {
   },
   saveFailed: "The change could not be saved. Try again.",
   undo: "Undo",
-  checked: (
-    list: { readonly checkOff: string; readonly uncheck: string },
-    checkedOff: boolean,
-  ): string => {
-    if (checkedOff) {
-      return `${list.checkOff}: saved.`;
-    }
-    return `${list.uncheck}: saved.`;
-  },
+  checkOff: "Check off",
+  uncheck: "Uncheck",
+  checkedOff: "Task checked off.",
+  unchecked: "Task unchecked.",
   savedChange: "Change saved.",
   addListItem: (type: ListType): string => `Add ${LIST_NOUNS[type].one}`,
   editListItem: (type: ListType): string => `Edit ${LIST_NOUNS[type].one}`,
@@ -68,8 +63,6 @@ const LISTS_COPY = {
   taskNumber: (number: number): string => `Task #${number}`,
   fields: {
     name: "List name",
-    checkOff: "Check-off verb",
-    uncheck: "Uncheck verb",
     type: "Type",
   },
   types: {
