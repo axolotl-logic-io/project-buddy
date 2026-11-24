@@ -1649,8 +1649,8 @@
     padding: 0;
   }
 
-  /* A running timer's count of others and Copy link, at the right end of
-     the trail band. The count gives up its room before the button does. */
+  /* A running timer's count of others and preferences panel at the
+     right end of the trail band. */
   .timer-trail-tools {
     @apply ml-auto flex min-w-min items-center gap-3 self-center;
   }
@@ -1673,12 +1673,6 @@
 
   .timer-others {
     @apply min-w-0 truncate text-muted text-sm;
-  }
-
-  /* A whole target without making the band taller. */
-  .timer-trail-tools .button-secondary {
-    @apply shrink-0;
-    margin-block: calc((1lh - var(--target-size)) / 2);
   }
 
   .quest-workspace > .workspace-content {

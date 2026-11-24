@@ -164,6 +164,36 @@ test("the phone drawer traps focus, closes with Escape, and restores focus", asy
     .toHaveFocus();
 });
 
+test.each([PHONE_WIDTH, DESKTOP_WIDTH])(
+  "Timer preferences actions have separate rows at %i CSS pixels",
+  async (width) => {
+    await commands.reduceMotion();
+    await page.viewport(width, HEIGHT);
+    applyTheme("parchment", "dark");
+    await renderTimer(SCHEDULE);
+    await openTimerPreferences();
+
+    const panel = preferences();
+    const close = panel.getByRole("button", {
+      name: TIMER_COPY.closePreferences,
+    });
+    const copy = panel.getByRole("button", { name: TIMER_COPY.copyLink });
+    const timerOnly = panel.getByRole("link", {
+      name: TIMER_COPY.timerOnlyLink,
+    });
+    await expect.element(copy).toBeVisible();
+    await expect.element(timerOnly).toBeVisible();
+
+    const copyBounds = copy.element().getBoundingClientRect();
+    expect(copyBounds.top).toBeGreaterThanOrEqual(
+      close.element().getBoundingClientRect().bottom,
+    );
+    expect(timerOnly.element().getBoundingClientRect().top).toBeGreaterThan(
+      copyBounds.bottom,
+    );
+  },
+);
+
 test.each(THEME_MODES)(
   "%s fits on phones in work, break, and hour-long periods",
   async (mode) => {
