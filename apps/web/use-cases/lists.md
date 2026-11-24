@@ -34,7 +34,7 @@ The user changes a list's type, or moves a list item to a list of another type.
 - **Steps:**
   - The user opens the list's settings, chooses another type and saves.
   - Or the user moves a list item to a list of another type.
-- **Outcome:** every list item in the list, or the moved list item, takes the new type and keeps its text and place. A task has a square check-off control and a task number, and counts toward the quest's next task. A quick note shows the date it was added. A plain list item shows only its text. A checked-off task that stops being a task takes back its experience, as unchecking does. A plain list item or task holds one line of 1 to 200 characters; a quick note holds 1 to 1000 characters across lines. When any list item is too long for the new type, the site refuses the change, says why and changes nothing. Changing a list's type ends the chance to undo Start Day.
+- **Outcome:** every list item in the list, or the moved list item, takes the new type and keeps its text and place. A task has a square check-off control and a task number, and counts toward the quest's next task. A quick note shows the date it was added. A plain list item shows only its text. A checked-off task that stops being a task takes back its experience, as unchecking does. A plain list item or task holds one line of 1 to 200 characters; a quick note holds 1 to 1000 characters across lines. When any list item is too long for the new type, the site refuses the change, says why and changes nothing.
 
 ## use_case_quick_add
 

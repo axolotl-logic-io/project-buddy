@@ -84,12 +84,12 @@ beforeEach(() => {
   remove.mockResolvedValue({ kind: "saved" });
 });
 
-function members(viewer = OWNER.id, dailies = false): JSX.Element {
+function members(viewer = OWNER.id): JSX.Element {
   return (
     <QuestMembers
       viewer={viewer}
       people={PEOPLE}
-      quest={{ id: QUEST_ID, name: "Fox quest", dailies }}
+      quest={{ id: QUEST_ID, name: "Fox quest" }}
     />
   );
 }
@@ -301,24 +301,6 @@ describe("a quest's Members tab", () => {
         person: MEMBER.id,
       }),
     );
-  });
-
-  test("Dailies says only that it has no members", async () => {
-    await render(members(OWNER.id, true));
-    await expect
-      .element(page.getByText(QUEST_MEMBERS_COPY.dailies))
-      .toBeVisible();
-    await expect
-      .element(page.getByText(QUEST_MEMBERS_COPY.intro))
-      .not.toBeInTheDocument();
-    await expect
-      .element(page.getByRole("list", { name: QUEST_MEMBERS_COPY.listLabel }))
-      .not.toBeInTheDocument();
-    await expect
-      .element(
-        page.getByRole("textbox", { name: QUEST_MEMBERS_COPY.emailLabel }),
-      )
-      .not.toBeInTheDocument();
   });
 });
 

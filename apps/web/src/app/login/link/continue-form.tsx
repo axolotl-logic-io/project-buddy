@@ -14,6 +14,7 @@ import {
   type ContinueSignInState,
   continueSignInAction,
 } from "@/app/login/link/actions.ts";
+import { TimeZoneField } from "@/components/time-zone-field.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { TextField } from "@/components/ui/field.tsx";
 import { SIGN_IN_DESTINATION_PARAMETER } from "@/routes.ts";
@@ -31,10 +32,13 @@ function ContinueForm({
   token,
   destination,
   signup,
+  timeZones,
 }: {
   readonly token: string;
   readonly destination: string | undefined;
   readonly signup: boolean;
+  // The time zones to choose from at sign-up.
+  readonly timeZones: readonly string[];
 }): JSX.Element {
   const [name, setName] = useState("");
   const changeName = useCallback(
@@ -79,6 +83,7 @@ function ContinueForm({
           error={error}
         />
       )}
+      {signup === true && <TimeZoneField choices={timeZones} />}
       <Button type="submit" aria-busy={pending} disabled={pending}>
         {LINK_PAGE_COPY.continue}
       </Button>

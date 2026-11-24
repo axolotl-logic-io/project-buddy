@@ -1,7 +1,7 @@
 import { pageTitle } from "@/ui/copy/site.ts";
 
 // Home, the signed-in landing page: the user's experience, then the
-// streaks of every recurring task across their Dailies quests, and the site
+// streaks of every recurring task across their quests, and the site
 // panel's link to it.
 export const HOME_COPY = {
   title: pageTitle("Home"),
@@ -30,10 +30,9 @@ export const HOME_COPY = {
   square: (task: string, weekday: string, date: string): string =>
     `${task}, ${weekday} ${date}`,
   noStreaks:
-    "No streaks yet. In a Dailies quest, make a task recurring and start a day to count it here.",
-  noDays: "Start Day in a Dailies quest begins counting its recurring tasks.",
+    "No streaks yet. To count a task here, open its menu in a quest’s list and choose Make recurring.",
   legend:
-    "Check a square to mark a task done on that day. A dashed square is a day you didn’t start, which ends a streak.",
+    "Check a square to mark a task done on that day. A day without a check-off ends a streak. Each day starts at midnight in the quest owner’s time zone.",
   markUnavailable:
-    "That day can’t be changed. Only a day you started can record a recurring task.",
+    "That day can’t be changed. Only the last seven days since the task was added can be marked.",
 } as const;

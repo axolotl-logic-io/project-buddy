@@ -103,35 +103,32 @@ describe("header breadcrumbs", () => {
     expect(stores.readRite).not.toHaveBeenCalled();
   });
 
-  test("the active Dailies quest's crumb carries its construct", async () => {
+  test("an active quest's crumb carries its construct", async () => {
     stores.getQuest.mockResolvedValue({
-      id: "dailies",
+      id: "mornings",
       name: "Mornings",
-      dailies: true,
       status: "active",
       constructId: "vellum",
     });
-    expect(await headerBreadcrumbs(MEMBER, ["quests", "dailies"])).toEqual([
+    expect(await headerBreadcrumbs(MEMBER, ["quests", "mornings"])).toEqual([
       HOME,
       QUESTS,
       {
         label: "Mornings",
-        quest: { id: "dailies", name: "Mornings" },
+        quest: { id: "mornings", name: "Mornings" },
         construct: getConstruct("vellum"),
       },
     ]);
-    expect(stores.getQuest).toHaveBeenCalledWith(USER, "dailies");
+    expect(stores.getQuest).toHaveBeenCalledWith(USER, "mornings");
   });
 
   test.each([
-    { name: "a quest other than Dailies", dailies: false, status: "active" },
-    { name: "a completed Dailies quest", dailies: true, status: "completed" },
-    { name: "an abandoned Dailies quest", dailies: true, status: "abandoned" },
-  ])("$name has no construct in its crumb", async ({ dailies, status }) => {
+    { name: "a completed quest", status: "completed" },
+    { name: "an abandoned quest", status: "abandoned" },
+  ])("$name has no construct in its crumb", async ({ status }) => {
     stores.getQuest.mockResolvedValue({
       id: "quest",
       name: "Fox",
-      dailies,
       status,
       constructId: "lumen",
     });
@@ -188,7 +185,6 @@ describe("header breadcrumbs", () => {
     stores.getQuest.mockResolvedValue({
       id: "quest",
       name: "Fox",
-      dailies: false,
       status: "active",
       constructId: "lumen",
     });

@@ -12,27 +12,26 @@ import {
 import { Alert, FormStatus } from "@/components/ui/form-message.tsx";
 import { Icon } from "@/components/ui/icon.tsx";
 import { useQuestAction } from "@/components/use-quest-action.ts";
+import type { QuestId } from "@/ids.ts";
+import { changeListItemAction } from "@/lists/list-item-actions.ts";
+import { markTaskDayAction } from "@/streaks/streak-actions.ts";
+import type { StreakQuest } from "@/streaks/streak-store.ts";
 import {
   type DayMark,
   type LocalDate,
+  localDate,
+  type MarkChange,
   markRows,
+  STREAK_TABLE_DAYS,
   sharedDates,
   streakChains,
-  todayHere,
   withMark,
-} from "@/dailies/dailies.ts";
-import { changeQuestDay } from "@/dailies/quest-day-actions.ts";
-import type { StreakQuest } from "@/dailies/quest-day-store.ts";
-import type { QuestId } from "@/ids.ts";
-import { changeListItemAction } from "@/lists/list-item-actions.ts";
-import { DAY_GRID_COPY } from "@/ui/copy/dailies.ts";
+} from "@/streaks/streaks.ts";
+import { DAY_GRID_COPY } from "@/ui/copy/day-grid.ts";
 import { HOME_COPY } from "@/ui/copy/home.ts";
 
-// How many calendar dates the table shows.
-const DAYS_SHOWN = 7;
-
-// The marks a square can be checked or unchecked on: a day was started on
-// that date and it tracked the task.
+// The marks a square can be checked or unchecked on: the task had been
+// added by that date, and the date isn't after the quest's today.
 const CHECKABLE: ReadonlySet<DayMark> = new Set(["done", "missed", "pending"]);
 
 // The weekday of a calendar date, the same on the server and in every
@@ -57,7 +56,10 @@ function subscribeToNothing(): () => void {
 }
 
 function browserToday(): LocalDate {
-  return todayHere(new Date());
+  return localDate(
+    new Date(),
+    Intl.DateTimeFormat().resolvedOptions().timeZone,
+  );
 }
 
 // The server can't know the browser's date, so it marks no column Today.
@@ -65,12 +67,9 @@ function noToday(): string {
   return "";
 }
 
-// One task's mark on one date, checked or unchecked.
-interface Mark {
+// One task's mark on one date in one quest, checked or unchecked.
+interface Mark extends MarkChange {
   readonly questId: QuestId;
-  readonly number: number;
-  readonly date: LocalDate;
-  readonly done: boolean;
 }
 
 function marked(
@@ -81,7 +80,7 @@ function marked(
     if (each.quest.id !== change.questId) {
       return each;
     }
-    return { ...each, ...withMark(each.days, each.tasks, change) };
+    return { ...each, ...withMark(each.history, each.tasks, change) };
   });
 }
 
@@ -114,9 +113,9 @@ function DateHeading({
   );
 }
 
-// One task's square on one date. A date with a day that tracked the task is
-// a button that checks it, or unchecks it, there and then; a gap, or a date
-// before the task recurred, only shows its mark.
+// One task's square on one date. A date since the task was added, up to
+// the quest's today, is a button that checks it, or unchecks it, there and
+// then; any other date only shows its mark.
 function Square({
   questId,
   number,
@@ -177,10 +176,9 @@ function QuestRows({
   readonly dates: readonly LocalDate[];
   readonly onMark: (change: Mark) => void;
 }): JSX.Element {
-  const { quest, days, tasks } = entry;
-  const chains = streakChains(days, tasks);
-  const rows = markRows(days, tasks, dates);
-  const newest = dates.at(-1);
+  const { quest, history, tasks } = entry;
+  const chains = streakChains(history, tasks);
+  const rows = markRows(history, tasks, dates);
   return (
     <tbody>
       <tr className="streak-row streak-quest">
@@ -204,7 +202,7 @@ function QuestRows({
               const date = dates[index] ?? "";
               return (
                 <Square
-                  current={date === newest}
+                  current={date === history.today}
                   date={date}
                   key={date}
                   mark={mark}
@@ -228,10 +226,10 @@ function QuestRows({
   );
 }
 
-// The streaks of every recurring task across the user's Dailies quests over
-// the last seven calendar dates, grouped by quest. Any square on a day that
-// was started can be checked off in place: on a quest's newest day it is the
-// task's own check, and on an earlier one it changes what that day recorded.
+// The streaks of every recurring task across the user's Active quests over
+// the last seven dates, grouped by quest. Any square since a task was added
+// can be checked off in place: on its quest's today it is the task's own
+// check, and on an earlier date it adds or takes back that day's check-off.
 // On a phone each task's name stands above its squares.
 function StreakTable({
   quests,
@@ -242,23 +240,21 @@ function StreakTable({
   const [shown, showMark] = useOptimistic(quests, marked);
   const today = useSyncExternalStore(subscribeToNothing, browserToday, noToday);
   const { run: runCheck, ...check } = useQuestAction(changeListItemAction);
-  const { run: runRecord, ...record } = useQuestAction(changeQuestDay);
+  const { run: runRecord, ...record } = useQuestAction(markTaskDayAction);
   const dates = sharedDates(
-    shown.map(({ days }) => days),
-    DAYS_SHOWN,
+    shown.map(({ history }) => history.today),
+    STREAK_TABLE_DAYS,
   );
   const onMark = useCallback(
     (change: Mark): void => {
       const entry = quests.find(({ quest }) => quest.id === change.questId);
-      const task = entry?.tasks.items.find(
-        ({ number }) => number === change.number,
-      );
+      const task = entry?.tasks.find(({ number }) => number === change.number);
       if (entry === undefined || task === undefined) {
         return;
       }
       startTransition(async () => {
         showMark(change);
-        if (entry.days.at(-1)?.date === change.date) {
+        if (entry.history.today === change.date) {
           await runCheck({
             questId: change.questId,
             listId: task.listId,
@@ -267,7 +263,6 @@ function StreakTable({
           return;
         }
         await runRecord({
-          op: "mark",
           questId: change.questId,
           localDate: change.date,
           number: change.number,
@@ -281,8 +276,6 @@ function StreakTable({
   let body: JSX.Element;
   if (shown.length === 0) {
     body = <p className="text-muted text-sm">{HOME_COPY.noStreaks}</p>;
-  } else if (dates.length === 0) {
-    body = <p className="text-muted text-sm">{HOME_COPY.noDays}</p>;
   } else {
     body = (
       <>

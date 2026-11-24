@@ -2,7 +2,11 @@ import { and, eq, gt, lte, sql } from "drizzle-orm";
 import { z } from "zod";
 import { hashToken, newToken, TOKEN_FORMAT } from "@/accounts/emailed-link.ts";
 import { checkUserName } from "@/accounts/user-name.ts";
-import { normalizeEmail } from "@/accounts/users-store.ts";
+import {
+  normalizeEmail,
+  type SignUpDetails,
+  signUpTimeZone,
+} from "@/accounts/users-store.ts";
 import type { SessionUser } from "@/auth/session-token.ts";
 import { getDb, inTransaction } from "@/db/client.ts";
 import { signUpLinks } from "@/db/tables/sign-up-links.ts";
@@ -86,7 +90,7 @@ async function readSignUpEmail(
 async function confirmSignUp(
   token: string,
   now: Date,
-  name: string,
+  { name, timeZone }: SignUpDetails,
 ): Promise<SessionUser | undefined> {
   if (!TOKEN_FORMAT.test(token)) {
     return undefined;
@@ -102,10 +106,12 @@ async function confirmSignUp(
       delete from signup_links where token_hash = ${tokenHash} and expires_at > ${now.toISOString()}::timestamptz
       returning email
     )
-    insert into users (email, name) select email, ${checked.name} from claimed
+    insert into users (email, name, time_zone)
+    select email, ${checked.name}, ${signUpTimeZone(timeZone)} from claimed
     on conflict (email) do update set
       account_state = 'signed_up',
-      name = coalesce(users.name, excluded.name)
+      name = coalesce(users.name, excluded.name),
+      time_zone = case when users.account_state = 'invited' then excluded.time_zone else users.time_zone end
     returning id, session_epoch as "sessionEpoch"
   `),
   );

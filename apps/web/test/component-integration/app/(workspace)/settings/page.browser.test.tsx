@@ -14,6 +14,7 @@ import {
 } from "../../../auth/current-user-test-kit.ts";
 
 const actions = vi.hoisted(() => ({
+  setTimeZoneAction: vi.fn(),
   signOutAction: vi.fn(),
   signOutEverywhereAction: vi.fn(),
 }));
@@ -45,6 +46,37 @@ test("Settings shows appearance and security together, with no name field", asyn
     .element(page.getByRole("textbox", { name: ACCOUNT_COPY.nameLabel }))
     .not.toBeInTheDocument();
   await expect.element(page.getByRole("tab")).not.toBeInTheDocument();
+});
+
+test("use_case_set_time_zone", async () => {
+  signInAs({ ...SIGNED_IN_USER, timeZone: "America/Chicago" });
+  actions.setTimeZoneAction.mockResolvedValue({ kind: "saved" });
+  await render(SettingsLayout({ children: await SettingsPage() }));
+  const field = page.getByRole("combobox", {
+    name: ACCOUNT_COPY.timeZoneLabel,
+  });
+  await expect.element(field).toHaveValue("America/Chicago");
+
+  await field.selectOptions("Europe/Lisbon");
+  await page.getByRole("button", { name: ACCOUNT_COPY.saveTimeZone }).click();
+
+  await expect
+    .element(page.getByText(ACCOUNT_COPY.timeZoneSaved))
+    .toBeVisible();
+  const [, form] = actions.setTimeZoneAction.mock.calls[0] ?? [];
+  expect(form?.get("timeZone")).toBe("Europe/Lisbon");
+});
+
+test("a refused time zone says to choose one from the list", async () => {
+  actions.setTimeZoneAction.mockResolvedValue({
+    kind: "invalid",
+    message: ACCOUNT_COPY.timeZoneUnknown,
+  });
+  await render(SettingsLayout({ children: await SettingsPage() }));
+  await page.getByRole("button", { name: ACCOUNT_COPY.saveTimeZone }).click();
+  await expect
+    .element(page.getByText(ACCOUNT_COPY.timeZoneUnknown))
+    .toBeVisible();
 });
 
 test("Settings sends a signed-out visitor to sign in", async () => {

@@ -4,6 +4,7 @@ import { connection } from "next/server";
 import type { JSX } from "react";
 import { readSignInLinkUser } from "@/accounts/sign-in-links.ts";
 import { readSignUpEmail } from "@/accounts/sign-up-links.ts";
+import { timeZoneChoices } from "@/accounts/time-zone.ts";
 import { ContinueForm } from "@/app/login/link/continue-form.tsx";
 import { SignInPanel } from "@/app/login/sign-in-panel.tsx";
 import { currentUser } from "@/auth/current-user.ts";
@@ -31,7 +32,8 @@ export const metadata: Metadata = {
 // invitation's acceptance link. Opening it signs no one in and accepts
 // nothing, so a mail program that opens the link to check it gets nothing:
 // for a link that works, it asks them to continue, with their name when
-// continuing creates or completes their account. An acceptance link names
+// continuing creates or completes their account, and with their time zone,
+// which starts at the browser's own. An acceptance link names
 // the quest and who invited them, and warns when the browser is signed in
 // to another account. For a link that has expired or no longer works,
 // whatever kind it was, it says so, and where a pending invitation is
@@ -73,6 +75,7 @@ export default async function SignInLinkPage({
           token={token}
           destination={undefined}
           signup={invitation.needsName}
+          timeZones={timeZoneChoices()}
         />
       </SignInPanel>
     );
@@ -102,7 +105,12 @@ export default async function SignInLinkPage({
   }
   return (
     <SignInPanel intro={intro}>
-      <ContinueForm token={token} destination={destination} signup={signup} />
+      <ContinueForm
+        token={token}
+        destination={destination}
+        signup={signup}
+        timeZones={timeZoneChoices()}
+      />
     </SignInPanel>
   );
 }

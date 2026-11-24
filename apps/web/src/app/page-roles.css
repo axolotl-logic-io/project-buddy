@@ -1655,7 +1655,7 @@
     @apply ml-auto flex min-w-min items-center gap-3 self-center;
   }
 
-  /* The active Dailies quest's construct button, at the band's right. On a
+  /* An active quest's construct button, at the band's right. On a
      phone its portrait alone shows, and the button keeps the construct's
      name as its accessible name. A whole target without making the band
      taller. */
@@ -1803,10 +1803,6 @@
     @apply border-primary;
   }
 
-  .day-grid-day[data-mark="gap"] .day-grid-square {
-    @apply border-muted border-dashed;
-  }
-
   .day-grid-day[data-mark="untracked"] .day-grid-square {
     @apply border-line;
   }
@@ -1922,10 +1918,6 @@
 
   .streak-square[data-mark="pending"] {
     @apply border-primary;
-  }
-
-  .streak-square[data-mark="gap"] {
-    @apply border-muted border-dashed bg-transparent;
   }
 
   .streak-square[data-mark="untracked"] {

@@ -134,7 +134,7 @@ async function headerBreadcrumbs(
       label: quest.name,
       quest: { id: quest.id, name: quest.name },
     };
-    if (quest.dailies && quest.status === "active") {
+    if (quest.status === "active") {
       return [
         HOME,
         QUESTS,

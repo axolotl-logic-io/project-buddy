@@ -32,6 +32,7 @@ vi.mock("@/email/send-email.ts", () => sent);
 const SIGN_IN_LINK = /https?:\/\/\S+\/login\/link\?token=[\w-]+/u;
 const TOKEN_LENGTH = 43;
 const LIFETIME_MS = 1_800_000;
+const MABEL = { name: "Mabel", timeZone: "UTC" };
 const ORIGIN = "http://localhost:3494";
 const addresses: string[] = [];
 
@@ -92,7 +93,7 @@ test("public verification creates one ordinary account only after confirmation",
   if (user === undefined) {
     throw new Error("No verified account was created");
   }
-  expect(await confirmSignUp(token, new Date(), "Mabel")).toBeUndefined();
+  expect(await confirmSignUp(token, new Date(), MABEL)).toBeUndefined();
 });
 
 test("a new request replaces verification, and links expire at thirty minutes", async () => {
@@ -103,7 +104,7 @@ test("a new request replaces verification, and links expire at thirty minutes", 
   const oldToken = await request(email);
   const token = await request(email);
   expect(await readSignUpEmail(oldToken, now)).toBeUndefined();
-  expect(await confirmSignUp(oldToken, now, "Mabel")).toBeUndefined();
+  expect(await confirmSignUp(oldToken, now, MABEL)).toBeUndefined();
   expect(
     await readSignUpEmail(token, new Date(now.getTime() + LIFETIME_MS - 1)),
   ).toBe(email);
@@ -111,7 +112,7 @@ test("a new request replaces verification, and links expire at thirty minutes", 
     await readSignUpEmail(token, new Date(now.getTime() + LIFETIME_MS)),
   ).toBeUndefined();
   expect(
-    await confirmSignUp(token, new Date(now.getTime() + LIFETIME_MS), "Mabel"),
+    await confirmSignUp(token, new Date(now.getTime() + LIFETIME_MS), MABEL),
   ).toBeUndefined();
   expect(await findUserByEmail(email)).toBeUndefined();
 });
@@ -120,7 +121,7 @@ test.each(["", "malformed", "a".repeat(TOKEN_LENGTH)])(
   "invalid or unknown verification %s creates nothing",
   async (token) => {
     expect(await readSignUpEmail(token, new Date())).toBeUndefined();
-    expect(await confirmSignUp(token, new Date(), "Mabel")).toBeUndefined();
+    expect(await confirmSignUp(token, new Date(), MABEL)).toBeUndefined();
   },
 );
 
@@ -128,8 +129,8 @@ test("concurrent confirmations consume verification once", async () => {
   const email = newAddress();
   const token = await request(email);
   const confirmed = await Promise.all([
-    confirmSignUp(token, new Date(), "Mabel"),
-    confirmSignUp(token, new Date(), "Mabel"),
+    confirmSignUp(token, new Date(), MABEL),
+    confirmSignUp(token, new Date(), MABEL),
   ]);
   expect(confirmed.filter((value) => value !== undefined)).toHaveLength(1);
   const rows = await getDb().select().from(users).where(eq(users.email, email));
@@ -151,9 +152,7 @@ test("verification returns the same account if it was created before confirmatio
   const email = newAddress();
   const token = await request(email);
   const existing = await createTestAccount(email);
-  expect((await confirmSignUp(token, new Date(), "Mabel"))?.id).toBe(
-    existing.id,
-  );
+  expect((await confirmSignUp(token, new Date(), MABEL))?.id).toBe(existing.id);
   expect(await findUserByEmail(email)).toEqual({ ...existing, name: "Mabel" });
 });
 
@@ -162,7 +161,7 @@ test("signing out everywhere revokes pending verification for that account", asy
   await sendSignUpLink(user.email, ORIGIN);
   const token = emailedToken();
   await endEverySession(user.id);
-  expect(await confirmSignUp(token, new Date(), "Mabel")).toBeUndefined();
+  expect(await confirmSignUp(token, new Date(), MABEL)).toBeUndefined();
 });
 
 test("sign-up requests share the public email request limits", async () => {
@@ -201,10 +200,34 @@ test.each([
       kind: "invalid",
       message: LINK_PAGE_COPY.nameInvalid,
     });
-    expect(await confirmSignUp(token, new Date(), name)).toBeUndefined();
+    expect(
+      await confirmSignUp(token, new Date(), { ...MABEL, name }),
+    ).toBeUndefined();
     expect(await findUserByEmail(email)).toBeUndefined();
     expect(await readSignUpEmail(token, new Date())).toBe(email);
-    expect(await confirmSignUp(token, new Date(), "  Mabel  ")).toBeDefined();
+    expect(
+      await confirmSignUp(token, new Date(), { ...MABEL, name: "  Mabel  " }),
+    ).toBeDefined();
     expect((await findUserByEmail(email))?.name).toBe("Mabel");
+  },
+);
+
+test("use_case_sign_up saves the time zone the new user chose", async () => {
+  const email = newAddress();
+  const token = await request(email);
+  await confirmSignUp(token, new Date(), {
+    ...MABEL,
+    timeZone: "America/New_York",
+  });
+  expect((await findUserByEmail(email))?.timeZone).toBe("America/New_York");
+});
+
+test.each(["Mars/Olympus_Mons", ""])(
+  "sign-up saves UTC for the unknown time zone %j",
+  async (timeZone) => {
+    const email = newAddress();
+    const token = await request(email);
+    await confirmSignUp(token, new Date(), { ...MABEL, timeZone });
+    expect((await findUserByEmail(email))?.timeZone).toBe("UTC");
   },
 );

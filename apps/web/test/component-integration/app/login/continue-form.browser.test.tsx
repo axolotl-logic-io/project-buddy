@@ -1,6 +1,11 @@
 import { expect, test, vi } from "vitest";
 import { page } from "vitest/browser";
 import { render } from "vitest-browser-react";
+import {
+  DEFAULT_TIME_ZONE,
+  localTimeZone,
+  timeZoneChoices,
+} from "@/accounts/time-zone.ts";
 import { ContinueForm } from "@/app/login/link/continue-form.tsx";
 import { ACCOUNT_COPY } from "@/ui/copy/account.ts";
 import { LINK_PAGE_COPY } from "@/ui/copy/login.ts";
@@ -8,13 +13,20 @@ import { LINK_PAGE_COPY } from "@/ui/copy/login.ts";
 const actions = vi.hoisted(() => ({ continueSignInAction: vi.fn() }));
 vi.mock("@/app/login/link/actions.ts", () => actions);
 
+const TIME_ZONES = timeZoneChoices();
+
 test("signup requires a name, and a refused name keeps its text and takes focus with its error", async () => {
   actions.continueSignInAction.mockResolvedValue({
     kind: "invalid",
     message: LINK_PAGE_COPY.nameInvalid,
   });
   await render(
-    <ContinueForm token="verification" destination="/quests" signup={true} />,
+    <ContinueForm
+      token="verification"
+      destination="/quests"
+      signup={true}
+      timeZones={TIME_ZONES}
+    />,
   );
   const name = page.getByRole("textbox", {
     name: ACCOUNT_COPY.nameLabel,
@@ -40,10 +52,44 @@ test("signup requires a name, and a refused name keeps its text and takes focus 
 
 test("existing account sign-in offers Continue without asking for a name", async () => {
   await render(
-    <ContinueForm token="login" destination={undefined} signup={false} />,
+    <ContinueForm
+      token="login"
+      destination={undefined}
+      signup={false}
+      timeZones={TIME_ZONES}
+    />,
   );
   await expect.element(page.getByRole("textbox")).not.toBeInTheDocument();
+  await expect.element(page.getByRole("combobox")).not.toBeInTheDocument();
   await expect
     .element(page.getByRole("button", { name: LINK_PAGE_COPY.continue }))
     .toBeEnabled();
+});
+
+test("use_case_sign_up offers the browser's time zone, and sends the one chosen", async () => {
+  actions.continueSignInAction.mockResolvedValue({ kind: "idle" });
+  await render(
+    <ContinueForm
+      token="verification"
+      destination={undefined}
+      signup={true}
+      timeZones={TIME_ZONES}
+    />,
+  );
+  const timeZone = page.getByRole("combobox", {
+    name: ACCOUNT_COPY.timeZoneLabel,
+  });
+  await expect
+    .element(timeZone)
+    .toHaveValue(localTimeZone(TIME_ZONES) ?? DEFAULT_TIME_ZONE);
+  await timeZone.selectOptions("Pacific/Auckland");
+  await page
+    .getByRole("textbox", { name: ACCOUNT_COPY.nameLabel, exact: true })
+    .fill("Mabel");
+  await page.getByRole("button", { name: LINK_PAGE_COPY.continue }).click();
+  await expect
+    .poll(() =>
+      actions.continueSignInAction.mock.lastCall?.[0]?.get("timeZone"),
+    )
+    .toBe("Pacific/Auckland");
 });

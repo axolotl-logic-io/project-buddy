@@ -13,7 +13,6 @@ interface QuestView {
   readonly name: string;
   readonly status: QuestStatus;
   readonly revision: number;
-  readonly dailies: boolean;
   readonly constructId: string;
   readonly sharing: QuestSharing;
   readonly createdAt: Date;
@@ -25,7 +24,6 @@ function questView(quest: Quest): QuestView {
     name: quest.name,
     status: quest.status,
     revision: quest.statusRevision,
-    dailies: quest.dailies,
     constructId: quest.constructId,
     sharing: quest.sharing,
     createdAt: quest.createdAt,

@@ -47,8 +47,7 @@ export const GET = apiRoute(
   },
 );
 
-// Starts a quest from a starting point, as the site's start form does:
-// Dailies resumes the user's own Dailies when they have one.
+// Starts a new quest from a starting point, as the site's start form does.
 export const POST = apiRoute(
   async ({ user, request }: ApiCall<NoParams>): Promise<Response> => {
     const body = await readApiBody(request, START_BODY);
@@ -59,12 +58,12 @@ export const POST = apiRoute(
     if (premade === undefined) {
       return apiProblem("invalid_input", "No such starting point.", "from");
     }
-    const started = await startPremadeQuest(user.id, {
+    const quest = await startPremadeQuest(user.id, {
       premadeId: premade.id,
       name: body.name ?? QUEST_NAME.parse(premade.name),
       context: body.context ?? premade.context,
       motivation: body.why,
     });
-    return apiData({ ...questView(started.quest), resumed: started.resumed });
+    return apiData(questView(quest));
   },
 );

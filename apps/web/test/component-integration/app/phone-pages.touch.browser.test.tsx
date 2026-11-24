@@ -89,6 +89,7 @@ vi.mock("@/app/(workspace)/profile/actions.ts", () => ({
   setNameAction: vi.fn(),
 }));
 vi.mock("@/app/(workspace)/settings/actions.ts", () => ({
+  setTimeZoneAction: vi.fn(),
   signOutAction: vi.fn(),
   signOutEverywhereAction: vi.fn(),
 }));

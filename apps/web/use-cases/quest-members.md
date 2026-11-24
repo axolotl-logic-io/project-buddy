@@ -15,7 +15,6 @@ The user invites someone to work on a quest with them.
   - The address isn't one: the form says so, keeps it, and nothing is sent.
   - The user has sent 20 invitations in the last hour: the form says the limit is 20 an hour and keeps the address. Only invitations that went out count.
   - The email fails: the invitation stays pending and the form says to invite again to resend it.
-  - The quest is Dailies: Members says only that Dailies is just for the user, with no list and no invitations.
 - **Next:**
   - `use_case_join_quest_by_link`: the invitee follows the link.
   - `use_case_accept_pending_quest`: the invitee accepts from Quests.

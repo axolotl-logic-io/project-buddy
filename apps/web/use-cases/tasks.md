@@ -28,13 +28,14 @@ The user checks off, unchecks and edits the quest's tasks.
 
 ## use_case_recurring_tasks
 
-The user marks a task in Dailies to do every day.
+The user marks a task to do every day.
 
-- **Prerequisites:** [`use_case_dailies`](quests.md#use_case_dailies), with a task in one of its lists.
+- **Prerequisites:** a task in an Active quest open to the user, their own or one they are a member of.
 - **Steps:** the user opens the task's menu and chooses Make recurring. Later, they can choose Make one-off, to change it back.
-- **Outcome:** the task shows a repeat icon. The page says what changed, with Undo, as for any task change. Each Start Day unchecks the task if it is checked off ([`use_case_start_day`](quests.md#use_case_start_day)), while a checked-off one-off task stays checked off.
+- **Outcome:** the task shows a repeat icon. The page says what changed, with Undo, as for any task change. At midnight in the quest owner's time zone ([`use_case_set_time_zone`](accounts.md#use_case_set_time_zone)), a checked-off recurring task reads as unchecked again, keeping its text, number and place. A checked-off one-off task stays checked off. Midnight takes back no experience, and checking the task off again earns it again.
 - **Variations:**
-  - Tasks in a quest not started as Dailies have no Make recurring.
+  - A list item in a plain or quick-note list has no Make recurring.
+  - Midnight is the same for everyone in a shared quest: the owner's.
 - **Next:**
   - `use_case_daily_streaks`: see how often each recurring task gets done.
 
@@ -42,16 +43,15 @@ The user marks a task in Dailies to do every day.
 
 The user sees how many days in a row they have checked off each recurring task.
 
-- **Prerequisites:** `use_case_recurring_tasks`, and days begun with [`use_case_start_day`](quests.md#use_case_start_day).
+- **Prerequisites:** `use_case_recurring_tasks`.
 - **Steps:**
   - The user looks at a recurring task in its list.
-  - The user opens Day grid from Dailies Overview.
-- **Outcome:** each recurring task shows its streak chain under its text: one filled link for each day in a row, up to the current day, on which it was checked off, then the current day's link, dashed until the task is checked off. A line under the chain gives the streak and what checking the task off does next, such as "4-day streak. Check it off to make it 5." The current day counts once the task is checked off, and an open task doesn't end the streak until the next Start Day. A day the task wasn't checked off ends the streak. So does a gap: a calendar date with no day started. Two days started on one date count as one date. The separate Day grid tab shows each recurring task's last seven dates: filled when checked off, empty when not, and dashed for a gap. Screen readers announce each date's weekday, date and mark.
+  - The user opens Day grid from the quest's Overview.
+- **Outcome:** each recurring task shows its streak chain under its text: one filled link for each day in a row, up to today, on which someone checked it off, then today's link, dashed until the task is checked off. A line under the chain gives the streak and what checking the task off does next, such as "4-day streak. Check it off to make it 5." Today counts once the task is checked off, and an open task doesn't end the streak until midnight. A day the task wasn't checked off ends the streak. Each day starts at midnight in the quest owner's time zone. Day grid shows each recurring task's last seven dates: filled when checked off, empty when not. Screen readers announce each date's weekday, date and mark.
 - **Variations:**
-  - Before the first Start Day, the grid says that Start Day begins counting. With no recurring tasks, it says how to make one.
-  - Before the first Start Day, a recurring task shows its repeat icon alone.
-  - A recurring task with no streak shows only the current day's link and says "Check it off to start a streak."
+  - With no recurring tasks, Day grid says how to make one.
+  - A recurring task with no streak shows only today's link and says "Check it off to start a streak."
   - The chain shows at most the 30 most recent links.
-  - A date before a task became recurring shows as untracked.
-  - A quest not started as Dailies shows no streaks or day grid.
-  - Home shows every Dailies quest's streaks together, and checks them off on any of the last seven dates ([`use_case_home_streaks`](home.md#use_case_home_streaks)).
+  - A date before the task was added shows as not added yet.
+  - A check-off by any member counts toward the streak.
+  - Home shows every quest's streaks together, and checks them off on any of the last seven dates ([`use_case_home_streaks`](home.md#use_case_home_streaks)).

@@ -4,10 +4,9 @@ import type { JSX, ReactNode } from "react";
 import { z } from "zod";
 import type { User } from "@/accounts/users-store.ts";
 import { ConstructAvatar } from "@/components/constructs/construct-visual.tsx";
-import { DayGrid } from "@/components/dailies/day-grid.tsx";
+import { DayGrid } from "@/components/day-grid.tsx";
 import { ListItems } from "@/components/list-items.tsx";
 import { ListSettings } from "@/components/list-settings.tsx";
-import { LocalTime } from "@/components/local-time.tsx";
 import { NextTask } from "@/components/next-task.tsx";
 import {
   MessageComposer,
@@ -22,28 +21,23 @@ import {
   QuestStatusControls,
   QuestStatusFeedback,
 } from "@/components/quest-status-controls.tsx";
-import { StartDay } from "@/components/start-day.tsx";
 import { QuestTimer } from "@/components/timer/quest-timer.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { Notice } from "@/components/ui/form-message.tsx";
 import { Icon } from "@/components/ui/icon.tsx";
 import { getConstruct } from "@/constructs/index.ts";
-import type { DailiesRecord } from "@/dailies/dailies.ts";
-import {
-  readQuestDays,
-  readRecurringTasks,
-} from "@/dailies/quest-day-store.ts";
-import type { QuestId, UserId } from "@/ids.ts";
+import type { QuestId } from "@/ids.ts";
 import { LIST_ID } from "@/lists/list.ts";
 import { readListItems, readNextTask } from "@/lists/list-item-store.ts";
-import { type List, readLists } from "@/lists/list-store.ts";
+import { readLists } from "@/lists/list-store.ts";
 import {
   listPerformances,
   readPerformanceMessages,
 } from "@/performances/performance-store.ts";
 import { listQuestPeople } from "@/quests/membership-store.ts";
-import { getQuest, type Quest } from "@/quests/store.ts";
+import { getQuest } from "@/quests/store.ts";
 import { listRites } from "@/rites/rite-store.ts";
+import { readRecurringTasks, readTaskHistory } from "@/streaks/streak-store.ts";
 import { LISTS_COPY } from "@/ui/copy/lists.ts";
 import { PERFORMANCE_COPY } from "@/ui/copy/performances.ts";
 import { QUEST_MEMBERS_COPY } from "@/ui/copy/quest-members.ts";
@@ -62,62 +56,6 @@ function sectionPath(id: QuestId, section?: Section): Route {
   return `/quests/${id}?section=${section}`;
 }
 
-function dayControls(
-  quest: Quest,
-  record: DailiesRecord | undefined,
-  today: Date,
-  lists: readonly List[],
-): JSX.Element {
-  const gridLink = (
-    <Button asChild={true} variant="quiet">
-      <Link href={sectionPath(quest.id, "days")}>
-        {QUEST_SIDEBAR_COPY.dayGrid}
-        <Icon name="chevron-right" />
-      </Link>
-    </Button>
-  );
-  let controls = (
-    <>
-      <p className="text-muted">{QUEST_SIDEBAR_COPY.restoreDay}</p>
-      {gridLink}
-    </>
-  );
-  if (quest.status === "active") {
-    controls = (
-      <StartDay
-        questId={quest.id}
-        lists={lists}
-        lastStartedAt={record?.days.at(-1)?.startedAt}
-        undoable={record?.undoable === true}
-      >
-        {gridLink}
-      </StartDay>
-    );
-  }
-  return (
-    <section
-      aria-label={QUEST_SIDEBAR_COPY.day}
-      className="quest-overview-feature"
-    >
-      <h3 className="quest-overview-label">{QUEST_OVERVIEW_COPY.day}</h3>
-      <p className="font-heading font-semibold text-lg">
-        <LocalTime dateTime={today} detail="day" />
-      </p>
-      {controls}
-    </section>
-  );
-}
-
-function dailiesRecord(
-  user: UserId,
-  quest: Quest,
-): Promise<DailiesRecord | undefined> {
-  if (quest.dailies) {
-    return readQuestDays(user, quest.id);
-  }
-  return Promise.resolve(undefined);
-}
-
 async function questPage(
   viewer: User,
   questId: string,
@@ -129,9 +67,9 @@ async function questPage(
   if (quest === undefined) {
     return undefined;
   }
-  const [people, record, lists, performances] = await Promise.all([
+  const [people, history, lists, performances] = await Promise.all([
     listQuestPeople(user, quest.id),
-    dailiesRecord(user, quest),
+    readTaskHistory(user, quest.id),
     readLists(user, quest.id),
     listPerformances(user, quest.id),
   ]);
@@ -183,11 +121,7 @@ async function questPage(
       );
     }
   }
-  const today = new Date();
-  let current = SECTION.safeParse(section).data;
-  if (current === "days" && !quest.dailies) {
-    current = undefined;
-  }
+  const current = SECTION.safeParse(section).data;
 
   let riteContent: ReactNode;
   if (section === "rites") {
@@ -213,16 +147,18 @@ async function questPage(
     section !== "performances" &&
     section !== "rites";
   let nextTask: Awaited<ReturnType<typeof readNextTask>>;
-  if (onOverview && !quest.dailies) {
+  if (onOverview) {
     nextTask = await readNextTask(user, quest.id);
   }
   let dayGrid: JSX.Element | undefined;
-  if (current === "days" && record !== undefined) {
+  if (current === "days" && history !== undefined) {
     dayGrid = (
-      <DayGrid
-        days={record.days}
-        tasks={await readRecurringTasks(user, quest.id)}
-      />
+      <section aria-label={QUEST_SIDEBAR_COPY.dayGrid}>
+        <DayGrid
+          history={history}
+          tasks={await readRecurringTasks(user, quest.id)}
+        />
+      </section>
     );
   }
   return (
@@ -263,9 +199,7 @@ async function questPage(
                     {quest.startingContext}
                   </p>
                 )}
-              {quest.dailies === true &&
-                dayControls(quest, record, today, lists)}
-              {!quest.dailies && <NextTask task={nextTask} />}
+              <NextTask task={nextTask} />
             </section>
           )}
           {quest.status !== "active" && (
@@ -307,6 +241,14 @@ async function questPage(
                     {PERFORMANCE_COPY.heading}
                   </Link>
                 </li>
+                <li>
+                  <Link
+                    href={sectionPath(quest.id, "days")}
+                    className="quest-overview-link"
+                  >
+                    {QUEST_SIDEBAR_COPY.dayGrid}
+                  </Link>
+                </li>
               </ul>
               <Link
                 href={sectionPath(quest.id, "members")}
@@ -330,7 +272,7 @@ async function questPage(
                 list={list}
                 questId={quest.id}
                 contents={contents}
-                days={record?.days}
+                history={history}
                 destinations={lists.filter(({ id }) => id !== list.id)}
               />
               <ListSettings key={list.id} questId={quest.id} list={list} />

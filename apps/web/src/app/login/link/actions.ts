@@ -34,7 +34,8 @@ const NAME_INVALID: ContinueSignInState = {
 //   Quests.
 // - A sign-up link creates the account and opens Quests.
 // An invited account, which a quest invitation created, completes its
-// sign-up with the name the form gives, whichever link it continues from.
+// sign-up with the name and time zone the form gives, whichever link it
+// continues from.
 // If the link has expired since its page opened, or no longer works, shows
 // that page again, which says so.
 export async function continueSignInAction(
@@ -42,9 +43,14 @@ export async function continueSignInAction(
 ): Promise<ContinueSignInState> {
   const token = TOKEN_FIELD.parse(formData.get("token"));
   const name = TOKEN_FIELD.parse(formData.get("name"));
+  const timeZone = TOKEN_FIELD.parse(formData.get("timeZone"));
   const destination = localPath(formData.get(SIGN_IN_DESTINATION_PARAMETER));
   const now = new Date();
-  const authentication = await authenticateEmailedLink(token, name, now);
+  const authentication = await authenticateEmailedLink(
+    token,
+    { name, timeZone },
+    now,
+  );
   if (authentication.kind === "needs-name") {
     return NAME_INVALID;
   }

@@ -24,6 +24,11 @@ import {
   LIST_INVERSE,
   undoListChange,
 } from "./list-undo.ts";
+import {
+  CHECKED_OFF_NOW,
+  checkedOffOn,
+  LIST_ITEM_COLUMNS,
+} from "./quest-today.ts";
 import { retype } from "./retype.ts";
 
 type Row = typeof listItems.$inferSelect;
@@ -59,7 +64,7 @@ function listRows(
 ): Promise<Row[]> {
   return Promise.resolve(
     tx
-      .select()
+      .select(LIST_ITEM_COLUMNS)
       .from(listItems)
       .where(
         and(
@@ -89,7 +94,6 @@ interface ListWrite {
   readonly listId: ListId;
   readonly nextTaskNumber: number;
   readonly atTop: boolean;
-  readonly dailies: boolean;
   readonly type: ListType;
 }
 
@@ -191,15 +195,14 @@ async function applyExisting(
       }
       await tx
         .update(listItems)
-        .set({ checkedOff: change.checkedOff })
+        .set({
+          checkedOff: change.checkedOff,
+          checkedOffOn: checkedOffOn(change),
+        })
         .where(target);
       return "saved";
     case "recurring":
-      if (
-        !write.dailies ||
-        write.type !== "task" ||
-        row.recurring === change.recurring
-      ) {
+      if (write.type !== "task" || row.recurring === change.recurring) {
         return "unchanged";
       }
       await tx
@@ -411,7 +414,6 @@ async function changeWithin(
     .select({
       nextTaskNumber: quests.nextTaskNumber,
       status: quests.status,
-      dailies: quests.dailies,
     })
     .from(quests)
     .where(and(eq(quests.id, questId), questOpenTo(user)))
@@ -443,7 +445,6 @@ async function changeWithin(
       listId,
       atTop,
       nextTaskNumber: quest.nextTaskNumber,
-      dailies: quest.dailies,
       type: LIST_TYPE.parse(list.type),
     },
     rows,
@@ -531,7 +532,7 @@ function readNextTask(
 ): Promise<ListItem | undefined> {
   return withAppErrors("readNextTask", async () => {
     const [row] = await getDb()
-      .select({ item: listItems })
+      .select({ item: LIST_ITEM_COLUMNS })
       .from(listItems)
       .innerJoin(lists, eq(lists.id, listItems.listId))
       .where(
@@ -540,7 +541,7 @@ function readNextTask(
           listItemOpenTo(user),
           listOpenTo(user),
           eq(lists.type, "task"),
-          eq(listItems.checkedOff, false),
+          sql`not ${CHECKED_OFF_NOW}`,
         ),
       )
       .orderBy(lists.position, listItems.position, listItems.id)

@@ -1,5 +1,5 @@
-import type { StreakChain } from "@/dailies/dailies.ts";
 import type { ListType } from "@/lists/list.ts";
+import type { StreakChain } from "@/streaks/streaks.ts";
 
 const LIST_NOUNS: Readonly<
   Record<ListType, { readonly one: string; readonly many: string }>

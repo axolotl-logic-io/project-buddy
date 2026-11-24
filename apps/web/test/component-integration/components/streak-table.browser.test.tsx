@@ -1,12 +1,12 @@
 // "use_case_home_streaks": Home's table of streaks, checked off in place on
-// any day that was started.
+// any of the last seven dates since a task was added.
 
 import { afterEach, describe, expect, test, vi } from "vitest";
 import { page } from "vitest/browser";
 import { render } from "vitest-browser-react";
-import { StreakTable } from "@/components/dailies/streak-table.tsx";
-import { changeQuestDay } from "@/dailies/quest-day-actions.ts";
+import { StreakTable } from "@/components/streak-table.tsx";
 import { changeListItemAction } from "@/lists/list-item-actions.ts";
+import { markTaskDayAction } from "@/streaks/streak-actions.ts";
 import { HOME_COPY } from "@/ui/copy/home.ts";
 import {
   SKETCH,
@@ -14,7 +14,7 @@ import {
   STREAK_LIST_ID,
   STREAK_QUEST,
   STRETCH,
-} from "../../dailies/streak-quest-fixtures.ts";
+} from "../streaks/streak-quest-fixtures.ts";
 
 function square(
   task: string,
@@ -49,8 +49,12 @@ describe("use_case_home_streaks", () => {
     await expect
       .element(square(SKETCH, "Mon", "23"))
       .toHaveAttribute("aria-pressed", "false");
-    // No day was started on Friday the 20th, so its squares only show the gap.
-    await expect.element(square(STRETCH, "Fri", "20")).not.toBeInTheDocument();
+    await expect
+      .element(square(STRETCH, "Fri", "20"))
+      .toHaveAttribute("aria-pressed", "false");
+    // Sketch was added on Thursday the 19th, so Wednesday only shows it was
+    // not added yet.
+    await expect.element(square(SKETCH, "Wed", "18")).not.toBeInTheDocument();
     const stretchRow = page.getByRole("row", { name: STRETCH, exact: false });
     await expect
       .element(stretchRow.getByRole("cell").last())
@@ -74,21 +78,20 @@ describe("use_case_home_streaks", () => {
           },
         ],
       ]);
-    expect(changeQuestDay).not.toHaveBeenCalled();
+    expect(markTaskDayAction).not.toHaveBeenCalled();
   });
 
-  test("a square on an earlier day changes what that day recorded", async () => {
-    vi.mocked(changeQuestDay).mockResolvedValue({ kind: "saved" });
+  test("a square on an earlier date marks that day's check-off", async () => {
+    vi.mocked(markTaskDayAction).mockResolvedValue({ kind: "saved" });
     await render(<StreakTable quests={[STREAK_QUEST]} />);
 
     await square(SKETCH, "Mon", "23").click();
 
     await expect
-      .poll(() => vi.mocked(changeQuestDay).mock.calls)
+      .poll(() => vi.mocked(markTaskDayAction).mock.calls)
       .toEqual([
         [
           {
-            op: "mark",
             questId: STREAK_QUEST.quest.id,
             localDate: "2026-11-23",
             number: 2,
@@ -100,7 +103,7 @@ describe("use_case_home_streaks", () => {
   });
 
   test("a day that can't be changed says so", async () => {
-    vi.mocked(changeQuestDay).mockResolvedValue({
+    vi.mocked(markTaskDayAction).mockResolvedValue({
       kind: "problem",
       text: HOME_COPY.markUnavailable,
     });

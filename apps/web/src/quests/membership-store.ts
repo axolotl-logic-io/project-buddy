@@ -29,6 +29,7 @@ import {
   completeSignUpIn,
   findOrInviteAccount,
   normalizeEmail,
+  type SignUpDetails,
 } from "@/accounts/users-store.ts";
 import type { SessionUser } from "@/auth/session-token.ts";
 import { getDb, inTransaction, type Transaction } from "@/db/client.ts";
@@ -87,8 +88,7 @@ interface PendingQuest {
 // - in-quest: the address is the owner's or a member's; nothing changed.
 // - limited: the inviter has sent too many invitations lately; nothing
 //   changed. Only invitations that go out count, not refused requests.
-// - not-found: the quest isn't open to the inviter, or is a Dailies quest,
-//   which has no members.
+// - not-found: the quest isn't open to the inviter.
 type InviteResult =
   | { readonly kind: "invited" | "unsent" | "in-quest" }
   | { readonly kind: "limited" | "not-found" };
@@ -153,7 +153,7 @@ function person(row: {
 }
 
 // The quest's name, inside tx, locked against concurrent invitations, if
-// it is open to user and can have members: every quest but a Dailies.
+// it is open to user.
 async function lockedSharableQuest(
   tx: Transaction,
   user: UserId,
@@ -162,9 +162,7 @@ async function lockedSharableQuest(
   const [quest] = await tx
     .select({ name: quests.name, ownerId: quests.userId })
     .from(quests)
-    .where(
-      and(eq(quests.id, questId), questOpenTo(user), eq(quests.dailies, false)),
-    )
+    .where(and(eq(quests.id, questId), questOpenTo(user)))
     .for("no key update");
   return quest;
 }
@@ -615,13 +613,13 @@ async function readInvitationLink(
 }
 
 // Continues from the acceptance link holding the token: completes an
-// invited account's sign-up with name, accepts that one quest invitation,
-// and answers the invitee to sign in. A signed-up invitee needs no name and
-// keeps theirs. All or nothing.
+// invited account's sign-up with its details, accepts that one quest
+// invitation, and answers the invitee to sign in. A signed-up invitee needs
+// no details and keeps theirs. All or nothing.
 async function acceptInvitationLink(
   token: string,
   now: Date,
-  name: string,
+  details: SignUpDetails,
 ): Promise<AcceptLinkResult> {
   if (!TOKEN_FORMAT.test(token)) {
     return { kind: "gone" };
@@ -647,7 +645,7 @@ async function acceptInvitationLink(
       if (questId === undefined || inviteeId === undefined) {
         return { kind: "gone" };
       }
-      if ((await completeSignUpIn(tx, inviteeId, name)) === undefined) {
+      if ((await completeSignUpIn(tx, inviteeId, details)) === undefined) {
         return { kind: "needs-name" };
       }
       await acceptInTransaction(tx, inviteeId, questId);

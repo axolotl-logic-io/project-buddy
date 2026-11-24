@@ -14,6 +14,7 @@ import { QUEST_ID, type QuestId, USER_ID, type UserId } from "@/ids.ts";
 import type { ListId } from "./list.ts";
 import { LIST_ITEM_ID } from "./list-item.ts";
 import { LIST_ITEM_RECORD } from "./list-item-record.ts";
+import { LIST_ITEM_COLUMNS } from "./quest-today.ts";
 
 const CHECK_OFF = z.object({
   id: z.guid(),
@@ -48,6 +49,13 @@ const LIST_INVERSE = z.object({
 type Inverse = z.infer<typeof LIST_INVERSE>;
 type SavedRow = z.infer<typeof LIST_ITEM_RECORD>;
 type Row = typeof listItems.$inferSelect;
+// A record's check-off as it was saved, which the effective checkedOff
+// overrides on a recurring task checked off before today.
+function savedCheckOff(
+  row: SavedRow,
+): Pick<Row, "checkedOff" | "checkedOffOn"> {
+  return { checkedOff: row.checkedOff, checkedOffOn: row.checkedOffOn };
+}
 interface Scope {
   readonly tx: Transaction;
   readonly user: UserId;
@@ -143,10 +151,7 @@ async function reverseExisting(
       ) {
         return false;
       }
-      await tx
-        .update(listItems)
-        .set({ checkedOff: before.checkedOff })
-        .where(target);
+      await tx.update(listItems).set(savedCheckOff(before)).where(target);
       await undoCheckOff(scope, inverse);
       return true;
     case "recurring":
@@ -182,7 +187,7 @@ async function reverseExisting(
           listId: before.listId,
           position,
           taskNumber: before.taskNumber,
-          checkedOff: before.checkedOff,
+          ...savedCheckOff(before),
           recurring: before.recurring,
         })
         .where(target);
@@ -207,7 +212,10 @@ async function reverse(scope: Scope, inverse: Inverse): Promise<boolean> {
     eq(listItems.questId, questId),
     listItemOpenTo(user),
   );
-  const [current] = await tx.select().from(listItems).where(target);
+  const [current] = await tx
+    .select(LIST_ITEM_COLUMNS)
+    .from(listItems)
+    .where(target);
   if (after === undefined && before !== undefined && current === undefined) {
     const position = await restoredPosition(
       scope,

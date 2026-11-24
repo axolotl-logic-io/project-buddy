@@ -32,12 +32,11 @@ import SignInLinkPage from "@/app/login/link/page.tsx";
 import LoginPage from "@/app/login/page.tsx";
 import SignUpPage from "@/app/signup/page.tsx";
 
-import { readStreakQuests } from "@/dailies/quest-day-store.ts";
 import { readCurrentQuest } from "@/quests/current-quest-store.ts";
 import { getQuest, listQuests } from "@/quests/store.ts";
-
 import { BUILT_IN_RITES } from "@/rites/rite.ts";
 import { listRites, readRite } from "@/rites/rite-store.ts";
+import { readStreakQuests } from "@/streaks/streak-store.ts";
 
 import { QUEST_COPY, QUESTS_COPY } from "@/ui/copy/quests.ts";
 
@@ -48,7 +47,7 @@ import {
   signOut,
 } from "../auth/current-user-test-kit.ts";
 
-import { STREAK_QUEST } from "../dailies/streak-quest-fixtures.ts";
+import { STREAK_QUEST } from "../streaks/streak-quest-fixtures.ts";
 import { inWorkspace } from "./workspace-test-kit.tsx";
 
 // One page as the phone checks render it.
@@ -150,16 +149,12 @@ const questsPage = workspacePage(
 );
 
 // A quest's page, as its owner sees it.
-function questPageFor(
-  section = "overview",
-  dailies = false,
-): () => Promise<JSX.Element> {
+function questPageFor(section = "overview"): () => Promise<JSX.Element> {
   return workspacePage(
     () => {
       vi.mocked(getQuest).mockResolvedValue({
         ...FOX_QUEST,
         name: LONG_QUEST_NAME,
-        dailies,
       });
       vi.mocked(listQuests).mockResolvedValue([FOX_QUEST]);
     },
@@ -263,14 +258,9 @@ const PHONE_PAGES: readonly PhonePage[] = [
     },
   },
   {
-    name: "the Dailies quest, with Start Day",
+    name: "a quest's Day grid",
     path: QUEST_PATH,
-    render: questPageFor("overview", true),
-    open: async (): Promise<void> => {
-      await vi.waitFor(() =>
-        page.getByRole("button", { name: "Start Day" }).element(),
-      );
-    },
+    render: questPageFor("days"),
   },
   {
     name: "a quest with its title editor open",

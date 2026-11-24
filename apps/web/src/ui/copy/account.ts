@@ -1,4 +1,5 @@
-// The name form in Profile, and the security forms in Settings.
+// The name form in Profile, the time zone field at sign-up and in Settings,
+// and the security forms in Settings.
 export const ACCOUNT_COPY = {
   loading: "Loading Settings…",
   nameLabel: "Name",
@@ -13,6 +14,13 @@ export const ACCOUNT_COPY = {
   nameTooLong: (maxLength: number): string =>
     `A name is at most ${maxLength} characters.`,
   nameBraces: "A name can't hold { or }.",
+  timeZoneHeading: "Time zone",
+  timeZoneLabel: "Time zone",
+  timeZoneHint:
+    "Each day starts at midnight here. Recurring tasks become unchecked for the new day.",
+  saveTimeZone: "Save time zone",
+  timeZoneSaved: "Time zone saved",
+  timeZoneUnknown: "Choose a time zone from the list.",
   signOut: "Sign out",
   signOutEverywhere: "Sign out everywhere",
   signOutEverywhereTitle: "Sign out everywhere?",
