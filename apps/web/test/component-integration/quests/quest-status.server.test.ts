@@ -2,6 +2,7 @@ import { expect, test, vi } from "vitest";
 import type { User } from "@/accounts/users-store.ts";
 import { changeQuestStatusAction } from "@/app/(workspace)/quests/status-actions.ts";
 import { readExperience } from "@/experience/experience-store.ts";
+import { readLists } from "@/lists/list-store.ts";
 import {
   listPerformances,
   startPerformance,
@@ -9,7 +10,6 @@ import {
 import type { QuestStatus, StatusActionState } from "@/quests/quest-status.ts";
 import { changeQuestStatus } from "@/quests/quest-status-store.ts";
 import { getQuest, type Quest } from "@/quests/store.ts";
-import { listSpaces } from "@/spaces/space-store.ts";
 import { QUEST_STATUS_COPY } from "@/ui/copy/quest-status.ts";
 import { testData } from "../../support/test-database/data-test-kit.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
@@ -55,7 +55,7 @@ test("use_case_change_quest_status", async () => {
     testUser(),
   ]);
   const quest = await testData(owner).quest();
-  const before = await listSpaces(owner.id, quest.id);
+  const before = await readLists(owner.id, quest.id);
   await addMember(owner, quest.id, member);
   await signIn(member);
   const finished = await changeQuestStatusAction(
@@ -69,7 +69,7 @@ test("use_case_change_quest_status", async () => {
   );
   expect(finished).toMatchObject({ kind: "saved", change: { revision: 1 } });
   expect((await getQuest(owner.id, quest.id))?.status).toBe("completed");
-  expect(await listSpaces(member.id, quest.id)).toEqual(before);
+  expect(await readLists(member.id, quest.id)).toEqual(before);
   expect(await getQuest(outsider.id, quest.id)).toBeUndefined();
   expect(
     await changeQuestStatus(member.id, {
@@ -84,7 +84,7 @@ test("use_case_change_quest_status", async () => {
 test("use_case_restore_quest", async () => {
   const owner = await testUser();
   const quest = await testData(owner).quest();
-  const before = await listSpaces(owner.id, quest.id);
+  const before = await readLists(owner.id, quest.id);
   await changeQuestStatus(owner.id, {
     questId: quest.id,
     fromStatus: "active",
@@ -104,14 +104,14 @@ test("use_case_restore_quest", async () => {
       }),
     ),
   ).toMatchObject({ kind: "saved", change: { revision: 2 } });
-  expect(await listSpaces(owner.id, quest.id)).toEqual(before);
+  expect(await readLists(owner.id, quest.id)).toEqual(before);
   expect((await readExperience(owner.id)).counts["completing-quests"]).toBe(0);
 });
 
 test("use_case_change_quest_status: Abandon keeps the work and earns nothing", async () => {
   const owner = await testUser();
   const quest = await testData(owner).quest();
-  const before = await listSpaces(owner.id, quest.id);
+  const before = await readLists(owner.id, quest.id);
   await signIn(owner);
 
   expect(await askStatus(quest, "active", "abandoned", 0)).toEqual({
@@ -128,7 +128,7 @@ test("use_case_change_quest_status: Abandon keeps the work and earns nothing", a
     status: "abandoned",
     statusRevision: 1,
   });
-  expect(await listSpaces(owner.id, quest.id)).toEqual(before);
+  expect(await readLists(owner.id, quest.id)).toEqual(before);
   expect((await readExperience(owner.id)).experience).toBe(0);
 
   expect(await askStatus(quest, "abandoned", "active", 1)).toMatchObject({
@@ -188,12 +188,12 @@ test.each(["owner", "member"] as const)(
     const quest = await testData(owner).quest();
     await addMember(owner, quest.id, member);
     const users: Readonly<Record<typeof role, User>> = { owner, member };
-    const [space] = await listSpaces(owner.id, quest.id);
-    if (space === undefined) {
-      throw new Error("Missing space");
+    const [list] = await readLists(owner.id, quest.id);
+    if (list === undefined) {
+      throw new Error("Missing list");
     }
     const performance = await startPerformance(owner.id, quest.id, {
-      spaceId: space.id,
+      listId: list.id,
       riteId: "capture",
     });
     if (performance === undefined) {

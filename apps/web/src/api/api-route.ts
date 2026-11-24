@@ -1,5 +1,5 @@
-// The boundary of the versioned API under /api/v1, which the command-line
-// interface calls. It hides the wire format: every answer is JSON, either
+// The boundary of the versioned API under /api/v1, which scripts and other
+// programs call. It hides the wire format: every answer is JSON, either
 // `{ data }` for one record, `{ items, ...meta }` for a list, or
 // `{ error: { code, message, retryable, field? } }` with the status its code
 // names. A route handler is a thin adapter: it reads its input here and
@@ -119,7 +119,7 @@ function apiData(data: unknown): Response {
 }
 
 // A list, in its domain's order, with anything else the list has, such as
-// the space version.
+// the list version.
 function apiItems(
   items: readonly unknown[],
   meta: Readonly<Record<string, unknown>> = {},

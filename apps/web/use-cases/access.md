@@ -10,7 +10,7 @@ The user opens a page that requires sign-in without being signed in.
 - **Steps:**
   - The user opens a page, either from a bookmark or by typing the address. The address requires sign-in, such as Quests or a quest, or does not exist.
   - The site shows the sign-in page instead of the page.
-- **Outcome:** the sign-in page shows the site's name, the email field, a link to the sign-up page and the site panel's button. The site panel offers Ivory Vellum, Soot & Brass and Espresso Leather appearances and a Credits link. Timer, Credits, sign-up and emailed sign-in pages remain public. It doesn't ask for a shared code. No one's quests, spaces or performances appear. A request for the site's data from outside the pages, such as from a script, is refused as unauthorized and returns none of it.
+- **Outcome:** the sign-in page shows the site's name, the email field, a link to the sign-up page and the site panel's button. The site panel offers Ivory Vellum, Soot & Brass and Espresso Leather appearances and a Credits link. Timer, Credits, sign-up and emailed sign-in pages remain public. It doesn't ask for a shared code. No one's quests, lists or performances appear. A request for the site's data from outside the pages, such as from a script, is refused as unauthorized and returns none of it.
 - **Next:**
   - [`use_case_sign_in_by_link`](accounts.md#use_case_sign_in_by_link): the user has an account.
   - [`use_case_sign_up`](accounts.md#use_case_sign_up): the user has no account yet.
@@ -44,13 +44,13 @@ The user returns after their sign-in has lapsed.
 
 ## use_case_session_expired_in_performance
 
-The user's sign-in lapses while a performance is open, and the user makes a conjuration.
+The user's sign-in lapses while a performance is open, and the user sends a message.
 
 - **Prerequisites:** [`use_case_open_quest`](quests.md#use_case_open_quest), with the quest's active performance left open until their sign-in lapses.
 - **Steps:**
-  - The user makes a conjuration.
+  - The user sends a message.
   - Instead of a reply, the performance says the user has been signed out and needs to sign in again, with a link to the sign-in page.
-- **Outcome:** no reply appears, and the performance shows the signed-out message rather than a general error. The link leads to the sign-in page. After the user signs in and reopens the quest, the conjuration made while signed out is not in the performance or the space, so the user can make it again.
+- **Outcome:** no reply appears, and the performance shows the signed-out message rather than a general error. The link leads to the sign-in page. After the user signs in and reopens the quest, the message made while signed out is not in the performance or the list, so the user can make it again.
 - **Next:**
   - [`use_case_sign_in_by_link`](accounts.md#use_case_sign_in_by_link): sign in again.
-  - [`use_case_send_message`](performances.md#use_case_send_message): make the conjuration again.
+  - [`use_case_send_message`](performances.md#use_case_send_message): send the message again.

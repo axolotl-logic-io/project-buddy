@@ -1,4 +1,5 @@
 import { describe, expect, test, vi } from "vitest";
+import { readLists } from "@/lists/list-store.ts";
 import {
   listPerformances,
   startPerformance,
@@ -13,7 +14,6 @@ import {
   readRite,
   saveRite,
 } from "@/rites/rite-store.ts";
-import { listSpaces } from "@/spaces/space-store.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
 import { expectRedirect } from "../test-database/navigation-test-kit.ts";
 import { signIn } from "../test-database/session-test-kit.ts";
@@ -28,9 +28,9 @@ test("use_case_customize_rite", async () => {
     author.id,
     QUEST_NAME.parse("Workshop"),
   );
-  const [space] = await listSpaces(author.id, questId);
-  if (space === undefined) {
-    throw new Error("The quest has no starting space");
+  const [list] = await readLists(author.id, questId);
+  if (list === undefined) {
+    throw new Error("The quest has no starting list");
   }
 
   await signIn(author);
@@ -42,7 +42,7 @@ test("use_case_customize_rite", async () => {
   }
   const id = OWN_RITE_ID.parse(created.id);
   const performance = await startPerformance(author.id, questId, {
-    spaceId: space.id,
+    listId: list.id,
     riteId: id,
   });
   expect(performance?.rite).toEqual(original);
@@ -66,7 +66,7 @@ test("use_case_customize_rite", async () => {
   expect(await changeRiteAvailability(author.id, id, "forget")).toBe(true);
   expect(
     await startPerformance(author.id, questId, {
-      spaceId: space.id,
+      listId: list.id,
       riteId: id,
     }),
   ).toBeUndefined();
@@ -183,14 +183,14 @@ describe("use_case_delete_retired_definition", () => {
       owner.id,
       QUEST_NAME.parse("Workshop"),
     );
-    const [space] = await listSpaces(owner.id, questId);
-    if (space === undefined) {
-      throw new Error("The quest has no starting space");
+    const [list] = await readLists(owner.id, questId);
+    if (list === undefined) {
+      throw new Error("The quest has no starting list");
     }
     await signIn(owner);
     const id = await ownRite(owner, "Plan");
     await startPerformance(owner.id, questId, {
-      spaceId: space.id,
+      listId: list.id,
       riteId: id,
     });
     await changeRiteAvailability(owner.id, id, "forget");

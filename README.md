@@ -9,7 +9,6 @@ Before changing the code, read `AGENTS.md`, which links the rules for code, test
 The repo is a monorepo of npm workspaces with mise tasks:
 
 - `apps/web/`: the site, a Next.js app. Everything below describes it, and its paths are relative to this folder.
-- `apps/cli/`: `project-buddy`, a command-line client for the site's `/api/v1` routes that writes JSONL; run `project-buddy --help` for its commands.
 - `apps/instruction-counter/`: a pi-backed text-file measurement tool that emits one JSON line; see its `README.md`.
 - `docs/`: domain reference, style guides, practices and operating notes, starting at `docs/README.md`.
 - The root holds the shared tooling (`package.json` with the workspaces, the one `package-lock.json`, `mise.toml`, `biome.jsonc`) and the top-level docs (`AGENTS.md` and this README).
@@ -27,7 +26,7 @@ mise //apps/web:dev
 
 Setup stops a Next.js development server already running in this checkout before it reinstalls dependencies. To check the environment on its own, run `mise run doctor`. `mise doctor` is mise's own diagnostic command, not this repository's.
 
-`mise setup` runs in this order: it installs dependencies, writes the local settings, starts the persistent development database server and gives this worktree its own database on it, writes a CLI session for a local developer account to `apps/cli/.env.local`, then prepares the test environment (the test database server, this worktree's test database, and Playwright's browsers). It fills missing or empty local settings and keeps existing nonempty values, so repeat runs change nothing more.
+`mise setup` runs in this order: it installs dependencies, writes the local settings, starts the persistent development database server and gives this worktree its own database on it, then prepares the test environment (the test database server, this worktree's test database, and Playwright's browsers). It fills missing or empty local settings and keeps existing nonempty values, so repeat runs change nothing more.
 
 If `apps/web/.env.local` names a hosted PostgreSQL database, setup keeps that file and writes the local database and missing defaults to `apps/web/.env.development.local`. Next.js development and the development commands use that override, so the hosted database is never contacted. Setup and doctor refuse any other effective database URL, including hosted databases and the test database. An explicit `DATABASE_URL` in the shell or `.env.development.local` takes precedence and must name this worktree's local database. Conflicting explicit settings are reported for you to fix.
 
@@ -35,15 +34,13 @@ Open `http://localhost:3000` and request a sign-up or sign-in link. With the gen
 
 To skip the email, run `mise run sign-in-link EMAIL`, where `EMAIL` is the address to sign in as. It prints a new 30-minute sign-in link. If no account has that address, it makes one, and the link asks for a name as sign-up does. Without `EMAIL`, it signs in the developer account, `developer@project-buddy.test`.
 
-With the site running, `project-buddy` works with no further setup. The root `mise.toml` puts it on the PATH and loads `PROJECT_BUDDY_SESSION` from `apps/cli/.env.local`, so each command acts as the developer account. To check, run `project-buddy whoami`. Setup renews the session when it has a week or less left, and doctor reports when it needs renewing.
-
-Each worktree has its own development database, named from its path, so one branch's migrations never reach another's. A database can still drift within a worktree, as when a rebase renumbers or edits a migration: Drizzle's migrator applies only migrations newer than the last one applied and skips the rest without an error. Setup compares the recorded migration hashes with the checkout before and after migrating. When they differ, it drops the database, migrates it afresh and makes the developer account again, so its data is lost. Setup resets only this worktree's own database on the local development server and refuses any other URL.
+Each worktree has its own development database, named from its path, so one branch's migrations never reach another's. A database can still drift within a worktree, as when a rebase renumbers or edits a migration: Drizzle's migrator applies only migrations newer than the last one applied and skips the rest without an error. Setup compares the recorded migration hashes with the checkout before and after migrating. When they differ, it drops the database and migrates it afresh, so its data is lost. Setup resets only this worktree's own database on the local development server and refuses any other URL.
 
 After setup, every test command runs with no further preparation. The test database is disposable, and the test server keeps its data in memory. After a restart, run `mise setup` again or `npm run test-db:up --workspace apps/web`. The test database commands read only `.env.test`.
 
 Node is pinned to 24 in the root `mise.toml`. Use mise shell activation or prefix commands with `mise exec --`. Root tasks also work from subdirectories, as `mise //:setup` and `mise //:doctor`.
 
-The site's tasks run from anywhere in the repository with `mise //apps/web:<task>`, for example `mise //apps/web:check`, or `mise //...:check` to check every app. The same commands are npm scripts in `apps/web/package.json`; run them there or from the root with `--workspace apps/web`. Run `npm run check` before committing. Costly test stages are opt-in; see [Tests](#tests).
+Three npm scripts check quality: `npm run lint` runs Biome and the type check, `npm test` runs every test but the end-to-end tests, and `npm run test:e2e` runs the end-to-end tests. From the repository root they run in every workspace, and in a workspace folder they run there alone. The mise tasks of the same names do the same, as `mise //:test` for every workspace or `mise //apps/web:test` for the site. Run `npm run lint` and `npm test` before committing. See [Tests](#tests) for what each runs.
 
 [Biome](https://biomejs.dev) lints and formats the code. The root `biome.jsonc` holds the policy for the whole repository, and `apps/web/biome.jsonc` extends it with the site's scoped overrides, whose globs are relative to `apps/web/`. Tailwind class order is checked by the lint rule `useSortedClasses`, not by the formatter, so `npm run format` does not sort classes. To apply the sort, run `npx biome lint --write --unsafe --only=nursery/useSortedClasses`.
 
@@ -59,7 +56,7 @@ The app uses local PostgreSQL through the native `pg` driver, or hosted Neon thr
 docker compose --file compose.dev-db.yml up --detach --wait
 ```
 
-Then run `npm run dev:database` with this worktree's `DATABASE_URL`, which `mise setup` writes to `.env.local`, in the environment. Restart the development app after changing its database connection. A new worktree's database starts with only the developer account. The server's Docker volume keeps accounts and quests across container restarts, and `docker compose --file compose.dev-db.yml down` stops it while keeping data. It is separate from the disposable test database and the hosted database.
+Then run `npm run dev:database` with this worktree's `DATABASE_URL`, which `mise setup` writes to `.env.local`, in the environment. Restart the development app after changing its database connection. A new worktree's database starts empty, and `mise run sign-in-link` makes the developer account the first time it signs in. The server's Docker volume keeps accounts and quests across container restarts, and `docker compose --file compose.dev-db.yml down` stops it while keeping data. It is separate from the disposable test database and the hosted database.
 
 ### Branches and deploys
 
@@ -75,15 +72,15 @@ A failed or cancelled release opens or updates an `ops` issue titled `Production
 
 ### Local construct engine
 
-The app makes no requests to AI model companies. A rite replies with one of its fixed templates, filled in with the rite's name, the space's words, the conjuration's text and the user's name. See [construct use cases](apps/web/use-cases/constructs.md) and [rite use cases](apps/web/use-cases/grimoire.md).
+The app makes no requests to AI model companies. A rite replies with one of its fixed templates, filled in with the rite's name, the list's name, the message's text and the user's name. See [construct use cases](apps/web/use-cases/constructs.md) and [rite use cases](apps/web/use-cases/grimoire.md).
 
-### Quests, spaces and performances
+### Quests, lists and performances
 
-Quests at `/quests` is the signed-in landing page. Start a quest offers Dailies, Learn a thing, Make a thing and Do a thing. Each quest has spaces of murmlings, starting with Tasks and Ideas, and a record of its performances: rites performed on a space, where each conjuration adds a murmling and the rite replies. Its owner, or anyone already in it, can share it by inviting people as [members](docs/GLOSSARY.md#quest-member). Dailies continues the same quest each day. See [quest use cases](apps/web/use-cases/quests.md), [space use cases](apps/web/use-cases/spaces.md) and [performance use cases](apps/web/use-cases/performances.md).
+Quests at `/quests` is the signed-in landing page. Start a quest offers Dailies, Learn a thing, Make a thing and Do a thing. Each quest has lists of list items, starting with Tasks and Ideas, and a record of its performances: rites performed on a list, where each message adds a list item and the rite replies. Its owner, or anyone already in it, can share it by inviting people as [members](docs/GLOSSARY.md#quest-member). Dailies continues the same quest each day. See [quest use cases](apps/web/use-cases/quests.md), [list use cases](apps/web/use-cases/lists.md) and [performance use cases](apps/web/use-cases/performances.md).
 
 Each starting point assigns its quest's construct, which speaks the rites' replies in its performances. Grimoire at `/grimoire` lists built-in and own rites. Profile at `/profile` holds the user's name and experience; Settings at `/settings` holds appearance and security.
 
-Spaces and their murmlings are in `src/db/tables/spaces.ts`, and each change to a space is recorded in `space-changes.ts` so it can be undone. Rites, performances and conjurations are in `src/db/tables/performances.ts`. `conjure` in `src/performances/performance-store.ts` adds the conjuration's murmling, picks the rite's reply with `riteReply` in `src/rites/rite.ts`, and saves both in one transaction. The `/api/v1` routes under `src/app/api/v1/` serve the same stores to the [`project-buddy` command](apps/cli/).
+Lists and their list items are in `src/db/tables/lists.ts`, and each change to a list is recorded in `list-changes.ts` so it can be undone. Rites, performances and messages are in `src/db/tables/performances.ts`. `sendMessage` in `src/performances/performance-store.ts` adds the message's list item, picks the rite's reply with `riteReply` in `src/rites/rite.ts`, and saves both in one transaction. The `/api/v1` routes under `src/app/api/v1/` serve the same stores to scripts and other programs; see the [API use cases](apps/web/use-cases/api.md).
 
 ### Errors
 
@@ -101,11 +98,15 @@ Existing accounts receive reusable 30-minute sign-in links (`src/accounts/sign-i
 
 Tests live in `test/<level>/`, under the path their subject has: `component/` for isolated components, `component-integration/` for components with real dependencies, and `system/` for the built program with fake external services. Shared kits live in `test/support/`. The commands, the stage each one runs and the rules for server and e2e tests are in [`apps/web/AGENTS.md`](apps/web/AGENTS.md).
 
-`npm test` is the fast default. It selects the Vitest `repository` project (filesystem guards in `**/*.test.{ts,mts}`) and the `vite-integration` project (the cheap in-process Vite guards), and needs no database, `.env.test` or browser. `npm run check` adds Biome, the type check and the shell script tests. A fast pass does not establish browser behaviour, database isolation, build and font correctness or auth e2e behaviour, so run the opt-in stages your change touches:
+In the site, `npm test` runs three stages in turn and stops at the first failure. Each stage is also its own script:
 
-- Browser integrations, `test/component-integration/**/*.browser.test.tsx`, run with Vitest in headless Chromium and WebKit on the host. `npm run test:browser` installs the browsers if they are missing.
-- Server tests, `test/component-integration/**/*.server.test.ts`, run with Vitest in Node against the test database, which `npm run test:server` resets and migrates first. They make their users, data and sessions with the kit in `test/support/test-database/`.
-- End-to-end tests, `test/system/*.spec.ts`, run with Playwright and cover only the auth workflows (`e2e-auth-only`). `npm run test:e2e` runs the server tests, builds the site, checks the built font URLs and starts the site on `E2E_PORT`. It never reuses a server already running there. `test/component-integration/use-cases/use-cases.test.ts` enforces `e2e-auth-only` against the auth cases in `use-cases/auth-cases.ts`.
+- `npm run test:unit` runs the shell script tests and two Vitest projects: `repository`, the filesystem guards in `**/*.test.{ts,mts}`, and `vite-integration`, the cheap in-process Vite guards. It needs no database, `.env.test` or browser.
+- `npm run test:browser` runs the browser integrations, `test/component-integration/**/*.browser.test.tsx`, with Vitest in headless Chromium and WebKit on the host. It installs the browsers if they are missing.
+- `npm run test:server` runs the server tests, `test/component-integration/**/*.server.test.ts`, with Vitest in Node against the test database, which it resets and migrates first. They make their users, data and sessions with the kit in `test/support/test-database/`.
+
+`npm test` therefore needs `.env.test` and the running test database server, which `mise setup` prepares.
+
+The end-to-end tests, `test/system/*.spec.ts`, run with Playwright and cover only the auth workflows (`e2e-auth-only`). `npm run test:e2e` resets and migrates the test database, builds the site, checks the built font URLs and starts the site on `E2E_PORT`. It never reuses a server already running there. `test/component-integration/use-cases/use-cases.test.ts` enforces `e2e-auth-only` against the auth cases in `use-cases/auth-cases.ts`.
 
 Every other use case is tested in Vitest: by a server test if it needs a real server or database, and otherwise by a browser integration or feature-entrypoint test. Each runner ignores the other's directory.
 
@@ -121,7 +122,7 @@ For a manual run, `npm run test-env:init` in `apps/web` writes `.env.test` from 
 
 The shared server publishes PostgreSQL on `127.0.0.1:5433`. A locally installed PostgreSQL also works: set `DATABASE_URL` to its `localhost` or `127.0.0.1` address and port. The app also recognizes IPv6 loopback (`[::1]`), but destructive test commands still require localhost or 127.0.0.1.
 
-`npm run test:playwright -- <file>` runs one e2e file without server tests, using the configured database and site port, which must already be migrated. For example: `npm run test:playwright -- test/system/sign-in.spec.ts`.
+To run one test file, pass it to its stage's script, for example `npm run test:e2e -- test/system/sign-in.spec.ts` or `npm run test:server -- FILE`, where `FILE` is the path of a server test.
 
 The maintenance script `scripts/test-env/prune.sh` requires `ISSUE_PIPELINE_LANE_SLOTS=N`, a nonnegative whole count; zero prunes all identifiable lanes. It inventories the shared server before any removal and refuses uncertain inspection. It removes only canonical lane databases above N and leaves retained issue resources and other namespaces untouched. Do not run shared-server `test-db:down` while another checkout needs the server.
 
@@ -138,8 +139,8 @@ The site offers three fixed textured appearances: Ivory Vellum, Soot & Brass, an
 Three accounts in your worktree's development database show the site at different levels of use, for design reviews and screenshots:
 
 - **Empty**, `review+empty@project-buddy.test`: a name and nothing else, for the empty states.
-- **Typical**, `review+typical@project-buddy.test`: three quests, one of them completed, with tasks, ideas, Quick Notes and performances of its own rites, one of them replying in Markdown; three own rites; and about 45 experience, circle 4.
-- **Crowded**, `review+crowded@project-buddy.test`: sixteen quests and fourteen own rites, with every name and text at its length limit, words too long to wrap, long conjurations, a reply in rich Markdown with a table and code, and long Tasks and Ideas spaces with Quick Notes.
+- **Typical**, `review+typical@project-buddy.test`: three quests, one of them completed, with tasks, ideas, notes and performances of its own rites, one of them replying in Markdown; three own rites; and about 45 experience, circle 4.
+- **Crowded**, `review+crowded@project-buddy.test`: sixteen quests and fourteen own rites, with every name and text at its length limit, words too long to wrap, long messages, a reply in rich Markdown with a table and code, and long Tasks and Ideas lists and a long notes list.
 
 To make the accounts, start the site with `mise //apps/web:dev`, then run this command from the repository root:
 

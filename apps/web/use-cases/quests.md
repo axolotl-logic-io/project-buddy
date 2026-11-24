@@ -23,9 +23,9 @@ The user picks up the quest they were last working on.
 - **Prerequisites:** `use_case_new_quest`, with at least one Active quest.
 - **Steps:**
   - They go to Quests and choose Continue.
-- **Outcome:** above Start a quest, Continue names their current quest: the Active quest open to them, their own or one they are a member of, with the newest conjuration in any of its performances, or, for one with none, that started most recently. It shows the quest's next task when it has one ([`use_case_ask_whats_next`](tasks.md#use_case_ask_whats_next)). Continue opens the quest on Overview. Completed and Abandoned quests, pending invitations and quests not open to them are never offered. With no Active quest, there is no Continue. Showing it makes no model call and spends nothing.
+- **Outcome:** above Start a quest, Continue names their current quest: the Active quest open to them, their own or one they are a member of, with the newest message in any of its performances, or, for one with none, that started most recently. It shows the quest's next task when it has one ([`use_case_ask_whats_next`](tasks.md#use_case_ask_whats_next)). Continue opens the quest on Overview. Completed and Abandoned quests, pending invitations and quests not open to them are never offered. With no Active quest, there is no Continue. Showing it makes no model call and spends nothing.
 - **Next:**
-  - [`use_case_send_message`](performances.md#use_case_send_message): carry on conjuring.
+  - [`use_case_send_message`](performances.md#use_case_send_message): carry on sending messages.
 
 ## use_case_new_quest
 
@@ -35,7 +35,7 @@ The user starts a quest to learn, make or do something.
 - **Steps:**
   - Under Start a quest, they choose Learn a thing, Make a thing or Do a thing. A modal opens with an optional Why field. The name and starting context come from the starting point automatically.
   - They optionally fill in Why, and choose Start quest.
-- **Outcome:** the quest opens on Overview. It has an empty Tasks space and an empty Ideas space, and no active performance. Each starting point can be used again for another quest. The quest is first in their quests list.
+- **Outcome:** the quest opens on Overview. It has an empty Tasks list and an empty Ideas list, and no active performance. Each starting point can be used again for another quest. The quest is first in their quests list.
 - **Variations:**
   - Closing the details instead creates nothing and spends nothing.
   - Storage is unavailable: the details retain their edits and explain why nothing was saved ([`use_case_storage_unavailable`](when-things-go-wrong.md#use_case_storage_unavailable)).
@@ -78,7 +78,7 @@ The site receives a quest start request with a name longer than 80 characters.
 
 - **Prerequisites:** `use_case_view_quests`.
 - **Steps:** Choose a quest, then open a section from Overview. Use Back to overview to return.
-- **Outcome:** Overview shows a summary of each of the quest's spaces, Performances, Rites & status, and Members. An ordinary quest shows Next task. Each section has its own actions. The title in the trail band opens its rename editor. The Timer panel docks on wide screens and opens as a drawer on phones. The active performance appears below the workspace.
+- **Outcome:** Overview shows a summary of each of the quest's lists, Performances, Rites & status, and Members. An ordinary quest shows Next task. Each section has its own actions. The title in the trail band opens its rename editor. The Timer panel docks on wide screens and opens as a drawer on phones. The active performance appears below the workspace.
 - **Access:** Only the quest's owner and accepted members can open it.
 
 ## use_case_dailies
@@ -104,11 +104,11 @@ The user begins a new day in Dailies.
 - **Prerequisites:** `use_case_dailies`.
 - **Steps:**
   - The user opens Dailies Overview. Under Start Day, a line says how long ago the last day started.
-  - The user chooses Start Day. They can choose spaces to empty; none is chosen by default.
+  - The user chooses Start Day. They can choose lists to empty; none is chosen by default.
   - The user confirms in the dialog.
-- **Outcome:** a new day is recorded with the calendar date of the user's browser. The active performance ends. Checked-off recurring tasks are unchecked, keeping their text, numbers and order. One-off tasks stay as they are, checked off or open. Other murmlings and quest status remain. Each recurring task's streak counts the day just ended ([`use_case_daily_streaks`](tasks.md#use_case_daily_streaks)). The line under Start Day now says the last day started less than an hour ago, and Undo Start Day appears.
+- **Outcome:** a new day is recorded with the calendar date of the user's browser. The active performance ends. Checked-off recurring tasks are unchecked, keeping their text, numbers and order. One-off tasks stay as they are, checked off or open. Other list items and quest status remain. Each recurring task's streak counts the day just ended ([`use_case_daily_streaks`](tasks.md#use_case_daily_streaks)). The line under Start Day now says the last day started less than an hour ago, and Undo Start Day appears.
 - **Variations:**
-  - A space chosen to empty has no murmlings in the new day.
+  - A list chosen to empty has no list items in the new day.
   - Before the first Start Day, the line says no day has started yet.
   - The line counts in hours for the first two days, then in days.
   - Another user's Dailies quest, or a quest not started as Dailies, can't have a day started.
@@ -119,11 +119,11 @@ The user begins a new day in Dailies.
 
 The user takes back a Start Day chosen by mistake.
 
-- **Prerequisites:** `use_case_start_day`, with no conjuration made since.
+- **Prerequisites:** `use_case_start_day`, with no message made since.
 - **Steps:** the user chooses Undo Start Day on Overview.
-- **Outcome:** the performance that Start Day ended is active again, with its transcript. The spaces come back as they were before Start Day, and a murmling added by hand since stays. The day is no longer recorded, so the streaks are as they were. Undo Start Day is gone.
+- **Outcome:** the performance that Start Day ended is active again, with its transcript. The lists come back as they were before Start Day, and a list item added by hand since stays. The day is no longer recorded, so the streaks are as they were. Undo Start Day is gone.
 - **Variations:**
-  - Once anyone makes a conjuration, Undo Start Day is gone and the day stays.
+  - Once anyone sends a message, Undo Start Day is gone and the day stays.
   - Another user can't undo it.
 
 ## use_case_browse_premade_quests

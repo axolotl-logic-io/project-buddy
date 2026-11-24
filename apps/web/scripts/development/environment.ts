@@ -9,8 +9,7 @@ import { join, resolve } from "node:path";
 import { parseEnv } from "node:util";
 
 const SESSION_SECRET_BYTES = 32;
-// The account that mise setup gives the project-buddy command a session for,
-// and that mise run sign-in-link signs in without an address.
+// The account that mise run sign-in-link signs in without an address.
 const DEVELOPER_EMAIL = "developer@project-buddy.test";
 const DEVELOPER_NAME = "Developer";
 

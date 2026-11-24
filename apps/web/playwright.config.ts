@@ -1,5 +1,5 @@
 // Playwright consumes the orchestrator-provided (or manually copied) .env.test.
-// test:playwright runs selected files alone; test:e2e runs server tests first.
+// npm run test:e2e resets the test database, then runs these tests; pass a file to run it alone.
 import {
   defineConfig,
   devices,

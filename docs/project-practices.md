@@ -74,7 +74,7 @@ Never print a `.env*` file. Never copy a secret into code, docs, logs, issues or
 ## Site types
 
 - External data parsed at the boundary includes request bodies, form data, env vars and JSON columns.
-- `QuestId`, `SpaceId` and `PerformanceId` are separate id types.
+- `QuestId`, `ListId` and `PerformanceId` are separate id types.
 
 ## Site lint
 
@@ -100,7 +100,7 @@ Never print a `.env*` file. Never copy a secret into code, docs, logs, issues or
 
 ## Site data
 
-- **Every query on user data** builds its `where` from the predicates in `src/accounts/owner-scope.ts`. A quest and everything in it are open to its owner and accepted members (`questOpenTo`); a pending invitation opens nothing but the invitee's own Pending row (`questPendingFor`), and owner-only actions use `questOwnedBy`. "Open to" predicates name what is reached through a quest open to the user, such as its spaces and performances. Store functions take the acting user (`owner: UserId`) first, and a foreign id reads as not found. Real-database tests exercise access for the owner, a member, a pending invitee, a removed member and an unrelated user. New exports need access-scoped queries and real-dependency coverage.
+- **Every query on user data** builds its `where` from the predicates in `src/accounts/owner-scope.ts`. A quest and everything in it are open to its owner and accepted members (`questOpenTo`); a pending invitation opens nothing but the invitee's own Pending row (`questPendingFor`), and owner-only actions use `questOwnedBy`. "Open to" predicates name what is reached through a quest open to the user, such as its lists and performances. Store functions take the acting user (`owner: UserId`) first, and a foreign id reads as not found. Real-database tests exercise access for the owner, a member, a pending invitee, a removed member and an unrelated user. New exports need access-scoped queries and real-dependency coverage.
 - **Schema changes go only through migrations.** Change the tables in `src/db/tables/`, then `npm run db:generate`. Never edit `drizzle/meta/` by hand; on a merge conflict in it, regenerate.
 - **The release workflow migrates production while the old build is live** (`.github/workflows/release.yml`): it builds the new deployment, migrates, and only then makes the new build live, so the old build runs on the new schema for a few minutes. A Vercel rollback (`vercel rollback`, or the dashboard) restores old code but never reverts the schema. **A migration must work with the build that is live:** add tables and nullable or defaulted columns first; drop or rename something, or make it `NOT NULL`, only in a later release, once the live build no longer reads or writes the old form. A release PR can contain several integration merges: don't merge the second step into `integration` until the first is live in production. Say in the PR which kind each migration is.
 
@@ -114,7 +114,7 @@ Changes to rites, constructs, reply templates or relevant user flows update the 
 
 ## Site tests
 
-- **Fast default checks:** `npm run check` and `npm test` need no browser binaries or database, so a fast pass proves none of the opt-in stages: browser, server, e2e and build/font checks. CI runs them all: `npm run check` in the Check workflow, and the browser, server and Playwright stages in the Full suite workflow (Site production). See the [stage costs and prerequisites](../README.md#tests).
+- **Quality checks:** `npm run lint` runs Biome and the type check, `npm test` runs every test but end-to-end, and `npm run test:e2e` runs the Playwright tests with the build/font check. A pass of `npm test` proves nothing about the end-to-end tests. CI runs them all: lint and the unit stage in the Check workflow, and the browser, server and Playwright stages in the Full suite workflow (Site production). See the [stage costs and prerequisites](../README.md#tests).
 - **Use cases drive tests.** Playwright e2e tests cover only the auth workflows: sign-up, sign-in, sign-out, the sign-in limits, and the signed-out access gate. Every other use case gets a Vitest test. A case that needs a real server or database gets a server test (`*.server.test.ts`) that calls the Server Action, route handler or store with real users and sessions from the kit in `test/support/test-database/`, which deletes them after the test. A case that needs only the UI gets a browser integration or feature-entrypoint test (`*.browser.test.tsx`). A test that needs the browser's time zone is `*.zoned.browser.test.tsx`, and one that needs a touch screen is `*.touch.browser.test.tsx`. [Tests](../README.md#tests) in the README lists the commands.
 - **Local replies:** every environment fills rite replies on the server. Tests use the real rites and inject only the particular storage or reply fault a test exercises.
 - **The test database:** the orchestrator provides `.env.test` with its local database and `E2E_PORT` pinned to the checkout's lane; test commands consume it without allocating names or ports or tearing down lane resources. For manual work, run `npm run test-env:init` or copy `.env.test.example` by hand. Guards require localhost or 127.0.0.1, a safe database name and the file email outbox.

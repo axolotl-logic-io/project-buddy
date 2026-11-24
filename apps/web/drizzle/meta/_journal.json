@@ -603,6 +603,13 @@
       "when": 1795391879167,
       "tag": "0085_retire_superseded_tables",
       "breakpoints": true
+    },
+    {
+      "idx": 86,
+      "version": "7",
+      "when": 1795479882591,
+      "tag": "0086_lists_and_list_items",
+      "breakpoints": true
     }
   ]
 }

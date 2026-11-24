@@ -3,7 +3,7 @@ import Link from "next/link";
 import type { JSX, ReactNode } from "react";
 import type { Breadcrumb } from "@/components/breadcrumb.ts";
 import { HeaderSize } from "@/components/header-size.tsx";
-import { QuickNote } from "@/components/quick-note.tsx";
+import { QuickAdd } from "@/components/quick-add.tsx";
 import { PanelLink, SitePanel } from "@/components/site-panel.tsx";
 import { Icon } from "@/components/ui/icon.tsx";
 import { HOME_PATH } from "@/routes.ts";
@@ -71,11 +71,11 @@ function TrailBand({
 const PLACES_LABEL_ID = "site-panel-places";
 const YOU_LABEL_ID = "site-panel-you";
 
-// Quick Note, then signed-in destinations, grouped into Places and You.
+// Quick Add, then signed-in destinations, grouped into Places and You.
 function AccountLinks(): JSX.Element {
   return (
     <nav aria-label={SITE_PANEL_COPY.title} className="flex flex-col">
-      <QuickNote />
+      <QuickAdd />
       <hr className="panel-rule" />
       <p className="panel-label" id={PLACES_LABEL_ID}>
         {SITE_PANEL_COPY.placesLabel}

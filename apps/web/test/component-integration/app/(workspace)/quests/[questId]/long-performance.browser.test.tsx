@@ -9,13 +9,13 @@ import { page } from "vitest/browser";
 import { render } from "vitest-browser-react";
 import QuestLayout from "@/app/(workspace)/quests/[questId]/(overview)/layout.tsx";
 import QuestPage from "@/app/(workspace)/quests/[questId]/(overview)/page.tsx";
+import { readLists } from "@/lists/list-store.ts";
 import {
   listPerformances,
-  readConjurations,
+  readPerformanceMessages,
 } from "@/performances/performance-store.ts";
 import { listQuestPeople } from "@/quests/membership-store.ts";
 import { getQuest } from "@/quests/store.ts";
-import { listSpaces } from "@/spaces/space-store.ts";
 import { PERFORMANCE_COPY } from "@/ui/copy/performances.ts";
 import { QUESTS_COPY } from "@/ui/copy/quests.ts";
 import { SITE_COPY } from "@/ui/copy/site.ts";
@@ -24,9 +24,9 @@ import {
   signInAs,
 } from "../../../../auth/current-user-test-kit.ts";
 import {
-  conjuration,
   MARKDOWN_REPLY,
   PERFORMANCE,
+  sentMessage,
 } from "../../../../performances/performance-test-kit.tsx";
 import { applyTheme } from "../../../../themes/theme-test-kit.ts";
 import {
@@ -69,7 +69,7 @@ const REPLY_END = "bpy.ops.mesh.bevel(offset=0.1)";
 // Three replies fill a laptop's screen several times over.
 const EXCHANGES = 3;
 const ENTRIES = Array.from({ length: EXCHANGES }, () =>
-  conjuration("Show the saved example", MARKDOWN_REPLY),
+  sentMessage("Show the saved example", MARKDOWN_REPLY),
 );
 
 // The quest page with its site header, as the root layout renders them.
@@ -118,16 +118,16 @@ beforeEach(() => {
   document.documentElement.classList.add("h-full");
   document.body.classList.add("flex", "min-h-full", "flex-col");
   signInAs(SIGNED_IN_USER);
-  vi.mocked(listSpaces).mockResolvedValue([]);
+  vi.mocked(readLists).mockResolvedValue([]);
   vi.mocked(listQuestPeople).mockResolvedValue(undefined);
   vi.mocked(listPerformances).mockResolvedValue([PERFORMANCE]);
-  vi.mocked(readConjurations).mockResolvedValue(ENTRIES);
+  vi.mocked(readPerformanceMessages).mockResolvedValue(ENTRIES);
 });
 
 afterEach(async () => {
   window.scrollTo(0, 0);
   vi.mocked(listPerformances).mockResolvedValue([]);
-  vi.mocked(readConjurations).mockResolvedValue([]);
+  vi.mocked(readPerformanceMessages).mockResolvedValue([]);
   await setViewport(LAPTOP_VIEWPORT);
 });
 
@@ -175,7 +175,7 @@ describe("use_case_breadcrumbs_in_long_performance", () => {
         });
         const targets = [
           backLink,
-          page.getByRole("textbox", { name: PERFORMANCE_COPY.conjuration }),
+          page.getByRole("textbox", { name: PERFORMANCE_COPY.message }),
         ];
         await Promise.all(
           targets.map((target) =>
@@ -189,7 +189,7 @@ describe("use_case_breadcrumbs_in_long_performance", () => {
           viewport.width,
         );
 
-        // Jumping to a conjuration shows it below the trail band.
+        // Jumping to a message shows it below the trail band.
         const first = transcript.element().firstElementChild;
         if (first === null) {
           throw new Error("The transcript is empty");

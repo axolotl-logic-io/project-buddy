@@ -102,12 +102,6 @@ async function setup(): Promise<void> {
     "Development database: this worktree's own, with this checkout's migrations.",
   );
   requireStep(
-    command("npm", ["run", "dev:cli-session"], WEB_ROOT, {
-      env: { ...process.env, ...settings },
-    }),
-    "CLI session: the developer account's session is in apps/cli/.env.local.",
-  );
-  requireStep(
     command("npm", ["run", "test-env:init"]),
     "Manual test configuration: preserve or initialize .env.test.",
   );
@@ -135,7 +129,7 @@ async function setup(): Promise<void> {
     "Test browsers: Playwright's Chromium and WebKit are installed.",
   );
   console.log(
-    "Ready. Run mise //apps/web:dev, then open http://localhost:3000.\nSign-in emails are JSON files in the configured EMAIL_OUTBOX_DIR under apps/web. Or run mise run sign-in-link EMAIL to print a sign-in link at once.\nWith the site running, project-buddy commands act as the developer account; try project-buddy whoami.\nRun mise run doctor to check this environment. The test database and browsers are ready; the test commands are in README.md.",
+    "Ready. Run mise //apps/web:dev, then open http://localhost:3000.\nSign-in emails are JSON files in the configured EMAIL_OUTBOX_DIR under apps/web. Or run mise run sign-in-link EMAIL to print a sign-in link at once.\nRun mise run doctor to check this environment. The test database and browsers are ready; the test commands are in README.md.",
   );
 }
 
@@ -182,11 +176,6 @@ async function doctor(): Promise<void> {
           report(
             true,
             "Development database reachable; migrations are current.",
-          );
-          const { cliSessionWorks } = await import("./cli-session.ts");
-          report(
-            await cliSessionWorks(settings),
-            "CLI session: run mise setup to renew apps/cli/.env.local.",
           );
         }
       } catch {

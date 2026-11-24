@@ -1,6 +1,6 @@
 // "use_case_read_formatted_reply" in use-cases/performances.md, in Chromium
 // and WebKit: a saved performance whose reply has a heading, emphasis,
-// lists, a table, a manual link and a Python block, after a conjuration the
+// lists, a table, a manual link and a Python block, after a message the
 // user typed with Markdown in it. Saving the reply is use_case_send_message's
 // to check, and the server tests'. The site's stylesheet comes from
 // vitest.browser-setup.ts.
@@ -20,11 +20,11 @@ import { getConstruct } from "@/constructs/index.ts";
 import { PERFORMANCE_COPY } from "@/ui/copy/performances.ts";
 import { questIdFixture, userIdFixture } from "../../support/id-fixtures.ts";
 import {
-  conjuration,
   MARKDOWN_REPLY,
   PERFORMANCE,
   PERFORMANCE_ID,
   performanceView,
+  sentMessage,
 } from "../performances/performance-test-kit.tsx";
 import { applyTheme } from "../themes/theme-test-kit.ts";
 import { measureTargets, smallTargets } from "../touch-targets-test-kit.ts";
@@ -55,9 +55,9 @@ const CODE_COLORED: Parameters<typeof expect.poll>[1] = {
   message: "Python is colored by its syntax",
   timeout: HIGHLIGHTED_RENDER_TIMEOUT_MS,
 };
-const ENTRY = conjuration(TYPED, MARKDOWN_REPLY, AUTHOR);
+const ENTRY = sentMessage(TYPED, MARKDOWN_REPLY, AUTHOR);
 
-// The saved conjuration and its reply.
+// The saved message and its reply.
 const entry = page.getByRole("listitem").filter({
   has: page.getByRole("heading", { level: 4, name: "Beveling an edge" }),
 });
@@ -75,7 +75,7 @@ function box(locator: { element: () => Element }): DOMRect {
   return locator.element().getBoundingClientRect();
 }
 
-// The entry's text other than the conjuration: its author, the construct's
+// The entry's text other than the message: its author, the construct's
 // name and the reply.
 function replyText(): string {
   return entry.element().textContent.replace(TYPED, "");
@@ -113,7 +113,7 @@ afterEach(async () => {
 });
 
 describe("use_case_read_formatted_reply", () => {
-  test("headings, emphasis, lists, tables and code are formatted, and the conjuration is as typed", async () => {
+  test("headings, emphasis, lists, tables and code are formatted, and the message is as typed", async () => {
     await openPerformance();
     await expect
       .element(entry.getByRole("emphasis"))
@@ -135,13 +135,13 @@ describe("use_case_read_formatted_reply", () => {
     expect(entry.element().querySelector("code")?.textContent).toContain(
       "import bpy",
     );
-    // The reply shows no raw marks; the conjuration shows them as typed.
+    // The reply shows no raw marks; the message shows them as typed.
     expect(replyText()).not.toMatch(RAW_MARKDOWN);
     await expect.element(entry.getByText(TYPED, { exact: true })).toBeVisible();
   });
 
   for (const viewport of [LAPTOP_VIEWPORT, NARROWEST_VIEWPORT]) {
-    test(`at ${viewport.width} px, names come before conjurations, the portrait above the reply, and the composer's targets are usable`, async () => {
+    test(`at ${viewport.width} px, names come before performanceMessages, the portrait above the reply, and the composer's targets are usable`, async () => {
       await setViewport(viewport);
       await openPerformance();
       await expect.poll(codeColorCount, CODE_COLORED).toBeGreaterThan(1);
@@ -153,14 +153,14 @@ describe("use_case_read_formatted_reply", () => {
       expect(box(portrait).bottom).toBeLessThanOrEqual(
         box(entry.getByRole("heading", { level: 4 })).top,
       );
-      // The reply's text starts where the conjuration's does, not indented
+      // The reply's text starts where the message's does, not indented
       // past the portrait.
       expect(
         box(entry.getByRole("paragraph").filter({ hasText: "hard edge" })).left,
       ).toBe(box(typed).left);
       // With a draft, every composer button can be used.
       await page
-        .getByRole("textbox", { name: PERFORMANCE_COPY.conjuration })
+        .getByRole("textbox", { name: PERFORMANCE_COPY.message })
         .fill("And the next edge?");
       expect(smallTargets(await measureTargets())).toEqual([]);
       expect(document.documentElement.scrollWidth).toBeLessThanOrEqual(
@@ -172,7 +172,7 @@ describe("use_case_read_formatted_reply", () => {
   test("an unsent draft stays in this browser for the viewer and performance until sent", async () => {
     const first = await openPerformance();
     const composer = page.getByRole("textbox", {
-      name: PERFORMANCE_COPY.conjuration,
+      name: PERFORMANCE_COPY.message,
     });
     await composer.fill("Half a thought");
 

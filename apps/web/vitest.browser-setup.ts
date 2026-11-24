@@ -112,30 +112,30 @@ vi.mock("@/visits/record-visit-action.ts", () => ({
   recordVisitAction: vi.fn(() => Promise.resolve("known")),
 }));
 
-vi.mock("@/spaces/space-store.ts", () => ({
-  listSpaces: vi.fn(() => Promise.resolve([])),
+vi.mock("@/lists/list-store.ts", () => ({
+  readLists: vi.fn(() => Promise.resolve([])),
 }));
 
-vi.mock("@/spaces/space-actions.ts", () => ({
-  saveSpaceAction: vi.fn(() => {
-    throw new Error("Mock the space settings action in this test");
+vi.mock("@/lists/list-actions.ts", () => ({
+  saveListAction: vi.fn(() => {
+    throw new Error("Mock the list settings action in this test");
   }),
 }));
 
-vi.mock("@/spaces/murmling-store.ts", () => ({
-  listMurmlings: vi.fn(() => Promise.resolve([])),
-  readNextMurmling: vi.fn(() => Promise.resolve(undefined)),
+vi.mock("@/lists/list-item-store.ts", () => ({
+  readListItems: vi.fn(() => Promise.resolve([])),
+  readNextTask: vi.fn(() => Promise.resolve(undefined)),
 }));
 
-vi.mock("@/spaces/murmling-actions.ts", () => ({
-  changeMurmlingAction: vi.fn(() => {
-    throw new Error("Mock the murmling action in this test");
+vi.mock("@/lists/list-item-actions.ts", () => ({
+  changeListItemAction: vi.fn(() => {
+    throw new Error("Mock the list item action in this test");
   }),
 }));
 
 vi.mock("@/performances/performance-store.ts", () => ({
   listPerformances: vi.fn(() => Promise.resolve([])),
-  readConjurations: vi.fn(() => Promise.resolve([])),
+  readPerformanceMessages: vi.fn(() => Promise.resolve([])),
 }));
 
 vi.mock("@/rites/rite-store.ts", () => ({
@@ -146,7 +146,7 @@ vi.mock("@/rites/rite-store.ts", () => ({
 vi.mock("@/performances/performance-actions.ts", () => ({
   startPerformanceAction: vi.fn(),
   stopPerformanceAction: vi.fn(),
-  conjureAction: vi.fn(),
+  sendMessageAction: vi.fn(),
 }));
 
 vi.mock("@/rites/rite-actions.ts", () => ({
@@ -155,9 +155,9 @@ vi.mock("@/rites/rite-actions.ts", () => ({
   changeRiteAction: vi.fn(),
 }));
 
-vi.mock("@/spaces/quick-note-actions.ts", () => ({
-  listQuickNoteQuests: vi.fn(() => Promise.resolve([])),
-  saveQuickNote: vi.fn(),
+vi.mock("@/lists/quick-add-actions.ts", () => ({
+  listQuickAddQuests: vi.fn(() => Promise.resolve([])),
+  saveQuickAdd: vi.fn(),
 }));
 
 vi.mock("@/dailies/quest-day-actions.ts", () => ({

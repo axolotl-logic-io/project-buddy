@@ -43,6 +43,7 @@ import { EXPERIENCE_COPY } from "@/ui/copy/experience.ts";
 import { GRIMOIRE_COPY } from "@/ui/copy/grimoire.ts";
 import { PROFILE_COPY } from "@/ui/copy/profile.ts";
 import { QUESTS_COPY } from "@/ui/copy/quests.ts";
+import { QUICK_ADD_COPY } from "@/ui/copy/quick-add.ts";
 import { SETTINGS_COPY } from "@/ui/copy/settings.ts";
 import { SITE_COPY, SITE_PANEL_COPY } from "@/ui/copy/site.ts";
 import { THEME_COPY } from "@/ui/copy/theme.ts";
@@ -186,7 +187,10 @@ describe("use_case_use_on_phone", () => {
           await expect.element(panelButton()).toBeVisible();
           await expect
             .element(
-              page.getByRole("link", { name: "Quick Note", exact: true }),
+              page.getByRole("link", {
+                name: QUICK_ADD_COPY.panelItem,
+                exact: true,
+              }),
             )
             .not.toBeInTheDocument();
           await loadFonts();

@@ -1,15 +1,15 @@
 import { expect, test, vi } from "vitest";
 import { NO_EVENTS } from "@/experience/experience.ts";
 import { readExperience } from "@/experience/experience-store.ts";
+import { writeListContents } from "@/lists/list-item-store.ts";
+import { readLists } from "@/lists/list-store.ts";
+import { saveQuickAdd } from "@/lists/quick-add-actions.ts";
 import {
-  CONJURATION,
-  conjure,
+  PERFORMANCE_MESSAGE,
+  sendMessage,
   startPerformance,
 } from "@/performances/performance-store.ts";
 import { changeQuestStatus } from "@/quests/quest-status-store.ts";
-import { writeSpaceContents } from "@/spaces/murmling-store.ts";
-import { saveQuickNote } from "@/spaces/quick-note-actions.ts";
-import { listSpaces } from "@/spaces/space-store.ts";
 import { testData } from "../../support/test-database/data-test-kit.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
 import { addMember } from "../quests/quest-members-test-kit.ts";
@@ -20,18 +20,18 @@ vi.mock("next/cache", () => ({ refresh: vi.fn() }));
 // The experience the first circle ends at, where the second starts.
 const SECOND_CIRCLE_START = 5;
 
-// A new user's quest and its two starting spaces.
+// A new user's quest and its two starting lists.
 async function ownQuest(): Promise<{
   readonly owner: Awaited<ReturnType<typeof testUser>>;
   readonly quest: Awaited<ReturnType<ReturnType<typeof testData>["quest"]>>;
-  readonly tasks: Awaited<ReturnType<typeof listSpaces>>[number];
-  readonly ideas: Awaited<ReturnType<typeof listSpaces>>[number];
+  readonly tasks: Awaited<ReturnType<typeof readLists>>[number];
+  readonly ideas: Awaited<ReturnType<typeof readLists>>[number];
 }> {
   const owner = await testUser();
   const quest = await testData(owner).quest();
-  const [tasks, ideas] = await listSpaces(owner.id, quest.id);
+  const [tasks, ideas] = await readLists(owner.id, quest.id);
   if (tasks === undefined || ideas === undefined) {
-    throw new Error("Missing spaces");
+    throw new Error("Missing lists");
   }
   return { owner, quest, tasks, ideas };
 }
@@ -40,19 +40,19 @@ test("use_case_experience", async () => {
   const [owner, member] = await Promise.all([testUser(), testUser()]);
   const quest = await testData(owner).quest();
   await addMember(owner, quest.id, member);
-  const [space] = await listSpaces(member.id, quest.id);
-  if (space === undefined) {
-    throw new Error("Missing space");
+  const [list] = await readLists(member.id, quest.id);
+  if (list === undefined) {
+    throw new Error("Missing list");
   }
-  const added = await writeSpaceContents(member.id, quest.id, space.id, {
+  const added = await writeListContents(member.id, quest.id, list.id, {
     kind: "add",
     text: "Pack lunch",
   });
-  const task = added.space?.murmlings[0];
+  const task = added.list?.listItems[0];
   if (task === undefined) {
     throw new Error("Missing task");
   }
-  await writeSpaceContents(owner.id, quest.id, space.id, {
+  await writeListContents(owner.id, quest.id, list.id, {
     kind: "check",
     id: task.id,
     checkedOff: true,
@@ -68,7 +68,7 @@ test("use_case_experience", async () => {
     "completing-quests": 1,
   });
   expect((await readExperience(owner.id)).counts["checking-off"]).toBe(1);
-  await writeSpaceContents(member.id, quest.id, space.id, {
+  await writeListContents(member.id, quest.id, list.id, {
     kind: "check",
     id: task.id,
     checkedOff: false,
@@ -96,51 +96,51 @@ test("use_case_experience: a new user starts at Circle 1 · Initiate with no eve
   });
 });
 
-test("use_case_experience: removing a murmling keeps its event", async () => {
+test("use_case_experience: removing a list item keeps its event", async () => {
   const { owner, quest, tasks } = await ownQuest();
-  const added = await writeSpaceContents(owner.id, quest.id, tasks.id, {
+  const added = await writeListContents(owner.id, quest.id, tasks.id, {
     kind: "add",
     text: "Sweep the studio",
   });
-  const [murmling] = added.space?.murmlings ?? [];
-  if (murmling === undefined) {
-    throw new Error("Missing murmling");
+  const [listItem] = added.list?.listItems ?? [];
+  if (listItem === undefined) {
+    throw new Error("Missing list item");
   }
 
   expect(
-    await writeSpaceContents(owner.id, quest.id, tasks.id, {
+    await writeListContents(owner.id, quest.id, tasks.id, {
       kind: "remove",
-      id: murmling.id,
+      id: listItem.id,
     }),
-  ).toMatchObject({ result: "saved", space: { murmlings: [] } });
+  ).toMatchObject({ result: "saved", list: { listItems: [] } });
   expect((await readExperience(owner.id)).counts.adding).toBe(1);
 });
 
-test("use_case_experience: a Quick Note and a conjuration each earn Adding", async () => {
+test("use_case_experience: Quick Add and a message each earn Adding", async () => {
   const { owner, quest, tasks, ideas } = await ownQuest();
   await signIn(owner);
 
   expect(
-    await saveQuickNote({
+    await saveQuickAdd({
       questId: quest.id,
-      spaceId: tasks.id,
+      listId: tasks.id,
       text: "Order cones",
     }),
   ).toEqual({ kind: "saved" });
   expect((await readExperience(owner.id)).counts.adding).toBe(1);
 
   const performance = await startPerformance(owner.id, quest.id, {
-    spaceId: ideas.id,
+    listId: ideas.id,
     riteId: "capture",
   });
   if (performance === undefined) {
     throw new Error("The performance did not start");
   }
   expect(
-    await conjure(
+    await sendMessage(
       owner.id,
       quest.id,
-      CONJURATION.parse({
+      PERFORMANCE_MESSAGE.parse({
         id: crypto.randomUUID(),
         performanceId: performance.id,
         text: "Try a celadon glaze",

@@ -5,18 +5,18 @@ import { getDb } from "@/db/client.ts";
 import { quests } from "@/db/tables/quests.ts";
 import type { QuestId, UserId } from "@/ids.ts";
 import {
-  CONJURATION,
-  conjure,
+  changeListItem,
+  readListItems,
+  readNextTask,
+} from "@/lists/list-item-store.ts";
+import { readLists, saveList } from "@/lists/list-store.ts";
+import {
+  PERFORMANCE_MESSAGE,
+  sendMessage,
   startPerformance,
 } from "@/performances/performance-store.ts";
 import { readCurrentQuest } from "@/quests/current-quest-store.ts";
 import { changeQuestStatus } from "@/quests/quest-status-store.ts";
-import {
-  changeMurmling,
-  listMurmlings,
-  readNextMurmling,
-} from "@/spaces/murmling-store.ts";
-import { listSpaces } from "@/spaces/space-store.ts";
 import { testData } from "../../support/test-database/data-test-kit.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
 
@@ -42,7 +42,7 @@ describe("use_case_continue_quest", () => {
     expect(await readCurrentQuest(fresh.id)).toBeUndefined();
   });
 
-  test("uses the newest conjuration, or the newest quest when nobody has conjured", async () => {
+  test("uses the newest message, or the newest quest when nobody has sent a message", async () => {
     const [user, other] = await Promise.all([testUser(), testUser()]);
     const data = testData(user);
     const [turtle, garden] = await Promise.all([
@@ -55,21 +55,21 @@ describe("use_case_continue_quest", () => {
       testData(other).quest("Private quest"),
     ]);
     expect((await readCurrentQuest(user.id))?.quest.id).toBe(garden.id);
-    const [space] = await listSpaces(user.id, turtle.id);
-    if (space === undefined) {
-      throw new Error("The quest has no starting space");
+    const [list] = await readLists(user.id, turtle.id);
+    if (list === undefined) {
+      throw new Error("The quest has no starting list");
     }
     const performance = await startPerformance(user.id, turtle.id, {
-      spaceId: space.id,
+      listId: list.id,
       riteId: "capture",
     });
     if (performance === undefined) {
       throw new Error("The performance did not start");
     }
-    await conjure(
+    await sendMessage(
       user.id,
       turtle.id,
-      CONJURATION.parse({
+      PERFORMANCE_MESSAGE.parse({
         id: crypto.randomUUID(),
         performanceId: performance.id,
         text: "Retopologize the flipper",
@@ -99,37 +99,41 @@ describe("use_case_continue_quest", () => {
 test("use_case_ask_whats_next", async () => {
   const user = await testUser();
   const quest = await testData(user).quest();
-  const [first, second] = await listSpaces(user.id, quest.id);
+  const [first, second] = await readLists(user.id, quest.id);
   if (first === undefined || second === undefined) {
-    throw new Error("The quest has no starting spaces");
+    throw new Error("The quest has no starting lists");
   }
-  await changeMurmling(user.id, quest.id, second.id, {
-    kind: "add",
+  // The plain second list sits between two task lists.
+  const later = await saveList(user.id, quest.id, {
+    name: "Later",
+    checkOff: "Complete",
+    uncheck: "Reopen",
     type: "task",
-    text: "In a later space",
   });
-  await changeMurmling(user.id, quest.id, first.id, {
+  if (later === undefined || later === "invalid-text") {
+    throw new Error("The later list was not saved");
+  }
+  await changeListItem(user.id, quest.id, later.id, {
     kind: "add",
-    type: "plain",
+    text: "In a later list",
+  });
+  await changeListItem(user.id, quest.id, second.id, {
+    kind: "add",
     text: "A possibility",
   });
-  await changeMurmling(user.id, quest.id, first.id, {
+  await changeListItem(user.id, quest.id, first.id, {
     kind: "add",
-    text: "In the first space",
+    text: "In the first list",
   });
-  const firstTask = (await listMurmlings(user.id, quest.id, first.id)).find(
-    ({ type }) => type === "task",
-  );
+  const [firstTask] = await readListItems(user.id, quest.id, first.id);
   if (firstTask === undefined) {
     throw new Error("The task was not saved");
   }
   expect((await readCurrentQuest(user.id))?.nextTask).toBe(firstTask.text);
-  await changeMurmling(user.id, quest.id, first.id, {
+  await changeListItem(user.id, quest.id, first.id, {
     kind: "check",
     id: firstTask.id,
     checkedOff: true,
   });
-  expect((await readNextMurmling(user.id, quest.id))?.text).toBe(
-    "In a later space",
-  );
+  expect((await readNextTask(user.id, quest.id))?.text).toBe("In a later list");
 });

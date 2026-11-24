@@ -1,25 +1,25 @@
 import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import { z } from "zod";
 import {
-  murmlingOpenTo,
+  listItemOpenTo,
+  listOpenTo,
   questDayOwnedBy,
   questOwnedBy,
-  spaceOpenTo,
 } from "@/accounts/owner-scope.ts";
 import { getDb, inTransaction, type Transaction } from "@/db/client.ts";
+import { listItems, lists } from "@/db/tables/lists.ts";
 import { questDays } from "@/db/tables/quest-days.ts";
 import { quests } from "@/db/tables/quests.ts";
-import { murmlings, spaces } from "@/db/tables/spaces.ts";
 import { withAppErrors } from "@/errors/to-app-error.ts";
 import type { QuestId, UserId } from "@/ids.ts";
+import type { ListId } from "@/lists/list.ts";
+import { LIST_ITEM_ID } from "@/lists/list-item.ts";
+import { LIST_ITEM_RECORD } from "@/lists/list-item-record.ts";
 import {
   closePerformanceForDay,
   PERFORMANCE_ID,
   restorePerformanceForDay,
 } from "@/performances/performance-store.ts";
-import { MURMLING_ID } from "@/spaces/murmling.ts";
-import { MURMLING_RECORD } from "@/spaces/murmling-record.ts";
-import type { SpaceId } from "@/spaces/space.ts";
 import {
   DAY_TASK,
   type DailiesRecord,
@@ -31,8 +31,8 @@ const MOST_DAYS = 400;
 
 const DAY_UNDO = z.object({
   performance: PERFORMANCE_ID.optional(),
-  removed: z.array(MURMLING_RECORD),
-  reset: z.array(MURMLING_ID),
+  removed: z.array(LIST_ITEM_RECORD),
+  reset: z.array(LIST_ITEM_ID),
 });
 type DayUndo = z.infer<typeof DAY_UNDO>;
 
@@ -93,17 +93,17 @@ function readQuestDays(
   });
 }
 
-function questMurmlings(
+function questListItems(
   tx: Transaction,
   user: UserId,
   questId: QuestId,
-): Promise<(typeof murmlings.$inferSelect)[]> {
+): Promise<(typeof listItems.$inferSelect)[]> {
   return Promise.resolve(
     tx
       .select()
-      .from(murmlings)
-      .where(and(eq(murmlings.questId, questId), murmlingOpenTo(user)))
-      .orderBy(murmlings.position, murmlings.id),
+      .from(listItems)
+      .where(and(eq(listItems.questId, questId), listItemOpenTo(user)))
+      .orderBy(listItems.position, listItems.id),
   );
 }
 
@@ -111,21 +111,21 @@ function readRecurringTasks(user: UserId, questId: QuestId): Promise<DayTasks> {
   return withAppErrors("readRecurringTasks", async () => {
     const rows = await getDb()
       .select({
-        number: murmlings.taskNumber,
-        text: murmlings.text,
-        done: murmlings.checkedOff,
+        number: listItems.taskNumber,
+        text: listItems.text,
+        done: listItems.checkedOff,
       })
-      .from(murmlings)
-      .innerJoin(spaces, eq(spaces.id, murmlings.spaceId))
+      .from(listItems)
+      .innerJoin(lists, eq(lists.id, listItems.listId))
       .where(
         and(
-          eq(murmlings.questId, questId),
-          murmlingOpenTo(user),
-          spaceOpenTo(user),
-          eq(murmlings.recurring, true),
+          eq(listItems.questId, questId),
+          listItemOpenTo(user),
+          listOpenTo(user),
+          eq(listItems.recurring, true),
         ),
       )
-      .orderBy(spaces.position, murmlings.position, murmlings.id);
+      .orderBy(lists.position, listItems.position, listItems.id);
     return {
       items: rows.flatMap(({ number, text, done }) => {
         if (number === null) {
@@ -137,16 +137,16 @@ function readRecurringTasks(user: UserId, questId: QuestId): Promise<DayTasks> {
   });
 }
 
-async function bumpSpaces(
+async function bumpLists(
   tx: Transaction,
   user: UserId,
   ids: readonly string[],
 ): Promise<void> {
   if (ids.length > 0) {
     await tx
-      .update(spaces)
-      .set({ version: sql`${spaces.version} + 1` })
-      .where(and(inArray(spaces.id, [...ids]), spaceOpenTo(user)));
+      .update(lists)
+      .set({ version: sql`${lists.version} + 1` })
+      .where(and(inArray(lists.id, [...ids]), listOpenTo(user)));
   }
 }
 
@@ -155,7 +155,7 @@ function startQuestDay(
   questId: QuestId,
   options: {
     readonly localDate: LocalDate;
-    readonly emptySpaces: readonly SpaceId[];
+    readonly emptyLists: readonly ListId[];
   },
 ): Promise<boolean> {
   return withAppErrors("startQuestDay", () =>
@@ -163,29 +163,29 @@ function startQuestDay(
       if (!(await lockDailies(tx, owner, questId))) {
         return false;
       }
-      const { localDate, emptySpaces } = options;
-      if (emptySpaces.length > 0) {
+      const { localDate, emptyLists } = options;
+      if (emptyLists.length > 0) {
         const selected = await tx
-          .select({ id: spaces.id })
-          .from(spaces)
+          .select({ id: lists.id })
+          .from(lists)
           .where(
             and(
-              eq(spaces.questId, questId),
-              inArray(spaces.id, [...emptySpaces]),
-              spaceOpenTo(owner),
+              eq(lists.questId, questId),
+              inArray(lists.id, [...emptyLists]),
+              listOpenTo(owner),
             ),
           );
-        if (selected.length !== new Set(emptySpaces).size) {
+        if (selected.length !== new Set(emptyLists).size) {
           return false;
         }
       }
       const [previous] = await recentDays(owner, questId, tx, 1);
-      const rows = await questMurmlings(tx, owner, questId);
-      const removedSpaces = new Set<string>(emptySpaces);
-      const removed = rows.filter(({ spaceId }) => removedSpaces.has(spaceId));
+      const rows = await questListItems(tx, owner, questId);
+      const removedLists = new Set<string>(emptyLists);
+      const removed = rows.filter(({ listId }) => removedLists.has(listId));
       const reset = rows.filter(
         (row) =>
-          !removedSpaces.has(row.spaceId) && row.recurring && row.checkedOff,
+          !removedLists.has(row.listId) && row.recurring && row.checkedOff,
       );
       if (previous !== undefined) {
         const tasks = rows.flatMap((row) => {
@@ -202,33 +202,33 @@ function startQuestDay(
           .where(and(eq(questDays.id, previous.id), dayScope(owner, questId)));
       }
       if (removed.length > 0) {
-        await tx.delete(murmlings).where(
+        await tx.delete(listItems).where(
           and(
             inArray(
-              murmlings.id,
+              listItems.id,
               removed.map(({ id }) => id),
             ),
-            murmlingOpenTo(owner),
+            listItemOpenTo(owner),
           ),
         );
       }
       if (reset.length > 0) {
         await tx
-          .update(murmlings)
+          .update(listItems)
           .set({ checkedOff: false })
           .where(
             and(
               inArray(
-                murmlings.id,
+                listItems.id,
                 reset.map(({ id }) => id),
               ),
-              murmlingOpenTo(owner),
+              listItemOpenTo(owner),
             ),
           );
       }
-      await bumpSpaces(tx, owner, [
-        ...removedSpaces,
-        ...reset.map(({ spaceId }) => spaceId),
+      await bumpLists(tx, owner, [
+        ...removedLists,
+        ...reset.map(({ listId }) => listId),
       ]);
       const performance = await closePerformanceForDay(tx, owner, questId);
       const undo = DAY_UNDO.parse({
@@ -244,51 +244,47 @@ function startQuestDay(
   );
 }
 
-async function restoreMurmlings(
+async function restoreListItems(
   tx: Transaction,
   owner: UserId,
   questId: QuestId,
   undo: DayUndo,
 ): Promise<void> {
-  const current = await questMurmlings(tx, owner, questId);
+  const current = await questListItems(tx, owner, questId);
   const changed = new Set<string>();
   const reset = new Set<string>(undo.reset);
   const recurring = current.filter(
-    (row) =>
-      reset.has(row.id) &&
-      row.type === "task" &&
-      row.recurring &&
-      !row.checkedOff,
+    (row) => reset.has(row.id) && row.recurring && !row.checkedOff,
   );
   if (recurring.length > 0) {
     await tx
-      .update(murmlings)
+      .update(listItems)
       .set({ checkedOff: true })
       .where(
         and(
           inArray(
-            murmlings.id,
+            listItems.id,
             recurring.map(({ id }) => id),
           ),
-          murmlingOpenTo(owner),
+          listItemOpenTo(owner),
         ),
       );
-    for (const { spaceId } of recurring) {
-      changed.add(spaceId);
+    for (const { listId } of recurring) {
+      changed.add(listId);
     }
   }
-  const spacesToRestore = new Set(undo.removed.map(({ spaceId }) => spaceId));
-  const restored = [...spacesToRestore].flatMap((spaceId) => {
-    const removed = undo.removed.filter((row) => row.spaceId === spaceId);
-    const first = current.find((row) => row.spaceId === spaceId);
+  const listsToRestore = new Set(undo.removed.map(({ listId }) => listId));
+  const restored = [...listsToRestore].flatMap((listId) => {
+    const removed = undo.removed.filter((row) => row.listId === listId);
+    const first = current.find((row) => row.listId === listId);
     const start = (first?.position ?? 0) - removed.length;
-    changed.add(spaceId);
+    changed.add(listId);
     return removed.map((row, index) => ({ ...row, position: start + index }));
   });
   if (restored.length > 0) {
-    await tx.insert(murmlings).values(restored).onConflictDoNothing();
+    await tx.insert(listItems).values(restored).onConflictDoNothing();
   }
-  await bumpSpaces(tx, owner, [...changed]);
+  await bumpLists(tx, owner, [...changed]);
 }
 
 function undoQuestDay(owner: UserId, questId: QuestId): Promise<boolean> {
@@ -302,7 +298,7 @@ function undoQuestDay(owner: UserId, questId: QuestId): Promise<boolean> {
       if (newest === undefined || undo === undefined) {
         return false;
       }
-      await restoreMurmlings(tx, owner, questId, undo);
+      await restoreListItems(tx, owner, questId, undo);
       if (undo.performance !== undefined) {
         await restorePerformanceForDay(tx, owner, questId, undo.performance);
       }

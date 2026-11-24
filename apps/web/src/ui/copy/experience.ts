@@ -46,7 +46,7 @@ export const EXPERIENCE_COPY = {
   mostExperience: "Most experience",
   // The first thing to do in each event, for an untried event's tile.
   firstSteps: {
-    adding: "Add your first murmling",
+    adding: "Add your first list item",
     "checking-off": "Check off your first task",
     "completing-quests": "Complete your first quest",
   } satisfies Record<Event, string>,

@@ -9,11 +9,11 @@ import {
   readQuestDays,
   readRecurringTasks,
 } from "@/dailies/quest-day-store.ts";
+import { LIST_ID } from "@/lists/list.ts";
+import { type List, readLists } from "@/lists/list-store.ts";
 import { listPerformances } from "@/performances/performance-store.ts";
 import { listQuestPeople } from "@/quests/membership-store.ts";
 import { getQuest, type Quest } from "@/quests/store.ts";
-import { SPACE_ID } from "@/spaces/space.ts";
-import { listSpaces, type Space } from "@/spaces/space-store.ts";
 import { DAY_GRID_COPY } from "@/ui/copy/dailies.ts";
 import { PERFORMANCE_COPY } from "@/ui/copy/performances.ts";
 import { QUEST_SIDEBAR_COPY } from "@/ui/copy/quest-sidebar.ts";
@@ -42,21 +42,19 @@ vi.mock(
   () => import("../../../../components/router-test-kit.ts"),
 );
 
-const SPACE: Space = {
-  id: SPACE_ID.parse("a0c7c952-9f82-4640-9584-45e01b0c2513"),
+const LIST: List = {
+  id: LIST_ID.parse("a0c7c952-9f82-4640-9584-45e01b0c2513"),
   position: 0,
   name: "Bench",
-  singular: "piece",
-  plural: "pieces",
   checkOff: "Finish",
   uncheck: "Resume",
-  newType: "task",
+  type: "task",
   version: 0,
 };
 
 beforeEach(() => {
   signInAs(SIGNED_IN_USER);
-  vi.mocked(listSpaces).mockResolvedValue([SPACE]);
+  vi.mocked(readLists).mockResolvedValue([LIST]);
   vi.mocked(listQuestPeople).mockResolvedValue(undefined);
   vi.mocked(listPerformances).mockResolvedValue([]);
   vi.mocked(readQuestDays).mockResolvedValue({ days: [], undoable: false });
@@ -114,8 +112,8 @@ test("use_case_open_quest", async () => {
     .element(page.getByRole("heading", { name: "Next task" }))
     .toBeVisible();
   await expect
-    .element(page.getByRole("link", { name: SPACE.name }))
-    .toHaveAttribute("href", `/quests/${FOX_QUEST.id}?section=${SPACE.id}`);
+    .element(page.getByRole("link", { name: LIST.name }))
+    .toHaveAttribute("href", `/quests/${FOX_QUEST.id}?section=${LIST.id}`);
   await expect
     .element(page.getByRole("link", { name: "Rites & status" }))
     .toBeVisible();
@@ -123,7 +121,7 @@ test("use_case_open_quest", async () => {
     .element(page.getByRole("link", { name: "Performances" }))
     .toBeVisible();
   await expect
-    .element(page.getByRole("textbox", { name: "Conjuration" }))
+    .element(page.getByRole("textbox", { name: "Message" }))
     .not.toBeInTheDocument();
 });
 
@@ -132,12 +130,12 @@ test("use_case_dailies", async () => {
   await open({ ...FOX_QUEST, dailies: true });
   await page.getByRole("button", { name: "Start Day" }).click();
   const dialog = page.getByRole("dialog", { name: "Start Day" });
-  const space = dialog.getByRole("checkbox", { name: SPACE.name });
-  await expect.element(space).not.toBeChecked();
-  await space.click();
+  const list = dialog.getByRole("checkbox", { name: LIST.name });
+  await expect.element(list).not.toBeChecked();
+  await list.click();
   await dialog.getByRole("button", { name: "Start Day", exact: true }).click();
   expect(changeQuestDay).toHaveBeenCalledWith(
-    expect.objectContaining({ emptySpaces: [SPACE.id], questId: FOX_QUEST.id }),
+    expect.objectContaining({ emptyLists: [LIST.id], questId: FOX_QUEST.id }),
   );
 });
 
@@ -157,12 +155,12 @@ test("use_case_tailored_quest_overviews", async () => {
 });
 
 test("use_case_tasks_panel", async () => {
-  await open(FOX_QUEST, SPACE.id);
+  await open(FOX_QUEST, LIST.id);
   await expect
     .element(page.getByRole("heading", { name: "Bench" }))
     .toBeVisible();
   await expect
-    .element(page.getByRole("button", { name: "Add piece" }))
+    .element(page.getByRole("button", { name: "Add task" }))
     .toBeVisible();
   await expect
     .element(page.getByRole("link", { name: "Back to overview" }))
@@ -227,7 +225,7 @@ describe("use_case_timer_quest_panel", () => {
         await open(FOX_QUEST);
         expect(
           page
-            .getByRole("textbox", { name: PERFORMANCE_COPY.conjuration })
+            .getByRole("textbox", { name: PERFORMANCE_COPY.message })
             .elements(),
         ).toHaveLength(performances.length);
         if (viewport === NARROWEST_VIEWPORT) {

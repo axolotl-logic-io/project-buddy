@@ -171,7 +171,7 @@ function parseSequence(
       index = nextContent(lines, next);
     } else if (MAPPING_ENTRY.test(rest)) {
       // A mapping that starts on the item's line: read the line as if the
-      // dash were a space.
+      // dash were a list.
       const itemIndent = indent + line.text.length - rest.length;
       lines[index] = { indent: itemIndent, text: rest };
       raw[index] = `${" ".repeat(itemIndent)}${rest}`;

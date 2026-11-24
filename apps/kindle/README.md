@@ -41,7 +41,7 @@ shasum -a 256 -c SHA256SUMS
    Check that it reconnects after reboot and that the site opens over HTTPS.
 5. Open the emailed sign-in link in the kiosk browser to test sign-in. Read the
    email on another device and enter the link on the tablet. Open a quest and
-   use the keyboard to save a Quick Note.
+   use the keyboard to add text with Quick Add.
 6. Power-cycle the tablet and confirm that it still starts Fire OS.
 
 The shared-media method stores the kiosk as a regular file on the stock media

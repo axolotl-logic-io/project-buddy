@@ -57,7 +57,8 @@ If the interactive pi session works but the counter reports a missing API key, c
 ## Tests
 
 ```bash
-mise //apps/instruction-counter:check
+mise //apps/instruction-counter:lint
+mise //apps/instruction-counter:test
 ```
 
 The tests in `test/system/` run the CLI against a fake pi executable and make no live model calls. They test the wrapper contract, not the model's semantic accuracy.
