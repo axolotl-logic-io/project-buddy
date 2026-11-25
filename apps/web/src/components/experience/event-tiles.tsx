@@ -23,24 +23,16 @@ const EVENT_KIND_ICONS: Readonly<Record<Event, IconName>> = {
 // first point, what that point would be worth.
 function EventTile({
   standing,
-  most,
 }: {
   readonly standing: EventStanding;
-  readonly most: boolean;
 }): JSX.Element {
   const { event, counts, experience } = standing;
   let className = "event-tile";
-  if (most) {
-    className = "event-tile event-tile-most";
-  }
   if (counts === 0) {
     className = "event-tile event-tile-untried";
   }
   return (
     <li className={className}>
-      {most === true && (
-        <span className="event-badge">{EXPERIENCE_COPY.mostExperience} </span>
-      )}
       <span className="event-icon">
         <Icon name={EVENT_KIND_ICONS[event]} />
       </span>
@@ -64,8 +56,8 @@ function EventTile({
   );
 }
 
-// The user's events, the one that earned the most experience first and
-// marked so; one with no counts says what its first point is worth.
+// The user's events in descending order of experience earned. An untried
+// event says what its first point is worth.
 export function EventTiles({
   counts,
 }: {
@@ -78,12 +70,8 @@ export function EventTiles({
         {EXPERIENCE_COPY.eventsLabel}
       </h2>
       <ul className="event-tiles">
-        {standings.map((standing, index) => (
-          <EventTile
-            key={standing.event}
-            most={index === 0 && standing.experience > 0}
-            standing={standing}
-          />
+        {standings.map((standing) => (
+          <EventTile key={standing.event} standing={standing} />
         ))}
       </ul>
     </section>
