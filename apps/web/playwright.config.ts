@@ -1,5 +1,6 @@
 // Playwright consumes the orchestrator-provided (or manually copied) .env.test.
-// npm run test:e2e runs the Vitest browser tests, resets the test database, then runs these tests; pass a file to run it alone.
+// npm test runs these tests after the server tests and a fresh database reset.
+// Pass a file to npm run test:system to run only that file.
 import {
   defineConfig,
   devices,
@@ -73,7 +74,7 @@ export default defineConfig({
   // No run retries a failed test, in CI or locally: a test that passes only
   // on a retry is a flake, and a flake is a failure (flakes-are-failures).
   retries: 0,
-  reporter: run.reporter,
+  reporter: [...run.reporter, ["./scripts/test-env/playwright-failures.ts"]],
   workers: run.workers,
   use: {
     baseURL: baseUrl,
@@ -86,7 +87,7 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: `npm run build && node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/check-build-font-urls.ts && npm run start -- --port ${port}`,
+    command: `bash scripts/test-env/start-system-server.sh ${port}`,
     wait: { stdout: OWN_SERVER_LISTENING },
     // Never use URL health as readiness: this process must bind successfully.
     reuseExistingServer: false,

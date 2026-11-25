@@ -10,8 +10,14 @@
     "typecheck": "next typegen && tsc --noEmit",
     "format": "biome format --write",
     "format:check": "biome format",
-    "test": "bash scripts/test-env/require-env-test.sh && npx --yes react-doctor@0.9.23 --yes --no-score --no-supply-chain && bash ../../.github/scripts/vercel-promote.test.sh && bash test/component-integration/scripts/test-env/test-env.test.sh && bash test/component-integration/scripts/ops/ops.test.sh && vitest run --project repository --project vite-integration && npm run test-db:reset && node --env-file=.env.test --disable-warning=MODULE_TYPELESS_PACKAGE_JSON ../../node_modules/vitest/vitest.mjs run --config vitest.server.config.mts",
-    "test:e2e": "bash scripts/test-env/require-env-test.sh && npm run browsers:install && vitest run --project 'browser*' && npm run test-db:reset && node --env-file=.env.test --disable-warning=MODULE_TYPELESS_PACKAGE_JSON ../../node_modules/@playwright/test/cli.js test",
+    "test": "bash scripts/test-env/test.sh",
+    "test:core": "bash scripts/test-env/test.sh core",
+    "test:doctor": "npx --yes react-doctor@0.9.23 --yes --no-score --no-supply-chain",
+    "test:repository": "vitest run --project repository --project vite-integration",
+    "test:browser": "npm run browsers:install && vitest run --project 'browser*' --reporter=default --reporter=./scripts/test-env/vitest-failures.ts",
+    "test:server": "npm run test-db:reset && node --env-file=.env.test --disable-warning=MODULE_TYPELESS_PACKAGE_JSON ../../node_modules/vitest/vitest.mjs run --config vitest.server.config.mts",
+    "test:system": "npm run test-db:reset && node --env-file=.env.test --disable-warning=MODULE_TYPELESS_PACKAGE_JSON ../../node_modules/@playwright/test/cli.js test",
+    "test:e2e": "bash scripts/test-env/require-env-test.sh && npm run test:browser && npm run test:system --",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "dev:database": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/development/database.ts",
@@ -19,7 +25,8 @@
     "test-env:init": "bash scripts/test-env/init-worktree.sh",
     "test-db:up": "bash scripts/test-env/require-env-test.sh && docker compose --file compose.test-db.yml up --detach --wait",
     "test-db:down": "bash scripts/test-env/require-env-test.sh && docker compose --file compose.test-db.yml down",
-    "test-db:reset": "bash scripts/test-env/require-env-test.sh && node --env-file=.env.test --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/test-db/reset.ts"
+    "test-db:reset": "bash scripts/test-env/require-env-test.sh && node --env-file=.env.test --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/test-db/reset.ts",
+    "test:build": "bash scripts/test-env/require-env-test.sh && node --env-file=.env.test --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --input-type=module -e 'import { checkTestEnvironment } from \"./scripts/test-db/test-database.ts\"; checkTestEnvironment()' && node --env-file=.env.test ../../node_modules/next/dist/bin/next build"
   },
   "dependencies": {
     "@streamdown/code": "2.0.0",
