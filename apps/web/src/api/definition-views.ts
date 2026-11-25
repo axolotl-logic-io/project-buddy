@@ -6,7 +6,7 @@ import {
 } from "@/constructs/index.ts";
 import type { UserId } from "@/ids.ts";
 
-// A built-in construct assigned by a premade quest.
+// A built-in construct.
 interface ConstructView {
   readonly id: string;
   readonly name: string;

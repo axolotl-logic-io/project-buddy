@@ -1,6 +1,6 @@
 # Lists
 
-The conventions for these cases are in [the index](README.md#conventions). A list is a named, ordered collection of list items in a quest. Each list has one type, plain, task or quick note, and every list item in it has that type. The type names the list's items on screen: items, tasks or notes. Every starting point creates a Tasks list, a task list, and an Ideas list, a plain list.
+The conventions for these cases are in [the index](README.md#conventions). A list is a named, ordered collection of list items in a quest. Each list has one type, plain, task or quick note, and every list item in it has that type. The type names the list's items on screen: items, tasks or notes. Every new quest, Life included, has a Tasks list, a task list, and an Ideas list, a plain list.
 
 ## use_case_quest_lists
 
@@ -53,7 +53,7 @@ The user counts something every day, such as words written, mantras recited or b
 
 The user adds a short thought to a quest from the site panel.
 
-- **Prerequisites:** [`use_case_dailies`](quests.md#use_case_dailies) or another Active quest open to the signed-in user, their own or one they are a member of.
+- **Prerequisites:** [`use_case_life`](quests.md#use_case_life) or another Active quest open to the signed-in user, their own or one they are a member of.
 - **Steps:**
   - They open the site panel and choose Quick Add. On a phone the panel closes; docked beside the page on a wide screen, it stays open. The Quick Add dialog opens.
   - They choose the quest and one of its lists, write the text and choose Add.

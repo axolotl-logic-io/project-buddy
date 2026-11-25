@@ -1,6 +1,6 @@
 # Constructs
 
-A quest's construct is the character shown with its performances' replies. Each starting point assigns built-in Vellum or Lumen, and the quest keeps it. Constructs are built in, and their pages are read-only.
+A quest's construct is the character shown with its performances' replies. A new quest gets built-in Vellum, and keeps it. Constructs are built in, and their pages are read-only.
 
 ## use_case_view_character_profile
 

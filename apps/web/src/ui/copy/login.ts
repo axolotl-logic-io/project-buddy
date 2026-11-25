@@ -26,7 +26,7 @@ export const LINK_PAGE_COPY = {
   signupIntro: "Enter your name to finish creating your account.",
   nameInvalid: "Enter a name of 1–60 characters on one line, without { or }.",
   expired: "This link has expired or no longer works.",
-  expiredNext: `A sign-in link works for 30 minutes, and a quest invitation link works once, for ${INVITATION_LINK_LIFETIME_DAYS} days. If your invitation is still pending, it's under Pending in Quests.`,
+  expiredNext: `A sign-in link works for 30 minutes, and a quest invitation link works once, for ${INVITATION_LINK_LIFETIME_DAYS} days. If your invitation is still pending, it's waiting at the top of Quests.`,
   logIn: "Log in",
   openQuests: "Open Quests",
 } as const;

@@ -29,7 +29,7 @@ The invited person follows an invitation's acceptance link.
   - The person opens the link from the email. The page names the quest and who invited them.
   - If their account was created by the invitation, they enter a name.
   - They choose Continue.
-- **Outcome:** the browser is signed in as the invited account and the quest opens. Only that quest is accepted: any other invitation stays in Pending. An invited account has completed sign-up and keeps the name it gave; an existing user keeps theirs. Opening the link alone accepts nothing and signs no one in. The link works once: after acceptance, a fresh invitation, withdrawal or signing out everywhere, it says it no longer works, then, on its own line, that a still-pending invitation is under Pending in Quests. It names no quest. It offers Log in to a signed-out browser and Open Quests to a signed-in one.
+- **Outcome:** the browser is signed in as the invited account and the quest opens. Only that quest is accepted: any other invitation stays pending. An invited account has completed sign-up and keeps the name it gave; an existing user keeps theirs. Opening the link alone accepts nothing and signs no one in. The link works once: after acceptance, a fresh invitation, withdrawal or signing out everywhere, it says it no longer works, then, on its own line, that a still-pending invitation waits at the top of Quests. It names no quest. It offers Log in to a signed-out browser and Open Quests to a signed-in one.
 - **Variations:**
   - The browser is signed in as someone else: the page says which address the invitation is for, and continuing signs the browser in as that account.
   - An invited account asks for an ordinary sign-in link instead: continuing from it asks for a name, completes sign-up and opens Quests, with the invitation still pending.
@@ -43,11 +43,11 @@ The user accepts or declines a quest invitation from Quests.
 
 - **Prerequisites:** `use_case_invite_to_quest`, with the user as the invitee, signed in.
 - **Steps:**
-  - On Quests, the user chooses the Pending tab, which lists each quest they are invited to with its name, who invited them and when.
+  - On Quests, each quest they are invited to is a notice at the top, naming the quest and who invited them.
   - They choose Accept, or Decline, on one quest.
-- **Outcome:** after Accept, the status line says they joined and names the tab the quest now appears in, such as Active, with a link to open it; the quest opens with all its lists and performances. After Decline, the invitation is gone and the quest stays closed to them. Either way, every other invitation stays in Pending. Before acceptance, Pending shows only the quest's name and inviter, and the quest's page can't be found. A user with no quests and an invitation sees Pending first. The Pending tab's name includes its count for screen readers, and the count drops as soon as an invitation is answered. Accept and Decline work with the keyboard and fit a 320 px phone screen, beneath the quest's name.
+- **Outcome:** after Accept, the status line says they joined and names the status the quest now has, such as Active, with a link to open it; the quest opens with all its lists and performances. After Decline, the invitation is gone and the quest stays closed to them. Either way, its notice goes, focus moves to the invitations, and every other invitation stays. Before acceptance, a notice shows only the quest's name and inviter, and the quest's page can't be found. Accept and Decline work with the keyboard and fit a 320 px phone screen, beneath the quest's name.
 - **Variations:**
-  - The invitation was withdrawn or answered elsewhere: the page says it is no longer available, and its row leaves Pending without a reload.
+  - The invitation was withdrawn or answered elsewhere: the page says it is no longer available, and its notice goes without a reload.
 - **Next:**
   - [`use_case_open_quest`](quests.md#use_case_open_quest): work on the quest.
 
@@ -67,7 +67,7 @@ A member manages the quest as its owner does.
 
 - **Prerequisites:** `use_case_quest_member_access`, as a member.
 - **Steps:** the member renames the quest, marks it Completed, answers a status card someone else asked for, invites someone, and removes another member.
-- **Outcome:** each change takes effect for everyone in the quest. No one, owner or member, can remove the owner, including by a direct request; the site has no way to delete a quest. Wherever quests are listed or chosen (Quests' tabs, Continue and the Quick Add choice), a multi-user quest is marked "Shared", or "Shared by" its owner's name for a member, so it can't be mistaken for a private quest of the same name.
+- **Outcome:** each change takes effect for everyone in the quest. No one, owner or member, can remove the owner, including by a direct request; the site has no way to delete a quest. Wherever quests are listed or chosen (Quests' rows and search results, and the Quick Add choice), a multi-user quest is marked "Shared", or "Shared by" its owner's name for a member, so it can't be mistaken for a private quest of the same name.
 - **Next:**
   - `use_case_remove_quest_member`: someone leaves the quest.
 

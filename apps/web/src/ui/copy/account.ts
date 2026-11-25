@@ -25,6 +25,6 @@ export const ACCOUNT_COPY = {
   signOutEverywhere: "Sign out everywhere",
   signOutEverywhereTitle: "Sign out everywhere?",
   signOutEverywhereDescription:
-    "This signs you out in every browser and on every device, this one included. Sign-in links and quest invitation links already sent stop working. Your invitations stay in Pending, and you can sign in again with a new link.",
+    "This signs you out in every browser and on every device, this one included. Sign-in links and quest invitation links already sent stop working. Your invitations stay on Quests, and you can sign in again with a new link.",
   stay: "Stay signed in",
 } as const;

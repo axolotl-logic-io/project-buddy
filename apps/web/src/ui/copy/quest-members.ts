@@ -1,5 +1,5 @@
 // The text of multi-user quests: a quest's Members disclosure, the Quests page's
-// Pending tab, the page an invitation's acceptance link opens, and the
+// invitation notices, the page an invitation's acceptance link opens, and the
 // invitation email.
 
 import type { QuestSharing } from "@/quests/membership.ts";
@@ -79,20 +79,10 @@ export const QUEST_SHARING_COPY = {
 } as const;
 
 export const PENDING_COPY = {
-  label: "Pending",
-  tabLabel: (count: number): string => {
-    if (count === 0) {
-      return "Pending";
-    }
-    if (count === 1) {
-      return "Pending, 1 invitation";
-    }
-    return `Pending, ${count} invitations`;
-  },
-  none: "No pending invitations.",
-  invitedBy: (name: string, time: string): string =>
-    `${name} invited you ${time}`,
-  invitedAt: (time: string): string => `Invited ${time}`,
+  label: "Invitations",
+  notice: "Invitation",
+  invitedBy: (name: string): string => `${name} invited you to`,
+  invited: "You’re invited to",
   accept: "Accept",
   acceptLabel: (name: string): string => `Accept the invitation to ${name}`,
   decline: "Decline",
@@ -138,7 +128,7 @@ export const QUEST_INVITATION_EMAIL_COPY = {
   },
   linkText: "Join the quest",
   expiry: `The link works once, for ${INVITATION_LINK_LIFETIME_DAYS} days, on any device. It signs you in and joins only this quest.`,
-  pending: `Until you join, the quest waits in the Pending tab of your Quests page whenever you log in to ${SITE_COPY.name}.`,
+  pending: `Until you join, the quest waits at the top of your Quests page whenever you log in to ${SITE_COPY.name}.`,
   notExpected:
     "If you weren't expecting this, you can set this email aside. An account was set aside for this address so you could join, and it stays unused unless you do.",
   notExpectedMember:

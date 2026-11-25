@@ -9,7 +9,6 @@ import { afterAll, beforeAll, describe, expect, test } from "vitest";
 import QuestsPage from "@/app/(workspace)/quests/(list)/page.tsx";
 import QuestPage from "@/app/(workspace)/quests/[questId]/(overview)/page.tsx";
 import { startQuestAction } from "@/app/(workspace)/quests/actions.ts";
-import { PREMADE_QUESTS } from "@/quests/premade-quests.ts";
 import { spyOnErrorLog } from "../../../errors/error-log-spy.ts";
 import { formOf } from "../../../test-database/form-test-kit.ts";
 import { signIn } from "../../../test-database/session-test-kit.ts";
@@ -60,19 +59,12 @@ describe("use_case_storage_unavailable", () => {
 
   test("starting a quest fails with the storage case", async () => {
     await signIn(user);
-    const [quest] = PREMADE_QUESTS;
-    if (quest === undefined) {
-      throw new Error("No starting points");
-    }
-
     await expect(
       startQuestAction(
         { kind: "idle" },
         formOf({
-          premadeId: "make",
           name: `Unsaved quest ${crypto.randomUUID()}`,
-          context: quest.context,
-          constructId: "vellum",
+          motivation: "To see it fail.",
         }),
       ),
     ).rejects.toMatchObject(UNREACHABLE);

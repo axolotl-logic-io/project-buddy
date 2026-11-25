@@ -7,7 +7,7 @@ A task is a list item in a task list ([`use_case_list_types`](lists.md#use_case_
 The user finds the quest's next task.
 
 - **Prerequisites:** a quest with open tasks in its lists.
-- **Steps:** open Quests and read Continue, or open the quest's Overview.
+- **Steps:** open the quest's Overview and read Next task.
 - **Outcome:** the next task is the first open task in the quest, taking its lists in order and each list's list items in their saved order. A quest with no open tasks has no next task.
 
 ## use_case_change_tasks
