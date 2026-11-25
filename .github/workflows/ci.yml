@@ -1,8 +1,8 @@
-# Runs on each PR and on each push to integration. Each job runs one of the
-# root mise tasks' npm scripts, so a failure names its stage:
+# Runs on each PR and on each push to integration. Each job runs
+# its own npm script, so a failure names its stage:
 #
 # - lint: `npm run lint`, Biome and the type check in every workspace.
-# - test: `npm test`, React Doctor and every test but the browser and
+# - test: `npm run test:core`, React Doctor and every test but the browser and
 #   end-to-end tests, in every workspace.
 # - test:e2e: `npm run test:e2e`, the Vitest browser tests (Chromium and
 #   WebKit), then the Playwright end-to-end tests against a production build.
@@ -66,7 +66,7 @@ jobs:
       - run: npm run test-env:init --workspace @project-buddy/web
       - run: npm run test-db:up --workspace @project-buddy/web
       # The site's tests reset and migrate the test database first.
-      - run: npm test
+      - run: npm run test:core
 
   test-e2e:
     name: test:e2e
