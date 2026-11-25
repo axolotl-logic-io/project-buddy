@@ -7,14 +7,15 @@ const MARK_TEXT: Readonly<Record<DayMark, string>> = {
   untracked: "not added yet",
 };
 
-// The Day grid of a quest's recurring tasks.
+// The Day grid of a quest's recurring tasks, with a row of days, weeks or
+// months for each cadence.
 export const DAY_GRID_COPY = {
   heading: "Recurring tasks",
   noRecurring:
-    "No recurring tasks yet. To track a task every day, open its menu in its list and choose Make recurring.",
+    "No recurring tasks yet. To track a task, open its menu in its list and choose Repeat daily, weekly or monthly.",
   legend:
-    "A filled square is done and an empty one is not. Each day starts at midnight in the quest owner’s time zone.",
-  // One day's square, for screen readers: the date and the mark.
-  day: (weekday: string, date: string, mark: DayMark): string =>
-    `${weekday} ${date}: ${MARK_TEXT[mark]}`,
+    "A filled square is done and an empty one is not. Each day, week and month starts at midnight in the quest owner’s time zone.",
+  // One period's square, for screen readers: the period and the mark.
+  period: (period: string, mark: DayMark): string =>
+    `${period}: ${MARK_TEXT[mark]}`,
 } as const;

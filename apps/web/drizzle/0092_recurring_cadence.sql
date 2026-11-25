@@ -1,0 +1,2 @@
+ALTER TABLE "list_items" ADD COLUMN "cadence" text DEFAULT 'daily' NOT NULL;--> statement-breakpoint
+ALTER TABLE "list_items" ADD CONSTRAINT "list_items_cadence_valid" CHECK ("list_items"."cadence" in ('daily', 'weekly', 'monthly'));

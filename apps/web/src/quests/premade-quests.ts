@@ -28,7 +28,7 @@ const PREMADE_QUESTS: readonly PremadeQuest[] = [
     name: "Dailies",
     tagline: "Start your day",
     description:
-      "Start each day here: notice what matters and choose one manageable next step. Make a task recurring to do it every day.",
+      "Start each day here: notice what matters and choose one manageable next step. Make a task repeat daily to do it every day.",
     context: "",
     constructId: "vellum",
   },

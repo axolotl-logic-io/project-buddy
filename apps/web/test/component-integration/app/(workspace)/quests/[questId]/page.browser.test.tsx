@@ -144,6 +144,7 @@ const NEXT: OpenTask[] = [
   text: text ?? "",
   checkedOff: false,
   recurring: false,
+  cadence: "daily",
   createdAt: new Date("2026-11-01T09:00:00Z"),
 }));
 
@@ -155,6 +156,7 @@ test("use_case_open_quest: Overview checks off the next task and recurring tasks
       listId: LIST.id,
       number: 1,
       text: STRETCH,
+      cadence: "daily",
       done: false,
       createdAt: new Date("2026-11-01T09:00:00Z"),
     },
@@ -213,13 +215,14 @@ test("use_case_tasks_panel", async () => {
 });
 
 describe("use_case_daily_streaks", () => {
-  test("Day grid shows each recurring task's last seven dates, named for screen readers", async () => {
+  test("Day grid shows each daily task's last seven days, named for screen readers", async () => {
     vi.mocked(readRecurringTasks).mockResolvedValue([
       {
         id: LIST_ITEM_ID.parse("5d0f43d4-4b0c-4cb5-9d5c-3a8f3e1c0b21"),
         listId: LIST_ID.parse("a0c7c952-9f82-4640-9584-45e01b0c2513"),
         number: 1,
         text: STRETCH,
+        cadence: "daily",
         done: false,
         createdAt: new Date("2026-11-01T09:00:00Z"),
       },
@@ -231,13 +234,13 @@ describe("use_case_daily_streaks", () => {
       .toBeVisible();
     const days = grid.getByRole("listitem");
     expect(days.elements().map((day) => day.textContent)).toEqual([
-      expect.stringContaining("Thu 2026-11-12: done"),
-      expect.stringContaining("Fri 2026-11-13: done"),
-      expect.stringContaining("Sat 2026-11-14: not done"),
-      expect.stringContaining("Sun 2026-11-15: done"),
-      expect.stringContaining("Mon 2026-11-16: not done"),
-      expect.stringContaining("Tue 2026-11-17: done"),
-      expect.stringContaining("Wed 2026-11-18: not done yet"),
+      expect.stringContaining("Thu 12 Nov: done"),
+      expect.stringContaining("Fri 13 Nov: done"),
+      expect.stringContaining("Sat 14 Nov: not done"),
+      expect.stringContaining("Sun 15 Nov: done"),
+      expect.stringContaining("Mon 16 Nov: not done"),
+      expect.stringContaining("Tue 17 Nov: done"),
+      expect.stringContaining("Wed 18 Nov: not done yet"),
     ]);
     await expect.element(page.getByText(DAY_GRID_COPY.legend)).toBeVisible();
   });
