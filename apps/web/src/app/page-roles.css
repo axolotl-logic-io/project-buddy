@@ -903,14 +903,13 @@
     @apply text-muted text-sm;
   }
 
-  /* The events: full-width rows on a phone, tiles side by side from sm,
-     the most experience first. A badge sits on its tile's top edge. */
+  /* Events fill the width on a phone and sit side by side from sm. */
   .event-tiles {
-    @apply mt-3 grid gap-3 pt-2 sm:grid-cols-[repeat(auto-fill,minmax(15rem,1fr))];
+    @apply mt-3 grid gap-3 sm:grid-cols-[repeat(auto-fill,minmax(15rem,1fr))];
   }
 
   .event-tile {
-    @apply relative grid items-center gap-x-3 rounded-box border-2 bg-field px-3 py-2.5 sm:gap-y-2 sm:p-3.5;
+    @apply grid items-center gap-x-3 rounded-box border-2 bg-field px-3 py-2.5 sm:gap-y-2 sm:p-3.5;
     border-color: color-mix(in oklab, var(--line) 40%, transparent);
     grid-template-columns: auto 1fr auto;
     grid-template-areas:
@@ -926,11 +925,6 @@
       "icon hint count";
   }
 
-  .event-tile-most {
-    @apply mt-1.5;
-    border-color: var(--hud-gold);
-  }
-
   @media (width >= 40rem) {
     .event-tile {
       grid-template-areas:
@@ -943,16 +937,6 @@
         "icon name count"
         "hint hint hint";
     }
-
-    .event-tile-most {
-      @apply mt-0;
-    }
-  }
-
-  .event-badge {
-    @apply absolute start-3 -top-2.5 rounded-full px-2 py-px font-extrabold text-[0.6875rem] uppercase tracking-wider sm:start-auto sm:end-3;
-    background: var(--hud-gold);
-    color: var(--hud-ink);
   }
 
   .event-icon {
