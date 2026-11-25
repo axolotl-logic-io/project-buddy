@@ -15,6 +15,7 @@ import { ACCOUNT_COPY } from "@/ui/copy/account.ts";
 import { LINK_PAGE_COPY } from "@/ui/copy/login.ts";
 import { test } from "./fixtures.ts";
 import { logIn } from "./log-in.ts";
+import { waitForHydrated } from "./page-helpers.ts";
 import { newSignInLink, signInByLink } from "./sign-in-pages.ts";
 
 // A page in another browser, signed in as account, at address.
@@ -93,9 +94,11 @@ async function answerSignOutEverywhere(
   answer: string,
 ): Promise<void> {
   const dialog = signOutEverywhereDialog(page);
-  await page
-    .getByRole("button", { name: ACCOUNT_COPY.signOutEverywhere })
-    .click();
+  const trigger = page.getByRole("button", {
+    name: ACCOUNT_COPY.signOutEverywhere,
+  });
+  await waitForHydrated(trigger);
+  await trigger.click();
   await expect(dialog).toHaveAccessibleDescription(
     ACCOUNT_COPY.signOutEverywhereDescription,
   );
