@@ -39,8 +39,6 @@ export const EXPERIENCE_COPY = {
   },
   // The experience an event's counts are worth, on its tile.
   worth: (experience: number): string => `+${experience} experience`,
-  // The badge on the event that earned the most experience.
-  mostExperience: "Most experience",
   // The first thing to do in each event, for an untried event's tile.
   firstSteps: {
     adding: "Add your first list item",
