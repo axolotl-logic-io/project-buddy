@@ -1686,7 +1686,7 @@
     @apply relative grid min-w-0 grid-cols-[minmax(0,1fr)_auto] items-start rounded-control hover:bg-field/60 focus-within:bg-field/60;
   }
 
-  .editable-row:has(.editable-check) {
+  .editable-row:has(.task-check) {
     @apply grid-cols-[auto_minmax(0,1fr)_auto];
   }
 
@@ -1708,33 +1708,28 @@
     @apply bottom-0;
   }
 
-  .editable-check,
-  .editable-check input {
+  /* A task's checkbox (TaskCheck, src/components/ui/task-check.tsx): the
+     streak's square, centred in a target. The native checkbox covers the
+     target, unseen, so the whole target checks it. */
+  .task-check {
     inline-size: var(--target-size);
     block-size: var(--target-size);
+    @apply relative grid shrink-0 place-items-center;
   }
 
-  .editable-check input {
-    @apply m-0 grid cursor-pointer appearance-none place-content-center text-muted disabled:cursor-not-allowed disabled:opacity-60;
+  .task-check input {
+    @apply absolute inset-0 m-0 size-full cursor-pointer appearance-none opacity-0 disabled:cursor-not-allowed;
   }
 
-  .editable-check input::before {
-    content: "";
-    grid-area: 1 / 1;
-    @apply size-5 rounded-full border-2 border-current;
+  .task-check:has(input:disabled) {
+    @apply opacity-60;
   }
 
-  .editable-check input:checked::before {
-    @apply border-primary bg-primary;
+  .task-check:has(input:enabled:hover) .check-square {
+    @apply border-primary;
   }
 
-  .editable-check input:checked::after {
-    content: "";
-    grid-area: 1 / 1;
-    @apply mx-auto -mt-0.5 h-2.5 w-1.5 rotate-45 border-on-primary border-e-2 border-b-2;
-  }
-
-  .editable-check input:focus-visible {
+  .task-check:has(input:focus-visible) {
     outline: var(--focus-outline);
     outline-offset: calc(-1 * var(--focus-offset));
   }
@@ -1886,11 +1881,14 @@
     outline-offset: calc(-1 * var(--focus-offset));
   }
 
-  .streak-square {
+  /* A checkbox's square, a streak's day and a task's alike: a field in the
+     line colour, filled with primary and checked in on-primary when done. */
+  :is(.streak-square, .check-square) {
     @apply grid size-6.5 place-items-center rounded-control border-2 border-line bg-field text-on-primary;
   }
 
-  .streak-square[data-mark="done"] {
+  .streak-square[data-mark="done"],
+  .check-square[data-checked="true"] {
     @apply border-primary bg-primary;
   }
 
@@ -2076,7 +2074,7 @@
     @apply col-start-1 -col-end-1 -mt-1.5 min-w-0 pb-2.5;
   }
 
-  .editable-row:has(.editable-check) > .editable-detail {
+  .editable-row:has(.task-check) > .editable-detail {
     @apply col-start-2;
   }
 
@@ -2162,7 +2160,7 @@
     @apply col-start-1 -col-end-1;
   }
 
-  .editable-row:has(.editable-check) > .editable-form {
+  .editable-row:has(.task-check) > .editable-form {
     @apply col-start-2;
   }
 
