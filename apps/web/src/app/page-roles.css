@@ -1179,14 +1179,65 @@
     @apply max-[22.5rem]:sr-only;
   }
 
-  /* Life, pinned above the finder, gilded from its seal's side. */
+  /* Life's stepped frame sits behind the card so it cannot clip focus rings. */
   .life-pin {
-    background: linear-gradient(
-      100deg,
-      color-mix(in oklab, var(--header-gold) 22%, var(--surface)),
-      var(--surface) 65%
+    @apply relative isolate flex min-w-0 flex-col gap-2.5 px-3.5 py-4 sm:px-4;
+  }
+
+  .life-pin::before,
+  .life-pin::after {
+    content: "";
+    @apply pointer-events-none absolute -z-10 border;
+  }
+
+  .life-pin::before {
+    --life-step: 4px;
+    --life-cut: 9px;
+    --life-far-step: calc(100% - var(--life-step));
+    --life-far-cut: calc(100% - var(--life-cut));
+    clip-path: polygon(
+      0 var(--life-cut),
+      var(--life-step) var(--life-cut),
+      var(--life-step) var(--life-step),
+      var(--life-cut) var(--life-step),
+      var(--life-cut) 0,
+      var(--life-far-cut) 0,
+      var(--life-far-cut) var(--life-step),
+      var(--life-far-step) var(--life-step),
+      var(--life-far-step) var(--life-cut),
+      100% var(--life-cut),
+      100% var(--life-far-cut),
+      var(--life-far-step) var(--life-far-cut),
+      var(--life-far-step) var(--life-far-step),
+      var(--life-far-cut) var(--life-far-step),
+      var(--life-far-cut) 100%,
+      var(--life-cut) 100%,
+      var(--life-cut) var(--life-far-step),
+      var(--life-step) var(--life-far-step),
+      var(--life-step) var(--life-far-cut),
+      0 var(--life-far-cut)
     );
-    @apply flex min-w-0 flex-col gap-2.5 rounded-control border border-header-gold px-3.5 py-3;
+    @apply inset-0 border-line bg-surface;
+  }
+
+  .life-pin::after {
+    @apply inset-1.25 border-line/45;
+  }
+
+  .life-pin-corner {
+    @apply pointer-events-none absolute top-0 left-0 -z-10 text-header-gold;
+  }
+
+  .life-pin-corner[data-corner="top-right"] {
+    @apply right-0 left-auto -scale-x-100;
+  }
+
+  .life-pin-corner[data-corner="bottom-left"] {
+    @apply top-auto bottom-0 -scale-y-100;
+  }
+
+  .life-pin-corner[data-corner="bottom-right"] {
+    @apply top-auto right-0 bottom-0 left-auto -scale-100;
   }
 
   .life-pin-head {
