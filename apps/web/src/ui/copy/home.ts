@@ -2,7 +2,8 @@ import { pageTitle } from "@/ui/copy/site.ts";
 
 // Home, the signed-in landing page: the user's experience, then the
 // streaks of every recurring task across their quests, then their tallies
-// (src/ui/copy/tallies.ts), and the site panel's link to it.
+// (src/ui/copy/tallies.ts), then their one-off tasks, and the site panel's
+// link to it.
 export const HOME_COPY = {
   title: pageTitle("Home"),
   heading: "Home",
@@ -35,4 +36,11 @@ export const HOME_COPY = {
     "Check a square to mark a task done on that day. A day without a check-off ends a streak. Each day starts at midnight in the quest owner’s time zone.",
   markUnavailable:
     "That day can’t be changed. Only the last seven days since the task was added can be marked.",
+  tasksHeading: "Tasks",
+  // A quest's line above its one-off tasks, after its name.
+  openCount: (count: number): string => `· ${count} open`,
+  noTasks:
+    "No open tasks. Add a task to a list in an Active quest to see it here. Recurring tasks show under Streaks.",
+  tasksLegend:
+    "Check off a task to mark it done. It stays here until midnight in the quest owner’s time zone, so it can be unchecked until then.",
 } as const;

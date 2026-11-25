@@ -37,6 +37,7 @@ import { getQuest, listQuests } from "@/quests/store.ts";
 import { BUILT_IN_RITES } from "@/rites/rite.ts";
 import { listRites, readRite } from "@/rites/rite-store.ts";
 import { readStreakQuests } from "@/streaks/streak-store.ts";
+import { readTaskQuests } from "@/tasks/task-store.ts";
 
 import { QUEST_COPY, QUESTS_COPY } from "@/ui/copy/quests.ts";
 
@@ -175,7 +176,7 @@ const questPage = questPageFor();
 
 const PHONE_PAGES: readonly PhonePage[] = [
   {
-    name: "Home, with a quest's streaks",
+    name: "Home, with a quest's streaks and tasks",
     path: [],
     render: workspacePage(
       () => {
@@ -183,6 +184,17 @@ const PHONE_PAGES: readonly PhonePage[] = [
           {
             ...STREAK_QUEST,
             quest: { ...STREAK_QUEST.quest, name: LONG_QUEST_NAME },
+          },
+        ]);
+        vi.mocked(readTaskQuests).mockResolvedValue([
+          {
+            quest: { ...STREAK_QUEST.quest, name: LONG_QUEST_NAME },
+            tasks: STREAK_QUEST.tasks.map(({ id, listId, text, done }) => ({
+              id,
+              listId,
+              text,
+              done,
+            })),
           },
         ]);
       },
