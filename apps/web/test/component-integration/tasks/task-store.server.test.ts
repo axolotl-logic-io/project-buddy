@@ -65,7 +65,7 @@ describe("use_case_home_tasks", () => {
       writeListContents(owner.id, errands.id, listId, {
         kind: "recurring",
         id: stretch.id,
-        recurring: true,
+        cadence: "daily",
       }),
       ...[bank, older].map(({ id }) =>
         writeListContents(owner.id, errands.id, listId, {

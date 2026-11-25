@@ -48,9 +48,15 @@ const listItems = pgTable(
     taskNumber: integer("task_number"),
     checkedOff: boolean("checked_off").notNull().default(false),
     // The quest owner's calendar date when the task was checked off. A
-    // recurring task counts as checked off only on that date.
+    // recurring task counts as checked off only in the day, week or month
+    // that holds that date, by its cadence.
     checkedOffOn: date("checked_off_on", { mode: "string" }),
     recurring: boolean("recurring").notNull().default(false),
+    // How often a recurring task repeats. A one-off task keeps the cadence
+    // it last had, which it takes again if it is made recurring.
+    cadence: text("cadence", { enum: ["daily", "weekly", "monthly"] })
+      .notNull()
+      .default("daily"),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),
@@ -64,6 +70,10 @@ const listItems = pgTable(
     uniqueIndex("list_items_quest_task_number_idx").on(
       table.questId,
       table.taskNumber,
+    ),
+    check(
+      "list_items_cadence_valid",
+      sql`${table.cadence} in ('daily', 'weekly', 'monthly')`,
     ),
   ],
 );

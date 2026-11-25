@@ -17,6 +17,7 @@ import { useQuestAction } from "@/components/use-quest-action.ts";
 import type { ListItemId } from "@/lists/list-item.ts";
 import { changeListItemAction } from "@/lists/list-item-actions.ts";
 import type { LifeSummary, SuggestedTask } from "@/quests/quest-index-store.ts";
+import { CADENCE_COPY } from "@/ui/copy/cadence.ts";
 import { LIFE_COPY } from "@/ui/copy/quests.ts";
 
 function markDone(
@@ -42,9 +43,9 @@ function Suggestion({
   if (done) {
     className = "life-pin-suggestion life-pin-suggestion-done";
   }
-  let detail: string = LIFE_COPY.recurring;
+  let detail = CADENCE_COPY.repeats(task.cadence);
   if (task.streak > 0) {
-    detail = `${LIFE_COPY.recurring} · ${LIFE_COPY.streak(task.streak)}`;
+    detail = `${detail} · ${CADENCE_COPY.streak(task.cadence, task.streak)}`;
   }
   return (
     <div className={className}>
@@ -95,9 +96,9 @@ function LifePin({ life }: { readonly life: LifeSummary }): JSX.Element {
     },
     [life.quest.id, run, showChecked],
   );
-  let { doneToday } = life;
+  let { doneNow } = life;
   if (suggestion !== undefined && checked.has(suggestion.id)) {
-    doneToday += 1;
+    doneNow += 1;
   }
   const href = `/quests/${life.quest.id}`;
   const nameId = useId();
@@ -112,7 +113,7 @@ function LifePin({ life }: { readonly life: LifeSummary }): JSX.Element {
             {life.quest.name}
           </h2>
           <p className="quest-finder-meta">
-            {LIFE_COPY.progress(doneToday, life.recurring)}
+            {LIFE_COPY.progress(doneNow, life.recurring)}
           </p>
         </div>
         <Button asChild={true} variant="secondary">

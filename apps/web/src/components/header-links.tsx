@@ -42,7 +42,7 @@ async function HeaderLinksAt({
     resolved = await headerBreadcrumbs(user, path);
   }
   const breadcrumbs: readonly Breadcrumb[] = resolved.map(
-    ({ quest, construct, timer, ...item }) => {
+    ({ quest, construct, timer, ...item }, place) => {
       if (quest !== undefined) {
         return {
           ...item,
@@ -65,7 +65,8 @@ async function HeaderLinksAt({
       if (path[0] === "timer" && path.length === 1) {
         return { ...item, action: <TimerPreferences /> };
       }
-      if (signedIn && path[0] === "quests" && path.length === 1) {
+      const current = place === resolved.length - 1;
+      if (current && signedIn && path[0] === "quests" && path.length === 1) {
         return { ...item, action: <NewQuest /> };
       }
       return item;

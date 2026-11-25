@@ -492,9 +492,10 @@ describe("invitations on Quests", () => {
         }),
       )
       .toBeVisible();
+    expect(page.getByRole("listitem").elements()).toHaveLength(1);
     await expect
-      .element(page.getByRole("listitem"))
-      .toHaveTextContent(QUEST_B.name);
+      .element(page.getByRole("listitem").getByText(QUEST_B.name))
+      .toBeVisible();
     expect(answer).toHaveBeenCalledWith({
       questId: QUEST_A.questId,
       accept: true,

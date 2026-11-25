@@ -13,6 +13,7 @@ import {
   incrementTallyAction,
   setTallyDayAction,
 } from "@/tallies/tally-actions.ts";
+import { CADENCE_COPY } from "@/ui/copy/cadence.ts";
 import { LISTS_COPY } from "@/ui/copy/lists.ts";
 import { TALLIES_COPY } from "@/ui/copy/tallies.ts";
 import {
@@ -38,6 +39,7 @@ const CONTENTS: readonly ListItem[] = TALLY_QUEST.tallies.map(
     taskNumber: null,
     checkedOff: false,
     recurring: false,
+    cadence: "daily",
     createdAt: new Date("2026-11-10T08:00:00Z"),
   }),
 );
@@ -95,7 +97,9 @@ describe("use_case_tally_lists", () => {
       .element(page.getByRole("menuitem", { name: LISTS_COPY.moveUp }))
       .toBeVisible();
     await expect
-      .element(page.getByRole("menuitem", { name: LISTS_COPY.makeRecurring }))
+      .element(
+        page.getByRole("menuitem", { name: CADENCE_COPY.repeat("daily") }),
+      )
       .not.toBeInTheDocument();
   });
 

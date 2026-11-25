@@ -2,15 +2,12 @@
 
 import Link from "next/link";
 import { type JSX, useCallback, useId, useState } from "react";
-import {
-  dayOfMonth,
-  useBrowserToday,
-  weekdayOf,
-} from "@/components/calendar-days.ts";
+import { dayOfMonth, weekdayOf } from "@/components/calendar-days.ts";
 import { DateHeading } from "@/components/date-heading.tsx";
 import { TallyAmountForm } from "@/components/tally-amount-form.tsx";
 import { Alert, FormStatus } from "@/components/ui/form-message.tsx";
 import { Icon } from "@/components/ui/icon.tsx";
+import { useBrowserToday } from "@/components/use-browser-today.ts";
 import { useQuestAction } from "@/components/use-quest-action.ts";
 import type { QuestId } from "@/ids.ts";
 import type { ListItemId } from "@/lists/list-item.ts";

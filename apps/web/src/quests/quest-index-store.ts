@@ -25,7 +25,7 @@ import { CHECKED_OFF_NOW } from "@/lists/quest-today.ts";
 import { SHARING_COLUMNS } from "@/quests/quest-sharing.ts";
 import { QUEST_COLUMNS, type Quest, toQuests } from "@/quests/store.ts";
 import { readRecurringTasks, readTaskHistory } from "@/streaks/streak-store.ts";
-import { streakChains } from "@/streaks/streaks.ts";
+import { type Cadence, streakChains } from "@/streaks/streaks.ts";
 
 // One quest as Quests lists it.
 interface QuestEntry {
@@ -39,12 +39,14 @@ interface QuestEntry {
   readonly runningRite: string | undefined;
 }
 
-// A recurring task of Life's not done today, offered on Quests.
+// A recurring task of Life's not done in its day, week or month yet,
+// offered on Quests.
 interface SuggestedTask {
   readonly id: ListItemId;
   readonly listId: ListId;
   readonly text: string;
-  // Its run of days done, up to yesterday.
+  readonly cadence: Cadence;
+  // Its run of days, weeks or months done, by its cadence.
   readonly streak: number;
 }
 
@@ -52,8 +54,8 @@ interface SuggestedTask {
 interface LifeSummary {
   readonly quest: { readonly id: QuestId; readonly name: string };
   readonly recurring: number;
-  readonly doneToday: number;
-  // Its recurring tasks not done today.
+  readonly doneNow: number;
+  // Its recurring tasks not done in their day, week or month yet.
   readonly waiting: readonly SuggestedTask[];
   // One of them, picked at random.
   readonly suggestion: SuggestedTask | undefined;
@@ -169,6 +171,7 @@ function readLife(user: UserId): Promise<LifeSummary | undefined> {
         id: task.id,
         listId: task.listId,
         text: task.text,
+        cadence: task.cadence,
         streak: chains.get(task.number)?.streak ?? 0,
       }));
     }
@@ -179,7 +182,7 @@ function readLife(user: UserId): Promise<LifeSummary | undefined> {
     return {
       quest: { id, name: found.name },
       recurring: tasks.length,
-      doneToday: tasks.length - notDone.length,
+      doneNow: tasks.length - notDone.length,
       waiting,
       suggestion,
     };

@@ -1,5 +1,6 @@
 import type { ListType } from "@/lists/list.ts";
 import type { StreakChain } from "@/streaks/streaks.ts";
+import { CADENCE_COPY } from "./cadence.ts";
 import { LISTS_COPY } from "./lists.ts";
 
 const QUEST_OVERVIEW_COPY = {
@@ -12,15 +13,16 @@ const QUEST_OVERVIEW_COPY = {
     `Then: ${tasks.join(" · ")}`,
   today: "Today",
   // A recurring task's streak beside it under Today, and whether checking
-  // it off today keeps the streak going.
-  streak: ({ streak, doneToday }: StreakChain): string => {
+  // it off in its current day, week or month keeps the streak going.
+  streak: ({ cadence, streak, doneNow }: StreakChain): string => {
     if (streak === 0) {
       return "No streak yet";
     }
-    if (doneToday) {
-      return `${streak}-day streak`;
+    const length = CADENCE_COPY.streak(cadence, streak);
+    if (doneNow) {
+      return length;
     }
-    return `${streak}-day streak · keep it going`;
+    return `${length} · keep it going`;
   },
   performRite: "Perform a rite",
   settings: "Quest settings",

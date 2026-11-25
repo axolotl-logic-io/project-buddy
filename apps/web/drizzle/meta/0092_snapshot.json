@@ -1,5 +1,5 @@
 {
-  "id": "91bc9b87-d3d9-4c38-91bc-1e5013a27ce3",
+  "id": "69106241-ae2f-4504-8b89-e8207ad8d215",
   "prevId": "3b162024-831a-494d-ba1a-9677bdd5ba65",
   "version": "7",
   "dialect": "postgresql",
@@ -253,6 +253,13 @@
           "notNull": true,
           "default": false
         },
+        "cadence": {
+          "name": "cadence",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'daily'"
+        },
         "created_at": {
           "name": "created_at",
           "type": "timestamp with time zone",
@@ -325,7 +332,12 @@
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},
-      "checkConstraints": {},
+      "checkConstraints": {
+        "list_items_cadence_valid": {
+          "name": "list_items_cadence_valid",
+          "value": "\"list_items\".\"cadence\" in ('daily', 'weekly', 'monthly')"
+        }
+      },
       "isRLSEnabled": false
     },
     "public.lists": {
@@ -1151,13 +1163,6 @@
           "primaryKey": false,
           "notNull": true,
           "default": 1
-        },
-        "life": {
-          "name": "life",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": true,
-          "default": false
         }
       },
       "indexes": {
@@ -1188,22 +1193,6 @@
           ],
           "isUnique": true,
           "where": "\"quests\".\"dailies\"",
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
-        "quests_life_user_idx": {
-          "name": "quests_life_user_idx",
-          "columns": [
-            {
-              "expression": "user_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": true,
-          "where": "\"quests\".\"life\"",
           "concurrently": false,
           "method": "btree",
           "with": {}

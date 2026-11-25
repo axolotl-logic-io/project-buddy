@@ -152,12 +152,13 @@ const questsPage = workspacePage(
       id: task.id,
       listId: task.listId,
       text: LONG_QUEST_NAME,
+      cadence: "monthly",
       streak: 12,
-    };
+    } as const;
     vi.mocked(readLife).mockResolvedValue({
       quest: { id: FOX_QUEST.id, name: "Life" },
       recurring: 5,
-      doneToday: 3,
+      doneNow: 3,
       waiting: [suggestion],
       suggestion,
     });

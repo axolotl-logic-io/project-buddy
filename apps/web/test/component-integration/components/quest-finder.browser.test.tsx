@@ -76,10 +76,9 @@ function task(text: string, more: Partial<FoundTask> = {}): FoundTask {
     listId: LIST_ID.parse(crypto.randomUUID()),
     text,
     quest: { id: FOX_QUEST.id, name: FOX_QUEST.name, shared: false },
-    recurring: false,
     done: false,
     earlier: false,
-    streak: undefined,
+    repeats: undefined,
     ...more,
   };
 }
@@ -284,15 +283,17 @@ describe("use_case_find_quest", () => {
         }),
     );
     const water = task("Water the ferns", {
-      recurring: true,
-      streak: 4,
+      repeats: { cadence: "weekly", streak: 4 },
     });
     await render(finder([row()], "active", "fern", [water]));
     const tasks = page.getByRole("region", {
       name: `${QUEST_FINDER_COPY.tasksHeading} ${QUEST_FINDER_COPY.taskCounts(1, 0)}`,
     });
     await expect
-      .element(tasks.getByText(`${FOX_QUEST.name} · 4-day streak`))
+      .element(tasks.getByText(`${FOX_QUEST.name} · 4-week streak`))
+      .toBeVisible();
+    await expect
+      .element(tasks.getByRole("img", { name: "Repeats weekly" }))
       .toBeVisible();
     await expect
       .element(

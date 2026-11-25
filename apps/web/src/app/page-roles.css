@@ -1173,6 +1173,12 @@
     @apply size-3.5;
   }
 
+  /* New quest, in the trail band: only its plus on the narrowest phones,
+     so the page's title keeps its line. */
+  .new-quest-label {
+    @apply max-[22.5rem]:sr-only;
+  }
+
   /* Life, pinned above the finder, gilded from its seal's side. */
   .life-pin {
     background: linear-gradient(
@@ -1193,7 +1199,7 @@
   }
 
   .life-pin-check {
-    @apply flex min-w-0 flex-1 cursor-pointer items-center;
+    @apply flex min-w-0 flex-[1_1_10rem] cursor-pointer items-center;
   }
 
   .life-pin-task {
@@ -1262,12 +1268,12 @@
 
   /* The statuses, as one segmented control. */
   .quest-finder-statuses {
-    @apply inline-flex overflow-hidden rounded-control border border-line;
+    @apply inline-flex max-w-full overflow-hidden rounded-control border border-line;
   }
 
   .quest-finder-status {
     min-block-size: 2rem;
-    @apply inline-flex items-center gap-1.5 border-line border-e px-2.5 text-muted text-[0.8rem] last:border-e-0 hover:text-foreground;
+    @apply inline-flex items-center gap-1 border-line border-e px-2 sm:gap-1.5 sm:px-2.5 text-muted text-[0.8rem] last:border-e-0 hover:text-foreground;
   }
 
   .quest-finder-status[data-state="active"] {
@@ -1955,18 +1961,31 @@
     @apply mt-0 h-2.5;
   }
 
-  /* Home's streaks: one row a recurring task, under its quest, with a
-     square for each of the last seven dates and its streak at the end. On a
-     narrow panel a task's name stands
-     above its squares, and its streak beside both. */
+  /* Home's streaks: a card for each cadence, Every day, Every week and
+     Every month, with one row a recurring task, under its quest, a square
+     for each of the last seven periods and its streak at the end. On a
+     narrow card a task's name stands above its squares, and its streak
+     beside both. */
   .streak-panel {
     @apply @container flex flex-col gap-3;
   }
 
+  /* A week's heading, "Mon 23" over "Nov", needs wider columns than a
+     day's square. Every cadence's card shares the width, so the cards'
+     columns line up. */
+  .streak-cadence {
+    --streak-period: 3.25rem;
+    @apply @container flex flex-col gap-1;
+  }
+
+  .streak-cadence-head {
+    @apply flex flex-wrap items-baseline gap-x-2;
+  }
+
   /* Every row is a grid of the same columns, so the columns line up. */
   .streak-table {
-    --streak-columns: minmax(0, 1fr) repeat(7, var(--target-size))
-      var(--target-size);
+    --streak-columns: minmax(0, 1fr)
+      repeat(7, var(--streak-period, var(--target-size))) var(--target-size);
     @apply flex w-full flex-col;
   }
 
@@ -2008,6 +2027,11 @@
 
   .streak-weekday-letter {
     @apply hidden;
+  }
+
+  /* A week's heading keeps its weekday and day on one line. */
+  .streak-week-start {
+    @apply whitespace-nowrap;
   }
 
   .streak-count-head {

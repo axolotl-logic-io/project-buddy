@@ -83,7 +83,7 @@ function NewQuest(): JSX.Element {
         trigger={
           <Button>
             <Icon name="plus" />
-            {NEW_QUEST_COPY.open}
+            <span className="new-quest-label">{NEW_QUEST_COPY.open}</span>
           </Button>
         }
       >

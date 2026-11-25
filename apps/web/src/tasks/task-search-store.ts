@@ -17,7 +17,7 @@ import { LIST_ITEM_ID, type ListItemId } from "@/lists/list-item.ts";
 import { CHECKED_OFF_NOW, QUEST_TODAY } from "@/lists/quest-today.ts";
 import { SHARING_COLUMNS, sharingOf } from "@/quests/quest-sharing.ts";
 import { readTaskHistory } from "@/streaks/streak-store.ts";
-import { streakChains } from "@/streaks/streaks.ts";
+import { type Cadence, streakChains } from "@/streaks/streaks.ts";
 
 // The most tasks one search finds.
 const MAX_FOUND_TASKS = 200;
@@ -37,21 +37,29 @@ interface FoundTask {
     // Whether anyone but its owner is in it.
     readonly shared: boolean;
   };
-  readonly recurring: boolean;
-  // Checked off now: a one-off task once checked off, a recurring one today.
+  // Checked off now: a one-off task once checked off, a recurring one in
+  // its day, week or month.
   readonly done: boolean;
   // A one-off task checked off before today.
   readonly earlier: boolean;
-  // A recurring task's run of days done.
-  readonly streak: number | undefined;
+  // How often a recurring task repeats, and its run of periods done; a
+  // one-off task has none.
+  readonly repeats: Repeats | undefined;
+}
+
+interface Repeats {
+  readonly cadence: Cadence;
+  readonly streak: number;
 }
 
 // The streak of each found recurring task, read once for each quest.
 async function withStreaks(
   user: UserId,
-  found: readonly (Omit<FoundTask, "streak"> & {
+  found: readonly (Omit<FoundTask, "repeats"> & {
     readonly number: number | null;
     readonly createdAt: Date;
+    readonly recurring: boolean;
+    readonly cadence: Cadence;
   })[],
 ): Promise<FoundTask[]> {
   const questIds = new Set(
@@ -64,13 +72,18 @@ async function withStreaks(
       ),
     ),
   );
-  return found.map(({ number, createdAt, ...task }) => {
+  return found.map(({ number, createdAt, recurring, cadence, ...task }) => {
     const history = histories.get(task.quest.id);
-    if (!task.recurring || number === null || history === undefined) {
-      return { ...task, streak: undefined };
+    if (!recurring || number === null || history === undefined) {
+      return { ...task, repeats: undefined };
     }
-    const chain = streakChains(history, [{ ...task, number, createdAt }]);
-    return { ...task, streak: chain.get(number)?.streak ?? 0 };
+    const chain = streakChains(history, [
+      { ...task, number, createdAt, cadence },
+    ]);
+    return {
+      ...task,
+      repeats: { cadence, streak: chain.get(number)?.streak ?? 0 },
+    };
   });
 }
 
@@ -92,6 +105,7 @@ function searchTasks(
         number: listItems.taskNumber,
         createdAt: listItems.createdAt,
         recurring: listItems.recurring,
+        cadence: listItems.cadence,
         done: CHECKED_OFF_NOW.mapWith(Boolean),
         earlier: earlier.mapWith(Boolean),
         questId: quests.id,
@@ -136,6 +150,7 @@ function searchTasks(
             number: row.number,
             createdAt: row.createdAt,
             recurring: row.recurring,
+            cadence: row.cadence,
             done: row.done,
             earlier: row.earlier,
             quest: {
@@ -150,5 +165,5 @@ function searchTasks(
   });
 }
 
-export type { FoundTask };
+export type { FoundTask, Repeats };
 export { searchTasks };

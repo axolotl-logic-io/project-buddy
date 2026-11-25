@@ -24,7 +24,7 @@ The user searches for a quest or a task and checks a task off where it is found.
 - **Steps:**
   - On Quests, they press / or choose the search, and type part of a quest's name or a task's text.
   - They check off a task in the results, or open its quest.
-- **Outcome:** as they pause typing, the quest list gives way to results, and the search is kept in the address as `?q=`. Quests lists the quests open to them whose names hold the search, of any status, their Life included. Tasks lists the tasks of their Active quests whose text holds the search, from task lists only, with how many are open and how many were done today. Lists and other list items are never searched. Matching ignores case, and the matching text is marked. Each task shows its quest, a recurring task its streak, and Open leads to its quest. Its checkbox checks it off or unchecks it in place, as in the quest. One-off tasks checked off before today are folded under Show N tasks checked off earlier. Clear, or Escape in the search, empties it and brings the list back.
+- **Outcome:** as they pause typing, the quest list gives way to results, and the search is kept in the address as `?q=`. Quests lists the quests open to them whose names hold the search, of any status, their Life included. Tasks lists the tasks of their Active quests whose text holds the search, from task lists only, with how many are open and how many were done today. Lists and other list items are never searched. Matching ignores case, and the matching text is marked. Each task shows its quest, a recurring task how often it repeats and its streak, and Open leads to its quest. Its checkbox checks it off or unchecks it in place, as in the quest. One-off tasks checked off before today are folded under Show N tasks checked off earlier. Clear, or Escape in the search, empties it and brings the list back.
 
 ## use_case_new_quest
 
@@ -88,9 +88,9 @@ Every user has one Life, a quest for the things they do every day.
 - **Steps:**
   - They go to Quests, or list their quests through the API.
   - On Quests, they check off the Suggested task, or choose Open.
-- **Outcome:** a user without a Life gets one, named Life, with a Tasks list and an Ideas list. They never have two. Quests pins it above their other quests, with a gold edge and a sun on its seal, and says how many of its recurring tasks are done today, as 3 of 5 recurring done today. Under it, Suggested offers one of those not done yet, picked at random, with its streak, to check off in place; once it is checked off, another takes its place, until all are done. Only Life's recurring tasks are suggested. Life is otherwise like any quest: it has Next task and Day grid, members can join it, and any of its tasks can be made recurring. It stays Active: it has no status controls, and a request to complete or abandon it is refused.
+- **Outcome:** a user without a Life gets one, named Life, with a Tasks list and an Ideas list. They never have two. Quests pins it above their other quests, with a gold edge and a sun on its seal, and says how many of its recurring tasks are done, as 3 of 5 recurring done today; a weekly or monthly task counts as done until its week or month ends. Under it, Suggested offers one of those not done yet, picked at random, with how often it repeats and its streak, to check off in place; once it is checked off, another takes its place, until all are done. Only Life's recurring tasks are suggested. Life is otherwise like any quest: it has Next task and Day grid, members can join it, and any of its tasks can be made to repeat daily, weekly or monthly. It stays Active: it has no status controls, and a request to complete or abandon it is refused.
 - **Next:**
-  - [`use_case_recurring_tasks`](tasks.md#use_case_recurring_tasks): mark the tasks to do every day.
+  - [`use_case_recurring_tasks`](tasks.md#use_case_recurring_tasks): make tasks repeat daily, weekly or monthly.
 
 ## use_case_rename_quest
 

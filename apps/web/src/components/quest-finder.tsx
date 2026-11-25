@@ -38,12 +38,13 @@ import {
   type QuestStatus,
 } from "@/quests/quest-status.ts";
 import type { FoundTask } from "@/tasks/task-search-store.ts";
+import { CADENCE_COPY } from "@/ui/copy/cadence.ts";
 import {
   QUEST_MEMBERS_COPY,
   QUEST_SHARING_COPY,
 } from "@/ui/copy/quest-members.ts";
 import { QUEST_STATUS_COPY } from "@/ui/copy/quest-status.ts";
-import { LIFE_COPY, QUEST_FINDER_COPY, QUESTS_COPY } from "@/ui/copy/quests.ts";
+import { QUEST_FINDER_COPY, QUESTS_COPY } from "@/ui/copy/quests.ts";
 
 // How long typing pauses before the tasks are searched.
 const SEARCH_DELAY_MS = 250;
@@ -377,9 +378,14 @@ function TaskHit({
     onCheck({ id: task.id, done: !task.done });
   }, [onCheck, task.id, task.done]);
   const checkId = useId();
+  const { repeats } = task;
   let where = task.quest.name;
-  if (task.streak !== undefined && task.streak > 0) {
-    where = `${task.quest.name} · ${LIFE_COPY.streak(task.streak)}`;
+  let repeatLabel: string | undefined;
+  if (repeats !== undefined) {
+    repeatLabel = CADENCE_COPY.repeats(repeats.cadence);
+    if (repeats.streak > 0) {
+      where = `${where} · ${CADENCE_COPY.streak(repeats.cadence, repeats.streak)}`;
+    }
   }
   return (
     <li className="quest-finder-task" data-done={task.done}>
@@ -390,7 +396,11 @@ function TaskHit({
         </span>
       </label>
       <p className="quest-finder-task-quest">
-        {task.recurring === true && <Icon name="repeat" />}
+        {repeatLabel !== undefined && (
+          <span aria-label={repeatLabel} role="img">
+            <Icon name="repeat" />
+          </span>
+        )}
         {task.quest.shared === true && <Icon name="people" />}
         {where}
       </p>

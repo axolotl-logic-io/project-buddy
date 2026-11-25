@@ -28,6 +28,8 @@ import { changeListItemAction } from "@/lists/list-item-actions.ts";
 import type { ListItem } from "@/lists/list-item-store.ts";
 import type { List } from "@/lists/list-store.ts";
 import {
+  CADENCES,
+  type Cadence,
   type StreakChain,
   streakChains,
   type TaskHistory,
@@ -37,6 +39,7 @@ import {
   incrementTallyAction,
   setTallyDayAction,
 } from "@/tallies/tally-actions.ts";
+import { CADENCE_COPY } from "@/ui/copy/cadence.ts";
 import { LISTS_COPY } from "@/ui/copy/lists.ts";
 
 interface ListItemsProps {
@@ -111,9 +114,9 @@ function ListItemRow({
   const toggle = useCallback(async (): Promise<void> => {
     await run({ kind: "check", id, checkedOff: !checkedOff });
   }, [id, run, checkedOff]);
-  const recurring = useCallback(async (): Promise<void> => {
-    await run({ kind: "recurring", id, recurring: !item.recurring });
-  }, [id, item.recurring, run]);
+  const oneOff = useCallback(async (): Promise<void> => {
+    await run({ kind: "recurring", id, cadence: null });
+  }, [id, run]);
   const move = useCallback(
     async (event: SubmitEvent<HTMLFormElement>): Promise<void> => {
       event.preventDefault();
@@ -126,14 +129,10 @@ function ListItemRow({
     },
     [id, run],
   );
-  let recurringLabel = LISTS_COPY.makeRecurring;
-  if (item.recurring) {
-    ({ makeOneOff: recurringLabel } = LISTS_COPY);
-  }
   let badge: JSX.Element | undefined;
   if (item.recurring) {
     badge = (
-      <span role="img" aria-label={LISTS_COPY.recurring}>
+      <span role="img" aria-label={CADENCE_COPY.repeats(item.cadence)}>
         <Icon name="repeat" />
       </span>
     );
@@ -203,15 +202,41 @@ function ListItemRow({
       <EditableListAction icon="arrow-down" onSelect={down}>
         {LISTS_COPY.moveDown}
       </EditableListAction>
-      {list.type === "task" && (
-        <EditableListAction icon="repeat" onSelect={recurring}>
-          {recurringLabel}
+      {list.type === "task" &&
+        CADENCES.filter(
+          (cadence) => !item.recurring || cadence !== item.cadence,
+        ).map((cadence) => (
+          <RepeatAction cadence={cadence} id={id} key={cadence} run={run} />
+        ))}
+      {list.type === "task" && item.recurring && (
+        <EditableListAction icon="repeat" onSelect={oneOff}>
+          {LISTS_COPY.makeOneOff}
         </EditableListAction>
       )}
       <EditableListAction icon="trash" onSelect={remove}>
         {LISTS_COPY.removeListItem(list.type)}
       </EditableListAction>
     </EditableListRow>
+  );
+}
+
+// A task menu's choice to make the task repeat with a cadence.
+function RepeatAction({
+  cadence,
+  id,
+  run,
+}: {
+  readonly cadence: Cadence;
+  readonly id: ListItem["id"];
+  readonly run: RunChange;
+}): JSX.Element {
+  const repeat = useCallback(async (): Promise<void> => {
+    await run({ kind: "recurring", id, cadence });
+  }, [cadence, id, run]);
+  return (
+    <EditableListAction icon="repeat" onSelect={repeat}>
+      {CADENCE_COPY.repeat(cadence)}
+    </EditableListAction>
   );
 }
 
@@ -222,7 +247,7 @@ function Streak({ chain }: { readonly chain: StreakChain }): JSX.Element {
         {Array.from({ length: chain.links }, (_, index) => index).map(
           (index) => {
             let mark = "today";
-            if (index < chain.earned || chain.doneToday) {
+            if (index < chain.earned || chain.doneNow) {
               mark = "earned";
             }
             return (
@@ -288,11 +313,13 @@ function ListItems({
     chains = streakChains(
       history,
       contents.flatMap(
-        ({ taskNumber, text, checkedOff, recurring, createdAt }) => {
+        ({ taskNumber, text, checkedOff, recurring, cadence, createdAt }) => {
           if (taskNumber === null || !recurring) {
             return [];
           }
-          return [{ number: taskNumber, text, done: checkedOff, createdAt }];
+          return [
+            { number: taskNumber, text, cadence, done: checkedOff, createdAt },
+          ];
         },
       ),
     );

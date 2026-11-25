@@ -11,6 +11,8 @@ import { LIST_ID } from "@/lists/list.ts";
 import { LIST_ITEM_ID } from "@/lists/list-item.ts";
 import { changeListItemAction } from "@/lists/list-item-actions.ts";
 import type { LifeSummary, SuggestedTask } from "@/quests/quest-index-store.ts";
+import type { Cadence } from "@/streaks/streaks.ts";
+import { CADENCE_COPY } from "@/ui/copy/cadence.ts";
 import { LIFE_COPY } from "@/ui/copy/quests.ts";
 import { questIdFixture } from "../../support/id-fixtures.ts";
 
@@ -18,30 +20,35 @@ const LIFE_ID = questIdFixture();
 // Life's recurring tasks, how many are done today, and a streak.
 const RECURRING = 5;
 const DONE = 3;
-const STREAK_DAYS = 12;
+const STREAK_WEEKS = 12;
 const LIST = LIST_ID.parse(crypto.randomUUID());
 
-function recurring(text: string, streak = 0): SuggestedTask {
+function recurring(
+  text: string,
+  streak = 0,
+  cadence: Cadence = "daily",
+): SuggestedTask {
   return {
     id: LIST_ITEM_ID.parse(crypto.randomUUID()),
     listId: LIST,
     text,
+    cadence,
     streak,
   };
 }
 
-const STRETCH = recurring("Stretch", STREAK_DAYS);
+const STRETCH = recurring("Stretch", STREAK_WEEKS, "weekly");
 const READ = recurring("Read a chapter");
 
 function life(
   waiting: readonly SuggestedTask[],
   suggestion: SuggestedTask | undefined,
-  doneToday = DONE,
+  doneNow = DONE,
 ): LifeSummary {
   return {
     quest: { id: LIFE_ID, name: "Life" },
     recurring: RECURRING,
-    doneToday,
+    doneNow,
     waiting,
     suggestion,
   };
@@ -65,7 +72,11 @@ describe("use_case_life", () => {
       .element(pin.getByRole("checkbox", { name: STRETCH.text }))
       .not.toBeChecked();
     await expect
-      .element(pin.getByText(LIFE_COPY.streak(STREAK_DAYS), { exact: false }))
+      .element(
+        pin.getByText(
+          `${CADENCE_COPY.repeats("weekly")} · ${CADENCE_COPY.streak("weekly", STREAK_WEEKS)}`,
+        ),
+      )
       .toBeVisible();
     expect(pin.getByRole("checkbox").elements()).toHaveLength(1);
   });

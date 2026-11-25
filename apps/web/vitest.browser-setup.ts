@@ -162,7 +162,7 @@ vi.mock("@/lists/quick-add-actions.ts", () => ({
 }));
 
 vi.mock("@/streaks/streak-actions.ts", () => ({
-  markTaskDayAction: vi.fn(),
+  markTaskPeriodAction: vi.fn(),
 }));
 vi.mock("@/streaks/streak-store.ts", () => ({
   readTaskHistory: vi.fn(() => Promise.resolve(undefined)),

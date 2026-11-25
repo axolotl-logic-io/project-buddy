@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { QUEST_ID } from "@/ids.ts";
+import { CADENCES } from "@/streaks/streaks.ts";
 import { LIST_ID } from "./list.ts";
 import { LIST_ITEM_ID } from "./list-item.ts";
 
@@ -13,6 +14,7 @@ const LIST_ITEM_RECORD = z.object({
   checkedOff: z.boolean(),
   checkedOffOn: z.iso.date().nullable(),
   recurring: z.boolean(),
+  cadence: z.enum(CADENCES),
   createdAt: z.union([
     z.date(),
     z.iso.datetime().transform((value) => new Date(value)),

@@ -49,13 +49,6 @@ export const LIFE_COPY = {
     return `${done} of ${total} recurring done today`;
   },
   suggested: "Suggested",
-  recurring: "Recurring",
-  streak: (days: number): string => {
-    if (days === 1) {
-      return "1-day streak";
-    }
-    return `${days}-day streak`;
-  },
 } as const;
 
 // Finding a quest or a task on Quests (src/components/quest-finder.tsx).
@@ -87,8 +80,8 @@ export const QUEST_FINDER_COPY = {
   },
   questsHeading: "Quests",
   tasksHeading: "Tasks",
-  taskCounts: (open: number, doneToday: number): string =>
-    `${open} open · ${doneToday} done today`,
+  taskCounts: (open: number, doneNow: number): string =>
+    `${open} open · ${doneNow} done today`,
   noQuests: "No quests match.",
   noTasks: "No tasks match.",
   noneShared: "No shared quests with this status.",

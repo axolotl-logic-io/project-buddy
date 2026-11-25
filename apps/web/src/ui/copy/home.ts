@@ -1,7 +1,10 @@
+import type { Cadence } from "@/streaks/streaks.ts";
+import { CADENCE_COPY } from "@/ui/copy/cadence.ts";
 import { pageTitle } from "@/ui/copy/site.ts";
 
 // Home, the signed-in landing page: the user's experience, then the
-// streaks of every recurring task across their quests, then their tallies
+// streaks of every recurring task across their quests, in a grid for each
+// cadence (src/ui/copy/cadence.ts), then their tallies
 // (src/ui/copy/tallies.ts), then their one-off tasks, and the site panel's
 // link to it.
 export const HOME_COPY = {
@@ -17,25 +20,26 @@ export const HOME_COPY = {
   taskColumn: "Task",
   streakColumn: "Streak",
   today: "Today",
-  // A quest's line above its tasks, after its name.
-  recurringCount: (count: number): string => `· ${count} recurring`,
-  // A task's streak, under its number on a phone.
-  streakUnit: (streak: number): "day" | "days" => {
+  // A quest's line above its tasks in a cadence's grid, after its name.
+  recurringCount: (count: number, cadence: Cadence): string =>
+    `· ${count} ${CADENCE_COPY.words(cadence).adverb}`,
+  // A task's streak unit, after its number.
+  streakUnit: (streak: number, cadence: Cadence): string => {
+    const { one, many } = CADENCE_COPY.words(cadence);
     if (streak === 1) {
-      return "day";
+      return one;
     }
-    return "days";
+    return many;
   },
   // A square, by its accessible name; whether it is checked says whether
   // the task was done.
-  square: (task: string, weekday: string, date: string): string =>
-    `${task}, ${weekday} ${date}`,
+  square: (task: string, period: string): string => `${task}, ${period}`,
   noStreaks:
-    "No streaks yet. To count a task here, open its menu in a quest’s list and choose Make recurring.",
+    "No streaks yet. To count a task here, open its menu in a quest’s list and choose Repeat daily, weekly or monthly.",
   legend:
-    "Check a square to mark a task done on that day. A day without a check-off ends a streak. Each day starts at midnight in the quest owner’s time zone.",
+    "Check a square to mark a task done in that day, week or month. One without a check-off ends a streak. Each starts at midnight in the quest owner’s time zone.",
   markUnavailable:
-    "That day can’t be changed. Only the last seven days since the task was added can be marked.",
+    "That can’t be changed. Only the last seven days, weeks or months since the task was added can be marked.",
   tasksHeading: "Tasks",
   // A quest's line above its one-off tasks, after its name.
   openCount: (count: number): string => `· ${count} open`,
