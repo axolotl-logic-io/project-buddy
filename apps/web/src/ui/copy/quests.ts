@@ -70,6 +70,7 @@ export const QUEST_FINDER_COPY = {
   resting: "Resting",
   active: (when: string): string => `active ${when}`,
   restingFor: (days: number): string => `no activity for ${days} days`,
+  doneThisWeek: (count: number): string => `${count} done this week`,
   // After a quest's count of open tasks, set apart from it.
   open: "open",
   openTasks: (count: number): string => {

@@ -9,6 +9,7 @@ import type { ListId } from "@/lists/list.ts";
 import type { ListItem } from "@/lists/list-item-store.ts";
 import { readListItems, writeListContents } from "@/lists/list-item-store.ts";
 import { readLists } from "@/lists/list-store.ts";
+import { finderQuests } from "@/quests/quest-finder-entries.ts";
 import { readLife, readQuestEntries } from "@/quests/quest-index-store.ts";
 import { changeQuestStatus } from "@/quests/quest-status-store.ts";
 import {
@@ -19,6 +20,7 @@ import {
 } from "@/quests/store.ts";
 import type { Cadence } from "@/streaks/streaks.ts";
 import { searchTasks } from "@/tasks/task-search-store.ts";
+import { QUEST_FINDER_COPY } from "@/ui/copy/quests.ts";
 import { testData } from "../../support/test-database/data-test-kit.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
 
@@ -179,6 +181,44 @@ describe("use_case_view_quests", () => {
       { id: older.id, openTasks: 1 },
       { id: newer.id, openTasks: 0 },
     ]);
+  });
+
+  test("counts each quest's check-offs this week, but not one taken back", async () => {
+    const user = await testUser();
+    const busy = await testData(user).quest("Busy");
+    const idle = await testData(user).quest("Idle");
+    const [prune, plant] = await Promise.all([
+      addTask(user, busy, "Prune"),
+      addTask(user, busy, "Plant"),
+    ]);
+    await checkOff(user, busy, prune);
+    await checkOff(user, busy, plant);
+    await writeListContents(user.id, busy.id, await tasksOf(user, busy), {
+      kind: "check",
+      id: plant.id,
+      checkedOff: false,
+    });
+
+    const entries = await readQuestEntries(user.id);
+    const rows = finderQuests(entries, new Date());
+
+    expect(
+      entries.map(({ quest, doneThisWeek }) => ({
+        id: quest.id,
+        doneThisWeek,
+      })),
+    ).toEqual(
+      expect.arrayContaining([
+        { id: busy.id, doneThisWeek: 1 },
+        { id: idle.id, doneThisWeek: 0 },
+      ]),
+    );
+    expect(rows.find(({ quest }) => quest.id === busy.id)?.activity).toBe(
+      `${QUEST_FINDER_COPY.active(QUEST_FINDER_COPY.justNow)} · ${QUEST_FINDER_COPY.doneThisWeek(1)}`,
+    );
+    expect(rows.find(({ quest }) => quest.id === idle.id)?.activity).toBe(
+      QUEST_FINDER_COPY.active(QUEST_FINDER_COPY.justNow),
+    );
   });
 });
 

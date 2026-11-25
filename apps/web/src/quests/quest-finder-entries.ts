@@ -1,6 +1,7 @@
 // Quests' rows, read on the server so their words don't depend on the
 // browser's clock: each quest with its construct's initial, how long ago
-// something happened in it, and whether it is resting.
+// something happened in it and how many check-offs it had this week, and
+// whether it is resting.
 import { getConstruct } from "@/constructs/index.ts";
 import type { QuestEntry } from "@/quests/quest-index-store.ts";
 import type { Quest } from "@/quests/store.ts";
@@ -26,7 +27,8 @@ interface FinderQuest {
   readonly runningRite: string | undefined;
   // When something last happened in it, as an ISO time, for sorting.
   readonly lastActive: string;
-  // When something last happened in it, in words.
+  // When something last happened in it, in words, and how many of its
+  // tasks were done this week, when any were.
   readonly activity: string;
   // Active, with nothing happening in it for RESTING_DAYS days.
   readonly resting: boolean;
@@ -54,6 +56,9 @@ function finderQuest(entry: QuestEntry, now: Date): FinderQuest {
   let activity = QUEST_FINDER_COPY.active(ago(lastActive, now));
   if (resting) {
     activity = QUEST_FINDER_COPY.restingFor(idle);
+  }
+  if (entry.doneThisWeek > 0) {
+    activity = `${activity} · ${QUEST_FINDER_COPY.doneThisWeek(entry.doneThisWeek)}`;
   }
   return {
     quest,

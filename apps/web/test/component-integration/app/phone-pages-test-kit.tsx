@@ -141,6 +141,7 @@ const questsPage = workspacePage(
         },
         lastActive: FOX_QUEST.createdAt,
         openTasks: 12,
+        doneThisWeek: 4,
         runningRite: "Focused work",
       },
     ]);

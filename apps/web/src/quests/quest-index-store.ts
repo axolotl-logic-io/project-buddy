@@ -1,9 +1,10 @@
 // What Quests shows of each quest open to the user: the quest, when
-// something last happened in it, how many tasks it has open and the rite
-// running in it, if any; and the user's Life, with how many of its
+// something last happened in it, how many tasks it has open, how many were
+// checked off this week and the rite running in it, if any; and the user's Life, with how many of its
 // recurring tasks are done today and one not done yet, picked at random.
 import { and, desc, eq, isNull, not, sql } from "drizzle-orm";
 import {
+  checkOffInQuestOpenTo,
   eventOwnedBy,
   listItemOpenTo,
   listOpenTo,
@@ -35,6 +36,10 @@ interface QuestEntry {
   readonly lastActive: Date;
   // Its tasks not checked off now, in its task lists.
   readonly openTasks: number;
+  // Its check-offs in the owner's week, from Monday, by anyone in it: each
+  // task once a day, so a daily task counts each day it was done. A
+  // check-off taken back is not counted.
+  readonly doneThisWeek: number;
   // The name of the rite running in it, if one is.
   readonly runningRite: string | undefined;
 }
@@ -64,6 +69,12 @@ interface LifeSummary {
 // The outer quest of a correlated subquery, written in full so the
 // subquery refers to it.
 const OUTER_QUEST = sql.raw(`"quests"."id"`);
+
+// The time zone of the outer quest's owner, whose days, from midnight, and
+// weeks, from Monday, every member's count shares.
+const OUTER_QUEST_ZONE = sql.raw(
+  `(select "owner"."time_zone" from "users" as "owner" where "owner"."id" = "quests"."user_id")`,
+);
 
 // Every quest open to the user, newest activity first.
 function readQuestEntries(user: UserId): Promise<readonly QuestEntry[]> {
@@ -106,6 +117,19 @@ function readQuestEntries(user: UserId): Promise<readonly QuestEntry[]> {
           not(CHECKED_OFF_NOW),
         ),
       );
+    const checkedOffOn = sql`(${events.gainedAt} at time zone ${OUTER_QUEST_ZONE})`;
+    const doneThisWeek = db
+      .select({
+        count: sql`count(distinct (${events.source}, ${checkedOffOn}::date))`,
+      })
+      .from(events)
+      .where(
+        and(
+          sql`${events.questId} = ${OUTER_QUEST}`,
+          checkOffInQuestOpenTo(user),
+          sql`date_trunc('week', ${checkedOffOn}) = date_trunc('week', now() at time zone ${OUTER_QUEST_ZONE})`,
+        ),
+      );
     const running = db
       .select({ name: sql`${performances.riteSnapshot} ->> 'name'` })
       .from(performances)
@@ -124,6 +148,7 @@ function readQuestEntries(user: UserId): Promise<readonly QuestEntry[]> {
         ...SHARING_COLUMNS,
         lastActive: lastActive.mapWith(quests.createdAt),
         openTasks: sql`(${open})`.mapWith(Number),
+        doneThisWeek: sql`(${doneThisWeek})`.mapWith(Number),
         runningRite: sql<string | null>`(${running})`,
       })
       .from(quests)
@@ -140,6 +165,7 @@ function readQuestEntries(user: UserId): Promise<readonly QuestEntry[]> {
           quest,
           lastActive: row.lastActive,
           openTasks: row.openTasks,
+          doneThisWeek: row.doneThisWeek,
           runningRite: row.runningRite ?? undefined,
         },
       ];
