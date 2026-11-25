@@ -11,6 +11,7 @@ const FOX_QUEST: Quest = {
   status: "active",
   statusRevision: 0,
   constructId: "lumen",
+  life: false,
   sharing: { kind: "private" },
 };
 

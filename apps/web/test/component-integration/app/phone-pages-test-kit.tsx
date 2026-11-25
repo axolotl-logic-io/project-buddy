@@ -32,14 +32,14 @@ import SignInLinkPage from "@/app/login/link/page.tsx";
 import LoginPage from "@/app/login/page.tsx";
 import SignUpPage from "@/app/signup/page.tsx";
 
-import { readCurrentQuest } from "@/quests/current-quest-store.ts";
+import { readLife, readQuestEntries } from "@/quests/quest-index-store.ts";
 import { getQuest, listQuests } from "@/quests/store.ts";
 import { BUILT_IN_RITES } from "@/rites/rite.ts";
 import { listRites, readRite } from "@/rites/rite-store.ts";
 import { readStreakQuests } from "@/streaks/streak-store.ts";
 import { readTaskQuests } from "@/tasks/task-store.ts";
 
-import { QUEST_COPY, QUESTS_COPY } from "@/ui/copy/quests.ts";
+import { NEW_QUEST_COPY, QUEST_COPY, QUESTS_COPY } from "@/ui/copy/quests.ts";
 
 import { TIMER_COPY } from "@/ui/copy/timer.ts";
 import {
@@ -128,15 +128,40 @@ function constructPage(constructId: string): Promise<JSX.Element> {
 
 // The activity page of activityId.
 
-// The Quests page, with one quest, which it offers to continue under a
-// long name.
+// The Quests page, with Life suggesting a long task and one shared quest
+// under a long name, with a rite running in it.
 const questsPage = workspacePage(
   () => {
-    vi.mocked(listQuests).mockResolvedValue([FOX_QUEST]);
-    vi.mocked(readCurrentQuest).mockResolvedValue({
-      quest: { id: FOX_QUEST.id, name: LONG_QUEST_NAME },
-      sharing: { kind: "joined", owner: "Rowan Hollingsworth-Abernathy" },
-      nextTask: "Sketch the fox's ears from three angles",
+    vi.mocked(readQuestEntries).mockResolvedValue([
+      {
+        quest: {
+          ...FOX_QUEST,
+          name: LONG_QUEST_NAME,
+          sharing: { kind: "joined", owner: "Rowan Hollingsworth-Abernathy" },
+        },
+        lastActive: FOX_QUEST.createdAt,
+        openTasks: 12,
+        doneThisWeek: 4,
+        runningRite: "Focused work",
+      },
+    ]);
+    const [task] = STREAK_QUEST.tasks;
+    if (task === undefined) {
+      throw new Error("No streak task");
+    }
+    const suggestion = {
+      id: task.id,
+      listId: task.listId,
+      text: LONG_QUEST_NAME,
+      cadence: "monthly",
+      streak: 12,
+    } as const;
+    vi.mocked(readLife).mockResolvedValue({
+      quest: { id: FOX_QUEST.id, name: "Life" },
+      recurring: 5,
+      doneNow: 3,
+      waiting: [suggestion],
+      suggestion,
     });
   },
   async () =>
@@ -242,16 +267,16 @@ const PHONE_PAGES: readonly PhonePage[] = [
   { name: "an expired sign-in link's page", render: linkPage(undefined) },
   { name: "the Quests page", path: QUESTS_PATH, render: questsPage },
   {
-    name: "the Quests page's Make a thing dialog",
+    name: "the Quests page's New quest dialog",
     path: QUESTS_PATH,
     render: questsPage,
     open: async (): Promise<void> => {
       await page
-        .getByRole("button", { name: "Make a thing", exact: false })
+        .getByRole("button", { name: NEW_QUEST_COPY.open, exact: true })
         .click();
       await vi.waitFor(() =>
         page
-          .getByRole("dialog", { name: "Make a thing" })
+          .getByRole("dialog", { name: NEW_QUEST_COPY.title })
           .getByRole("textbox", { name: QUESTS_COPY.motivationLabel })
           .element(),
       );

@@ -13,7 +13,7 @@ import { beforeEach, describe, expect, test, vi } from "vitest";
 import { type Locator, page, userEvent } from "vitest/browser";
 import { render } from "vitest-browser-react";
 
-import { QuestList } from "@/components/quest-list.tsx";
+import { QuestFinder } from "@/components/quest-finder.tsx";
 import { THEME_IDS, type ThemeId } from "@/themes/themes.ts";
 
 import { questIdFixture } from "../../support/id-fixtures.ts";
@@ -103,18 +103,30 @@ async function linkCardFocus(): Promise<
   await render(
     <>
       {BEFORE_BUTTON}
-      <QuestList
+      <QuestFinder
+        found={[]}
+        initialStatus="active"
         quests={[
           {
-            id: questIdFixture(),
-            name: QUEST_NAME,
-            createdAt: new Date(),
-            status: "active",
-            statusRevision: 0,
-            constructId: "lumen",
-            sharing: { kind: "private" },
+            quest: {
+              id: questIdFixture(),
+              name: QUEST_NAME,
+              createdAt: new Date(),
+              status: "active",
+              statusRevision: 0,
+              constructId: "lumen",
+              life: false,
+              sharing: { kind: "private" },
+            },
+            seal: "L",
+            openTasks: 2,
+            runningRite: undefined,
+            lastActive: new Date().toISOString(),
+            activity: "active just now",
+            resting: false,
           },
         ]}
+        search=""
       />
     </>,
   );

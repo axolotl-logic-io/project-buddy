@@ -17,7 +17,7 @@ export const ACCOUNT_COPY = {
   timeZoneHeading: "Time zone",
   timeZoneLabel: "Time zone",
   timeZoneHint:
-    "Each day starts at midnight here. Recurring tasks become unchecked for the new day.",
+    "Each day starts at midnight here. Daily tasks become unchecked for the new day, weekly tasks on Monday and monthly tasks on the 1st.",
   saveTimeZone: "Save time zone",
   timeZoneSaved: "Time zone saved",
   timeZoneUnknown: "Choose a time zone from the list.",
@@ -25,6 +25,6 @@ export const ACCOUNT_COPY = {
   signOutEverywhere: "Sign out everywhere",
   signOutEverywhereTitle: "Sign out everywhere?",
   signOutEverywhereDescription:
-    "This signs you out in every browser and on every device, this one included. Sign-in links and quest invitation links already sent stop working. Your invitations stay in Pending, and you can sign in again with a new link.",
+    "This signs you out in every browser and on every device, this one included. Sign-in links and quest invitation links already sent stop working. Your invitations stay on Quests, and you can sign in again with a new link.",
   stay: "Stay signed in",
 } as const;

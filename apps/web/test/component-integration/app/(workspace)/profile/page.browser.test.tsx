@@ -124,7 +124,7 @@ test("Profile's card shows the user's circle, title, the experience the next cir
     .toBeVisible();
 });
 
-test("Profile lists events by the experience they earned, the most marked", async () => {
+test("Profile lists events by the experience they earned", async () => {
   await renderProfile();
   const events = page
     .getByRole("region", { name: EXPERIENCE_COPY.eventsLabel })
@@ -139,9 +139,6 @@ test("Profile lists events by the experience they earned, the most marked", asyn
   );
   const [most] = order;
   await expect
-    .element(events.nth(0).getByText(EXPERIENCE_COPY.mostExperience))
-    .toBeVisible();
-  await expect
     .element(
       events
         .nth(0)
@@ -153,8 +150,8 @@ test("Profile lists events by the experience they earned, the most marked", asyn
     )
     .toBeVisible();
   await expect
-    .element(page.getByText(EXPERIENCE_COPY.mostExperience))
-    .toHaveLength(1);
+    .element(page.getByText("Most experience", { exact: true }))
+    .not.toBeInTheDocument();
 });
 
 test("Profile says what an untried event's first point is worth", async () => {

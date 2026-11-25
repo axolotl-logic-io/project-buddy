@@ -7,7 +7,7 @@ A task is a list item in a task list ([`use_case_list_types`](lists.md#use_case_
 The user finds the quest's next task.
 
 - **Prerequisites:** a quest with open tasks in its lists.
-- **Steps:** open Quests and read Continue, or open the quest's Overview.
+- **Steps:** open the quest's Overview and read Next task.
 - **Outcome:** the next task is the first open task in the quest, taking its lists in order and each list's list items in their saved order. A quest with no open tasks has no next task.
 
 ## use_case_change_tasks
@@ -30,31 +30,32 @@ The user checks off, unchecks and edits the quest's tasks.
 
 ## use_case_recurring_tasks
 
-The user marks a task to do every day.
+The user marks a task to do every day, every week or every month.
 
 - **Prerequisites:** a task in an Active quest open to the user, their own or one they are a member of.
-- **Steps:** the user opens the task's menu and chooses Make recurring. Later, they can choose Make one-off, to change it back.
-- **Outcome:** the task shows a repeat icon. The page says what changed, with Undo, as for any task change. At midnight in the quest owner's time zone ([`use_case_set_time_zone`](accounts.md#use_case_set_time_zone)), a checked-off recurring task reads as unchecked again, keeping its text, number and place. A checked-off one-off task stays checked off. Midnight takes back no experience, and checking the task off again earns it again.
+- **Steps:** the user opens the task's menu and chooses Repeat daily, Repeat weekly or Repeat monthly. Later, they can choose another of them, or Make one-off to change it back.
+- **Outcome:** the task shows a repeat icon, named by its cadence, such as "Repeats weekly". The page says what changed, with Undo, as for any task change. When the task's next period starts in the quest owner's time zone ([`use_case_set_time_zone`](accounts.md#use_case_set_time_zone)), a checked-off recurring task reads as unchecked again, keeping its text, number and place: a daily task at midnight, a weekly one at midnight on Monday and a monthly one at midnight on the 1st. A checked-off one-off task stays checked off. Starting a new period takes back no experience, and checking the task off again earns it again.
 - **Variations:**
-  - A list item in a plain or quick-note list has no Make recurring.
+  - A list item in a plain or quick-note list has no Repeat choices.
+  - A task checked off this week that changes from daily to weekly stays checked off until Monday.
   - Midnight is the same for everyone in a shared quest: the owner's.
 - **Next:**
   - `use_case_daily_streaks`: see how often each recurring task gets done.
 
 ## use_case_daily_streaks
 
-The user sees how many days in a row they have checked off each recurring task.
+The user sees how many days, weeks or months in a row they have checked off each recurring task.
 
 - **Prerequisites:** `use_case_recurring_tasks`.
 - **Steps:**
   - The user looks at a recurring task in its list.
   - The user looks at Today on the quest's Overview, which lists each recurring task with its streak chain.
   - The user opens Day grid from Quest settings on the quest's Overview.
-- **Outcome:** each recurring task shows its streak chain under its text: one filled link for each day in a row, up to today, on which someone checked it off, then today's link, dashed until the task is checked off. A line under the chain gives the streak and what checking the task off does next, such as "4-day streak. Check it off to make it 5." Today counts once the task is checked off, and an open task doesn't end the streak until midnight. A day the task wasn't checked off ends the streak. Each day starts at midnight in the quest owner's time zone. Day grid shows each recurring task's last seven dates: filled when checked off, empty when not. Screen readers announce each date's weekday, date and mark.
+- **Outcome:** each recurring task shows its streak chain under its text: one filled link for each period of its cadence in a row, up to the current one, in which someone checked it off, then the current period's link, dashed until the task is checked off. A line under the chain gives the streak and what checking the task off does next, such as "4-day streak. Check it off to make it 5." or "2-week streak.". The current period counts once the task is checked off, and an open task doesn't end the streak until the period ends. A period the task wasn't checked off in ends the streak. Each day starts at midnight in the quest owner's time zone, each week on Monday and each month on the 1st. Day grid shows the recurring tasks under Every day, Every week and Every month, each over its last seven periods: filled when checked off, empty when not. Above each square is its weekday's letter, its week's Monday's day of the month, or its month's name. Screen readers announce each period by name, such as "week of Mon 23 Nov", and its mark.
 - **Variations:**
   - With no recurring tasks, Day grid says how to make one.
   - A recurring task with no streak shows only today's link and says "Check it off to start a streak."
   - The chain shows at most the 30 most recent links.
-  - A date before the task was added shows as not added yet.
+  - A period that ended before the task was added shows as not added yet.
   - A check-off by any member counts toward the streak.
-  - Home shows every quest's streaks together, and checks them off on any of the last seven dates ([`use_case_home_streaks`](home.md#use_case_home_streaks)).
+  - Home shows every quest's streaks together, and checks them off in any of the last seven periods ([`use_case_home_streaks`](home.md#use_case_home_streaks)).

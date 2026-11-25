@@ -21,6 +21,7 @@ import { Button } from "@/components/ui/button.tsx";
 import type { EditorOptions } from "@/components/ui/editable-list-contract.ts";
 import { Alert } from "@/components/ui/form-message.tsx";
 import { Icon } from "@/components/ui/icon.tsx";
+import { TaskCheck } from "@/components/ui/task-check.tsx";
 import { EDITABLE_LIST_COPY } from "@/ui/copy/editable-list.ts";
 
 interface SaveJob {
@@ -585,15 +586,12 @@ function EditableListRow({
       data-drop-before={sort?.dragging !== undefined && sort.before === id}
     >
       {checked !== undefined && (
-        <span className="editable-check">
-          <input
-            type="checkbox"
-            checked={checked}
-            aria-label={toggleLabel}
-            onChange={onToggle}
-            disabled={disabled}
-          />
-        </span>
+        <TaskCheck
+          checked={checked}
+          disabled={disabled}
+          label={toggleLabel}
+          onChange={onToggle}
+        />
       )}
       {editing === false && leading !== undefined && (
         <span className="editable-leading">{leading}</span>

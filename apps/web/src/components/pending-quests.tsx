@@ -1,12 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { type JSX, useCallback, useRef, useState } from "react";
-import { CopyWithTime } from "@/components/copy-with-time.tsx";
-import { TIME_SLOT } from "@/components/time-format.ts";
+import { type JSX, type ReactNode, useCallback, useRef, useState } from "react";
 import { Button } from "@/components/ui/button.tsx";
 import { Alert, FormStatus } from "@/components/ui/form-message.tsx";
-import { Icon } from "@/components/ui/icon.tsx";
 import type { QuestId } from "@/ids.ts";
 import type { AnswerInvitation } from "@/quests/membership.ts";
 import type { PendingQuest } from "@/quests/membership-store.ts";
@@ -19,6 +16,8 @@ type Answered =
   | { readonly kind: "accepted"; readonly quest: PendingQuest }
   | { readonly kind: "declined"; readonly quest: PendingQuest };
 
+// One invitation as a notice: who invited the user to which quest, with
+// Accept and Decline.
 function PendingRow({
   quest,
   busy,
@@ -36,26 +35,17 @@ function PendingRow({
     (): void => onAnswer(quest, false),
     [onAnswer, quest],
   );
-  let invited = PENDING_COPY.invitedAt(TIME_SLOT);
+  let invited: ReactNode = PENDING_COPY.invited;
   if (quest.invitedBy !== undefined) {
-    invited = PENDING_COPY.invitedBy(quest.invitedBy, TIME_SLOT);
+    invited = PENDING_COPY.invitedBy(quest.invitedBy);
   }
   return (
-    <li className="quests-index-row">
-      <span className="quests-index-mark">
-        <Icon name="compass" />
+    <li className="quest-invitation">
+      <span className="quests-label">{PENDING_COPY.notice}</span>
+      <span className="quest-invitation-text">
+        {invited} <strong>{quest.name}</strong>
       </span>
-      <div className="flex min-w-0 flex-1 flex-col items-start gap-1">
-        <span className="card-title wrap-anywhere">{quest.name}</span>
-        <span className="text-muted text-sm">
-          <CopyWithTime
-            text={invited}
-            dateTime={quest.invitedAt}
-            detail="day"
-          />
-        </span>
-      </div>
-      <div className="quests-index-answer">
+      <span className="quest-invitation-answer">
         <Button
           aria-label={PENDING_COPY.acceptLabel(quest.name)}
           aria-busy={busy}
@@ -73,27 +63,26 @@ function PendingRow({
         >
           {PENDING_COPY.decline}
         </Button>
-      </div>
+      </span>
     </li>
   );
 }
 
-// The quests the user is invited to and hasn't accepted, each with Accept
-// and Decline. Answering one leaves the others pending. Its row goes with
-// the answer, so focus moves to the list's heading, and the status line
-// says what happened, with a link to a joined quest. An invitation found
-// to be gone, withdrawn or answered elsewhere, goes too. onSettled names
-// each invitation that is no longer pending, so the caller stops listing
-// and counting it.
+// The quests the user is invited to and hasn't accepted, as notices at
+// the top of Quests, each with Accept and Decline. Answering one leaves
+// the others pending. Its notice goes with the answer, so focus moves to
+// the list's hidden heading, and the status line says what happened, with
+// a link to a joined quest. An invitation found to be gone, withdrawn or
+// answered elsewhere, goes too.
 function PendingQuests({
   quests,
   answer,
-  onSettled,
 }: {
   readonly quests: readonly PendingQuest[];
   readonly answer: AnswerInvitation;
-  readonly onSettled: (questId: QuestId) => void;
 }): JSX.Element {
+  const [settled, setSettled] = useState<ReadonlySet<QuestId>>(new Set());
+  const shown = quests.filter(({ questId }) => !settled.has(questId));
   const [busy, setBusy] = useState(false);
   const [answered, setAnswered] = useState<Answered | undefined>();
   const [failure, setFailure] = useState<string | undefined>();
@@ -105,7 +94,7 @@ function PendingQuests({
       setFailure(undefined);
       answer({ questId: quest.questId, accept })
         .then((result) => {
-          onSettled(quest.questId);
+          setSettled((before) => new Set(before).add(quest.questId));
           if (result.kind === "failed") {
             setFailure(PENDING_COPY.failed);
             return;
@@ -123,10 +112,10 @@ function PendingQuests({
           headingRef.current?.focus();
         });
     },
-    [answer, onSettled],
+    [answer],
   );
   return (
-    <div className="flex flex-col gap-3">
+    <div className="quest-invitations">
       <p className="sr-only" ref={headingRef} tabIndex={-1}>
         {PENDING_COPY.label}
       </p>
@@ -149,12 +138,9 @@ function PendingQuests({
           PENDING_COPY.declined(answered.quest.name)}
       </FormStatus>
       {failure !== undefined && <Alert>{failure}</Alert>}
-      {quests.length === 0 && (
-        <p className="quests-index-empty">{PENDING_COPY.none}</p>
-      )}
-      {quests.length > 0 && (
-        <ul aria-label={PENDING_COPY.label} className="quests-index-list">
-          {quests.map((quest) => (
+      {shown.length > 0 && (
+        <ul aria-label={PENDING_COPY.label} className="flex flex-col gap-2">
+          {shown.map((quest) => (
             <PendingRow
               busy={busy}
               key={quest.questId}

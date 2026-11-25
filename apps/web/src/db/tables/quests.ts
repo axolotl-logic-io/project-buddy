@@ -33,12 +33,18 @@ export const quests = pgTable(
     dailies: boolean("dailies").notNull().default(false),
     constructId: text("construct_id").notNull().default("vellum"),
     nextTaskNumber: integer("next_task_number").notNull().default(1),
+    // Life: the one quest every user always has, for everyday tasks. It
+    // stays Active.
+    life: boolean("life").notNull().default(false),
   },
   (table) => [
     index("quests_user_id_idx").on(table.userId),
     uniqueIndex("quests_dailies_user_idx")
       .on(table.userId)
       .where(sql`${table.dailies}`),
+    uniqueIndex("quests_life_user_idx")
+      .on(table.userId)
+      .where(sql`${table.life}`),
     check(
       "quests_status_valid",
       sql`${table.status} in ('active', 'completed', 'abandoned')`,

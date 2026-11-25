@@ -1,5 +1,5 @@
-// Times show in the zone of her browser, not the server's: a quest's
-// start ("use_case_view_quests"), a performance's start ("use_case_open_quest")
+// Times show in the zone of her browser, not the server's: the day a rite
+// was forgotten ("use_case_view_retirement"), a performance's start ("use_case_open_quest")
 // that falls on a different day in New York than in Tokyo. The server
 // renders them in UTC, unseen, and hydrating shows the browser's time with
 // no mismatch. The browser-<zone> quests in vitest.config.mts run this
@@ -19,14 +19,16 @@ import {
   vi,
 } from "vitest";
 import { page } from "vitest/browser";
-
+import { CopyWithTime } from "@/components/copy-with-time.tsx";
 import { LocalTime } from "@/components/local-time.tsx";
-import { QuestList } from "@/components/quest-list.tsx";
-import { formatTime, type TimeDetail } from "@/components/time-format.ts";
+import {
+  formatTime,
+  TIME_SLOT,
+  type TimeDetail,
+} from "@/components/time-format.ts";
 
 import { DEFAULT_THEME_CHOICE } from "@/themes/themes.ts";
-import { QUESTS_COPY } from "@/ui/copy/quests.ts";
-import { questIdFixture } from "../../support/id-fixtures.ts";
+import { GRIMOIRE_COPY } from "@/ui/copy/grimoire.ts";
 
 import {
   installThemeFonts,
@@ -38,7 +40,6 @@ import { applyTheme } from "../themes/theme-test-kit.ts";
 // next morning in Tokyo: the release sweep's quest, which showed
 // "12:16 AM".
 const INSTANT = new Date("2026-10-13T00:16:00Z");
-const QUEST_ID = questIdFixture();
 
 // The instant's day and minute as she reads them in a zone.
 interface ZoneTimes {
@@ -162,30 +163,24 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
-describe("use_case_view_quests", () => {
-  test(`a quest's start shows on her day, in ${browserZone()}`, async () => {
+describe("use_case_view_retirement", () => {
+  test(`the day a rite was forgotten shows on her day, in ${browserZone()}`, async () => {
     const hydration = serverRenderThenHydrate(
-      <QuestList
-        quests={[
-          {
-            id: QUEST_ID,
-            name: "Low-poly fox",
-            createdAt: INSTANT,
-            status: "active",
-            statusRevision: 0,
-            constructId: "lumen",
-            sharing: { kind: "private" },
-          },
-        ]}
-      />,
+      <p>
+        <CopyWithTime
+          dateTime={INSTANT}
+          detail="day"
+          text={GRIMOIRE_COPY.forgottenOn(TIME_SLOT)}
+        />
+      </p>,
     );
 
     expect(hydration.serverTime, "the server's time").toStrictEqual(
       hiddenServerTime("day"),
     );
     await expect
-      .element(page.getByRole("listitem"))
-      .toMatchTextContent(QUESTS_COPY.created(zoneTimes().day));
+      .element(page.getByRole("paragraph"))
+      .toMatchTextContent(GRIMOIRE_COPY.forgottenOn(zoneTimes().day));
     expect(hydrationErrors(hydration), "hydration errors").toStrictEqual([]);
   });
 });

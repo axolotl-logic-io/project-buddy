@@ -14,6 +14,7 @@ import { changeListItemAction } from "@/lists/list-item-actions.ts";
 import type { ListItem } from "@/lists/list-item-store.ts";
 import type { List } from "@/lists/list-store.ts";
 import type { LocalDate, TaskHistory } from "@/streaks/streaks.ts";
+import { CADENCE_COPY } from "@/ui/copy/cadence.ts";
 import { LISTS_COPY } from "@/ui/copy/lists.ts";
 import { questIdFixture } from "../../support/id-fixtures.ts";
 
@@ -39,6 +40,7 @@ function task(
     taskNumber,
     checkedOff: false,
     recurring: false,
+    cadence: "daily",
     createdAt: new Date("2026-11-10T08:00:00Z"),
     ...more,
   };
@@ -95,18 +97,23 @@ describe("use_case_recurring_tasks", () => {
     const stretch = task(STRETCH, 1);
     const screen = await render(list([stretch, task(WATER, 2)], history()));
     await expect
-      .element(row(STRETCH).getByRole("img", { name: LISTS_COPY.recurring }))
+      .element(
+        row(STRETCH).getByRole("img", { name: CADENCE_COPY.repeats("daily") }),
+      )
       .not.toBeInTheDocument();
 
     await openMenu(STRETCH);
+    await expect
+      .element(page.getByRole("menuitem", { name: LISTS_COPY.makeOneOff }))
+      .not.toBeInTheDocument();
     await page
-      .getByRole("menuitem", { name: LISTS_COPY.makeRecurring })
+      .getByRole("menuitem", { name: CADENCE_COPY.repeat("daily") })
       .click();
 
     expect(changeListItemAction).toHaveBeenCalledWith({
       questId: QUEST_ID,
       listId: LIST.id,
-      change: { kind: "recurring", id: stretch.id, recurring: true },
+      change: { kind: "recurring", id: stretch.id, cadence: "daily" },
     });
     await expect
       .element(page.getByRole("status"))
@@ -120,25 +127,65 @@ describe("use_case_recurring_tasks", () => {
       list([{ ...stretch, recurring: true }, task(WATER, 2)], history()),
     );
     await expect
-      .element(row(STRETCH).getByRole("img", { name: LISTS_COPY.recurring }))
+      .element(
+        row(STRETCH).getByRole("img", { name: CADENCE_COPY.repeats("daily") }),
+      )
       .toBeVisible();
     await expect
-      .element(row(WATER).getByRole("img", { name: LISTS_COPY.recurring }))
+      .element(
+        row(WATER).getByRole("img", { name: CADENCE_COPY.repeats("daily") }),
+      )
       .not.toBeInTheDocument();
 
+    // A daily task offers the other cadences and one-off, not daily again.
     await openMenu(STRETCH);
     await expect
-      .element(page.getByRole("menuitem", { name: LISTS_COPY.makeOneOff }))
-      .toBeVisible();
+      .element(
+        page.getByRole("menuitem", { name: CADENCE_COPY.repeat("daily") }),
+      )
+      .not.toBeInTheDocument();
+    await page
+      .getByRole("menuitem", { name: CADENCE_COPY.repeat("weekly") })
+      .click();
+    expect(changeListItemAction).toHaveBeenLastCalledWith({
+      questId: QUEST_ID,
+      listId: LIST.id,
+      change: { kind: "recurring", id: stretch.id, cadence: "weekly" },
+    });
+
+    await openMenu(STRETCH);
     await page.getByRole("menuitem", { name: LISTS_COPY.makeOneOff }).click();
     expect(changeListItemAction).toHaveBeenLastCalledWith({
       questId: QUEST_ID,
       listId: LIST.id,
-      change: { kind: "recurring", id: stretch.id, recurring: false },
+      change: { kind: "recurring", id: stretch.id, cadence: null },
     });
   });
 
-  test("a list other than a task list has no Make recurring", async () => {
+  test("a weekly task's icon and streak count weeks", async () => {
+    const call = task("Call grandma", 1, {
+      recurring: true,
+      cadence: "weekly",
+    });
+    // Today, Friday 20 November, is in the week from Monday the 16th.
+    await render(list([call], history(["2026-11-04", "2026-11-13"])));
+    await expect
+      .element(
+        row("Call grandma").getByRole("img", {
+          name: CADENCE_COPY.repeats("weekly"),
+        }),
+      )
+      .toBeVisible();
+    await expect
+      .element(
+        row("Call grandma").getByText(
+          "2-week streak. Check it off to make it 3.",
+        ),
+      )
+      .toBeVisible();
+  });
+
+  test("a list other than a task list has no Repeat choices", async () => {
     await render(
       list([task(STRETCH, 1, { taskNumber: null })], undefined, {
         ...LIST,
@@ -152,7 +199,9 @@ describe("use_case_recurring_tasks", () => {
       .element(page.getByRole("menuitem", { name: LISTS_COPY.moveUp }))
       .toBeVisible();
     await expect
-      .element(page.getByRole("menuitem", { name: LISTS_COPY.makeRecurring }))
+      .element(
+        page.getByRole("menuitem", { name: CADENCE_COPY.repeat("daily") }),
+      )
       .not.toBeInTheDocument();
   });
 });
@@ -211,7 +260,9 @@ describe("use_case_daily_streaks", () => {
   test("without a history, a recurring task shows its repeat icon alone", async () => {
     await render(list([task(STRETCH, 1, { recurring: true })]));
     await expect
-      .element(row(STRETCH).getByRole("img", { name: LISTS_COPY.recurring }))
+      .element(
+        row(STRETCH).getByRole("img", { name: CADENCE_COPY.repeats("daily") }),
+      )
       .toBeVisible();
     expect(row(STRETCH).element().textContent).not.toContain("streak");
   });

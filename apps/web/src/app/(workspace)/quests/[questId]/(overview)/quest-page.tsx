@@ -227,8 +227,12 @@ async function questPage(
               </Link>
             </li>
           </ul>
-          <h4 className="font-semibold">{QUEST_OVERVIEW_COPY.status}</h4>
-          <QuestStatusControls quest={quest} />
+          {!quest.life && (
+            <>
+              <h4 className="font-semibold">{QUEST_OVERVIEW_COPY.status}</h4>
+              <QuestStatusControls quest={quest} />
+            </>
+          )}
         </details>
       </>
     );
