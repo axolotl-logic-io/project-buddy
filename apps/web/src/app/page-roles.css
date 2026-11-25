@@ -12,187 +12,9 @@
    disabled looks), and every role ships in the stylesheet whether or not a
    page uses it. globals.css imports this file into the components layer. */
 @layer roles {
-  /* The quest Quests offers to pick up again: its label, name and next
-     step, with Continue beside them, or below them on a narrow screen. */
-  .current-quest {
-    @apply flex flex-wrap items-center gap-x-4 gap-y-3 rounded-box border border-line bg-surface/70 px-4 py-3 shadow-control;
-  }
-
-  .current-quest-body {
-    flex: 1 1 10rem;
-    @apply flex min-w-0 flex-col gap-0.5;
-  }
-
   /* The marker of a multi-user quest beside its name, as a small tag. */
   .quest-sharing-mark {
     @apply inline-flex max-w-full items-center rounded-control border border-line px-1.5 text-muted text-xs wrap-anywhere;
-  }
-
-  .current-quest-label {
-    @apply font-body font-semibold text-muted text-xs uppercase tracking-wide;
-  }
-
-  /* The ways to start a quest, as a strip of tiles: two by two in a narrow
-     space, such as a phone or a dialog, and side by side where they fit. */
-  .quest-start {
-    @apply @container flex flex-col gap-3;
-  }
-
-  .quest-start-tiles {
-    @apply grid grid-cols-2 gap-2 @lg:grid-cols-4;
-  }
-
-  /* One starting point: the whole tile is its target. */
-  .quest-start-tile {
-    min-block-size: var(--target-size);
-    @apply flex size-full min-w-0 flex-col items-start gap-1 rounded-action border border-line bg-action-paper/70 px-3 py-2.5 text-left;
-    border-width: var(--action-line-width);
-  }
-
-  .quest-start-tile:focus-visible {
-    outline-style: dashed;
-  }
-
-  @media (hover: hover) {
-    .quest-start-tile:hover {
-      @apply shadow-action-hover;
-    }
-  }
-
-  .quest-start-tile:active {
-    box-shadow: var(--action-pressed-shadow);
-  }
-
-  /* Quests uses folder tabs, scoped apart from the workspace rail. The
-     phone grid keeps every category visible, including Pending. */
-  .quests-index-tabs {
-    @apply relative z-10 grid min-w-0 grid-cols-2 gap-2 pb-2 sm:flex sm:flex-wrap sm:gap-1 sm:pb-0;
-  }
-
-  .quests-index-tab {
-    min-block-size: var(--target-size);
-    @apply inline-flex min-w-0 items-center justify-center gap-2 rounded-t-action border-x border-t-2 border-line bg-field/35 px-3 py-2 text-muted text-sm sm:px-4;
-  }
-
-  .quests-index-tab:hover {
-    @apply bg-surface/70 text-primary;
-  }
-
-  .quests-index-tab[data-state="active"] {
-    @apply border-primary bg-surface/70 font-semibold text-foreground;
-  }
-
-  .quests-index-tab[data-pointer-focus]:focus-visible {
-    outline: none;
-    box-shadow: none;
-  }
-
-  @media (min-width: 40rem) {
-    .quests-index-tab {
-      margin-block-end: calc(-1 * var(--line-width));
-    }
-
-    .quests-index-tab[data-state="active"]::after {
-      content: "";
-      inset-inline: var(--line-width);
-      inset-block-end: calc(-1 * var(--line-width));
-      block-size: var(--line-width);
-      @apply pointer-events-none absolute bg-surface/70;
-    }
-
-    .quests-index-tab[data-state="active"] {
-      @apply relative;
-    }
-  }
-
-  /* A count stays on the label's baseline, inside its own small badge. */
-  .quests-index-count {
-    @apply inline-flex min-w-6 shrink-0 items-center justify-center rounded-control border border-line px-1 text-foreground text-xs tabular-nums;
-  }
-
-  .quests-index-content {
-    @apply relative isolate min-w-0 flex-1 border-line border-t px-1 pb-8 sm:px-2;
-  }
-
-  /* Keep the panel's translucent fill until the last four spacing steps, then fade only
-     its surface and side rules, in the space below its
-     last row. Text, controls and focus rings remain fully opaque. There
-     is no bottom border to jump when another tab has fewer quests. */
-  .quests-index-content::before {
-    content: "";
-    background-image:
-      linear-gradient(
-        to bottom,
-        var(--line) calc(100% - --spacing(4)),
-        transparent
-      ),
-      linear-gradient(
-        to bottom,
-        var(--line) calc(100% - --spacing(4)),
-        transparent
-      ),
-      linear-gradient(
-        to bottom,
-        color-mix(in oklab, var(--surface) 70%, transparent)
-          calc(100% - --spacing(4)),
-        transparent
-      );
-    background-size:
-      var(--line-width) 100%,
-      var(--line-width) 100%,
-      100% 100%;
-    background-position:
-      left top,
-      right top,
-      center top;
-    background-repeat: no-repeat;
-    @apply pointer-events-none absolute inset-0 -z-10;
-  }
-
-  .quests-index-empty {
-    @apply flex flex-col items-center gap-2 px-3 py-6 text-center text-muted;
-  }
-
-  .quests-index-list {
-    @apply flex min-w-0 flex-col;
-  }
-
-  .quests-index-row {
-    @apply relative grid min-w-0 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-x-2.5 gap-y-2 border-line border-b px-2 py-4 last:border-b-0 sm:gap-x-3 sm:px-3;
-  }
-
-  .quests-index-row:has(.quests-index-link):hover {
-    @apply bg-field/70;
-  }
-
-  .quests-index-row:has(.quests-index-link:focus-visible) {
-    @apply bg-field/70;
-  }
-
-  .quests-index-restore {
-    @apply relative z-10 col-start-2 col-end-4 justify-self-start;
-  }
-
-  /* A Pending row's Accept and Decline: beneath the quest's name on a
-     phone, as Restore is, so the name keeps its width; at its end from
-     the sm breakpoint. */
-  .quests-index-answer {
-    @apply col-start-2 col-end-4 flex flex-wrap gap-2 justify-self-start sm:col-start-3 sm:col-end-4 sm:justify-self-end;
-  }
-
-  .quests-index-mark {
-    @apply flex size-7.5 shrink-0 items-center justify-center rounded-control border border-line text-primary sm:size-9;
-  }
-
-  .quests-index-row .quests-index-link {
-    @apply inline-block min-h-6 text-quest-title sm:text-card-title;
-    overflow-wrap: anywhere;
-    @apply hover:text-primary after:absolute after:inset-0;
-  }
-
-  .quests-index-link:focus-visible::after {
-    outline: var(--focus-outline);
-    outline-offset: var(--focus-offset);
   }
 
   .quest-workspace {
@@ -1294,6 +1116,336 @@
 
   .dialog-panel {
     @apply fixed top-1/2 left-1/2 z-50 flex max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] max-w-md overflow-y-auto -translate-x-1/2 -translate-y-1/2 flex-col gap-3 bg-surface p-5 data-[state=closed]:motion-safe:animate-pop-out data-[state=open]:motion-safe:animate-pop-in sm:p-6;
+  }
+
+  /* Quests: invitations, the Life pin and the finder, in one column. */
+  .quests-workspace {
+    @apply gap-3.5;
+  }
+
+  /* A small label on Quests, set as the theme sets labels: Invitation,
+     Suggested, Resting and the search's group headings. */
+  .quests-label {
+    font-family: var(--label-font);
+    color: var(--label-ink);
+    font-variant-caps: var(--label-caps);
+    letter-spacing: var(--label-tracking);
+    text-transform: var(--label-case);
+    @apply shrink-0 text-sm font-semibold;
+  }
+
+  .quest-invitations {
+    @apply flex min-w-0 flex-col gap-2;
+  }
+
+  /* An invitation, as a notice with a rubric edge: who invited the user
+     to which quest, with Accept and Decline at its end. */
+  .quest-invitation {
+    border-inline-start: 3px solid var(--rubric);
+    @apply flex flex-wrap items-center gap-x-3 gap-y-2 rounded-control border border-line bg-field px-3 py-2 text-sm;
+  }
+
+  .quest-invitation-text {
+    flex: 1 1 12rem;
+    @apply min-w-0 wrap-anywhere;
+  }
+
+  .quest-invitation-answer {
+    @apply flex flex-wrap gap-2;
+  }
+
+  /* A quest's seal: an ink disc with its construct's initial, or Life's
+     sun, in gold. */
+  .quest-seal {
+    font-family: var(--initial-font);
+    @apply grid size-8.5 shrink-0 place-items-center rounded-full bg-header-ink text-[1.2rem] leading-none text-header-gold;
+  }
+
+  .quest-seal .icon {
+    @apply size-4;
+  }
+
+  .quest-seal-small {
+    @apply size-6 text-sm;
+  }
+
+  .quest-seal-small .icon {
+    @apply size-3.5;
+  }
+
+  /* Life, pinned above the finder, gilded from its seal's side. */
+  .life-pin {
+    background: linear-gradient(
+      100deg,
+      color-mix(in oklab, var(--header-gold) 22%, var(--surface)),
+      var(--surface) 65%
+    );
+    @apply flex min-w-0 flex-col gap-2.5 rounded-control border border-header-gold px-3.5 py-3;
+  }
+
+  .life-pin-head {
+    @apply flex min-w-0 items-center gap-3;
+  }
+
+  /* The suggested task, under Life's name. */
+  .life-pin-suggestion {
+    @apply flex min-w-0 flex-wrap items-center gap-x-2.5 rounded-control border border-line/45 bg-field/85 py-0 ps-2.5 pe-3 text-sm sm:ms-11.5;
+  }
+
+  .life-pin-check {
+    @apply flex min-w-0 flex-1 cursor-pointer items-center;
+  }
+
+  .life-pin-task {
+    @apply min-w-0 wrap-anywhere;
+  }
+
+  .life-pin-suggestion-done .life-pin-task {
+    @apply text-muted line-through;
+  }
+
+  .life-pin-recurring {
+    @apply ms-auto flex items-center gap-1.5 pb-2 text-muted text-xs sm:pb-0;
+  }
+
+  .life-pin-recurring .icon,
+  .quest-finder-tag .icon,
+  .quest-finder-task-quest .icon {
+    @apply size-3;
+  }
+
+  /* A quest's name on Quests. */
+  .quest-finder-name {
+    @apply font-heading text-[1.03rem] leading-snug font-semibold wrap-anywhere;
+  }
+
+  .quest-finder-meta {
+    @apply text-muted text-[0.8rem];
+  }
+
+  .quest-finder {
+    @apply flex min-w-0 flex-col gap-3.5;
+  }
+
+  /* The search, with "/" to reach it, or Clear once it holds a search. */
+  .quest-finder-search {
+    @apply flex min-w-0 items-center gap-2.5 rounded-control border border-line bg-field ps-3 pe-1 text-muted;
+  }
+
+  .quest-finder-search:focus-within {
+    box-shadow: 0 0 0 2px color-mix(in oklab, var(--primary) 25%, transparent);
+    @apply border-primary text-foreground;
+  }
+
+  .quest-finder-search input {
+    min-block-size: var(--target-size);
+    @apply min-w-0 flex-1 bg-transparent text-foreground outline-none placeholder:text-muted;
+  }
+
+  .quest-finder-search input::-webkit-search-cancel-button {
+    appearance: none;
+  }
+
+  .quest-finder-search kbd {
+    @apply me-2 rounded-control border border-line px-1.5 font-mono text-muted text-xs;
+  }
+
+  .quest-finder-clear {
+    inline-size: var(--target-size);
+    block-size: var(--target-size);
+    @apply grid shrink-0 place-items-center rounded-control text-muted hover:text-foreground;
+  }
+
+  .quest-finder-filters {
+    @apply flex min-w-0 flex-wrap items-center gap-2;
+  }
+
+  /* The statuses, as one segmented control. */
+  .quest-finder-statuses {
+    @apply inline-flex overflow-hidden rounded-control border border-line;
+  }
+
+  .quest-finder-status {
+    min-block-size: 2rem;
+    @apply inline-flex items-center gap-1.5 border-line border-e px-2.5 text-muted text-[0.8rem] last:border-e-0 hover:text-foreground;
+  }
+
+  .quest-finder-status[data-state="active"] {
+    @apply bg-primary font-bold text-on-primary;
+  }
+
+  .quest-finder-status[data-pointer-focus]:focus-visible {
+    outline: none;
+  }
+
+  .quest-finder-count {
+    @apply tabular-nums opacity-75;
+  }
+
+  /* Shared: narrows the list to quests with others in them. */
+  .quest-finder-chip {
+    min-block-size: 2rem;
+    @apply inline-flex items-center gap-1.5 rounded-full border border-line/55 bg-field/60 px-2.5 text-[0.8rem];
+  }
+
+  .quest-finder-chip .icon {
+    @apply size-3.5 text-primary;
+  }
+
+  .quest-finder-chip[aria-pressed="true"] {
+    @apply border-primary bg-primary text-on-primary;
+  }
+
+  .quest-finder-sort {
+    @apply relative ms-auto flex items-center text-muted text-[0.8rem];
+  }
+
+  .quest-finder-sort select {
+    min-block-size: 2rem;
+    @apply cursor-pointer appearance-none rounded-control bg-transparent ps-1 pe-5 hover:text-foreground;
+  }
+
+  .quest-finder-sort .icon {
+    @apply pointer-events-none absolute end-0 size-3.5;
+  }
+
+  .quest-finder-chip[aria-pressed="true"] .icon {
+    @apply text-on-primary;
+  }
+
+  .quest-finder-rows {
+    @apply flex min-w-0 flex-col border-line border-t;
+  }
+
+  /* A quest: seal, name and what is happening in it, its open tasks and a
+     chevron. The whole row is its link's target. */
+  .quest-finder-row {
+    @apply relative grid min-w-0 grid-cols-[auto_minmax(0,1fr)_auto_0.875rem] items-center gap-x-3.5 gap-y-2 border-line/40 border-b px-2 py-2.75 last:border-b-0;
+  }
+
+  .quest-finder-row:hover,
+  .quest-finder-row:has(.quest-finder-link:focus-visible),
+  .quest-finder-hit:hover,
+  .quest-finder-hit:has(.quest-finder-link:focus-visible) {
+    @apply bg-field/70;
+  }
+
+  .quest-finder-link {
+    @apply after:absolute after:inset-0 hover:text-primary;
+  }
+
+  .quest-finder-link:focus-visible {
+    outline: none;
+  }
+
+  .quest-finder-link:focus-visible::after {
+    outline: var(--focus-outline);
+    outline-offset: var(--focus-offset);
+  }
+
+  .quest-finder-top {
+    @apply flex min-w-0 flex-wrap items-center gap-x-2.25 gap-y-1;
+  }
+
+  /* A rite running in the quest, with a live dot. */
+  .quest-finder-live {
+    @apply inline-flex items-center gap-1.5 text-xs font-bold text-(--rubric);
+  }
+
+  .quest-finder-live::before {
+    content: "";
+    box-shadow: 0 0 0 3px color-mix(in oklab, var(--rubric) 20%, transparent);
+    @apply size-1.75 rounded-full bg-(--rubric);
+  }
+
+  .quest-finder-tag {
+    @apply inline-flex items-center gap-1 rounded-control border border-line px-1.5 text-muted text-xs leading-4.5;
+  }
+
+  .quest-finder-open {
+    @apply text-end text-muted text-xs;
+  }
+
+  .quest-finder-open strong {
+    @apply font-heading text-[1.06rem] leading-none font-bold text-foreground;
+  }
+
+  .quest-finder-restore {
+    @apply relative z-10 col-start-2 col-end-5 justify-self-start;
+  }
+
+  .quest-finder-empty {
+    @apply px-2 py-6 text-center text-muted text-sm;
+  }
+
+  .quest-finder-found {
+    @apply flex min-w-0 flex-col gap-4;
+  }
+
+  /* A group of results: its label and count. */
+  .quest-finder-group {
+    @apply flex items-baseline gap-2 border-line border-b px-2 pb-1.5;
+  }
+
+  .quest-finder-group small {
+    @apply font-body font-normal text-muted text-xs;
+  }
+
+  .quest-finder-results {
+    @apply flex min-w-0 flex-col;
+  }
+
+  .quest-finder-found[aria-busy="true"] .quest-finder-results {
+    @apply opacity-70;
+  }
+
+  .quest-finder-results mark {
+    background: color-mix(in oklab, var(--header-gold) 50%, transparent);
+    @apply rounded-[2px] px-px text-inherit;
+  }
+
+  .quest-finder-hit {
+    @apply relative grid min-w-0 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 border-line/35 border-b px-2 py-2.25 last:border-b-0;
+  }
+
+  .quest-finder-hit .quest-finder-name {
+    @apply text-[0.94rem];
+  }
+
+  /* A found task: its check and text, its quest beneath, and Open. */
+  .quest-finder-task {
+    @apply grid min-w-0 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-x-1 border-line/35 border-b pe-2 last:border-b-0;
+  }
+
+  .quest-finder-check {
+    @apply col-span-2 grid cursor-pointer grid-cols-subgrid items-center;
+  }
+
+  .quest-finder-task-text {
+    @apply min-w-0 pt-1 text-sm wrap-anywhere;
+  }
+
+  .quest-finder-task[data-done="true"] .quest-finder-task-text {
+    @apply text-muted line-through;
+  }
+
+  .quest-finder-task-quest {
+    @apply col-start-2 row-start-2 -mt-1.5 flex min-w-0 items-center gap-1.5 pb-2 text-muted text-xs;
+  }
+
+  .quest-finder-go {
+    min-block-size: var(--target-size);
+    @apply col-start-3 row-span-2 row-start-1 flex items-center gap-1 rounded-control px-1 text-muted text-xs hover:text-foreground;
+  }
+
+  .quest-finder-more {
+    min-block-size: var(--target-size);
+    @apply px-2 text-muted text-[0.8rem] underline underline-offset-3 hover:text-foreground;
+  }
+
+  /* New quest, at the right of Quests' trail band. */
+  .new-quest-trail-tools {
+    @apply ml-auto flex shrink-0 items-center self-center;
   }
 }
 

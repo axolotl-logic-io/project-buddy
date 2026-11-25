@@ -6,6 +6,7 @@ import {
   headerBreadcrumbs,
   publicBreadcrumbs,
 } from "@/components/header-breadcrumbs.ts";
+import { NewQuest } from "@/components/new-quest.tsx";
 import { QuestTitle } from "@/components/quest-title.tsx";
 import { SignedInHeader } from "@/components/signed-in-header.tsx";
 import { TimerPreferences } from "@/components/timer/timer-preferences.tsx";
@@ -63,6 +64,9 @@ async function HeaderLinksAt({
       }
       if (path[0] === "timer" && path.length === 1) {
         return { ...item, action: <TimerPreferences /> };
+      }
+      if (signedIn && path[0] === "quests" && path.length === 1) {
+        return { ...item, action: <NewQuest /> };
       }
       return item;
     },

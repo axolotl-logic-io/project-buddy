@@ -5,12 +5,10 @@ const QUEST_STATUS_COPY = {
     completed: "Quest completed.",
     abandoned: "Quest abandoned.",
   },
-  tabs: "Quests",
   complete: "Complete",
   abandon: "Abandon",
   restore: "Restore quest",
   undo: "Undo",
-  empty: "No quests with this status.",
   effects:
     "The quest’s work stays available. You can restore the quest whenever you want.",
   failed:

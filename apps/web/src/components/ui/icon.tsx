@@ -53,6 +53,15 @@ const ICON_PATHS = {
       "M4 2h8M4 14h8M5 2v2c0 2 3 3 3 4s-3 2-3 4v2m6-12v2c0 2-3 3-3 4s3 2 3 4v2",
   },
   plus: { stroke: "M8 3v10M3 8h10" },
+  // A magnifying glass, for finding something.
+  search: {
+    stroke: "M7 2.5a4.5 4.5 0 1 1 0 9 4.5 4.5 0 0 1 0-9zM10.5 10.5l3 3",
+  },
+  // Two people, for a quest shared with others.
+  people: {
+    stroke:
+      "M6 7a2 2 0 1 0 0-4 2 2 0 0 0 0 4zM2.5 13c0-2 1.5-3.5 3.5-3.5S9.5 11 9.5 13M11 7.5a1.6 1.6 0 1 0 0-3.2M11.5 9.6c1.3.3 2 1.5 2 3.4",
+  },
   // A bin, for deleting something.
   trash: { stroke: "M2.5 4h11M6 4V2.5h4V4M4 4l.75 9.5h6.5L12 4" },
   // A sun, for starting the day.

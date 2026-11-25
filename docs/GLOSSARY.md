@@ -8,17 +8,17 @@ Use these terms in code, copy, prompts, docs and issues so the same words descri
 
 A workspace for something the user wants to learn, make or do, or for their daily work. A quest has an owner, a status and its lists. List items belong to the quest's lists and persist across performances. [Quest use cases](../apps/web/use-cases/quests.md)
 
-### Quest starting point
+### Life
 
-A reusable preset that supplies the initial quest name, starting context, construct and lists. Every starting point creates a Tasks list, which adds tasks, and an Ideas list, which adds plain list items. The four starting points are Dailies, Learn a thing, Make a thing and Do a thing. Dailies and Learn a thing assign Vellum. Make a thing and Do a thing assign Lumen. Each start makes a new quest. Dailies asks for no Why. [Starting point use case](../apps/web/use-cases/quests.md#use_case_browse_premade_quests)
+The quest every user has for the things they do every day. Each user has exactly one, made when they first need it, named Life. Quests pins it above their other quests with how many of its recurring tasks are done today and one of those not done yet, suggested at random to check off. Life stays Active. [Life use case](../apps/web/use-cases/quests.md#use_case_life)
 
 ### Quest status
 
 The state of a quest: **Active** for ongoing work, **Completed** for finished work and **Abandoned** for work the user has stopped pursuing. **Complete** and **Abandon** keep the quest's contents. **Restore quest** returns it to Active. Pending describes an invitation. [Quest status use cases](../apps/web/use-cases/quest-status.md)
 
-### Current quest
+### Resting
 
-The Active quest offered under **Continue** on Quests. Among quests open to the user, it is the one with the most recent performance activity. A quest with no performances ranks by the time it started. Continue also shows its next task when one exists. [Continue use case](../apps/web/use-cases/quests.md#use_case_continue_quest)
+An Active quest with nothing happening in it for 30 days. Quests marks it Resting; it is still Active. [Quests use case](../apps/web/use-cases/quests.md#use_case_view_quests)
 
 ### Quest owner
 
@@ -114,7 +114,7 @@ During the active performance, users in the quest send messages. Each message ad
 
 ### Construct
 
-The character shown with a performance's replies. The built-in constructs are Vellum and Lumen. A quest's starting point assigns its construct, and the quest keeps it. [Construct use cases](../apps/web/use-cases/constructs.md)
+The character shown with a performance's replies. The built-in constructs are Vellum and Lumen. A new quest gets Vellum, and keeps it. [Construct use cases](../apps/web/use-cases/constructs.md)
 
 ### Grimoire
 

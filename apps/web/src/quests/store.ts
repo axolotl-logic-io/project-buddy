@@ -4,7 +4,7 @@
 // route parameter, is looked up as a string; anything malformed, unknown or
 // another user's is not found.
 
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, sql } from "drizzle-orm";
 import { questOpenTo } from "@/accounts/owner-scope.ts";
 import {
   type ConstructId,
@@ -33,6 +33,8 @@ interface Quest {
   statusRevision: number;
   startingContext?: string | undefined;
   constructId: ConstructId;
+  // Whether it is its owner's Life, which stays Active.
+  life: boolean;
   // How it is shared, as the user reading it sees it.
   sharing: QuestSharing;
 }
@@ -45,6 +47,7 @@ interface QuestRow {
   readonly statusRevision: number;
   readonly constructId: string;
   readonly startingContext: string | null;
+  readonly life: boolean;
 }
 
 // The columns a quest is read from: only the fields this store uses.
@@ -56,6 +59,7 @@ const QUEST_COLUMNS: {
   readonly name: typeof quests.name;
   readonly createdAt: typeof quests.createdAt;
   readonly constructId: typeof quests.constructId;
+  readonly life: typeof quests.life;
 } = {
   startingContext: quests.startingContext,
   status: quests.status,
@@ -64,6 +68,7 @@ const QUEST_COLUMNS: {
   name: quests.name,
   createdAt: quests.createdAt,
   constructId: quests.constructId,
+  life: quests.life,
 };
 
 // Rows as quests, as viewer reads them. A row whose id is not a UUID is
@@ -90,6 +95,7 @@ function toQuests(
         status: QUEST_STATUS.parse(row.status),
         statusRevision: row.statusRevision,
         constructId,
+        life: row.life,
         sharing: sharingOf(viewer, row),
       },
     ];
@@ -166,6 +172,30 @@ function createQuest(
   );
 }
 
+// The name a new Life starts with.
+const LIFE_NAME = "Life";
+
+// Makes the owner's Life, with its starting lists, unless they have one.
+// Two at once make one: the second insert finds the first's row.
+function ensureLife(owner: UserId): Promise<void> {
+  return withAppErrors("ensureLife", () =>
+    inTransaction(async (tx) => {
+      const [made] = await tx
+        .insert(quests)
+        .values({ userId: owner, name: LIFE_NAME, life: true })
+        .onConflictDoNothing({
+          target: quests.userId,
+          where: sql`${quests.life}`,
+        })
+        .returning({ id: quests.id });
+      const id = parseQuestId(made?.id ?? "");
+      if (id !== undefined) {
+        await seedLists(tx, id);
+      }
+    }),
+  );
+}
+
 // The owner or a member can rename a quest. Unknown or inaccessible ids
 // change nothing.
 function renameQuest(
@@ -184,4 +214,13 @@ function renameQuest(
 }
 
 export type { Quest };
-export { createQuest, getQuest, listQuests, renameQuest };
+export {
+  createQuest,
+  ensureLife,
+  getQuest,
+  LIFE_NAME,
+  listQuests,
+  QUEST_COLUMNS,
+  renameQuest,
+  toQuests,
+};

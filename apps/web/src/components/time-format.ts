@@ -31,7 +31,7 @@ const UTC_CLOCK = new Intl.DateTimeFormat("en", {
 });
 
 // Stands for the time in a copy text, such as
-// QUESTS_COPY.created(TIME_SLOT), to mark where CopyWithTime puts the time.
+// GRIMOIRE_COPY.forgottenOn(TIME_SLOT), to mark where CopyWithTime puts the time.
 // A private-use character, which no copy text holds.
 const TIME_SLOT = "\u{E001}";
 

@@ -90,6 +90,12 @@ import { signIn } from "../test-database/session-test-kit.ts";
 import { twoUsers } from "../test-database/two-users-test-kit.ts";
 
 vi.mock("next/cache", () => ({ refresh: vi.fn() }));
+// Quests' finder searches through the router, which a page rendered to
+// HTML here has none of.
+vi.mock("next/navigation", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("next/navigation")>()),
+  useRouter: (): { readonly replace: () => void } => ({ replace: vi.fn() }),
+}));
 
 // What a page component is called with: its route's params, and no search
 // parameters.

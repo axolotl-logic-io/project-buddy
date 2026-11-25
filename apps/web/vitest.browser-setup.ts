@@ -13,8 +13,8 @@ vi.mock("@/app/(workspace)/quests/status-actions.ts", () => ({
   }),
 }));
 
-// The quest start (src/components/quest-start.tsx) reaches this action from
-// Quest and Grimoire actions run on the server.
+// New quest (src/components/new-quest.tsx) reaches this action from the
+// trail band on Quests; actions run on the server.
 vi.mock("@/app/(workspace)/quests/actions.ts", () => ({
   startQuestAction: vi.fn(() => {
     throw new Error("Mock the quest start action in this test");
@@ -181,4 +181,14 @@ vi.mock("@/tallies/tally-store.ts", () => ({
 
 vi.mock("@/tasks/task-store.ts", () => ({
   readTaskQuests: vi.fn(() => Promise.resolve([])),
+}));
+
+// Quests reads these. Tests of the page supply their own answers; by
+// default the user has no quests, no Life yet and no task matches.
+vi.mock("@/quests/quest-index-store.ts", () => ({
+  readQuestEntries: vi.fn(() => Promise.resolve([])),
+  readLife: vi.fn(() => Promise.resolve(undefined)),
+}));
+vi.mock("@/tasks/task-search-store.ts", () => ({
+  searchTasks: vi.fn(() => Promise.resolve([])),
 }));

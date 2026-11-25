@@ -3,32 +3,27 @@ import {
   type ApiCall,
   apiData,
   apiItems,
-  apiProblem,
   apiRoute,
   type NoParams,
   parseApiInput,
   readApiBody,
 } from "@/api/api-route.ts";
 import { questView } from "@/api/api-views.ts";
-import { PREMADE_QUEST_ID, PREMADE_QUESTS } from "@/quests/premade-quests.ts";
 import { QUEST_NAME } from "@/quests/quest-name.ts";
 import { QUEST_STATUS } from "@/quests/quest-status.ts";
-import { startPremadeQuest } from "@/quests/start-premade-quest.ts";
-import { listQuests } from "@/quests/store.ts";
+import { createQuest, ensureLife, listQuests } from "@/quests/store.ts";
 
 const LIST_QUERY = z.object({ status: QUEST_STATUS.optional() });
 
-// A start: the starting point, and optionally the quest's name (the
-// starting point's by default), the user's Why and starting context.
+// A start: the quest's name, and optionally the user's Why, which its
+// construct reads as the quest's starting context.
 const START_BODY = z.object({
-  from: PREMADE_QUEST_ID,
-  name: QUEST_NAME.optional(),
+  name: QUEST_NAME,
   why: z.string().trim().default(""),
-  context: z.string().trim().optional(),
 });
 
-// The quests open to the user, newest first, optionally only those with
-// one status.
+// The quests open to the user, Life among them, newest first, optionally
+// only those with one status.
 export const GET = apiRoute(
   async ({ user, request }: ApiCall<NoParams>): Promise<Response> => {
     const { searchParams } = new URL(request.url);
@@ -36,6 +31,7 @@ export const GET = apiRoute(
     if (query instanceof Response) {
       return query;
     }
+    await ensureLife(user.id);
     const quests = await listQuests(user.id);
     return apiItems(
       quests
@@ -47,22 +43,15 @@ export const GET = apiRoute(
   },
 );
 
-// Starts a new quest from a starting point, as the site's start form does.
+// Starts a new quest, as the site's New quest form does.
 export const POST = apiRoute(
   async ({ user, request }: ApiCall<NoParams>): Promise<Response> => {
     const body = await readApiBody(request, START_BODY);
     if (body instanceof Response) {
       return body;
     }
-    const premade = PREMADE_QUESTS.find(({ id }) => id === body.from);
-    if (premade === undefined) {
-      return apiProblem("invalid_input", "No such starting point.", "from");
-    }
-    const quest = await startPremadeQuest(user.id, {
-      premadeId: premade.id,
-      name: body.name ?? QUEST_NAME.parse(premade.name),
-      context: body.context ?? premade.context,
-      motivation: body.why,
+    const quest = await createQuest(user.id, body.name, {
+      startingContext: body.why,
     });
     return apiData(questView(quest));
   },

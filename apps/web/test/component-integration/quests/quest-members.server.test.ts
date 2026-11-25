@@ -21,7 +21,6 @@ import {
   sendMessage,
   startPerformance,
 } from "@/performances/performance-store.ts";
-import { readCurrentQuest } from "@/quests/current-quest-store.ts";
 import { INVITATIONS_PER_HOUR } from "@/quests/membership.ts";
 import { answerInvitationAction } from "@/quests/membership-actions.ts";
 import {
@@ -31,6 +30,7 @@ import {
   readInvitationLink,
   removeFromQuest,
 } from "@/quests/membership-store.ts";
+import { readQuestEntries } from "@/quests/quest-index-store.ts";
 import { QUEST_NAME } from "@/quests/quest-name.ts";
 import { changeQuestStatus } from "@/quests/quest-status-store.ts";
 import {
@@ -620,10 +620,10 @@ describe("how a quest is shared, wherever quests are listed", () => {
       }),
     );
 
-    const [ownerQuests, memberQuests, continued] = await Promise.all([
+    const [ownerQuests, memberQuests, [newest]] = await Promise.all([
       listQuests(owner.id),
       listQuests(member.id),
-      readCurrentQuest(member.id),
+      readQuestEntries(member.id),
     ]);
     expect(sharingOf(ownerQuests, first.id)).toEqual({ kind: "shared" });
     expect(sharingOf(ownerQuests, second.id)).toEqual({ kind: "private" });
@@ -632,8 +632,8 @@ describe("how a quest is shared, wherever quests are listed", () => {
       owner: "Rowan Owner",
     });
     expect(sharingOf(memberQuests, own.id)).toEqual({ kind: "private" });
-    expect(continued).toMatchObject({
-      quest: { id: first.id },
+    expect(newest?.quest).toMatchObject({
+      id: first.id,
       sharing: { kind: "joined", owner: "Rowan Owner" },
     });
   });

@@ -15,11 +15,9 @@ import { page } from "vitest/browser";
 import { render } from "vitest-browser-react";
 import type { readSignInLinkUser } from "@/accounts/sign-in-links.ts";
 
-import type { readCurrentQuest } from "@/quests/current-quest-store.ts";
-import type { getQuest, listQuests } from "@/quests/store.ts";
+import type { ensureLife, getQuest, listQuests } from "@/quests/store.ts";
 
 import { THEME_IDS, type ThemeId } from "@/themes/themes.ts";
-import { QUEST_STATUS_COPY } from "@/ui/copy/quest-status.ts";
 import { TIMER_COPY } from "@/ui/copy/timer.ts";
 
 import { loadCodeHighlighting } from "../components/code-highlighting-test-kit.ts";
@@ -59,9 +57,7 @@ vi.mock(
 vi.mock("@/quests/store.ts", () => ({
   getQuest: vi.fn<typeof getQuest>(),
   listQuests: vi.fn<typeof listQuests>(),
-}));
-vi.mock("@/quests/current-quest-store.ts", () => ({
-  readCurrentQuest: vi.fn<typeof readCurrentQuest>(),
+  ensureLife: vi.fn<typeof ensureLife>(() => Promise.resolve()),
 }));
 
 vi.mock("@/accounts/sign-in-links.ts", () => ({
@@ -114,13 +110,9 @@ interface PhoneMeasures {
 // kinds.
 const TAB_ROW_NAVIGATIONS: readonly string[] = [];
 
-// The tab lists that aren't one row by design: the Quests list's tabs, a
-// grid of two columns on a phone, and the quest sidebar's six tabs, which
-// wrap so that every one shows in its narrow width.
-const WRAPPING_TAB_LISTS: readonly string[] = [
-  QUEST_STATUS_COPY.tabs,
-  TIMER_COPY.heading,
-];
+// The tab lists that aren't one row by design: the quest sidebar's six
+// tabs, which wrap so that every one shows in its narrow width.
+const WRAPPING_TAB_LISTS: readonly string[] = [TIMER_COPY.heading];
 
 function tabRows(): Element[] {
   return [

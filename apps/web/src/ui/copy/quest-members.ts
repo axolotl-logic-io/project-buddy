@@ -79,20 +79,10 @@ export const QUEST_SHARING_COPY = {
 } as const;
 
 export const PENDING_COPY = {
-  label: "Pending",
-  tabLabel: (count: number): string => {
-    if (count === 0) {
-      return "Pending";
-    }
-    if (count === 1) {
-      return "Pending, 1 invitation";
-    }
-    return `Pending, ${count} invitations`;
-  },
-  none: "No pending invitations.",
-  invitedBy: (name: string, time: string): string =>
-    `${name} invited you ${time}`,
-  invitedAt: (time: string): string => `Invited ${time}`,
+  label: "Invitations",
+  notice: "Invitation",
+  invitedBy: (name: string): string => `${name} invited you to`,
+  invited: "You’re invited to",
   accept: "Accept",
   acceptLabel: (name: string): string => `Accept the invitation to ${name}`,
   decline: "Decline",

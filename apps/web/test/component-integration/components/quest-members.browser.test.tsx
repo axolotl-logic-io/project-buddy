@@ -2,9 +2,9 @@ import type { JSX } from "react";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { page, userEvent } from "vitest/browser";
 import { render } from "vitest-browser-react";
+import { PendingQuests } from "@/components/pending-quests.tsx";
 import { QuestMembers } from "@/components/quest-members.tsx";
 import { QuestSidePanel } from "@/components/quest-side-panel.tsx";
-import { QuestStatusTabs } from "@/components/quest-status-tabs.tsx";
 import type { MembershipResult } from "@/quests/membership.ts";
 import {
   inviteToQuestAction,
@@ -124,14 +124,8 @@ function hitAtMiddle(element: Element): Element | null {
   );
 }
 
-function pendingTabs(quests: readonly PendingQuest[]): JSX.Element {
-  return (
-    <QuestStatusTabs
-      quests={[]}
-      initialStatus="pending"
-      pending={{ quests, answer }}
-    />
-  );
+function invitations(quests: readonly PendingQuest[]): JSX.Element {
+  return <PendingQuests answer={answer} quests={quests} />;
 }
 
 describe("a quest's Members tab", () => {
@@ -460,16 +454,19 @@ describe("Members rows", () => {
   }
 });
 
-describe("Pending on Quests", () => {
+describe("invitations on Quests", () => {
   test("accepting one invitation with the keyboard says where the quest is now and leaves the other pending", async () => {
     answer.mockResolvedValue({ kind: "done" });
-    await render(pendingTabs([QUEST_A, QUEST_B]));
+    await render(invitations([QUEST_A, QUEST_B]));
     await expect
-      .element(page.getByRole("tablist", { name: QUEST_STATUS_COPY.tabs }))
+      .element(page.getByRole("list", { name: PENDING_COPY.label }))
       .toBeVisible();
-    await expect
-      .element(page.getByRole("tab", { name: PENDING_COPY.tabLabel(2) }))
-      .toHaveAttribute("aria-selected", "true");
+    expect(
+      page
+        .getByRole("list", { name: PENDING_COPY.label })
+        .getByRole("listitem")
+        .elements(),
+    ).toHaveLength(2);
     await expect.element(page.getByText(INVITED_BY_MORGAN)).toBeVisible();
     page
       .getByRole("button", { name: PENDING_COPY.acceptLabel(QUEST_A.name) })
@@ -496,17 +493,17 @@ describe("Pending on Quests", () => {
       )
       .toBeVisible();
     await expect
-      .element(page.getByRole("tab", { name: PENDING_COPY.tabLabel(1) }))
-      .toBeVisible();
+      .element(page.getByRole("listitem"))
+      .toHaveTextContent(QUEST_B.name);
     expect(answer).toHaveBeenCalledWith({
       questId: QUEST_A.questId,
       accept: true,
     });
   });
 
-  test("an invitation already answered elsewhere says so, and leaves the list and the count at once", async () => {
+  test("an invitation already answered elsewhere says so, and leaves the list at once", async () => {
     answer.mockResolvedValue({ kind: "failed" });
-    await render(pendingTabs([QUEST_A, QUEST_B]));
+    await render(invitations([QUEST_A, QUEST_B]));
     await page
       .getByRole("button", { name: PENDING_COPY.declineLabel(QUEST_B.name) })
       .click();
@@ -521,9 +518,6 @@ describe("Pending on Quests", () => {
       )
       .not.toBeInTheDocument();
     await expect
-      .element(page.getByRole("tab", { name: PENDING_COPY.tabLabel(1) }))
-      .toBeVisible();
-    await expect
       .element(
         page.getByRole("button", {
           name: PENDING_COPY.acceptLabel(QUEST_A.name),
@@ -533,7 +527,7 @@ describe("Pending on Quests", () => {
   });
 });
 
-describe("members and Pending on phones", () => {
+describe("members and invitations on phones", () => {
   for (const viewport of [NARROWEST_VIEWPORT, PHONE_VIEWPORT]) {
     for (const mode of THEME_MODES) {
       test(`fit ${viewport.width} px in ${mode}`, async () => {
@@ -547,7 +541,7 @@ describe("members and Pending on phones", () => {
           .toBeVisible();
         expect(pageScrollWidth()).toBeLessThanOrEqual(viewport.width);
         expect(smallTargets(await measureTargets())).toEqual([]);
-        await view.rerender(pendingTabs([QUEST_A, QUEST_B]));
+        await view.rerender(invitations([QUEST_A, QUEST_B]));
         await expect
           .element(
             page.getByRole("button", {
@@ -562,9 +556,9 @@ describe("members and Pending on phones", () => {
   }
 
   for (const viewport of [NARROWEST_VIEWPORT, SMALL_PHONE_VIEWPORT]) {
-    test(`at ${viewport.width} px Pending puts Accept and Decline beneath an unbroken name`, async () => {
+    test(`at ${viewport.width} px an invitation puts Accept and Decline beneath an unbroken name`, async () => {
       await setViewport(viewport);
-      await render(pendingTabs([{ ...QUEST_A, name: WORD_BREAK_NAME }]));
+      await render(invitations([{ ...QUEST_A, name: WORD_BREAK_NAME }]));
       const title = page.getByText(WORD_BREAK_NAME).element();
       const accept = page
         .getByRole("button", {
@@ -599,9 +593,9 @@ describe("members and Pending on phones", () => {
     });
   }
 
-  test("at 768 px Pending keeps Accept and Decline beside the name", async () => {
+  test("at 768 px an invitation keeps Accept and Decline beside the name", async () => {
     await setViewport(TABLET_VIEWPORT);
-    await render(pendingTabs([QUEST_A]));
+    await render(invitations([QUEST_A]));
     const title = page
       .getByText(QUEST_A.name)
       .element()
