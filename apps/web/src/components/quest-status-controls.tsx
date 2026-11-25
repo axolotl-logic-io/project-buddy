@@ -179,4 +179,4 @@ function UndoStatusChange(
   return <FormUndoControl {...props} />;
 }
 
-export { QuestStatusControls, QuestStatusFeedback, UndoStatusChange };
+export { QuestStatusControls, QuestStatusFeedback };

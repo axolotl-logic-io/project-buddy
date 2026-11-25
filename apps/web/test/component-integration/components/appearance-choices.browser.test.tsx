@@ -19,8 +19,8 @@ import {
 } from "@/themes/theme-choice.ts";
 import {
   DEFAULT_THEME_CHOICE,
+  THEME_IDS,
   THEME_MODES,
-  THEMES,
   type ThemeMode,
 } from "@/themes/themes.ts";
 import { SITE_COPY } from "@/ui/copy/site.ts";
@@ -495,8 +495,8 @@ describe("use_case_choose_theme", () => {
     },
   );
 
-  for (const { id, name } of THEMES) {
-    test(`the ${name} theme: its own fonts, and the site's name on one line, wide and on a phone`, async () => {
+  for (const id of THEME_IDS) {
+    test(`the ${id} theme: its own fonts, and the site's name on one line, wide and on a phone`, async () => {
       await openPanel();
       await closePanel();
       expect(appliedChoice().theme).toBe(id);

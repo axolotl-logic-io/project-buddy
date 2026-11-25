@@ -61,22 +61,4 @@ function dataOf(answer: ApiAnswer): Record<string, unknown> {
   return data;
 }
 
-// The id of the first item an answer lists.
-function firstItemId(answer: ApiAnswer): string {
-  const { items } = answer.body;
-  if (!Array.isArray(items)) {
-    throw new Error(`The API answered ${answer.status} without items`);
-  }
-  const [first]: unknown[] = items;
-  if (!isRecord(first)) {
-    throw new Error("The first item isn't a record");
-  }
-  const { id } = first;
-  if (typeof id !== "string") {
-    throw new Error("The first item has no id");
-  }
-  return id;
-}
-
-export type { ApiAnswer };
-export { callApi, dataOf, firstItemId };
+export { callApi, dataOf };

@@ -14,5 +14,4 @@ function forgottenTabHref(change: RiteChange, id?: string): string {
   return `/grimoire?${search.toString()}`;
 }
 
-export type { RiteChange };
 export { forgottenTabHref, RITE_CHANGE };

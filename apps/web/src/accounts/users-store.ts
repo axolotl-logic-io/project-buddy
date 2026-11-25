@@ -279,7 +279,7 @@ async function completeSignUp(
   );
 }
 
-export type { AccountState, SignUpDetails, User };
+export type { SignUpDetails, User };
 export {
   completeSignUp,
   completeSignUpIn,

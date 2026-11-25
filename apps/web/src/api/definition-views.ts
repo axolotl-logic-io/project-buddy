@@ -37,5 +37,4 @@ function findConstructView(
   return Promise.resolve(undefined);
 }
 
-export type { ConstructView };
 export { findConstructView, listConstructViews };

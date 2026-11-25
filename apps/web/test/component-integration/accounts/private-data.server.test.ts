@@ -17,7 +17,6 @@ import {
   listChangeOpenTo,
   listItemOpenTo,
   listOpenTo,
-  opensQuest,
   performanceMessageOpenTo,
   performanceOpenTo,
   questInvitationOpenTo,
@@ -325,8 +324,6 @@ function predicateProbes(
       questRow(quest.id, questOpenTo(user)),
     "questOpenTo, the owner's other quest": (user: UserId): Promise<boolean> =>
       questRow(otherQuest.id, questOpenTo(user)),
-    opensQuest: (user: UserId): Promise<boolean> =>
-      questRow(quest.id, opensQuest(user, quest.id)),
     questPendingFor: (user: UserId): Promise<boolean> =>
       questRow(quest.id, questPendingFor(user)),
     listOpenTo: (user: UserId): Promise<boolean> =>
@@ -446,7 +443,6 @@ const EXPECTED_REACH: Readonly<Record<string, readonly Role[]>> = {
   questOwnedBy: ["owner"],
   questOpenTo: OPEN_TO_OWNER_AND_MEMBER,
   "questOpenTo, the owner's other quest": ["owner"],
-  opensQuest: OPEN_TO_OWNER_AND_MEMBER,
   questPendingFor: ["pending invitee"],
   listOpenTo: OPEN_TO_OWNER_AND_MEMBER,
   listItemOpenTo: OPEN_TO_OWNER_AND_MEMBER,

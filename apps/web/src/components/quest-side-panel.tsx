@@ -15,7 +15,6 @@ import { createPortal } from "react-dom";
 import { Button } from "@/components/ui/button.tsx";
 import { Icon } from "@/components/ui/icon.tsx";
 import { useWideScreen } from "@/components/use-wide-screen.ts";
-import { QUEST_SIDEBAR_COPY } from "@/ui/copy/quest-sidebar.ts";
 
 // The parallel header slot can be replaced during navigation. Subscribe
 // to its DOM presence so the control follows the current header.
@@ -38,7 +37,7 @@ function QuestSidePanel({
   panel,
   title,
   initialSection,
-  labels = QUEST_SIDEBAR_COPY,
+  labels,
   icon,
 }: {
   readonly children?: ReactNode;
@@ -46,7 +45,7 @@ function QuestSidePanel({
   readonly title: string;
   readonly icon?: Parameters<typeof Icon>[0]["name"];
   readonly initialSection?: string | undefined;
-  readonly labels?: {
+  readonly labels: {
     readonly label: string;
     readonly expand: string;
     readonly collapse: string;

@@ -19,7 +19,7 @@ const APP_COLORS = {
 const APP_ICONS = {
   small: { src: "/icons/icon-192.png", size: 192 },
   large: { src: "/icons/icon-512.png", size: 512 },
-  apple: { src: "/icons/apple-touch-icon.png", size: 180 },
+  apple: { src: "/icons/apple-touch-icon.png" },
 } as const;
 
 export { APP_COLORS, APP_ICONS };

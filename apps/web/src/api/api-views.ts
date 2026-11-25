@@ -30,5 +30,4 @@ function questView(quest: Quest): QuestView {
   };
 }
 
-export type { QuestView };
 export { questView };

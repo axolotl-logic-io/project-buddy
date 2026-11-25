@@ -13,7 +13,6 @@ import {
 import type { PendingQuest, QuestPeople } from "@/quests/membership-store.ts";
 import { THEME_MODES } from "@/themes/themes.ts";
 import { PENDING_COPY, QUEST_MEMBERS_COPY } from "@/ui/copy/quest-members.ts";
-import { QUEST_SIDEBAR_COPY } from "@/ui/copy/quest-sidebar.ts";
 import { QUEST_STATUS_COPY } from "@/ui/copy/quest-status.ts";
 import { animationsSettled } from "../../support/animations-test-kit.ts";
 import { questIdFixture, userIdFixture } from "../../support/id-fixtures.ts";
@@ -34,7 +33,11 @@ import {
 
 vi.mock("next/navigation", () => import("./router-test-kit.ts"));
 
-const SIDEBAR_LABEL: string = QUEST_SIDEBAR_COPY.label;
+const MEMBERS_PANEL_LABELS = {
+  label: "Members panel",
+  expand: "Open Members panel",
+  collapse: "Close Members panel",
+};
 const REMOVE_OWNER = /remove morgan/iu;
 const INVITED_BY_MORGAN = /Morgan invited you/u;
 const WORD_BREAK_NAME = "Thursday bread in Portuguese with neighbours";
@@ -94,12 +97,12 @@ function members(viewer = OWNER.id): JSX.Element {
   );
 }
 
-// The quest sidebar as the quest page shows it, holding the Members tab
-// for viewer, opened on Members: a drawer below 1024 px.
+// Opens a drawer with member controls to test confirmation dialogs inside it.
 function sidebarMembers(viewer = OWNER.id): JSX.Element {
   return (
     <QuestSidePanel
       initialSection="members"
+      labels={MEMBERS_PANEL_LABELS}
       title="Members"
       panel={members(viewer)}
     />
@@ -304,7 +307,7 @@ describe("a quest's Members tab", () => {
   });
 });
 
-describe("the Members tab in the quest sidebar's drawer", () => {
+describe("member management inside a drawer", () => {
   for (const viewport of [
     NARROWEST_VIEWPORT,
     SMALL_PHONE_VIEWPORT,
@@ -318,7 +321,9 @@ describe("the Members tab in the quest sidebar's drawer", () => {
       });
       await setViewport(viewport);
       await render(sidebarMembers());
-      const drawer = page.getByRole("dialog", { name: SIDEBAR_LABEL });
+      const drawer = page.getByRole("dialog", {
+        name: MEMBERS_PANEL_LABELS.label,
+      });
       await expect.element(drawer).toBeVisible();
 
       await drawer
@@ -368,7 +373,9 @@ describe("the Members tab in the quest sidebar's drawer", () => {
   test("at 390 px, Escape and Stay in quest cancel Leave without closing the drawer, and Leave quest leaves", async () => {
     await setViewport(PHONE_VIEWPORT);
     await render(sidebarMembers(MEMBER.id));
-    const drawer = page.getByRole("dialog", { name: SIDEBAR_LABEL });
+    const drawer = page.getByRole("dialog", {
+      name: MEMBERS_PANEL_LABELS.label,
+    });
     const leave = drawer.getByRole("button", {
       name: QUEST_MEMBERS_COPY.leave,
     });

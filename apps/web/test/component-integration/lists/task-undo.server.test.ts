@@ -1,10 +1,6 @@
 import { expect, test } from "vitest";
 import { readExperience } from "@/experience/experience-store.ts";
-import {
-  changeListItem,
-  readListItems,
-  writeListContents,
-} from "@/lists/list-item-store.ts";
+import { readListItems, writeListContents } from "@/lists/list-item-store.ts";
 import { readLists } from "@/lists/list-store.ts";
 import { testData } from "../../support/test-database/data-test-kit.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
@@ -47,13 +43,13 @@ test("use_case_change_tasks", async () => {
     throw new Error("Missing change version");
   }
   const edit = { kind: "edit", id: task.id, text: "Buy rye flour" } as const;
-  expect(await changeListItem(pending.id, quest.id, list.id, edit)).toBe(
-    "missing",
-  );
-  expect(await changeListItem(removed.id, quest.id, list.id, edit)).toBe(
-    "missing",
-  );
-  await changeListItem(owner.id, quest.id, list.id, edit);
+  expect(
+    (await writeListContents(pending.id, quest.id, list.id, edit)).result,
+  ).toBe("missing");
+  expect(
+    (await writeListContents(removed.id, quest.id, list.id, edit)).result,
+  ).toBe("missing");
+  await writeListContents(owner.id, quest.id, list.id, edit);
   const undone = await writeListContents(owner.id, quest.id, list.id, {
     kind: "undo",
     version,
@@ -63,10 +59,12 @@ test("use_case_change_tasks", async () => {
   ]);
   expect((await readExperience(member.id)).counts["checking-off"]).toBe(0);
   expect(
-    await changeListItem(owner.id, quest.id, list.id, {
-      kind: "undo",
-      version,
-    }),
+    (
+      await writeListContents(owner.id, quest.id, list.id, {
+        kind: "undo",
+        version,
+      })
+    ).result,
   ).toBe("unchanged");
 });
 
@@ -107,10 +105,7 @@ test("use_case_change_tasks: Undo keeps the changes made since", async () => {
     { id: proof.id, text: "Proof", taskNumber: proof.taskNumber },
   ]);
   // Mix was removed after its edit, so undoing the edit leaves it removed.
-  expect(
-    await changeListItem(owner.id, quest.id, list.id, {
-      kind: "undo",
-      version: edited,
-    }),
-  ).toBe("unchanged");
+  expect((await change({ kind: "undo", version: edited })).result).toBe(
+    "unchanged",
+  );
 });

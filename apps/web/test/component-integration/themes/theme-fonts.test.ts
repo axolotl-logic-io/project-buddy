@@ -8,7 +8,7 @@ import {
   THEME_TYPEFACES,
   TYPEFACE_FONT_URLS,
 } from "@/themes/theme-font-urls.ts";
-import { THEMES } from "@/themes/themes.ts";
+import { THEME_IDS } from "@/themes/themes.ts";
 import { themeReads } from "../../support/themes/theme-stylesheets.ts";
 
 const { "./theme-fonts.ts": FONTS_SOURCE = "" } = import.meta.glob<string>(
@@ -68,7 +68,7 @@ test("no font preloads through next/font", () => {
 });
 
 test("every theme's typefaces have a preload URL", () => {
-  for (const { id } of THEMES) {
+  for (const id of THEME_IDS) {
     expect(new Set(THEME_TYPEFACES[id])).toEqual(
       new Set([...themeReads(id)].filter((name) => TYPEFACE.test(name))),
     );

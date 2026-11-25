@@ -105,5 +105,4 @@ function readExperience(user: UserId): Promise<Experience> {
   });
 }
 
-export type { PointGainer };
 export { latestCheckOff, readExperience, recordEvents, takeBackEvents };

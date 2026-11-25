@@ -119,16 +119,13 @@ function experienceOf(counts: EventCounts): Experience {
   };
 }
 
-export type { CircleTitle, Event, EventCounts, EventStanding, Experience };
+export type { Event, EventCounts, EventStanding, Experience };
 export {
-  CIRCLE_STEP,
-  CIRCLE_TITLES,
   circleAt,
   circleFraction,
   circleStart,
   EVENT_KIND,
   EVENT_KIND_WEIGHTS,
-  EVENTS,
   eventsByExperience,
   experienceOf,
   NO_EVENTS,

@@ -54,5 +54,4 @@ async function saveListAction(
   }
 }
 
-export type { ListFormState };
 export { saveListAction };

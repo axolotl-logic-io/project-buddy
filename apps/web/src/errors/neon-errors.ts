@@ -2,8 +2,7 @@
 // DrizzleQueryError around a native PostgreSQL error or NeonDbError, which
 // carry PostgreSQL error fields, or the fetch error that stopped the driver
 // reaching Neon in `sourceError`. This module knows their cases, which of
-// their fields are safe to log, where the original error is kept, and which
-// foreign key a rejected query broke.
+// their fields are safe to log and where the original error is kept.
 
 import { DrizzleQueryError } from "drizzle-orm";
 import { z } from "zod";
@@ -29,7 +28,6 @@ const NEON_DB_ERROR = z.object({
   severity: POSTGRES_FIELD,
   detail: POSTGRES_FIELD,
   hint: POSTGRES_FIELD,
-  constraint: POSTGRES_FIELD,
   sourceError: z.unknown().optional(),
 });
 
@@ -88,23 +86,6 @@ function databaseErrorCase(error: unknown): DatabaseErrorCase | undefined {
   return neonDbErrorCase(neonDbError);
 }
 
-// SQLSTATE 23503: a row refers to one that doesn't exist.
-const FOREIGN_KEY_VIOLATION = "23503";
-
-// Whether error is a failed query that Postgres rejected for breaking the
-// foreign key named constraint, such as a row added for a user deleted
-// meanwhile.
-function violatesForeignKey(error: unknown, constraint: string): boolean {
-  if (!(error instanceof DrizzleQueryError)) {
-    return false;
-  }
-  const neonDbError = readNeonDbError(error.cause);
-  return (
-    neonDbError?.code === FOREIGN_KEY_VIOLATION &&
-    neonDbError.constraint === constraint
-  );
-}
-
 // The original error inside a NeonDbError, such as the fetch error that
 // stopped it, which the driver keeps in `sourceError` rather than `cause`.
 function databaseErrorSource(error: unknown): unknown {
@@ -151,5 +132,4 @@ export {
   databaseErrorDetails,
   databaseErrorSource,
   describeDatabaseQuery,
-  violatesForeignKey,
 };

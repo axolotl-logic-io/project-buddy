@@ -13,5 +13,4 @@ export const PROBLEMS_COPY = {
   pageNotFound:
     "That page can't be found. The link may be wrong, or it may have been deleted.",
   questsLink: "Quests",
-  signInLink: "Sign in again",
 } as const;

@@ -121,7 +121,7 @@ Changes to rites, constructs, reply templates or relevant user flows update the 
 - **The test database:** the orchestrator provides `.env.test` with its local database and `E2E_PORT` pinned to the checkout's lane; test commands consume it without allocating names or ports or tearing down lane resources. For manual work, run `npm run test-env:init` or copy `.env.test.example` by hand. Guards require localhost or 127.0.0.1, a safe database name and the file email outbox.
 - **Phone checks:** a new page gets an entry in `PHONE_PAGES` (`test/component-integration/app/phone-pages-test-kit.tsx`).
 - **Check what the user sees, not class names.** UI tests find elements by role, label or text and check what is shown or done, never a CSS class name such as `card` or `error-box`.
-- **E2e helpers:** every test gets its own `account` and `testData` from `test/system/fixtures.ts`, deleted after the test; the fixtures make them with the server tests' kit in `test/support/test-database/`. Next's route announcer also has `role="alert"`, so find an alert inside its container (`alertIn` in `page-helpers.ts`) or by its text, never by `getByRole("alert")` alone.
+- **E2e helpers:** every test gets its own `account` and `testData` from `test/system/fixtures.ts`, deleted after the test. The fixtures make them with the server tests' kit in `test/support/test-database/`. Next's route announcer also has `role="alert"`. Locate the page's alert inside its container or by its text.
 - **Typing right after a goto:** WebKit hydrates a page well after the load event `page.goto` waits for, and text typed before then misses the form's state. Fill a field right after a goto with `fillWhenReady` from `page-helpers.ts`.
 
 ## Site production

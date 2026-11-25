@@ -223,7 +223,7 @@ function questRoute<Params extends QuestParams>(
   });
 }
 
-export type { ApiCall, ApiProblemCode, NoParams, QuestCall, QuestParams };
+export type { ApiCall, NoParams, QuestCall, QuestParams };
 export {
   apiData,
   apiItems,

@@ -1,18 +1,10 @@
-// Small helpers any spec may need, whatever page it is on: finding the page's
-// own alert, and typing into a field or clicking a control once the page has
-// hydrated.
-import { expect, type Locator, type Page } from "@playwright/test";
+// Types into a field once the page has hydrated.
+import { expect, type Locator } from "@playwright/test";
 
 // The start of the key React puts on a DOM node when it hydrates it, which
 // is when the node's props, and so its handlers, are attached. React adds a
 // random suffix.
 const REACT_PROPS_KEY = "__reactProps$";
-
-// The page's own alert. Next's route announcer is an alert too, outside the
-// main landmark.
-function alertIn(page: Page): Locator {
-  return page.getByRole("main").getByRole("alert");
-}
 
 // Waits until React has hydrated target. A page shows its server-rendered
 // HTML before it hydrates, and WebKit hydrates well after the load event
@@ -40,11 +32,4 @@ async function fillWhenReady(field: Locator, text: string): Promise<void> {
   await expect(field).toHaveValue(text);
 }
 
-// Clicks control once React has hydrated it, so a click right after
-// page.goto is never lost on a page that hasn't hydrated.
-async function clickWhenReady(control: Locator): Promise<void> {
-  await waitForHydrated(control);
-  await control.click();
-}
-
-export { alertIn, clickWhenReady, fillWhenReady };
+export { fillWhenReady };

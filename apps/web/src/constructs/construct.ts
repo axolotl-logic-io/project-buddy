@@ -1,18 +1,21 @@
 import type { ConstructVisual } from "@/constructs/visual.ts";
 
-export const CONSTRUCT_IDS = ["vellum", "lumen"] as const;
+const CONSTRUCT_IDS = ["vellum", "lumen"] as const;
 
-export type ConstructId = (typeof CONSTRUCT_IDS)[number];
+type ConstructId = (typeof CONSTRUCT_IDS)[number];
 
-export interface ConstructDefinition {
+interface ConstructDefinition {
   readonly visual?: ConstructVisual | undefined;
 }
 
 // A built-in construct (src/constructs/). A quest names its
 // construct by id.
-export interface Construct {
+interface Construct {
   readonly id: ConstructId;
   readonly name: string;
   readonly description: string;
   readonly definition: ConstructDefinition;
 }
+
+export type { Construct, ConstructId };
+export { CONSTRUCT_IDS };

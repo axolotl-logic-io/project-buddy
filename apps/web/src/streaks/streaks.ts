@@ -253,7 +253,6 @@ function withMark<Task extends TrackedTask>(
 }
 
 export type {
-  DayGrid,
   DayMark,
   LocalDate,
   MarkChange,

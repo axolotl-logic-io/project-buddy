@@ -35,5 +35,4 @@ function startPremadeQuest(
   });
 }
 
-export type { PremadeStart };
 export { startPremadeQuest };
