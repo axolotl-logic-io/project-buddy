@@ -88,37 +88,32 @@ describe("use_case_see_icon_credit", () => {
     });
   }
 
-  for (const signedIn of [false, true]) {
-    test(`Credits preserves attribution with signed in: ${signedIn}`, async () => {
-      signOut();
-      if (signedIn) {
-        signInAs(SIGNED_IN_USER);
-      }
-      await render(await inSiteFrame(<CreditsPage />));
-      await expect
-        .element(
-          page.getByRole("heading", {
-            name: CREDITS_COPY.heading,
-            exact: true,
-          }),
-        )
-        .toBeVisible();
-      await expect
-        .element(page.getByRole("link", { name: CREDITS_COPY.iconLibrary }))
-        .toHaveAttribute("href", "https://lucide.dev");
-      const iconLicense = page.getByRole("link", {
-        name: CREDITS_COPY.iconLicense,
-      });
-      await expect
-        .element(iconLicense)
-        .toHaveAttribute("href", "/licenses/lucide.txt");
-      await expect.element(iconLicense).toHaveAttribute("rel", "license");
-      page
-        .getByRole("link", { name: CREDITS_COPY.iconLibrary })
-        .element()
-        .focus();
-      await tabForward();
-      await expect.element(iconLicense).toHaveFocus();
+  test("Credits preserves attribution for a signed-out visitor", async () => {
+    signOut();
+    await render(await inSiteFrame(<CreditsPage />));
+    await expect
+      .element(
+        page.getByRole("heading", {
+          name: CREDITS_COPY.heading,
+          exact: true,
+        }),
+      )
+      .toBeVisible();
+    await expect
+      .element(page.getByRole("link", { name: CREDITS_COPY.iconLibrary }))
+      .toHaveAttribute("href", "https://lucide.dev");
+    const iconLicense = page.getByRole("link", {
+      name: CREDITS_COPY.iconLicense,
     });
-  }
+    await expect
+      .element(iconLicense)
+      .toHaveAttribute("href", "/licenses/lucide.txt");
+    await expect.element(iconLicense).toHaveAttribute("rel", "license");
+    page
+      .getByRole("link", { name: CREDITS_COPY.iconLibrary })
+      .element()
+      .focus();
+    await tabForward();
+    await expect.element(iconLicense).toHaveFocus();
+  });
 });

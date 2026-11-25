@@ -105,18 +105,32 @@ describe("Feature: Visual work and break timer", () => {
     expect(offeredMinutes(breakSelect().element())).toEqual([...TIMER_MINUTES]);
   });
 
-  test("Scenario: Repeat at exact boundaries", async () => {
-    await renderTimer(FIFTY_TEN);
+  describe("use_case_timer_follow_cycle", () => {
+    test("Scenario: Repeat at exact boundaries", async () => {
+      await renderTimer(FIFTY_TEN);
 
-    returnToTabAt(minutesAfter(FIFTY_TEN, WORK));
-    await expect.element(phaseHeading("Break")).toBeVisible();
-    await expect.element(countdown()).toHaveTextContent("10:00");
-    expect(progressShown()).toBe(0);
+      returnToTabAt(minutesAfter(FIFTY_TEN, WORK));
+      await expect.element(phaseHeading("Break")).toBeVisible();
+      await expect.element(countdown()).toHaveTextContent("10:00");
+      expect(progressShown()).toBe(0);
 
-    returnToTabAt(minutesAfter(FIFTY_TEN, CYCLE));
-    await expect.element(phaseHeading("Work")).toBeVisible();
-    await expect.element(countdown()).toHaveTextContent("50:00");
-    expect(progressShown()).toBe(0);
+      returnToTabAt(minutesAfter(FIFTY_TEN, CYCLE));
+      await expect.element(phaseHeading("Work")).toBeVisible();
+      await expect.element(countdown()).toHaveTextContent("50:00");
+      expect(progressShown()).toBe(0);
+    });
+
+    test("Scenario: Return after missed periods", async () => {
+      await renderTimer(FIFTY_TEN);
+      await expect.element(phaseHeading("Work")).toBeVisible();
+
+      returnToTabAt(minutesAfter(FIFTY_TEN, RESUMED_AT));
+      await expect.element(phaseHeading("Work")).toBeVisible();
+      await expect.element(countdown()).toHaveTextContent("45:00");
+      await expect
+        .element(page.getByRole("status").filter({ hasText: "Work time." }))
+        .toBeInTheDocument();
+    });
   });
 
   test("Scenario: Join and refresh an existing schedule", async () => {
@@ -134,32 +148,27 @@ describe("Feature: Visual work and break timer", () => {
     expect(reportTimerPresenceAction).toHaveBeenLastCalledWith(FIFTY_TEN);
   });
 
-  test("Scenario: Join the global schedule", async () => {
-    await renderSetup();
-    await page.getByRole("button", { name: TIMER_COPY.joinGlobal }).click();
-    returnToTabAt(minutesAfter(FIFTY_TEN, JOINED_AT));
-    await page.getByRole("button", { name: TIMER_COPY.joinGlobal }).click();
+  describe("use_case_timer_join_global", () => {
+    test("Scenario: Join the global schedule", async () => {
+      await renderSetup();
+      const join = page.getByRole("button", { name: TIMER_COPY.joinGlobal });
+      await expect
+        .element(join)
+        .toHaveAccessibleDescription(TIMER_COPY.joinGlobalHint);
+      await join.click();
+      returnToTabAt(minutesAfter(FIFTY_TEN, JOINED_AT));
+      await page.getByRole("button", { name: TIMER_COPY.joinGlobal }).click();
 
-    expect(timerRouter.push.mock.calls).toEqual([
-      ["/timer/50/10/0"],
-      ["/timer/50/10/0"],
-    ]);
+      expect(timerRouter.push.mock.calls).toEqual([
+        ["/timer/50/10/0"],
+        ["/timer/50/10/0"],
+      ]);
 
-    await breakSelect().selectOptions("15");
-    await page.getByRole("button", { name: TIMER_COPY.joinGlobal }).click();
-    expect(timerRouter.push).toHaveBeenLastCalledWith("/timer/50/15/0");
-  });
-
-  test("Scenario: Return after missed periods", async () => {
-    await renderTimer(FIFTY_TEN);
-    await expect.element(phaseHeading("Work")).toBeVisible();
-
-    returnToTabAt(minutesAfter(FIFTY_TEN, RESUMED_AT));
-    await expect.element(phaseHeading("Work")).toBeVisible();
-    await expect.element(countdown()).toHaveTextContent("45:00");
-    await expect
-      .element(page.getByRole("status").filter({ hasText: "Work time." }))
-      .toBeInTheDocument();
+      await workSelect().selectOptions("30");
+      await breakSelect().selectOptions("15");
+      await join.click();
+      expect(timerRouter.push).toHaveBeenLastCalledWith("/timer/30/15/0");
+    });
   });
 
   test("Scenario: Display hours and accessible phase information", async () => {
@@ -207,6 +216,10 @@ describe("Feature: Visual work and break timer", () => {
     await expect
       .element(page.getByText(TIMER_COPY.othersUnavailable))
       .toBeVisible();
+
+    await expect
+      .element(page.getByText(TIMER_COPY.others(0)))
+      .not.toBeInTheDocument();
 
     returnToTabAt(minutesAfter(FIFTY_TEN, WORK));
     await expect.element(phaseHeading("Break")).toBeVisible();

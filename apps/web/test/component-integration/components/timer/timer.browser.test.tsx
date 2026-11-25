@@ -15,7 +15,6 @@ import {
   progressShown,
   renderSetup,
   renderTimer,
-  returnToTabAt,
   T,
 } from "../../../support/timer/timer-test-kit.tsx";
 
@@ -28,7 +27,6 @@ vi.mock(
 const PARTWAY = 5;
 const WORK = 50;
 const BREAK = 10;
-const CYCLE: number = WORK + BREAK;
 
 const FIFTY_TEN: TimerSchedule = {
   workMinutes: WORK,
@@ -100,39 +98,6 @@ describe("use_case_timer_join_link", () => {
   });
 });
 
-describe("use_case_timer_join_global", () => {
-  test("Join global timer opens the epoch schedule of the chosen durations", async () => {
-    await renderSetup();
-    await workSelect().selectOptions("30");
-    await page.getByRole("button", { name: TIMER_COPY.joinGlobal }).click();
-
-    expect(timerRouter.push).toHaveBeenCalledWith("/timer/30/10/0");
-    await expect
-      .element(page.getByRole("button", { name: TIMER_COPY.joinGlobal }))
-      .toHaveAccessibleDescription(TIMER_COPY.joinGlobalHint);
-  });
-});
-
-describe("use_case_timer_follow_cycle", () => {
-  test("the timer moves to break and back to work at the boundaries, and catches up after missed periods", async () => {
-    await renderTimer(FIFTY_TEN);
-    await expect.element(countdown()).toHaveTextContent("50:00");
-
-    returnToTabAt(minutesAfter(FIFTY_TEN, WORK));
-    await expect.element(phaseHeading("Break")).toBeVisible();
-    await expect.element(countdown()).toHaveTextContent("10:00");
-    expect(progressShown()).toBe(0);
-
-    returnToTabAt(minutesAfter(FIFTY_TEN, CYCLE));
-    await expect.element(phaseHeading("Work")).toBeVisible();
-    await expect.element(countdown()).toHaveTextContent("50:00");
-
-    returnToTabAt(minutesAfter(FIFTY_TEN, 2 * CYCLE + PARTWAY));
-    await expect.element(phaseHeading("Work")).toBeVisible();
-    await expect.element(countdown()).toHaveTextContent("45:00");
-  });
-});
-
 describe("use_case_timer_see_others", () => {
   test("the timer shows how many others follow its schedule", async () => {
     vi.mocked(reportTimerPresenceAction).mockResolvedValue({
@@ -167,28 +132,6 @@ describe("use_case_timer_see_others", () => {
       .element(page.getByText(TIMER_COPY.others(2)))
       .not.toBeInTheDocument();
     expect(reportTimerPresenceAction).not.toHaveBeenCalled();
-  });
-
-  test("a failed report shows the count as unavailable, the countdown keeps going, and a later report recovers", async () => {
-    vi.mocked(reportTimerPresenceAction).mockRejectedValueOnce(
-      new Error("offline"),
-    );
-    await renderTimer(FIFTY_TEN);
-
-    await expect
-      .element(page.getByText(TIMER_COPY.othersUnavailable))
-      .toBeVisible();
-    await expect
-      .element(page.getByText(TIMER_COPY.others(0)))
-      .not.toBeInTheDocument();
-
-    vi.mocked(reportTimerPresenceAction).mockResolvedValueOnce({
-      kind: "count",
-      others: 1,
-    });
-    returnToTabAt(minutesAfter(FIFTY_TEN, 1));
-    await expect.element(page.getByText(TIMER_COPY.others(1))).toBeVisible();
-    await expect.element(countdown()).toHaveTextContent("49:00");
   });
 });
 

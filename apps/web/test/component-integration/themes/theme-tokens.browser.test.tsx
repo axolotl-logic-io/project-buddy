@@ -199,49 +199,35 @@ describe.each(THEME_IDS)("the %s theme", (themeId: ThemeId) => {
         expect(ratio, `${front} on ${back}`).toBeGreaterThanOrEqual(minimum);
       }
     });
+  });
 
-    test("sizes its headings from the site's title down, all above body text", () => {
-      const sizes = [
-        size(SITE_TITLE),
-        size(PAGE_HEADING),
-        size(SECTION_HEADING),
-        bodySize(),
-      ];
-      const larger = sizes.slice(0, -1);
-      for (const [index, smaller] of sizes.slice(1).entries()) {
-        expect(larger[index], sizes.join(" > ")).toBeGreaterThan(smaller);
-      }
-      expect(size(WIDE_SITE_TITLE)).toBeGreaterThanOrEqual(size(SITE_TITLE));
-    });
+  test("orders heading sizes from the site's title to body text", () => {
+    applyTheme(themeId);
+    const site = size(SITE_TITLE);
+    const page = size(PAGE_HEADING);
+    const phone = size(PHONE_PAGE_HEADING);
+    const section = size(SECTION_HEADING);
+    const header = size(HEADER_TITLE);
+    const card = size(CARD_TITLE);
+    const body = bodySize();
 
-    test("sets a page's heading clearly larger than a section's", () => {
-      expect(size(PAGE_HEADING) / size(SECTION_HEADING)).toBeGreaterThanOrEqual(
-        PAGE_OVER_SECTION_HEADING,
-      );
-    });
-
-    test("sets a page's heading on a phone no larger, and still clearly above a section's", () => {
-      const phone = size(PHONE_PAGE_HEADING);
-      expect(phone).toBeLessThanOrEqual(size(PAGE_HEADING));
-      expect(phone / size(SECTION_HEADING)).toBeGreaterThanOrEqual(
-        PAGE_OVER_SECTION_HEADING,
-      );
-    });
-
-    test("sets the header's title below a page's heading, and a card's below a section's", () => {
-      const headerTitle = size(HEADER_TITLE);
-      const cardTitle = size(CARD_TITLE);
-      expect(headerTitle).toBeLessThan(size(PAGE_HEADING));
-      expect(headerTitle).toBeGreaterThan(bodySize());
-      expect(cardTitle).toBeLessThan(size(SECTION_HEADING));
-      expect(cardTitle).toBeGreaterThanOrEqual(bodySize());
-    });
+    expect(size(WIDE_SITE_TITLE)).toBeGreaterThanOrEqual(site);
+    expect(site).toBeGreaterThan(page);
+    expect(page / section).toBeGreaterThanOrEqual(PAGE_OVER_SECTION_HEADING);
+    expect(phone).toBeLessThanOrEqual(page);
+    expect(phone / section).toBeGreaterThanOrEqual(PAGE_OVER_SECTION_HEADING);
+    expect(section).toBeGreaterThan(body);
+    expect(header).toBeLessThan(page);
+    expect(header).toBeGreaterThan(body);
+    expect(card).toBeLessThan(section);
+    expect(card).toBeGreaterThanOrEqual(body);
   });
 
   test("keeps text sizes and border widths consistent across appearances", () => {
     const sizes = THEME_MODES.map((mode) => {
       applyTheme(themeId, mode);
       return [
+        bodySize(),
         ...[
           SITE_TITLE,
           WIDE_SITE_TITLE,
