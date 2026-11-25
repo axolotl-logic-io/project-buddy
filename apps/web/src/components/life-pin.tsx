@@ -20,6 +20,13 @@ import type { LifeSummary, SuggestedTask } from "@/quests/quest-index-store.ts";
 import { CADENCE_COPY } from "@/ui/copy/cadence.ts";
 import { LIFE_COPY } from "@/ui/copy/quests.ts";
 
+const LIFE_FRAME_CORNERS = [
+  "top-left",
+  "top-right",
+  "bottom-left",
+  "bottom-right",
+];
+
 function markDone(
   done: ReadonlySet<ListItemId>,
   id: ListItemId,
@@ -104,6 +111,30 @@ function LifePin({ life }: { readonly life: LifeSummary }): JSX.Element {
   const nameId = useId();
   return (
     <section aria-labelledby={nameId} className="life-pin">
+      {LIFE_FRAME_CORNERS.map((corner) => (
+        <svg
+          aria-hidden="true"
+          className="life-pin-corner"
+          data-corner={corner}
+          height="26"
+          key={corner}
+          viewBox="0 0 26 26"
+          width="26"
+        >
+          <path d="M0 26V9h4V4h5V0h17v2H11v5H7v4H2v15z" fill="currentColor" />
+          <path
+            d="M6.5 23V13H13V6.5H23"
+            fill="none"
+            opacity=".7"
+            stroke="currentColor"
+          />
+          <path
+            d="M10.5 6.5l4 4-4 4-4-4zM10.5 9 9 10.5l1.5 1.5 1.5-1.5z"
+            fill="currentColor"
+            fillRule="evenodd"
+          />
+        </svg>
+      ))}
       <div className="life-pin-head">
         <span aria-hidden="true" className="quest-seal">
           <Icon name="sun" />

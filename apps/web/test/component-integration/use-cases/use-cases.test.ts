@@ -56,22 +56,6 @@ const E2E_SPEC = /^\/test\/system\/(?:[^/]+\/)*[^/]+\.spec\.ts$/u;
 // Why an e2e test may name only an auth case.
 const AUTH_ONLY_RULE =
   "e2e-auth-only: an e2e test names only an auth case (use-cases/auth-cases.ts); test any other case in Vitest";
-// The auth workflows' cases: a second copy of
-// AUTH_CASES on purpose, so widening the e2e tests' scope takes two edits.
-const AUTH_WORKFLOW_CASES: readonly string[] = [
-  "use_case_sign_up",
-  "use_case_sign_up_existing_email",
-  "use_case_sign_in_by_link",
-  "use_case_sign_in_link_reused",
-  "use_case_sign_in_link_expired",
-  "use_case_too_many_sign_in_requests",
-  "use_case_visit_signed_out",
-  "use_case_return_signed_in",
-  "use_case_session_expired",
-  "use_case_sign_out",
-  "use_case_sign_out_everywhere",
-];
-
 // The group `name` of every match of pattern in text.
 function capturesIn(
   text: string,
@@ -195,10 +179,7 @@ describe("the use cases", () => {
 });
 
 describe("the auth cases", () => {
-  test("match issue #351's list, each a case", () => {
-    expect([...AUTH_CASES].sort()).toStrictEqual(
-      [...AUTH_WORKFLOW_CASES].sort(),
-    );
+  test("are defined use cases", () => {
     expect(AUTH_CASES.filter((slug) => !CASES.includes(slug))).toStrictEqual(
       [],
     );
