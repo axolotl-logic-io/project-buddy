@@ -14,13 +14,15 @@ async function lockedQuest(
   user: UserId,
   id: QuestId,
 ): Promise<
-  { status: string; statusRevision: number; name: string } | undefined
+  | { status: string; statusRevision: number; name: string; life: boolean }
+  | undefined
 > {
   const [quest] = await tx
     .select({
       status: quests.status,
       statusRevision: quests.statusRevision,
       name: quests.name,
+      life: quests.life,
     })
     .from(quests)
     .where(and(eq(quests.id, id), questOpenTo(user)))
@@ -57,7 +59,7 @@ async function saveStatus(
 
 // A change the owner or a member asked for. The revision is the one shown
 // in the UI, never a blind overwrite. Undefined includes stale, foreign and
-// already-set.
+// already-set, and Life, which stays Active.
 function changeQuestStatus(
   user: UserId,
   change: StatusChange,
@@ -69,7 +71,8 @@ function changeQuestStatus(
         quest === undefined ||
         quest.statusRevision !== change.revision ||
         quest.status !== change.fromStatus ||
-        quest.status === change.toStatus
+        quest.status === change.toStatus ||
+        quest.life
       ) {
         return;
       }

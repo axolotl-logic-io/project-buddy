@@ -7,13 +7,14 @@ import type { QuestStatus } from "@/quests/quest-status.ts";
 import type { Quest } from "@/quests/store.ts";
 
 // A quest. Its revision is its status revision, which a status change
-// names.
+// names. Life, the quest every user always has, stays Active.
 interface QuestView {
   readonly id: string;
   readonly name: string;
   readonly status: QuestStatus;
   readonly revision: number;
   readonly constructId: string;
+  readonly life: boolean;
   readonly sharing: QuestSharing;
   readonly createdAt: Date;
 }
@@ -25,6 +26,7 @@ function questView(quest: Quest): QuestView {
     status: quest.status,
     revision: quest.statusRevision,
     constructId: quest.constructId,
+    life: quest.life,
     sharing: quest.sharing,
     createdAt: quest.createdAt,
   };

@@ -3,7 +3,7 @@
 // Anyone the quest is open to may invite people, see who is in it and
 // remove a member or withdraw a pending invitation; no one can remove the
 // owner, who is never a member row. A pending invitation opens nothing of
-// the quest: only its invitee sees it, in Pending, and only they accept or
+// the quest: only its invitee sees it, at the top of Quests, and only they accept or
 // decline it, one quest at a time.
 //
 // Inviting an address with no account creates an invited account for it

@@ -8,17 +8,17 @@ Use these terms in code, copy, prompts, docs and issues so the same words descri
 
 A workspace for something the user wants to learn, make or do, or for their daily work. A quest has an owner, a status and its lists. List items belong to the quest's lists and persist across performances. [Quest use cases](../apps/web/use-cases/quests.md)
 
-### Quest starting point
+### Life
 
-A reusable preset that supplies the initial quest name, starting context, construct and lists. Every starting point creates a Tasks list, which adds tasks, and an Ideas list, which adds plain list items. The four starting points are Dailies, Learn a thing, Make a thing and Do a thing. Dailies and Learn a thing assign Vellum. Make a thing and Do a thing assign Lumen. Each start makes a new quest. Dailies asks for no Why. [Starting point use case](../apps/web/use-cases/quests.md#use_case_browse_premade_quests)
+The quest every user has for the things they do every day. Each user has exactly one, made when they first need it, named Life. Quests pins it above their other quests with how many of its recurring tasks are done today and one of those not done yet, suggested at random to check off. Life stays Active. [Life use case](../apps/web/use-cases/quests.md#use_case_life)
 
 ### Quest status
 
 The state of a quest: **Active** for ongoing work, **Completed** for finished work and **Abandoned** for work the user has stopped pursuing. **Complete** and **Abandon** keep the quest's contents. **Restore quest** returns it to Active. Pending describes an invitation. [Quest status use cases](../apps/web/use-cases/quest-status.md)
 
-### Current quest
+### Resting
 
-The Active quest offered under **Continue** on Quests. Among quests open to the user, it is the one with the most recent performance activity. A quest with no performances ranks by the time it started. Continue also shows its next task when one exists. [Continue use case](../apps/web/use-cases/quests.md#use_case_continue_quest)
+An Active quest with nothing happening in it for 30 days. Quests marks it Resting; it is still Active. [Quests use case](../apps/web/use-cases/quests.md#use_case_view_quests)
 
 ### Quest owner
 
@@ -74,7 +74,7 @@ The panel, open from any page, that adds a list item to a list of an Active ques
 
 ### Quest day
 
-A day in a quest, from one midnight to the next in the quest owner's time zone. Everyone in the quest shares the owner's days. Nothing runs at midnight: each read of a task works out whether it is still checked off today. [Recurring task use case](../apps/web/use-cases/tasks.md#use_case_recurring_tasks)
+A day in a quest, from one midnight to the next in the quest owner's time zone. Everyone in the quest shares the owner's days. A quest's weeks start on Monday and its months on the 1st, each at that midnight. Nothing runs at midnight: each read of a task works out whether it is still checked off in its current day, week or month. [Recurring task use case](../apps/web/use-cases/tasks.md#use_case_recurring_tasks)
 
 ### Time zone
 
@@ -82,15 +82,15 @@ The time zone whose midnight starts a new quest day in each quest the user owns.
 
 ### Recurring task
 
-A task marked to do every day, in any quest. At the next midnight it reads as unchecked again if it is checked off, keeping its task number and place in its list. A **one-off task** stays checked off. [Recurring task use case](../apps/web/use-cases/tasks.md#use_case_recurring_tasks)
+A task marked to do again in every period of its **cadence**: daily, weekly or monthly, in any quest. When its next period starts (the next midnight, Monday or 1st of the month) it reads as unchecked again if it is checked off, keeping its task number and place in its list. A **one-off task** stays checked off. [Recurring task use case](../apps/web/use-cases/tasks.md#use_case_recurring_tasks)
 
 ### Streak
 
-A run of consecutive quest days on which someone checked off a recurring task. A day without a check-off breaks the run. **Day grid** shows each recurring task's marks for up to seven recent dates. [Daily streak use case](../apps/web/use-cases/tasks.md#use_case_daily_streaks)
+A run of consecutive periods of a recurring task's cadence (days, weeks or months) in each of which someone checked it off. A period without a check-off breaks the run. **Day grid** shows each recurring task's marks for up to seven recent periods, grouped by cadence. [Daily streak use case](../apps/web/use-cases/tasks.md#use_case_daily_streaks)
 
 ### Home
 
-The signed-in landing page at the site's root, above Quests in the breadcrumbs. It shows the user's experience, then **Streaks**: every recurring task of the Active quests open to them over the last seven dates, which they can check off in place on any of those dates since the task was added. Then **Tallies**: every tally of those quests with its day totals over the same dates, each of which they can change, and an Increment for today. Then **Tasks**: every one-off task of those quests that is open or was checked off today, which they can check off or uncheck in place. [Home streaks use case](../apps/web/use-cases/home.md#use_case_home_streaks), [Home tallies use case](../apps/web/use-cases/home.md#use_case_home_tallies), [Home tasks use case](../apps/web/use-cases/home.md#use_case_home_tasks)
+The signed-in landing page at the site's root, above Quests in the breadcrumbs. It shows the user's experience, then **Streaks**: a grid for each cadence, Every day, Every week and Every month, with every recurring task of that cadence in the Active quests open to them over its last seven periods, which they can check off in place in any of those periods since the task was added. Then **Tallies**: every tally of those quests with its day totals over the same dates, each of which they can change, and an Increment for today. Then **Tasks**: every one-off task of those quests that is open or was checked off today, which they can check off or uncheck in place. [Home streaks use case](../apps/web/use-cases/home.md#use_case_home_streaks), [Home tallies use case](../apps/web/use-cases/home.md#use_case_home_tallies), [Home tasks use case](../apps/web/use-cases/home.md#use_case_home_tasks)
 
 ## Rites and performances
 
@@ -114,7 +114,7 @@ During the active performance, users in the quest send messages. Each message ad
 
 ### Construct
 
-The character shown with a performance's replies. The built-in constructs are Vellum and Lumen. A quest's starting point assigns its construct, and the quest keeps it. [Construct use cases](../apps/web/use-cases/constructs.md)
+The character shown with a performance's replies. The built-in constructs are Vellum and Lumen. A new quest gets Vellum, and keeps it. [Construct use cases](../apps/web/use-cases/constructs.md)
 
 ### Grimoire
 

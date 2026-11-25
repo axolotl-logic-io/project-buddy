@@ -1,44 +1,52 @@
-// The days Home's tables and a tally's card show: their weekdays, days of
-// the month, and the browser's own date.
-import { useSyncExternalStore } from "react";
-import { type LocalDate, localDate } from "@/streaks/streaks.ts";
+// The days, weeks and months Home's tables, the Day grid and a tally's card
+// show: their weekdays, days of the month, months and names.
+import type { Cadence, LocalDate } from "@/streaks/streaks.ts";
+import { CADENCE_COPY } from "@/ui/copy/cadence.ts";
 
-// The weekday of a calendar date, the same on the server and in every
+// Each part of a calendar date, the same on the server and in every
 // browser, since the date already is the user's own.
 const WEEKDAY = new Intl.DateTimeFormat("en", {
   weekday: "short",
   timeZone: "UTC",
 });
+const MONTH = new Intl.DateTimeFormat("en", {
+  month: "short",
+  timeZone: "UTC",
+});
+const MONTH_AND_YEAR = new Intl.DateTimeFormat("en", {
+  month: "long",
+  year: "numeric",
+  timeZone: "UTC",
+});
+
+function moment(date: LocalDate): Date {
+  return new Date(`${date}T00:00:00Z`);
+}
 
 function weekdayOf(date: LocalDate): string {
-  return WEEKDAY.format(new Date(`${date}T00:00:00Z`));
+  return WEEKDAY.format(moment(date));
 }
 
 function dayOfMonth(date: LocalDate): string {
   return String(Number(date.slice(-2)));
 }
 
-function subscribeToNothing(): () => void {
-  return (): void => {
-    // The date a page opened on is the one it shows until it reloads.
-  };
+// A date's month, shortened: "Nov".
+function monthOf(date: LocalDate): string {
+  return MONTH.format(moment(date));
 }
 
-function browserToday(): LocalDate {
-  return localDate(
-    new Date(),
-    Intl.DateTimeFormat().resolvedOptions().timeZone,
-  );
+// The day, week or month whose first date is start, by name: "Wed 25 Nov",
+// "week of Mon 23 Nov" or "November 2026".
+function periodName(cadence: Cadence, start: LocalDate): string {
+  if (cadence === "monthly") {
+    return MONTH_AND_YEAR.format(moment(start));
+  }
+  const day = `${weekdayOf(start)} ${dayOfMonth(start)} ${monthOf(start)}`;
+  if (cadence === "weekly") {
+    return CADENCE_COPY.weekOf(day);
+  }
+  return day;
 }
 
-// The server can't know the browser's date, so it marks no column Today.
-function noToday(): string {
-  return "";
-}
-
-// The browser's own date, once the page is in the browser, and "" before.
-function useBrowserToday(): string {
-  return useSyncExternalStore(subscribeToNothing, browserToday, noToday);
-}
-
-export { dayOfMonth, useBrowserToday, weekdayOf };
+export { dayOfMonth, monthOf, periodName, weekdayOf };

@@ -66,7 +66,7 @@ import {
 } from "@/performances/performance-store.ts";
 import { removeFromQuest } from "@/quests/membership-store.ts";
 import { getQuest, listQuests, type Quest } from "@/quests/store.ts";
-import { markTaskDayAction } from "@/streaks/streak-actions.ts";
+import { markTaskPeriodAction } from "@/streaks/streak-actions.ts";
 import { readStreakQuests } from "@/streaks/streak-store.ts";
 import { addDays, localDate } from "@/streaks/streaks.ts";
 import {
@@ -90,6 +90,12 @@ import { signIn } from "../test-database/session-test-kit.ts";
 import { twoUsers } from "../test-database/two-users-test-kit.ts";
 
 vi.mock("next/cache", () => ({ refresh: vi.fn() }));
+// Quests' finder searches through the router, which a page rendered to
+// HTML here has none of.
+vi.mock("next/navigation", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("next/navigation")>()),
+  useRouter: (): { readonly replace: () => void } => ({ replace: vi.fn() }),
+}));
 
 // What a page component is called with: its route's params, and no search
 // parameters.
@@ -559,7 +565,7 @@ describe("use_case_quest_member_access", () => {
         [],
       ]);
       expect(
-        await markTaskDayAction({
+        await markTaskPeriodAction({
           questId: quest.id,
           localDate: addDays(localDate(new Date(), "UTC"), -1),
           number: 1,
@@ -609,7 +615,7 @@ describe("use_case_quest_member_access", () => {
         { kind: "add", text: "Sweep the studio" },
         { kind: "edit", id: first.id, text: "Wedge porcelain" },
         { kind: "check", id: first.id, checkedOff: true },
-        { kind: "recurring", id: first.id, recurring: true },
+        { kind: "recurring", id: first.id, cadence: "daily" },
         { kind: "move", id: first.id, destination: ideas.id },
         { kind: "place", id: second.id, before: first.id },
         { kind: "reorder", id: first.id, direction: "down" },

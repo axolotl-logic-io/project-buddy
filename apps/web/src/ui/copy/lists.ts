@@ -1,5 +1,6 @@
 import type { ListType } from "@/lists/list.ts";
 import type { StreakChain } from "@/streaks/streaks.ts";
+import { CADENCE_COPY } from "./cadence.ts";
 
 const LIST_NOUNS: Readonly<
   Record<ListType, { readonly one: string; readonly many: string }>
@@ -24,17 +25,16 @@ const LISTS_COPY = {
       "Use 1 to 200 characters on one line for items, tasks and tallies, or 1 to 1000 characters for notes.",
     unchanged: "Nothing changed.",
   },
-  recurring: "Recurring",
-  makeRecurring: "Make recurring",
   makeOneOff: "Make one-off",
-  streakNote: ({ streak, doneToday }: StreakChain): string => {
+  streakNote: ({ cadence, streak, doneNow }: StreakChain): string => {
     if (streak === 0) {
       return "Check it off to start a streak.";
     }
-    if (doneToday) {
-      return `${streak}-day streak.`;
+    const length = CADENCE_COPY.streak(cadence, streak);
+    if (doneNow) {
+      return `${length}.`;
     }
-    return `${streak}-day streak. Check it off to make it ${streak + 1}.`;
+    return `${length}. Check it off to make it ${streak + 1}.`;
   },
   saveFailed: "The change could not be saved. Try again.",
   undo: "Undo",

@@ -1,6 +1,6 @@
 // The check-off history and recurring tasks of a quest, for its streaks and
 // Day grid (src/streaks/streaks.ts).
-import { and, asc, eq, exists, gte, sql } from "drizzle-orm";
+import { and, asc, eq, exists, gte, lt, sql } from "drizzle-orm";
 import {
   checkOffInQuestOpenTo,
   listItemOpenTo,
@@ -18,11 +18,12 @@ import { LIST_ID, type ListId } from "@/lists/list.ts";
 import { LIST_ITEM_ID, type ListItemId } from "@/lists/list-item.ts";
 import { CHECKED_OFF_NOW } from "@/lists/quest-today.ts";
 import {
-  addDays,
+  addPeriods,
   HISTORY_DAYS,
   type LocalDate,
   localDate,
-  STREAK_TABLE_DAYS,
+  periodOf,
+  STREAK_TABLE_PERIODS,
   type TaskHistory,
   type TrackedTask,
 } from "./streaks.ts";
@@ -107,6 +108,7 @@ function readRecurringTasks(
         listId: listItems.listId,
         number: listItems.taskNumber,
         text: listItems.text,
+        cadence: listItems.cadence,
         done: CHECKED_OFF_NOW.mapWith(Boolean),
         createdAt: listItems.createdAt,
       })
@@ -183,13 +185,15 @@ function readStreakQuests(user: UserId): Promise<readonly StreakQuest[]> {
   });
 }
 
-// Whether someone checked off a recurring task on an earlier date, as Home
-// changes it: checking it off adds a check-off for that day, earning its
-// experience, and unchecking it takes back every check-off that day. Today
-// is the task's own check, so it is not changed here. False when the quest
+// Whether someone checked off a recurring task in an earlier period, the
+// day, week or month by its cadence that holds a date, as Home changes it:
+// checking it off adds a check-off in that period, earning its experience,
+// and unchecking it takes back every check-off in it. The current period is
+// the task's own check, so it is not changed here. False when the quest
 // isn't open to the user and Active, it has no such recurring task, or the
-// date is outside the table's earlier dates or before the task was added.
-function markTaskDay(
+// period is outside the table's earlier periods or before the one the task
+// was added in.
+function markTaskPeriod(
   user: UserId,
   questId: QuestId,
   change: {
@@ -198,11 +202,12 @@ function markTaskDay(
     readonly done: boolean;
   },
 ): Promise<boolean> {
-  return withAppErrors("markTaskDay", () =>
+  return withAppErrors("markTaskPeriod", () =>
     inTransaction(async (tx) => {
       const [task] = await tx
         .select({
           createdAt: listItems.createdAt,
+          cadence: listItems.cadence,
           timeZone: users.timeZone,
           today: sql<string>`(now() at time zone ${users.timeZone})::date::text`,
         })
@@ -220,30 +225,42 @@ function markTaskDay(
           ),
         )
         .for("update", { of: listItems });
-      const date = change.localDate;
+      if (task === undefined) {
+        return false;
+      }
+      const { cadence, timeZone, today } = task;
+      const period = periodOf(change.localDate, cadence);
+      const added = localDate(task.createdAt, timeZone);
       if (
-        task === undefined ||
-        date >= task.today ||
-        date < addDays(task.today, 1 - STREAK_TABLE_DAYS) ||
-        date < localDate(task.createdAt, task.timeZone)
+        period >= periodOf(today, cadence) ||
+        period < addPeriods(today, cadence, 1 - STREAK_TABLE_PERIODS) ||
+        period < periodOf(added, cadence)
       ) {
         return false;
       }
-      const thatDay = and(
+      const ownerDate = sql`(${events.gainedAt} at time zone ${timeZone})::date`;
+      const inPeriod = and(
         eq(events.questId, questId),
         eq(events.event, "checking-off"),
         eq(events.source, String(change.number)),
-        sql`(${events.gainedAt} at time zone ${task.timeZone})::date = ${date}::date`,
+        gte(ownerDate, sql`${period}::date`),
+        lt(ownerDate, sql`${addPeriods(period, cadence, 1)}::date`),
       );
       if (!change.done) {
-        await tx.delete(events).where(thatDay);
+        await tx.delete(events).where(inPeriod);
         return true;
       }
       const [already] = await tx
         .select({ id: events.id })
         .from(events)
-        .where(thatDay)
+        .where(inPeriod)
         .limit(1);
+      // The period's first date, or the date the task was added when that
+      // falls inside the period.
+      let date = period;
+      if (added > period) {
+        date = added;
+      }
       if (already === undefined) {
         // Noon that day, well inside it in the owner's time zone.
         await tx.insert(events).values({
@@ -260,4 +277,9 @@ function markTaskDay(
 }
 
 export type { RecurringTask, StreakQuest };
-export { markTaskDay, readRecurringTasks, readStreakQuests, readTaskHistory };
+export {
+  markTaskPeriod,
+  readRecurringTasks,
+  readStreakQuests,
+  readTaskHistory,
+};

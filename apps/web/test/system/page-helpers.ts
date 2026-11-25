@@ -1,4 +1,4 @@
-// Types into a field once the page has hydrated.
+// Interacts with the page once it has hydrated.
 import { expect, type Locator } from "@playwright/test";
 
 // The start of the key React puts on a DOM node when it hydrates it, which
@@ -32,4 +32,4 @@ async function fillWhenReady(field: Locator, text: string): Promise<void> {
   await expect(field).toHaveValue(text);
 }
 
-export { fillWhenReady };
+export { fillWhenReady, waitForHydrated };

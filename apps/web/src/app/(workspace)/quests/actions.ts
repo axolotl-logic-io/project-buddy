@@ -3,15 +3,12 @@
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { requireUser } from "@/auth/current-user.ts";
-import { PREMADE_QUEST_ID } from "@/quests/premade-quests.ts";
 import { checkQuestName, QUEST_NAME_MAX_LENGTH } from "@/quests/quest-name.ts";
-import { startPremadeQuest } from "@/quests/start-premade-quest.ts";
-import { QUEST_START_COPY, QUESTS_COPY } from "@/ui/copy/quests.ts";
+import { createQuest } from "@/quests/store.ts";
+import { NEW_QUEST_COPY, QUESTS_COPY } from "@/ui/copy/quests.ts";
 
 const START_DETAILS = z.object({
-  premadeId: PREMADE_QUEST_ID,
   name: z.string(),
-  context: z.string().trim(),
   motivation: z.string().trim().default(""),
 });
 
@@ -24,6 +21,8 @@ type StartQuestState =
       readonly message: string;
     };
 
+// Starts a new quest with its name and the user's optional Why, which
+// its construct reads as the quest's starting context.
 export async function startQuestAction(
   _previous: StartQuestState,
   data: FormData,
@@ -31,9 +30,9 @@ export async function startQuestAction(
   const user = await requireUser();
   const parsed = START_DETAILS.safeParse(Object.fromEntries(data));
   if (!parsed.success) {
-    return { kind: "invalid", message: QUEST_START_COPY.invalid };
+    return { kind: "invalid", message: NEW_QUEST_COPY.invalid };
   }
-  const { premadeId, name, context, motivation } = parsed.data;
+  const { name, motivation } = parsed.data;
   const checked = checkQuestName(name);
   if (checked.kind !== "named") {
     let message: string = QUESTS_COPY.needsName;
@@ -42,11 +41,8 @@ export async function startQuestAction(
     }
     return { kind: "invalid", message };
   }
-  const quest = await startPremadeQuest(user.id, {
-    premadeId,
-    name: checked.name,
-    context,
-    motivation,
+  const quest = await createQuest(user.id, checked.name, {
+    startingContext: motivation,
   });
   redirect(`/quests/${quest.id}`);
 }

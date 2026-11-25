@@ -1,47 +1,73 @@
 import type { Metadata } from "next";
 import type { JSX } from "react";
 import { requireUser } from "@/auth/current-user.ts";
-import { CurrentQuestCard } from "@/components/current-quest.tsx";
-import { QuestStartChoices } from "@/components/quest-start.tsx";
-import { QuestStatusTabs } from "@/components/quest-status-tabs.tsx";
-import { parseQuestTab, type QuestTab } from "@/components/quest-tab.ts";
-import { readCurrentQuest } from "@/quests/current-quest-store.ts";
+import { LifePin } from "@/components/life-pin.tsx";
+import { PageWorkspace } from "@/components/page-workspace.tsx";
+import { PendingQuests } from "@/components/pending-quests.tsx";
+import { QuestFinder } from "@/components/quest-finder.tsx";
+import type { UserId } from "@/ids.ts";
 import { answerInvitationAction } from "@/quests/membership-actions.ts";
 import { listPendingQuests } from "@/quests/membership-store.ts";
-import { listQuests } from "@/quests/store.ts";
+import { finderQuests } from "@/quests/quest-finder-entries.ts";
+import { readLife, readQuestEntries } from "@/quests/quest-index-store.ts";
+import { QUEST_STATUS } from "@/quests/quest-status.ts";
+import { ensureLife } from "@/quests/store.ts";
+import { type FoundTask, searchTasks } from "@/tasks/task-search-store.ts";
 import { QUESTS_COPY } from "@/ui/copy/quests.ts";
+
+// The one value of a search parameter, or "" without one.
+function single(value: string | string[] | undefined): string {
+  if (typeof value === "string") {
+    return value;
+  }
+  return value?.[0] ?? "";
+}
+
+// The tasks the search finds; none without one.
+function tasksFound(
+  user: UserId,
+  search: string,
+): Promise<readonly FoundTask[]> {
+  if (search === "") {
+    return Promise.resolve([]);
+  }
+  return searchTasks(user, search);
+}
 
 export const metadata: Metadata = { title: QUESTS_COPY.title };
 
-// The quest to continue, the four ways to start a quest, then the user's
-// quests by status, their own and those they are a member of, and Pending,
-// the quests they are invited to and haven't accepted. Someone with no
-// quests yet but an invitation sees Pending first.
+// Invitations waiting for an answer, then the user's Life, pinned with one
+// of its recurring tasks to check off, then a finder over every quest
+// open to them and the tasks of their Active ones. ?q= is the search;
+// ?status= the status shown when it is empty.
 export default async function QuestsPage({
   searchParams,
 }: PageProps<"/quests">): Promise<JSX.Element> {
-  const [{ status }, user] = await Promise.all([searchParams, requireUser()]);
-  const [quests, current, pending] = await Promise.all([
-    listQuests(user.id),
-    readCurrentQuest(user.id),
-    listPendingQuests(user.id),
+  const [{ q, status: shown }, user] = await Promise.all([
+    searchParams,
+    requireUser(),
   ]);
-  let initialStatus: QuestTab = parseQuestTab(status) ?? "active";
-  if (status === undefined && quests.length === 0 && pending.length > 0) {
-    initialStatus = "pending";
-  }
+  const search = single(q).trim();
+  const status = QUEST_STATUS.safeParse(single(shown));
+  await ensureLife(user.id);
+  const [entries, life, pending, found] = await Promise.all([
+    readQuestEntries(user.id),
+    readLife(user.id),
+    listPendingQuests(user.id),
+    tasksFound(user.id, search),
+  ]);
   return (
-    <>
-      <CurrentQuestCard quest={current} />
-      <QuestStartChoices />
-      <section className="flex min-w-0 flex-1 flex-col gap-3">
-        <h2 className="section-heading">{QUESTS_COPY.collectionHeading}</h2>
-        <QuestStatusTabs
-          quests={quests}
-          initialStatus={initialStatus}
-          pending={{ quests: pending, answer: answerInvitationAction }}
+    <PageWorkspace>
+      <div className="workspace-content quests-workspace">
+        <PendingQuests answer={answerInvitationAction} quests={pending} />
+        {life !== undefined && <LifePin life={life} />}
+        <QuestFinder
+          found={found}
+          initialStatus={status.data ?? "active"}
+          quests={finderQuests(entries, new Date())}
+          search={search}
         />
-      </section>
-    </>
+      </div>
+    </PageWorkspace>
   );
 }

@@ -78,7 +78,7 @@ The performance keeps the quest's construct across visits.
 
 - **Prerequisites:** `use_case_send_message`.
 - **Steps:** leave, reopen the quest and send another message.
-- **Outcome:** the heading and replies keep the quest's construct's name and artwork, the construct its starting point assigned. The reply text comes from the rite, whatever the construct.
+- **Outcome:** the heading and replies keep the quest's construct's name and artwork, the construct it started with. The reply text comes from the rite, whatever the construct.
 
 ## use_case_open_missing_page
 

@@ -1,6 +1,6 @@
 // Multi-user quests against the test database: inviting by email, which
 // creates an invited account at once; joining by an invitation's link or
-// from Pending, one quest at a time; what accepted members may do; and
+// from Quests, one quest at a time; what accepted members may do; and
 // removing or leaving.
 
 import { refresh } from "next/cache";
@@ -21,7 +21,6 @@ import {
   sendMessage,
   startPerformance,
 } from "@/performances/performance-store.ts";
-import { readCurrentQuest } from "@/quests/current-quest-store.ts";
 import { INVITATIONS_PER_HOUR } from "@/quests/membership.ts";
 import { answerInvitationAction } from "@/quests/membership-actions.ts";
 import {
@@ -31,6 +30,7 @@ import {
   readInvitationLink,
   removeFromQuest,
 } from "@/quests/membership-store.ts";
+import { readQuestEntries } from "@/quests/quest-index-store.ts";
 import { QUEST_NAME } from "@/quests/quest-name.ts";
 import { changeQuestStatus } from "@/quests/quest-status-store.ts";
 import {
@@ -402,7 +402,7 @@ describe("use_case_join_quest_by_link", () => {
     expect(await getQuest(user.id, second.id)).toBeUndefined();
   });
 
-  test("a link reopened after joining says it no longer works, points to Pending only if pending, and names nothing", async () => {
+  test("a link reopened after joining says it no longer works, points to Quests only if pending, and names nothing", async () => {
     const [{ owner, first }, user] = await Promise.all([
       ownerWithTwoQuests(),
       testUser(),
@@ -494,7 +494,7 @@ describe("use_case_accept_pending_quest", () => {
     expect(await getQuest(user.id, first.id)).toBeUndefined();
   });
 
-  test("answering an invitation withdrawn meanwhile fails and refreshes Pending", async () => {
+  test("answering an invitation withdrawn meanwhile fails and refreshes the invitations", async () => {
     const [{ owner, first }, user] = await Promise.all([
       ownerWithTwoQuests(),
       testUser(),
@@ -514,7 +514,7 @@ describe("use_case_accept_pending_quest", () => {
     expect(await getQuest(user.id, first.id)).toBeUndefined();
   });
 
-  test("Pending shows only the quest's name and inviter, and opens nothing", async () => {
+  test("an invitation shows only the quest's name and inviter, and opens nothing", async () => {
     const [{ owner, first }, user] = await Promise.all([
       ownerWithTwoQuests(),
       testUser(),
@@ -620,10 +620,10 @@ describe("how a quest is shared, wherever quests are listed", () => {
       }),
     );
 
-    const [ownerQuests, memberQuests, continued] = await Promise.all([
+    const [ownerQuests, memberQuests, [newest]] = await Promise.all([
       listQuests(owner.id),
       listQuests(member.id),
-      readCurrentQuest(member.id),
+      readQuestEntries(member.id),
     ]);
     expect(sharingOf(ownerQuests, first.id)).toEqual({ kind: "shared" });
     expect(sharingOf(ownerQuests, second.id)).toEqual({ kind: "private" });
@@ -632,8 +632,8 @@ describe("how a quest is shared, wherever quests are listed", () => {
       owner: "Rowan Owner",
     });
     expect(sharingOf(memberQuests, own.id)).toEqual({ kind: "private" });
-    expect(continued).toMatchObject({
-      quest: { id: first.id },
+    expect(newest?.quest).toMatchObject({
+      id: first.id,
       sharing: { kind: "joined", owner: "Rowan Owner" },
     });
   });

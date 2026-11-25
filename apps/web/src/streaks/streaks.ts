@@ -1,14 +1,23 @@
-// The streaks of a quest's recurring tasks. A quest's day starts at
-// midnight in its owner's time zone (src/lists/quest-today.ts). A task was
-// done on a date when someone checked it off that day. A streak is a
-// recurring task's run of consecutive dates with it done, and its chain
-// shows its recent days. It imports nothing from the server, because the
+// The streaks of a quest's recurring tasks. A recurring task repeats daily,
+// weekly or monthly: its cadence. Its period is the day, the week from
+// Monday or the month that holds a date, each starting at midnight in the
+// quest owner's time zone (src/lists/quest-today.ts). A task was done in a
+// period when someone checked it off on a date in it. A streak is a
+// recurring task's run of consecutive periods with it done, and its chain
+// shows its recent periods. It imports nothing from the server, because the
 // browser shows the streaks of the tasks as they change.
 
 const DAY_MS = 86_400_000;
+const WEEK_DAYS = 7;
+// A date's year and month, as YYYY-MM.
+const YEAR_AND_MONTH: number = "YYYY-MM".length;
 
 // A date in the quest owner's time zone, as YYYY-MM-DD.
 type LocalDate = string;
+
+// How often a recurring task repeats.
+const CADENCES = ["daily", "weekly", "monthly"] as const;
+type Cadence = (typeof CADENCES)[number];
 
 // A quest's check-off history: today's date and the time zone it is in,
 // and, for each task number, the dates someone checked it off, up to
@@ -23,25 +32,28 @@ interface TaskHistory {
 }
 
 // How many days of check-offs a history holds, and so the longest streak it
-// can count.
+// can count: 400 days, 57 weeks or 13 months.
 const HISTORY_DAYS = 400;
 
-// A recurring task as it is now: whether it is checked off today, and when
-// it was added, before which it has no days.
+// A recurring task as it is now: how often it repeats, whether it is
+// checked off in its current period, and when it was added, before whose
+// period it has none.
 interface TrackedTask {
   readonly number: number;
   readonly text: string;
+  readonly cadence: Cadence;
   readonly done: boolean;
   readonly createdAt: Date;
 }
 
-// What a grid cell says about a recurring task on a date: done, not done,
-// not done yet today, or not yet added.
+// What a grid cell says about a recurring task in a period: done, not
+// done, not done yet in the current period, or not yet added.
 type DayMark = "done" | "missed" | "pending" | "untracked";
 
-// The newest dates, oldest first, and each recurring task's mark on each of
-// them.
+// The newest periods of one cadence, oldest first, each named by its first
+// date, and the mark on each of every recurring task with that cadence.
 interface DayGrid {
+  readonly cadence: Cadence;
   readonly dates: readonly LocalDate[];
   readonly rows: readonly {
     readonly number: number;
@@ -70,106 +82,167 @@ function localDate(moment: Date, timeZone: string): LocalDate {
   return `${part("year")}-${part("month")}-${part("day")}`;
 }
 
-// A task's mark on a date: before the date it was added, or after the
-// quest's today, untracked; today,
-// done once checked off and pending until then; before today, done when
-// someone checked it off that day and missed otherwise.
+// The first date of the period that holds date: the date itself, the
+// Monday of its week, or the 1st of its month.
+function periodOf(date: LocalDate, cadence: Cadence): LocalDate {
+  if (cadence === "weekly") {
+    // Days since Monday: getUTCDay counts from Sunday.
+    const weekday = new Date(`${date}T00:00:00Z`).getUTCDay();
+    return addDays(date, -((weekday + WEEK_DAYS - 1) % WEEK_DAYS));
+  }
+  if (cadence === "monthly") {
+    return `${date.slice(0, YEAR_AND_MONTH)}-01`;
+  }
+  return date;
+}
+
+// The first date of the period count periods after the one that holds
+// date, or before it when count is negative.
+function addPeriods(
+  date: LocalDate,
+  cadence: Cadence,
+  count: number,
+): LocalDate {
+  if (cadence === "weekly") {
+    return addDays(periodOf(date, cadence), count * WEEK_DAYS);
+  }
+  if (cadence === "monthly") {
+    const first = new Date(`${periodOf(date, cadence)}T00:00:00Z`);
+    first.setUTCMonth(first.getUTCMonth() + count);
+    return first.toISOString().slice(0, 10);
+  }
+  return addDays(date, count);
+}
+
+// A task's mark in the period that holds a date: before the period it was
+// added in, or after the quest's current one, untracked; in the current
+// period, done once checked off and pending until then; before it, done
+// when someone checked it off on a date in it and missed otherwise.
 function markOn(
   history: TaskHistory,
   done: ReadonlySet<LocalDate>,
   task: TrackedTask,
   date: LocalDate,
 ): DayMark {
+  const period = periodOf(date, task.cadence);
+  const current = periodOf(history.today, task.cadence);
   if (
-    date < localDate(task.createdAt, history.timeZone) ||
-    date > history.today
+    period <
+      periodOf(localDate(task.createdAt, history.timeZone), task.cadence) ||
+    period > current
   ) {
     return "untracked";
   }
-  if (date === history.today) {
+  if (period === current) {
     if (task.done) {
       return "done";
     }
     return "pending";
   }
-  if (done.has(date)) {
+  if (done.has(period)) {
     return "done";
   }
   return "missed";
 }
 
-function doneDates(
+// The first dates of the periods someone checked off a task in.
+function donePeriods(
   history: TaskHistory,
-  number: number,
+  { number, cadence }: Pick<TrackedTask, "number" | "cadence">,
 ): ReadonlySet<LocalDate> {
   return new Set(
-    history.checkOffs.find((each) => each.number === number)?.dates,
+    history.checkOffs
+      .find((each) => each.number === number)
+      ?.dates.map((date) => periodOf(date, cadence)),
   );
+}
+
+function checkOffDates(
+  history: TaskHistory,
+  number: number,
+): readonly LocalDate[] {
+  return history.checkOffs.find((each) => each.number === number)?.dates ?? [];
 }
 
 const MAX_STREAK_LINKS = 30;
 
-// How many dates Home's table of streaks shows, and so how far back it can
-// change a task's mark.
-const STREAK_TABLE_DAYS = 7;
+// How many periods Home's tables of streaks show, and so how far back they
+// can change a task's mark.
+const STREAK_TABLE_PERIODS = 7;
 
-// The recent days of a streak, with a separate link for today.
+// The recent periods of a streak, with a separate link for the current one.
 interface StreakChain {
-  // How many consecutive dates, up to today, the task was done: today
-  // counts once the task is done; until then the streak runs to yesterday.
+  readonly cadence: Cadence;
+  // How many consecutive periods, up to the current one, the task was
+  // done: the current period counts once the task is done; until then the
+  // streak runs to the one before.
   readonly streak: number;
-  readonly doneToday: boolean;
+  readonly doneNow: boolean;
   readonly links: number;
   readonly earned: number;
 }
 
-function chainOf(streak: number, doneToday: boolean): StreakChain {
+function chainOf(
+  cadence: Cadence,
+  streak: number,
+  doneNow: boolean,
+): StreakChain {
   let before = streak;
-  if (doneToday) {
+  if (doneNow) {
     before -= 1;
   }
   const earned = Math.min(before, MAX_STREAK_LINKS - 1);
-  return { streak, doneToday, links: earned + 1, earned };
+  return { cadence, streak, doneNow, links: earned + 1, earned };
 }
 
-// Each recurring task's streak chain, by its number. A date before today
-// without a check-off ends a streak.
+// Each recurring task's streak chain, by its number. A period before the
+// current one without a check-off ends a streak.
 function streakChains(
   history: TaskHistory,
   tasks: readonly TrackedTask[],
 ): ReadonlyMap<number, StreakChain> {
   const found = new Map<number, StreakChain>();
   for (const task of tasks) {
-    const done = doneDates(history, task.number);
+    const done = donePeriods(history, task);
     let count = 0;
     if (task.done) {
       count = 1;
     }
-    let date = addDays(history.today, -1);
-    while (done.has(date)) {
+    let period = addPeriods(history.today, task.cadence, -1);
+    while (done.has(period)) {
       count += 1;
-      date = addDays(date, -1);
+      period = addPeriods(period, task.cadence, -1);
     }
-    found.set(task.number, chainOf(count, task.done));
+    found.set(task.number, chainOf(task.cadence, count, task.done));
   }
   return found;
 }
 
-// The count dates up to last, oldest first.
-function datesUpTo(last: LocalDate, count: number): LocalDate[] {
+// The first dates of the count periods up to the one that holds last,
+// oldest first.
+function periodsUpTo(
+  last: LocalDate,
+  cadence: Cadence,
+  count: number,
+): LocalDate[] {
   return Array.from({ length: count }, (_, place) =>
-    addDays(last, place - count + 1),
+    addPeriods(last, cadence, place - count + 1),
   );
 }
 
-// Each recurring task's mark on each date.
+// The count dates up to last, oldest first.
+function datesUpTo(last: LocalDate, count: number): LocalDate[] {
+  return periodsUpTo(last, "daily", count);
+}
+
+// Each recurring task's mark in the period that holds each date.
 function markRows(
   history: TaskHistory,
   tasks: readonly TrackedTask[],
   dates: readonly LocalDate[],
 ): DayGrid["rows"] {
   return tasks.map((task) => {
-    const done = doneDates(history, task.number);
+    const done = donePeriods(history, task);
     return {
       number: task.number,
       text: task.text,
@@ -178,38 +251,54 @@ function markRows(
   });
 }
 
-// At most count dates, up to today and from the date the first task was
-// added at the earliest, and each recurring task's mark on each.
-function dayGrid(
+// At most count periods of a cadence, up to the current one and from the
+// one the first of its tasks was added in at the earliest, and the mark in
+// each of every recurring task with that cadence.
+function periodGrid(
   history: TaskHistory,
   tasks: readonly TrackedTask[],
+  cadence: Cadence,
   count: number,
 ): DayGrid {
-  const first =
-    tasks
+  const repeating = tasks.filter((task) => task.cadence === cadence);
+  const first = periodOf(
+    repeating
       .map(({ createdAt }) => localDate(createdAt, history.timeZone))
       .concat(history.today)
       .toSorted()
-      .at(0) ?? history.today;
-  const dates = datesUpTo(history.today, count).filter((date) => date >= first);
-  return { dates, rows: markRows(history, tasks, dates) };
+      .at(0) ?? history.today,
+    cadence,
+  );
+  const dates = periodsUpTo(history.today, cadence, count).filter(
+    (date) => date >= first,
+  );
+  return { cadence, dates, rows: markRows(history, repeating, dates) };
 }
 
-// The dates several quests' rows share: count of them, up to the newest of
-// the quests' todays, which differ when their owners' time zones do. With
-// no quests there are none.
-function sharedDates(
+// The periods of a cadence several quests' rows share: count of them, up
+// to the one that holds the newest of the quests' todays, which differ when
+// their owners' time zones do. With no quests there are none.
+function sharedPeriods(
   todays: readonly LocalDate[],
+  cadence: Cadence,
   count: number,
 ): readonly LocalDate[] {
   const newest = todays.toSorted().at(-1);
   if (newest === undefined) {
     return [];
   }
-  return datesUpTo(newest, count);
+  return periodsUpTo(newest, cadence, count);
 }
 
-// One task's mark on one date, checked or unchecked.
+// The dates several quests' rows share, as sharedPeriods for days.
+function sharedDates(
+  todays: readonly LocalDate[],
+  count: number,
+): readonly LocalDate[] {
+  return sharedPeriods(todays, "daily", count);
+}
+
+// One task's mark in the period that holds a date, checked or unchecked.
 interface MarkChange {
   readonly number: number;
   readonly date: LocalDate;
@@ -217,28 +306,34 @@ interface MarkChange {
 }
 
 // A quest's history and recurring tasks after a change of one task's mark
-// on one date: today it is the task's own check, and on an earlier date it
-// is whether someone checked it off that day.
+// in one period: in the current period it is the task's own check, and in
+// an earlier one it is whether someone checked it off in it.
 function withMark<Task extends TrackedTask>(
   history: TaskHistory,
   tasks: readonly Task[],
   { number, date, done }: MarkChange,
 ): { readonly history: TaskHistory; readonly tasks: readonly Task[] } {
-  if (date === history.today) {
+  const marked = tasks.find((task) => task.number === number);
+  if (marked === undefined) {
+    return { history, tasks };
+  }
+  const period = periodOf(date, marked.cadence);
+  if (period === periodOf(history.today, marked.cadence)) {
     return {
       history,
       tasks: tasks.map((task) => {
-        if (task.number !== number) {
+        if (task !== marked) {
           return task;
         }
         return { ...task, done };
       }),
     };
   }
-  const dates = doneDates(history, number);
-  const changed = [...dates].filter((each) => each !== date);
+  const changed = checkOffDates(history, number).filter(
+    (each) => periodOf(each, marked.cadence) !== period,
+  );
   if (done) {
-    changed.push(date);
+    changed.push(period);
   }
   return {
     tasks,
@@ -253,6 +348,7 @@ function withMark<Task extends TrackedTask>(
 }
 
 export type {
+  Cadence,
   DayMark,
   LocalDate,
   MarkChange,
@@ -262,14 +358,18 @@ export type {
 };
 export {
   addDays,
+  addPeriods,
+  CADENCES,
   datesUpTo,
-  dayGrid,
   HISTORY_DAYS,
   localDate,
   MAX_STREAK_LINKS,
   markRows,
-  STREAK_TABLE_DAYS,
+  periodGrid,
+  periodOf,
+  STREAK_TABLE_PERIODS,
   sharedDates,
+  sharedPeriods,
   streakChains,
   withMark,
 };

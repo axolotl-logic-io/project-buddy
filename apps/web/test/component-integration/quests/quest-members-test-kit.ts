@@ -1,5 +1,5 @@
 // Multi-user quests in a server test, made through the membership store as
-// the Members tab and Pending do. The test file mocks the email service and
+// the Members tab and the invitations on Quests do. The test file mocks the email service and
 // passes the mock in, as sign-in-link-test-kit.ts's tests do:
 //   const sent = vi.hoisted(() => ({ sendEmail: vi.fn<SendEmail>() }));
 //   vi.mock("@/email/send-email.ts", () => sent);
@@ -56,7 +56,7 @@ async function accountOf(email: string): Promise<User> {
 }
 
 // Makes user an accepted member of the owner's quest, as inviting them and
-// their accepting from Pending does.
+// their accepting from Quests does.
 async function addMember(
   owner: User,
   questId: QuestId,

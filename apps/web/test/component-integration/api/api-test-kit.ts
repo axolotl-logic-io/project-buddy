@@ -61,4 +61,13 @@ function dataOf(answer: ApiAnswer): Record<string, unknown> {
   return data;
 }
 
-export { callApi, dataOf };
+// The records a list answer carries as its items.
+function itemsOf(answer: ApiAnswer): readonly Record<string, unknown>[] {
+  const { items } = answer.body;
+  if (!Array.isArray(items)) {
+    throw new Error(`The API answered ${answer.status} without items`);
+  }
+  return items.filter(isRecord);
+}
+
+export { callApi, dataOf, itemsOf };

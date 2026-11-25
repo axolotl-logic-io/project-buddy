@@ -12,7 +12,7 @@ import {
 import { HTTP_STATUS } from "@/http-status.ts";
 import { signIn, signOut } from "../test-database/session-test-kit.ts";
 import { twoUsers } from "../test-database/two-users-test-kit.ts";
-import { callApi, dataOf } from "./api-test-kit.ts";
+import { callApi, dataOf, itemsOf } from "./api-test-kit.ts";
 
 describe("use_case_api_quests", () => {
   test("a request without a session answers 401 with a problem, never a redirect", async () => {
@@ -48,7 +48,14 @@ describe("use_case_api_quests", () => {
       query: "status=active",
     });
     expect(listed.body).toEqual({
-      items: [expect.objectContaining({ id: quest.id, name: "Prototype" })],
+      items: [
+        expect.objectContaining({ name: "Life", life: true }),
+        expect.objectContaining({
+          id: quest.id,
+          name: "Prototype",
+          life: false,
+        }),
+      ],
     });
 
     const read = await callApi(getQuest, { params: { questId: quest.id } });
@@ -97,7 +104,7 @@ describe("use_case_api_quests", () => {
     });
     expect(
       (await callApi(listQuests, { params: {}, query: "status=active" })).body,
-    ).toEqual({ items: [] });
+    ).toEqual({ items: [expect.objectContaining({ name: "Life" })] });
   });
 
   test("another user's quest is not found, whatever the request", async () => {
@@ -121,44 +128,69 @@ describe("use_case_api_quests", () => {
       });
     }
     expect((await callApi(listQuests, { params: {} })).body).toEqual({
-      items: [],
+      items: [expect.objectContaining({ name: "Life", life: true })],
     });
   });
 
-  test("starting from a starting point opens a new quest each time", async () => {
+  test("listing makes their one Life, and listing again makes no other", async () => {
     const { her } = await twoUsers();
     await signIn(her);
-    const made = await callApi(startQuest, {
-      params: {},
-      body: { from: "make", why: "Build the first prototype" },
+
+    const first = await callApi(listQuests, { params: {} });
+    const again = await callApi(listQuests, { params: {} });
+
+    expect(first.body).toEqual({
+      items: [expect.objectContaining({ name: "Life", life: true })],
     });
-    expect(made.body).toEqual({
+    expect(again.body).toEqual(first.body);
+  });
+
+  test("a Life refuses to be completed", async () => {
+    const { her } = await twoUsers();
+    await signIn(her);
+    const listed = await callApi(listQuests, { params: {} });
+    const [life] = itemsOf(listed);
+    const { id: questId } = life ?? {};
+    if (typeof questId !== "string") {
+      throw new Error("No Life was made");
+    }
+
+    const completed = await callApi(changeStatus, {
+      params: { questId },
+      body: { status: "completed", revision: 0 },
+    });
+
+    expect(completed.status).not.toBe(HTTP_STATUS.ok);
+    expect((await callApi(getQuest, { params: { questId } })).body).toEqual({
+      data: expect.objectContaining({ status: "active" }),
+    });
+  });
+
+  test("each start opens a new quest with its name and Why", async () => {
+    const { her } = await twoUsers();
+    await signIn(her);
+    const body = { name: "Prototype", why: "  Build the first one " };
+
+    const first = await callApi(startQuest, { params: {}, body });
+    const again = await callApi(startQuest, { params: {}, body });
+
+    expect(first.body).toEqual({
       data: expect.objectContaining({
-        name: "Make a thing",
+        name: "Prototype",
         status: "active",
+        life: false,
       }),
     });
-
-    const first = await callApi(startQuest, {
-      params: {},
-      body: { from: "dailies" },
-    });
-    const again = await callApi(startQuest, {
-      params: {},
-      body: { from: "dailies" },
-    });
-    expect(dataOf(first)).toMatchObject({ name: "Dailies" });
     const { id } = dataOf(first);
     expect(dataOf(again)).not.toMatchObject({ id });
-    expect(dataOf(first)).not.toHaveProperty("resumed");
 
-    const invalid = await callApi(startQuest, {
+    const unnamed = await callApi(startQuest, {
       params: {},
-      body: { from: "fly" },
+      body: { why: "No name" },
     });
-    expect(invalid).toMatchObject({
+    expect(unnamed).toMatchObject({
       status: HTTP_STATUS.badRequest,
-      body: { error: { code: "invalid_input", field: "from" } },
+      body: { error: { code: "invalid_input", field: "name" } },
     });
   });
 });
