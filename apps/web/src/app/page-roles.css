@@ -2286,6 +2286,11 @@
     @apply grid;
   }
 
+  /* Home's one-off tasks: each quest's name above its tasks. */
+  .home-task-quest {
+    @apply wrap-anywhere border-line border-t-2 pt-2 font-semibold;
+  }
+
   .quest-today-task {
     @apply flex flex-wrap items-center justify-between gap-x-3 border-line/40 border-t first:border-t-0;
   }

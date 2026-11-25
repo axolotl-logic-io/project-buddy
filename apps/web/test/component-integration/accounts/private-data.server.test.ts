@@ -75,6 +75,7 @@ import {
   setTallyDayAction,
 } from "@/tallies/tally-actions.ts";
 import { readQuestTallies, readTallyQuests } from "@/tallies/tally-store.ts";
+import { readTaskQuests } from "@/tasks/task-store.ts";
 import { HOME_COPY } from "@/ui/copy/home.ts";
 import { LISTS_COPY } from "@/ui/copy/lists.ts";
 import { PERFORMANCE_COPY } from "@/ui/copy/performances.ts";
@@ -543,6 +544,7 @@ describe("use_case_quest_member_access", () => {
           readStreakQuests(outsider.id),
           readTallyQuests(outsider.id),
           readQuestTallies(outsider.id, quest.id),
+          readTaskQuests(outsider.id),
         ]),
       ).toEqual([
         [],
@@ -558,6 +560,7 @@ describe("use_case_quest_member_access", () => {
         [],
         [],
         undefined,
+        [],
       ]);
       expect(
         await markTaskDayAction({

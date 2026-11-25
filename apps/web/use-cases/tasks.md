@@ -19,6 +19,8 @@ The user checks off, unchecks and edits the quest's tasks.
   - The user opens a list that holds tasks.
   - The user checks off a task, unchecks a checked-off one, adds one, edits one, moves one up or down, or removes one.
 - **Outcome:** tasks show compact rows with square check-off controls, and the controls say "Check off" and "Uncheck". Each row's menu shows its stable task number. Each change is saved at once, makes no model request, and the page says what changed, with Undo. Undo puts the list back as it would be without that change, keeping later ones: a task edited again since keeps its newer text, a task removed since stays removed, and a task whose old neighbour was removed since goes back at the end. When nothing that change did is left to undo, Undo says so and changes nothing. A change refused for a reason, such as a missing task, says why in the same quiet line. A change that failed, because it couldn't be saved or the quest is no longer available, is an alert in the danger colour with the alert icon, announced at once. Checked-off tasks fold away under Done. The owner and accepted members share the tasks. Anyone else's quest, a pending invitee's or a removed member's included, looks exactly like one that doesn't exist, and they can't change its tasks.
+- **Next:**
+  - [`use_case_home_tasks`](home.md#use_case_home_tasks): check off one-off tasks from every Active quest on Home.
 
 ## use_case_tasks_panel
 

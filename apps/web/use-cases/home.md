@@ -37,3 +37,21 @@ The user keeps every tally's daily counts up to date in one place.
   - A quest that isn't open to them never shows, and its tallies can't be changed from Home.
 - **Next:**
   - [`use_case_tally_lists`](lists.md#use_case_tally_lists): open a tally list to see each tally's bars.
+  - `use_case_home_tasks`: check off one-off tasks below Tallies.
+
+## use_case_home_tasks
+
+The user sees, and checks off, every one-off task in one place.
+
+- **Prerequisites:** [`use_case_change_tasks`](tasks.md#use_case_change_tasks), with a one-off task in an Active quest.
+- **Steps:**
+  - They open Home.
+  - They check off a task, or uncheck one they checked off today.
+  - They follow a quest's name.
+- **Outcome:** below Tallies, Tasks lists each Active quest open to them that has a one-off task to show, oldest first. Each quest's name links to it, with its count of open tasks. Under it are its open one-off tasks, and those checked off on its today, in the quest's list order. Checking off or unchecking a task does the same as in its list and earns or takes back the same experience. The change shows at once, the page says what changed, and it stays after a reload. A task checked off today stays until midnight in the quest owner's time zone, then leaves Home. Recurring tasks show under Streaks instead, and list items in other kinds of list never show.
+- **Variations:**
+  - With no one-off task to show, Tasks says how to add one.
+  - A member sees the shared quest's tasks too, with days in the owner's time zone.
+  - A quest that isn't open to them never shows, and its tasks can't be changed from Home.
+- **Next:**
+  - [`use_case_change_tasks`](tasks.md#use_case_change_tasks): edit, reorder or remove a task in its list.

@@ -178,3 +178,7 @@ vi.mock("@/tallies/tally-store.ts", () => ({
   readQuestTallies: vi.fn(() => Promise.resolve(undefined)),
   readTallyQuests: vi.fn(() => Promise.resolve([])),
 }));
+
+vi.mock("@/tasks/task-store.ts", () => ({
+  readTaskQuests: vi.fn(() => Promise.resolve([])),
+}));
