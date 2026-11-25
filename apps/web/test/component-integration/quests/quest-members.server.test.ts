@@ -1,6 +1,6 @@
 // Multi-user quests against the test database: inviting by email, which
 // creates an invited account at once; joining by an invitation's link or
-// from Pending, one quest at a time; what accepted members may do; and
+// from Quests, one quest at a time; what accepted members may do; and
 // removing or leaving.
 
 import { refresh } from "next/cache";
@@ -402,7 +402,7 @@ describe("use_case_join_quest_by_link", () => {
     expect(await getQuest(user.id, second.id)).toBeUndefined();
   });
 
-  test("a link reopened after joining says it no longer works, points to Pending only if pending, and names nothing", async () => {
+  test("a link reopened after joining says it no longer works, points to Quests only if pending, and names nothing", async () => {
     const [{ owner, first }, user] = await Promise.all([
       ownerWithTwoQuests(),
       testUser(),
@@ -494,7 +494,7 @@ describe("use_case_accept_pending_quest", () => {
     expect(await getQuest(user.id, first.id)).toBeUndefined();
   });
 
-  test("answering an invitation withdrawn meanwhile fails and refreshes Pending", async () => {
+  test("answering an invitation withdrawn meanwhile fails and refreshes the invitations", async () => {
     const [{ owner, first }, user] = await Promise.all([
       ownerWithTwoQuests(),
       testUser(),
@@ -514,7 +514,7 @@ describe("use_case_accept_pending_quest", () => {
     expect(await getQuest(user.id, first.id)).toBeUndefined();
   });
 
-  test("Pending shows only the quest's name and inviter, and opens nothing", async () => {
+  test("an invitation shows only the quest's name and inviter, and opens nothing", async () => {
     const [{ owner, first }, user] = await Promise.all([
       ownerWithTwoQuests(),
       testUser(),

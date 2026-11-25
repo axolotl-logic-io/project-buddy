@@ -142,7 +142,7 @@ async function endEverySession(id: UserId): Promise<void> {
         .set({ sessionEpoch: sql`${users.sessionEpoch} + 1` })
         .where(eq(users.id, id));
       await tx.delete(signInLinks).where(eq(signInLinks.userId, id));
-      // Their pending quest invitations stay pending, in Pending, but their
+      // Their pending quest invitations stay pending, at the top of Quests, but their
       // emailed acceptance links, which sign in, stop working.
       await tx
         .update(questInvitations)

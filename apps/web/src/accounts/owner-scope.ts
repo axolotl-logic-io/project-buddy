@@ -72,7 +72,7 @@ function openQuestIds(user: UserId): SQL {
 }
 
 // A `quests` row that invitee has a pending invitation to: open to them
-// for its name alone, in Pending, until they accept it.
+// for its name alone, at the top of Quests, until they accept it.
 function questPendingFor(invitee: UserId): SQL {
   return exists(
     new QueryBuilder()
