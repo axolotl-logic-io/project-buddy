@@ -9,6 +9,7 @@ import {
   useOptimistic,
 } from "react";
 import { Alert, FormStatus } from "@/components/ui/form-message.tsx";
+import { TaskCheck } from "@/components/ui/task-check.tsx";
 import { useQuestAction } from "@/components/use-quest-action.ts";
 import type { ListItemId } from "@/lists/list-item.ts";
 import { changeListItemAction } from "@/lists/list-item-actions.ts";
@@ -46,12 +47,11 @@ function HomeTask({
   const toggle = useCallback((): void => {
     onCheck({ id: task.id, done: !task.done });
   }, [onCheck, task.id, task.done]);
+  const checkId = useId();
   return (
     <li className="quest-today-task">
-      <label className="quest-today-check">
-        <span className="editable-check">
-          <input type="checkbox" checked={task.done} onChange={toggle} />
-        </span>
+      <label className="quest-today-check" htmlFor={checkId}>
+        <TaskCheck checked={task.done} id={checkId} onChange={toggle} />
         <span className="wrap-anywhere">{task.text}</span>
       </label>
     </li>
