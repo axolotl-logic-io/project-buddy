@@ -15,6 +15,7 @@ import {
   takeBackEvents,
 } from "@/experience/experience-store.ts";
 import type { QuestId, UserId } from "@/ids.ts";
+import type { Cadence } from "@/streaks/streaks.ts";
 import {
   LIST_ID,
   LIST_TYPE,
@@ -45,6 +46,7 @@ function toListItem(row: Row): {
   taskNumber: number | null;
   checkedOff: boolean;
   recurring: boolean;
+  cadence: Cadence;
   createdAt: Date;
 } {
   return {
@@ -53,6 +55,7 @@ function toListItem(row: Row): {
     taskNumber: row.taskNumber,
     checkedOff: row.checkedOff,
     recurring: row.recurring,
+    cadence: row.cadence,
     createdAt: row.createdAt,
   };
 }
@@ -207,15 +210,18 @@ async function applyExisting(
         })
         .where(target);
       return "saved";
-    case "recurring":
-      if (write.type !== "task" || row.recurring === change.recurring) {
+    case "recurring": {
+      const recurring = change.cadence !== null;
+      const cadence = change.cadence ?? row.cadence;
+      if (
+        write.type !== "task" ||
+        (row.recurring === recurring && row.cadence === cadence)
+      ) {
         return "unchanged";
       }
-      await tx
-        .update(listItems)
-        .set({ recurring: change.recurring })
-        .where(target);
+      await tx.update(listItems).set({ recurring, cadence }).where(target);
       return "saved";
+    }
     case "remove":
       await tx.delete(listItems).where(target);
       return "saved";

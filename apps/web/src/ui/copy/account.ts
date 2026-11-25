@@ -17,7 +17,7 @@ export const ACCOUNT_COPY = {
   timeZoneHeading: "Time zone",
   timeZoneLabel: "Time zone",
   timeZoneHint:
-    "Each day starts at midnight here. Recurring tasks become unchecked for the new day.",
+    "Each day starts at midnight here. Daily tasks become unchecked for the new day, weekly tasks on Monday and monthly tasks on the 1st.",
   saveTimeZone: "Save time zone",
   timeZoneSaved: "Time zone saved",
   timeZoneUnknown: "Choose a time zone from the list.",

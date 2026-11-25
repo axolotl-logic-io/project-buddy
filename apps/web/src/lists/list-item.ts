@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { CADENCES } from "@/streaks/streaks.ts";
 import { LIST_ID } from "./list.ts";
 
 const LIST_ITEM_ID = z.guid().toLowerCase().brand<"ListItemId">();
@@ -7,10 +8,11 @@ type ListItemId = z.infer<typeof LIST_ITEM_ID>;
 const LIST_ITEM_CHANGE = z.discriminatedUnion("kind", [
   z.object({ kind: z.literal("add"), text: z.string() }),
   z.object({ kind: z.literal("undo"), version: z.number().int().positive() }),
+  // A task made recurring with a cadence, or one-off with none.
   z.object({
     kind: z.literal("recurring"),
     id: LIST_ITEM_ID,
-    recurring: z.boolean(),
+    cadence: z.enum(CADENCES).nullable(),
   }),
   z.object({ kind: z.literal("edit"), id: LIST_ITEM_ID, text: z.string() }),
   z.object({

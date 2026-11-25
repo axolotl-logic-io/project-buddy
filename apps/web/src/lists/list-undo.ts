@@ -121,7 +121,8 @@ function sameTask(a: Row, b: SavedRow): boolean {
   return (
     a.taskNumber === b.taskNumber &&
     a.checkedOff === b.checkedOff &&
-    a.recurring === b.recurring
+    a.recurring === b.recurring &&
+    a.cadence === b.cadence
   );
 }
 
@@ -157,13 +158,14 @@ async function reverseExisting(
     case "recurring":
       if (
         current.taskNumber !== after.taskNumber ||
-        current.recurring !== after.recurring
+        current.recurring !== after.recurring ||
+        current.cadence !== after.cadence
       ) {
         return false;
       }
       await tx
         .update(listItems)
-        .set({ recurring: before.recurring })
+        .set({ recurring: before.recurring, cadence: before.cadence })
         .where(target);
       return true;
     case "move":
@@ -189,6 +191,7 @@ async function reverseExisting(
           taskNumber: before.taskNumber,
           ...savedCheckOff(before),
           recurring: before.recurring,
+          cadence: before.cadence,
         })
         .where(target);
       // A move to a list of another type changed the item's type.

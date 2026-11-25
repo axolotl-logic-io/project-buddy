@@ -1,8 +1,8 @@
 // "use_case_recurring_tasks" and "use_case_daily_streaks" in
 // use-cases/tasks.md, against the test database: a recurring task checked
-// off before midnight in its quest owner's time zone reads unchecked after
-// it, and the quest's history gives each task's check-off dates in that
-// time zone.
+// off before its period ends in its quest owner's time zone (midnight, or
+// Monday for a weekly one) reads unchecked after it, and the quest's
+// history gives each task's check-off dates in that time zone.
 
 import { and, eq, sql } from "drizzle-orm";
 import { describe, expect, test } from "vitest";
@@ -22,12 +22,19 @@ import { readLists } from "@/lists/list-store.ts";
 import { changeQuestStatus } from "@/quests/quest-status-store.ts";
 import type { Quest } from "@/quests/store.ts";
 import {
-  markTaskDay,
+  markTaskPeriod,
   readRecurringTasks,
   readStreakQuests,
   readTaskHistory,
 } from "@/streaks/streak-store.ts";
-import { addDays, localDate, STREAK_TABLE_DAYS } from "@/streaks/streaks.ts";
+import {
+  addDays,
+  addPeriods,
+  type Cadence,
+  localDate,
+  periodOf,
+  STREAK_TABLE_PERIODS,
+} from "@/streaks/streaks.ts";
 import { testData } from "../../support/test-database/data-test-kit.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
 import { addMember } from "../quests/quest-members-test-kit.ts";
@@ -40,9 +47,9 @@ interface Morning {
   readonly water: ListItem;
 }
 
-// The owner's quest with two tasks checked off today: Stretch, recurring,
-// and Water, a one-off.
-async function morning(): Promise<Morning> {
+// The owner's quest with two tasks checked off today: Stretch, recurring
+// with the cadence, daily unless given, and Water, a one-off.
+async function morning(cadence: Cadence = "daily"): Promise<Morning> {
   const owner = await testUser();
   const quest = await testData(owner).quest("Morning");
   const [tasks] = await readLists(owner.id, quest.id);
@@ -65,7 +72,7 @@ async function morning(): Promise<Morning> {
   await writeListContents(owner.id, quest.id, tasks.id, {
     kind: "recurring",
     id: stretch.id,
-    recurring: true,
+    cadence,
   });
   await Promise.all(
     [stretch, water].map(({ id }) =>
@@ -80,6 +87,9 @@ async function morning(): Promise<Morning> {
 }
 
 const DAY_MS = 86_400_000;
+// Days after a week's Monday.
+const THURSDAY = 3;
+const SUNDAY = 6;
 
 // Moves the quest's check-offs, and the dates they were saved on, a day
 // back, as though midnight had passed since.
@@ -143,6 +153,44 @@ describe("use_case_recurring_tasks", () => {
     const [stretch] = await readListItems(owner.id, quest.id, tasks.id);
     expect(stretch?.checkedOff).toBe(ahead === localDate(new Date(), "UTC"));
   });
+
+  for (const cadence of ["weekly", "monthly"] as const) {
+    test(`a ${cadence} task stays checked off until its period ends`, async () => {
+      const { owner, quest, tasks } = await morning(cadence);
+      // The Monday or the 1st this period started on.
+      const start = periodOf(localDate(new Date(), "UTC"), cadence);
+      async function checkedOn(date: string): Promise<boolean | undefined> {
+        await getDb()
+          .update(listItems)
+          .set({ checkedOffOn: date })
+          .where(eq(listItems.questId, quest.id));
+        const [stretch] = await readListItems(owner.id, quest.id, tasks.id);
+        return stretch?.checkedOff;
+      }
+      expect(await checkedOn(start)).toBe(true);
+      expect(await checkedOn(addDays(start, -1))).toBe(false);
+    });
+  }
+
+  test("changing a task's cadence keeps it and its check-off", async () => {
+    const { owner, quest, tasks, stretch } = await morning();
+    await writeListContents(owner.id, quest.id, tasks.id, {
+      kind: "recurring",
+      id: stretch.id,
+      cadence: "monthly",
+    });
+    expect(
+      (await readListItems(owner.id, quest.id, tasks.id))[0],
+    ).toMatchObject({ checkedOff: true, recurring: true, cadence: "monthly" });
+    await writeListContents(owner.id, quest.id, tasks.id, {
+      kind: "recurring",
+      id: stretch.id,
+      cadence: null,
+    });
+    expect(
+      (await readListItems(owner.id, quest.id, tasks.id))[0],
+    ).toMatchObject({ checkedOff: true, recurring: false });
+  });
 });
 
 describe("use_case_daily_streaks", () => {
@@ -172,6 +220,7 @@ describe("use_case_daily_streaks", () => {
         listId: tasks.id,
         number: stretch.taskNumber,
         text: "Stretch",
+        cadence: "daily",
         done: true,
         createdAt: stretch.createdAt,
       },
@@ -238,7 +287,7 @@ describe("use_case_home_streaks", () => {
     const experience = await readExperience(owner.id);
 
     expect(
-      await markTaskDay(owner.id, quest.id, {
+      await markTaskPeriod(owner.id, quest.id, {
         localDate: earlier,
         number,
         done: true,
@@ -251,7 +300,7 @@ describe("use_case_home_streaks", () => {
     expect(await readExperience(owner.id)).not.toEqual(experience);
 
     expect(
-      await markTaskDay(owner.id, quest.id, {
+      await markTaskPeriod(owner.id, quest.id, {
         localDate: yesterday,
         number,
         done: false,
@@ -268,23 +317,23 @@ describe("use_case_home_streaks", () => {
     const number = stretch.taskNumber ?? 0;
     const mark = { localDate: yesterday, number, done: true };
 
-    expect(await markTaskDay(owner.id, quest.id, mark)).toBe(false);
+    expect(await markTaskPeriod(owner.id, quest.id, mark)).toBe(false);
     await getDb()
       .update(listItems)
       .set({ createdAt: sql`${listItems.createdAt} - interval '30 days'` })
       .where(eq(listItems.questId, quest.id));
     expect(
       await Promise.all([
-        markTaskDay(owner.id, quest.id, { ...mark, localDate: today }),
-        markTaskDay(owner.id, quest.id, {
+        markTaskPeriod(owner.id, quest.id, { ...mark, localDate: today }),
+        markTaskPeriod(owner.id, quest.id, {
           ...mark,
-          localDate: addDays(today, -STREAK_TABLE_DAYS),
+          localDate: addDays(today, -STREAK_TABLE_PERIODS),
         }),
-        markTaskDay(owner.id, quest.id, {
+        markTaskPeriod(owner.id, quest.id, {
           ...mark,
           number: water.taskNumber ?? 0,
         }),
-        markTaskDay(stranger.id, quest.id, mark),
+        markTaskPeriod(stranger.id, quest.id, mark),
       ]),
     ).toEqual([false, false, false, false]);
     await changeQuestStatus(owner.id, {
@@ -293,7 +342,57 @@ describe("use_case_home_streaks", () => {
       toStatus: "completed",
       revision: quest.statusRevision,
     });
-    expect(await markTaskDay(owner.id, quest.id, mark)).toBe(false);
+    expect(await markTaskPeriod(owner.id, quest.id, mark)).toBe(false);
+    expect(await checkOffDates(owner, quest, number)).toEqual([today]);
+  });
+});
+
+describe("use_case_home_streaks with weeks", () => {
+  test("marking an earlier week adds a check-off in it, and unchecking takes back the week's", async () => {
+    const { owner, quest, stretch } = await morning("weekly");
+    await getDb()
+      .update(listItems)
+      .set({ createdAt: sql`${listItems.createdAt} - interval '60 days'` })
+      .where(eq(listItems.questId, quest.id));
+    const today = localDate(new Date(), "UTC");
+    const lastWeek = addPeriods(today, "weekly", -1);
+    const number = stretch.taskNumber ?? 0;
+
+    // Any date in the week marks it, at its Monday.
+    expect(
+      await markTaskPeriod(owner.id, quest.id, {
+        localDate: addDays(lastWeek, THURSDAY),
+        number,
+        done: true,
+      }),
+    ).toBe(true);
+    expect(await checkOffDates(owner, quest, number)).toEqual([
+      lastWeek,
+      today,
+    ]);
+
+    expect(
+      await Promise.all([
+        markTaskPeriod(owner.id, quest.id, {
+          localDate: today,
+          number,
+          done: false,
+        }),
+        markTaskPeriod(owner.id, quest.id, {
+          localDate: addPeriods(today, "weekly", -STREAK_TABLE_PERIODS),
+          number,
+          done: true,
+        }),
+      ]),
+    ).toEqual([false, false]);
+
+    expect(
+      await markTaskPeriod(owner.id, quest.id, {
+        localDate: addDays(lastWeek, SUNDAY),
+        number,
+        done: false,
+      }),
+    ).toBe(true);
     expect(await checkOffDates(owner, quest, number)).toEqual([today]);
   });
 });

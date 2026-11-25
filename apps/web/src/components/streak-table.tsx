@@ -8,37 +8,39 @@ import {
   useId,
   useOptimistic,
 } from "react";
-import {
-  dayOfMonth,
-  useBrowserToday,
-  weekdayOf,
-} from "@/components/calendar-days.ts";
-import { DateHeading } from "@/components/date-heading.tsx";
+import { periodName } from "@/components/calendar-days.ts";
+import { PeriodHeading } from "@/components/date-heading.tsx";
 import { Alert, FormStatus } from "@/components/ui/form-message.tsx";
 import { Icon } from "@/components/ui/icon.tsx";
+import { useBrowserToday } from "@/components/use-browser-today.ts";
 import { useQuestAction } from "@/components/use-quest-action.ts";
 import type { QuestId } from "@/ids.ts";
 import { changeListItemAction } from "@/lists/list-item-actions.ts";
-import { markTaskDayAction } from "@/streaks/streak-actions.ts";
+import { markTaskPeriodAction } from "@/streaks/streak-actions.ts";
 import type { StreakQuest } from "@/streaks/streak-store.ts";
 import {
+  CADENCES,
+  type Cadence,
   type DayMark,
   type LocalDate,
   type MarkChange,
   markRows,
-  STREAK_TABLE_DAYS,
-  sharedDates,
+  periodOf,
+  STREAK_TABLE_PERIODS,
+  sharedPeriods,
   streakChains,
   withMark,
 } from "@/streaks/streaks.ts";
+import { CADENCE_COPY } from "@/ui/copy/cadence.ts";
 import { DAY_GRID_COPY } from "@/ui/copy/day-grid.ts";
 import { HOME_COPY } from "@/ui/copy/home.ts";
 
 // The marks a square can be checked or unchecked on: the task had been
-// added by that date, and the date isn't after the quest's today.
+// added by the end of that period, and the period isn't after the quest's
+// current one.
 const CHECKABLE: ReadonlySet<DayMark> = new Set(["done", "missed", "pending"]);
 
-// One task's mark on one date in one quest, checked or unchecked.
+// One task's mark in one period in one quest, checked or unchecked.
 interface Mark extends MarkChange {
   readonly questId: QuestId;
 }
@@ -55,13 +57,15 @@ function marked(
   });
 }
 
-// One task's square on one date. A date since the task was added, up to
-// the quest's today, is a button that checks it, or unchecks it, there and
-// then; any other date only shows its mark.
+// One task's square in one period, named by its first date. A period
+// since the task was added, up to the quest's current one, is a button
+// that checks it, or unchecks it, there and then; any other period only
+// shows its mark.
 function Square({
   questId,
   number,
   text,
+  cadence,
   date,
   mark,
   current,
@@ -70,6 +74,7 @@ function Square({
   readonly questId: QuestId;
   readonly number: number;
   readonly text: string;
+  readonly cadence: Cadence;
   readonly date: LocalDate;
   readonly mark: DayMark;
   readonly current: boolean;
@@ -79,16 +84,16 @@ function Square({
   const toggle = useCallback((): void => {
     onMark({ questId, number, date, done: !done });
   }, [onMark, questId, number, date, done]);
-  const weekday = weekdayOf(date);
+  const period = periodName(cadence, date);
   let square = (
     <span className="streak-square" data-mark={mark}>
-      <span className="sr-only">{DAY_GRID_COPY.day(weekday, date, mark)}</span>
+      <span className="sr-only">{DAY_GRID_COPY.period(period, mark)}</span>
     </span>
   );
   if (CHECKABLE.has(mark)) {
     square = (
       <button
-        aria-label={HOME_COPY.square(text, weekday, dayOfMonth(date))}
+        aria-label={HOME_COPY.square(text, period)}
         aria-pressed={done}
         className="streak-target"
         onClick={toggle}
@@ -107,20 +112,23 @@ function Square({
   );
 }
 
-// One quest's recurring tasks under a link to the quest, each with its
-// squares and its streak.
+// One quest's recurring tasks of one cadence under a link to the quest,
+// each with its squares and its streak.
 function QuestRows({
   entry,
+  cadence,
   dates,
   onMark,
 }: {
   readonly entry: StreakQuest;
+  readonly cadence: Cadence;
   readonly dates: readonly LocalDate[];
   readonly onMark: (change: Mark) => void;
 }): JSX.Element {
   const { quest, history, tasks } = entry;
   const chains = streakChains(history, tasks);
   const rows = markRows(history, tasks, dates);
+  const current = periodOf(history.today, cadence);
   return (
     <tbody>
       <tr className="streak-row streak-quest">
@@ -129,7 +137,7 @@ function QuestRows({
             {quest.name}
           </Link>{" "}
           <span className="font-normal text-muted text-sm">
-            {HOME_COPY.recurringCount(rows.length)}
+            {HOME_COPY.recurringCount(rows.length, cadence)}
           </span>
         </th>
       </tr>
@@ -144,7 +152,8 @@ function QuestRows({
               const date = dates[index] ?? "";
               return (
                 <Square
-                  current={date === history.today}
+                  cadence={cadence}
+                  current={date === current}
                   date={date}
                   key={date}
                   mark={mark}
@@ -158,7 +167,7 @@ function QuestRows({
             <td className="streak-count">
               <strong>{streak}</strong>
               <span className="streak-unit">
-                {HOME_COPY.streakUnit(streak)}
+                {HOME_COPY.streakUnit(streak, cadence)}
               </span>
             </td>
           </tr>
@@ -168,11 +177,89 @@ function QuestRows({
   );
 }
 
-// The streaks of every recurring task across the user's Active quests over
-// the last seven dates, grouped by quest. Any square since a task was added
-// can be checked off in place: on its quest's today it is the task's own
-// check, and on an earlier date it adds or takes back that day's check-off.
-// On a phone each task's name stands above its squares.
+// The quests' recurring tasks of one cadence over its last seven periods,
+// grouped by quest, under the cadence's heading.
+function CadenceTable({
+  cadence,
+  quests,
+  today,
+  onMark,
+}: {
+  readonly cadence: Cadence;
+  readonly quests: readonly StreakQuest[];
+  readonly today: string;
+  readonly onMark: (change: Mark) => void;
+}): JSX.Element {
+  const headingId = useId();
+  const { heading, starts } = CADENCE_COPY.words(cadence);
+  const dates = sharedPeriods(
+    quests.map(({ history }) => history.today),
+    cadence,
+    STREAK_TABLE_PERIODS,
+  );
+  return (
+    <section aria-labelledby={headingId} className="card streak-cadence">
+      <header className="streak-cadence-head">
+        <h3 className="card-title" id={headingId}>
+          {heading}
+        </h3>
+        <p className="text-muted text-sm">{starts}</p>
+      </header>
+      <table aria-labelledby={headingId} className="streak-table">
+        <thead>
+          <tr className="streak-row streak-head">
+            <th className="streak-task-head" scope="col">
+              <span className="sr-only">{HOME_COPY.taskColumn}</span>
+            </th>
+            {dates.map((date) => (
+              <PeriodHeading
+                cadence={cadence}
+                key={date}
+                start={date}
+                today={today}
+              />
+            ))}
+            <th className="streak-count-head" scope="col">
+              {HOME_COPY.streakColumn}
+            </th>
+          </tr>
+        </thead>
+        {quests.map((entry) => (
+          <QuestRows
+            cadence={cadence}
+            dates={dates}
+            entry={entry}
+            key={entry.quest.id}
+            onMark={onMark}
+          />
+        ))}
+      </table>
+    </section>
+  );
+}
+
+// Each quest that has recurring tasks of a cadence, with only those tasks.
+function questsOf(
+  quests: readonly StreakQuest[],
+  cadence: Cadence,
+): readonly StreakQuest[] {
+  return quests.flatMap((entry) => {
+    const tasks = entry.tasks.filter((task) => task.cadence === cadence);
+    if (tasks.length === 0) {
+      return [];
+    }
+    return [{ ...entry, tasks }];
+  });
+}
+
+// The streaks of every recurring task across the user's Active quests, in
+// a grid for each cadence that has any: Every day over the last seven
+// days, Every week over the last seven weeks and Every month over the last
+// seven months, each grouped by quest. Any square since a task was added
+// can be checked off in place: in its quest's current period it is the
+// task's own check, and in an earlier one it adds or takes back that
+// period's check-off. On a phone each task's name stands above its
+// squares.
 function StreakTable({
   quests,
 }: {
@@ -182,11 +269,7 @@ function StreakTable({
   const [shown, showMark] = useOptimistic(quests, marked);
   const today = useBrowserToday();
   const { run: runCheck, ...check } = useQuestAction(changeListItemAction);
-  const { run: runRecord, ...record } = useQuestAction(markTaskDayAction);
-  const dates = sharedDates(
-    shown.map(({ history }) => history.today),
-    STREAK_TABLE_DAYS,
-  );
+  const { run: runRecord, ...record } = useQuestAction(markTaskPeriodAction);
   const onMark = useCallback(
     (change: Mark): void => {
       const entry = quests.find(({ quest }) => quest.id === change.questId);
@@ -196,7 +279,10 @@ function StreakTable({
       }
       startTransition(async () => {
         showMark(change);
-        if (entry.history.today === change.date) {
+        if (
+          periodOf(change.date, task.cadence) ===
+          periodOf(entry.history.today, task.cadence)
+        ) {
           await runCheck({
             questId: change.questId,
             listId: task.listId,
@@ -215,35 +301,28 @@ function StreakTable({
     [quests, showMark, runCheck, runRecord],
   );
 
+  const tables = CADENCES.flatMap((cadence) => {
+    const repeating = questsOf(shown, cadence);
+    if (repeating.length === 0) {
+      return [];
+    }
+    return [
+      <CadenceTable
+        cadence={cadence}
+        key={cadence}
+        onMark={onMark}
+        quests={repeating}
+        today={today}
+      />,
+    ];
+  });
   let body: JSX.Element;
-  if (shown.length === 0) {
+  if (tables.length === 0) {
     body = <p className="text-muted text-sm">{HOME_COPY.noStreaks}</p>;
   } else {
     body = (
       <>
-        <table aria-labelledby={headingId} className="streak-table">
-          <thead>
-            <tr className="streak-row streak-head">
-              <th className="streak-task-head" scope="col">
-                <span className="sr-only">{HOME_COPY.taskColumn}</span>
-              </th>
-              {dates.map((date) => (
-                <DateHeading date={date} key={date} today={today} />
-              ))}
-              <th className="streak-count-head" scope="col">
-                {HOME_COPY.streakColumn}
-              </th>
-            </tr>
-          </thead>
-          {shown.map((entry) => (
-            <QuestRows
-              dates={dates}
-              entry={entry}
-              key={entry.quest.id}
-              onMark={onMark}
-            />
-          ))}
-        </table>
+        {tables}
         <p className="text-muted text-sm">{HOME_COPY.legend}</p>
       </>
     );

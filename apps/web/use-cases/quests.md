@@ -87,7 +87,7 @@ The user starts a quest for the things they do every day.
 
 - **Prerequisites:** [`use_case_sign_in_by_link`](accounts.md#use_case_sign_in_by_link).
 - **Steps:** under Start a quest, they choose Dailies and choose Start quest. Dailies offers no Why field.
-- **Outcome:** a new quest named Dailies opens on Overview. It works like any other quest: it has Next task and Day grid, members can join it, and any of its tasks can be made recurring. Each start makes a new quest, as for the other starting points.
+- **Outcome:** a new quest named Dailies opens on Overview. It works like any other quest: it has Next task and Day grid, members can join it, and any of its tasks can be made to repeat daily, weekly or monthly. Each start makes a new quest, as for the other starting points.
 - **Next:**
   - [`use_case_recurring_tasks`](tasks.md#use_case_recurring_tasks): mark the tasks to do every day.
 

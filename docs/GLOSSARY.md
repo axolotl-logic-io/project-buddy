@@ -74,7 +74,7 @@ The panel, open from any page, that adds a list item to a list of an Active ques
 
 ### Quest day
 
-A day in a quest, from one midnight to the next in the quest owner's time zone. Everyone in the quest shares the owner's days. Nothing runs at midnight: each read of a task works out whether it is still checked off today. [Recurring task use case](../apps/web/use-cases/tasks.md#use_case_recurring_tasks)
+A day in a quest, from one midnight to the next in the quest owner's time zone. Everyone in the quest shares the owner's days. A quest's weeks start on Monday and its months on the 1st, each at that midnight. Nothing runs at midnight: each read of a task works out whether it is still checked off in its current day, week or month. [Recurring task use case](../apps/web/use-cases/tasks.md#use_case_recurring_tasks)
 
 ### Time zone
 
@@ -82,15 +82,15 @@ The time zone whose midnight starts a new quest day in each quest the user owns.
 
 ### Recurring task
 
-A task marked to do every day, in any quest. At the next midnight it reads as unchecked again if it is checked off, keeping its task number and place in its list. A **one-off task** stays checked off. [Recurring task use case](../apps/web/use-cases/tasks.md#use_case_recurring_tasks)
+A task marked to do again in every period of its **cadence**: daily, weekly or monthly, in any quest. When its next period starts (the next midnight, Monday or 1st of the month) it reads as unchecked again if it is checked off, keeping its task number and place in its list. A **one-off task** stays checked off. [Recurring task use case](../apps/web/use-cases/tasks.md#use_case_recurring_tasks)
 
 ### Streak
 
-A run of consecutive quest days on which someone checked off a recurring task. A day without a check-off breaks the run. **Day grid** shows each recurring task's marks for up to seven recent dates. [Daily streak use case](../apps/web/use-cases/tasks.md#use_case_daily_streaks)
+A run of consecutive periods of a recurring task's cadence (days, weeks or months) in each of which someone checked it off. A period without a check-off breaks the run. **Day grid** shows each recurring task's marks for up to seven recent periods, grouped by cadence. [Daily streak use case](../apps/web/use-cases/tasks.md#use_case_daily_streaks)
 
 ### Home
 
-The signed-in landing page at the site's root, above Quests in the breadcrumbs. It shows the user's experience, then **Streaks**: every recurring task of the Active quests open to them over the last seven dates, which they can check off in place on any of those dates since the task was added. Then **Tallies**: every tally of those quests with its day totals over the same dates, each of which they can change, and an Increment for today. Then **Tasks**: every one-off task of those quests that is open or was checked off today, which they can check off or uncheck in place. [Home streaks use case](../apps/web/use-cases/home.md#use_case_home_streaks), [Home tallies use case](../apps/web/use-cases/home.md#use_case_home_tallies), [Home tasks use case](../apps/web/use-cases/home.md#use_case_home_tasks)
+The signed-in landing page at the site's root, above Quests in the breadcrumbs. It shows the user's experience, then **Streaks**: a grid for each cadence, Every day, Every week and Every month, with every recurring task of that cadence in the Active quests open to them over its last seven periods, which they can check off in place in any of those periods since the task was added. Then **Tallies**: every tally of those quests with its day totals over the same dates, each of which they can change, and an Increment for today. Then **Tasks**: every one-off task of those quests that is open or was checked off today, which they can check off or uncheck in place. [Home streaks use case](../apps/web/use-cases/home.md#use_case_home_streaks), [Home tallies use case](../apps/web/use-cases/home.md#use_case_home_tallies), [Home tasks use case](../apps/web/use-cases/home.md#use_case_home_tasks)
 
 ## Rites and performances
 
