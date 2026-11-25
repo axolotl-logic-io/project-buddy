@@ -4,19 +4,11 @@
 export const HTTP_STATUS = {
   ok: 200,
   noContent: 204,
-  temporaryRedirect: 307,
-  permanentRedirect: 308,
   badRequest: 400,
   unauthorized: 401,
-  paymentRequired: 402,
   forbidden: 403,
   notFound: 404,
   conflict: 409,
-  gone: 410,
-  payloadTooLarge: 413,
   tooManyRequests: 429,
   internalServerError: 500,
-  badGateway: 502,
-  // Not a standard status: Anthropic answers 529 when its API is overloaded.
-  overloaded: 529,
 } as const;

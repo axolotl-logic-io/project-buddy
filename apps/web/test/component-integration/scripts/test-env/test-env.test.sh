@@ -280,7 +280,7 @@ done
 # Every public environment-dependent command fails before Docker/DB/test work.
 rm "$checkout/.env.test"
 clear_log
-for command in test test:e2e test-db:up test-db:down test-db:reset; do
+for command in test:e2e test:server test:system test:build test-db:up test-db:down test-db:reset; do
   fails bash -c 'cd "$1" && npm run "$2"' -- "$checkout" "$command"
   contains "$work/error" 'Missing apps/web/.env.test'
   contains "$work/error" 'orchestrator provides'
@@ -298,6 +298,10 @@ import fs from 'node:fs';
 const entry = process.argv[1].split('/').at(-1);
 fs.appendFileSync(process.env.COMMAND_LOG, JSON.stringify({entry, args: process.argv.slice(2), database: process.env.DATABASE_URL, port: process.env.E2E_PORT}) + '\n');
 if (entry === 'reset.ts' && process.env.FAIL_RESET === '1') process.exitCode = 17;
+if (entry === 'vitest.mjs' && process.argv.includes('browser*') && process.env.FAIL_BROWSER === '1') {
+  console.log('RERUN: npm exec --workspace apps/web -- vitest run test/example.browser.test.tsx');
+  process.exitCode = 1;
+}
 JS
 cp "$work/record.mjs" "$work/checkout two/node_modules/vitest/vitest.mjs"
 cp "$work/record.mjs" "$work/checkout two/node_modules/@playwright/test/cli.js"
@@ -318,26 +322,42 @@ done
 cp "$work/lane-two-env" "$checkout/.env.test"
 export COMMAND_LOG="$work/command-log"
 : > "$COMMAND_LOG"
-# npm test runs React Doctor and the script and repository tests, then resets
-# the database and runs the server tests.
+# The full test command runs every stage. Only the database lane's two resets
+# and runners must be ordered relative to each other.
 (cd "$checkout" && npm test) > "$work/npm-output" 2>&1
-[[ "$(wc -l < "$COMMAND_LOG" | tr -d ' ')" == 7 ]] || die 'Wrong test stage count'
-sed -n '1p' "$COMMAND_LOG" > "$work/line"; contains "$work/line" '"entry":"npx.mjs","args":["--yes","react-doctor@'
-sed -n '2p' "$COMMAND_LOG" > "$work/line"; contains "$work/line" '"entry":"vercel-promote.test.sh"'
-sed -n '3p' "$COMMAND_LOG" > "$work/line"; contains "$work/line" '"entry":"test-env.test.sh"'
-sed -n '4p' "$COMMAND_LOG" > "$work/line"; contains "$work/line" '"entry":"ops.test.sh"'
-sed -n '5p' "$COMMAND_LOG" > "$work/line"; contains "$work/line" '"entry":"vitest.mjs","args":["run","--project","repository","--project","vite-integration"]'
-sed -n '6p' "$COMMAND_LOG" > "$work/line"; contains "$work/line" '"entry":"reset.ts","args":[]'
-sed -n '7p' "$COMMAND_LOG" > "$work/line"; contains "$work/line" '"entry":"vitest.mjs","args":["run","--config","vitest.server.config.mts"]'
+[[ "$(wc -l < "$COMMAND_LOG" | tr -d ' ')" == 11 ]] || die 'Wrong full test stage count'
+contains "$COMMAND_LOG" '"entry":"npx.mjs","args":["--yes","react-doctor@'
+contains "$COMMAND_LOG" '"entry":"vercel-promote.test.sh"'
+contains "$COMMAND_LOG" '"entry":"test-env.test.sh"'
+contains "$COMMAND_LOG" '"entry":"ops.test.sh"'
+contains "$COMMAND_LOG" '"--project","repository","--project","vite-integration"'
+contains "$COMMAND_LOG" '"--project","browser*"'
+contains "$COMMAND_LOG" '"entry":"playwright.mjs","args":["install","chromium","webkit"]'
+grep -E 'reset.ts|vitest.server.config.mts|cli.js' "$COMMAND_LOG" > "$work/database-stages"
+sed -n '1p' "$work/database-stages" > "$work/line"; contains "$work/line" '"entry":"reset.ts"'
+sed -n '2p' "$work/database-stages" > "$work/line"; contains "$work/line" 'vitest.server.config.mts'
+sed -n '3p' "$work/database-stages" > "$work/line"; contains "$work/line" '"entry":"reset.ts"'
+sed -n '4p' "$work/database-stages" > "$work/line"; contains "$work/line" '"entry":"cli.js"'
+: > "$COMMAND_LOG"
+fails bash -c 'cd "$1" && FAIL_RESET=1 npm test' -- "$checkout"
+contains "$work/error" 'BLOCKED Server tests'
+contains "$work/error" 'BLOCKED Playwright system tests'
+contains "$COMMAND_LOG" '"--project","browser*"'
 not_contains "$COMMAND_LOG" '"entry":"cli.js"'
-not_contains "$COMMAND_LOG" '"entry":"playwright.mjs"'
+: > "$COMMAND_LOG"
+fails bash -c 'cd "$1" && FAIL_BROWSER=1 npm test' -- "$checkout"
+contains "$work/error" 'FAIL Vitest browser tests'
+contains "$work/error" 'Rerun from the repository root'
+contains "$work/error" 'npm exec --workspace apps/web -- vitest run test/example.browser.test.tsx'
+not_contains "$work/error" 'npm run --workspace @project-buddy/web test:browser'
+contains "$COMMAND_LOG" '"entry":"cli.js"'
 : > "$COMMAND_LOG"
 # test:e2e installs the browsers and runs the browser tests, then resets the
 # database and runs Playwright.
 (cd "$checkout" && npm run test:e2e) > "$work/npm-output" 2>&1
 [[ "$(wc -l < "$COMMAND_LOG" | tr -d ' ')" == 4 ]] || die 'Wrong e2e stage count'
 sed -n '1p' "$COMMAND_LOG" > "$work/line"; contains "$work/line" '"entry":"playwright.mjs","args":["install","chromium","webkit"]'
-sed -n '2p' "$COMMAND_LOG" > "$work/line"; contains "$work/line" '"entry":"vitest.mjs","args":["run","--project","browser*"]'
+sed -n '2p' "$COMMAND_LOG" > "$work/line"; contains "$work/line" '"entry":"vitest.mjs","args":["run","--project","browser*","--reporter=default","--reporter=./scripts/test-env/vitest-failures.ts"]'
 sed -n '3p' "$COMMAND_LOG" > "$work/line"; contains "$work/line" '"entry":"reset.ts"'
 sed -n '4p' "$COMMAND_LOG" > "$work/line"; contains "$work/line" '"entry":"cli.js"'
 not_contains "$COMMAND_LOG" 'vitest.server.config.mts'
@@ -348,7 +368,7 @@ not_contains "$COMMAND_LOG" 'vitest.server.config.mts'
 : > "$COMMAND_LOG"
 (cd "$checkout" && npm run test:e2e -- --workers 4 --project=chromium test/system/sign-in.spec.ts) > "$work/npm-output" 2>&1
 [[ "$(wc -l < "$COMMAND_LOG" | tr -d ' ')" == 4 ]] || die 'Wrong e2e stage count with options'
-sed -n '2p' "$COMMAND_LOG" > "$work/line"; contains "$work/line" '"entry":"vitest.mjs","args":["run","--project","browser*"]'
+sed -n '2p' "$COMMAND_LOG" > "$work/line"; contains "$work/line" '"entry":"vitest.mjs","args":["run","--project","browser*","--reporter=default","--reporter=./scripts/test-env/vitest-failures.ts"]'
 sed -n '3p' "$COMMAND_LOG" > "$work/line"; contains "$work/line" '"entry":"reset.ts","args":[]'
 sed -n '4p' "$COMMAND_LOG" > "$work/line"; contains "$work/line" '"entry":"cli.js","args":["test","--workers","4","--project=chromium","test/system/sign-in.spec.ts"]'
 same "$work/lane-two-env" "$checkout/.env.test"

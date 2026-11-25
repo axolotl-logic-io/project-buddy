@@ -1,15 +1,12 @@
 import type { Event } from "@/experience/experience.ts";
 
-// Profile's experience card and Events, the construct's reply to the exp
-// command, and the ring in the site header: the user's circle, its title, the
-// experience they have and still need, and their counts in each event.
+// Profile's experience card and Events, and the ring in the site header:
+// the user's circle and its title, their experience, and their event counts.
 export const EXPERIENCE_COPY = {
   // The experience card's accessible name.
   heading: "Experience",
   circle: (circle: number, title: string): string =>
     `Circle ${circle} · ${title}`,
-  standing: (experience: number, needed: number, next: number): string =>
-    `${experience} experience. ${needed} more to reach circle ${next}.`,
   // The header's ring, which fills toward the next circle and links to
   // Profile's Experience section, by its accessible name.
   progress: (

@@ -473,17 +473,6 @@ async function changeWithin(
   return result;
 }
 
-function changeListItem(
-  user: UserId,
-  questId: QuestId,
-  listId: ListId,
-  change: ListItemChange,
-): Promise<ChangeResult> {
-  return withAppErrors("changeListItem", () =>
-    inTransaction((tx) => changeWithin(tx, user, { questId, listId }, change)),
-  );
-}
-
 interface ListContents extends List {
   readonly listItems: readonly ListItem[];
 }
@@ -601,9 +590,8 @@ function countListItems(
   });
 }
 
-export type { ListCount, ListItem, OpenTask };
+export type { ListItem, OpenTask };
 export {
-  changeListItem,
   changeWithin,
   countListItems,
   readListContents,

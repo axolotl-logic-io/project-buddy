@@ -26,12 +26,8 @@ export const QUICK_ADD_COPY = {
   textHint: `Up to ${QUICK_ADD_MAX_LENGTH} characters.`,
   save: "Add",
   saving: "Adding…",
-  saved: (questName: string): string => `Added to ${questName}.`,
   problem: (problem: QuickAddTextProblem): string => PROBLEMS[problem],
-  notFound:
-    "That quest is no longer Active, so nothing was added. Choose another quest.",
   failed: "The text couldn't be added. Try again.",
-  invalid: "Choose a quest and write something to add.",
   noQuests:
     "Quick Add adds to an Active quest. Start a quest or restore one from Quests first.",
   noQuestsLink: "Go to Quests",

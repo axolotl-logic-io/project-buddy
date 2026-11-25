@@ -1,9 +1,9 @@
 import type { JSX } from "react";
 
 // The shapes a page's skeleton is built from, top to bottom: a line of text,
-// a list of cards, a panel (such as a form), or a performance's entries. A page's
-// heading is the trail band's, which shows while the page loads.
-type SkeletonShape = "line" | "cards" | "panel" | "messages";
+// a list of cards, or a panel such as a form. The trail band shows the page
+// heading while the page loads.
+type SkeletonShape = "line" | "cards" | "panel";
 
 // Each shape's blocks, by their size; no two blocks of a shape are the same
 // size.
@@ -11,7 +11,6 @@ const SHAPE_BLOCKS: Readonly<Record<SkeletonShape, readonly string[]>> = {
   line: ["h-5 w-1/3"],
   cards: ["h-14", "h-14 w-11/12", "h-14 w-5/6"],
   panel: ["h-44 rounded-box"],
-  messages: ["h-16 w-4/5", "h-24 w-11/12 self-end", "h-16 w-3/4"],
 };
 
 // What a page shows while its content streams in: the shapes, each at most

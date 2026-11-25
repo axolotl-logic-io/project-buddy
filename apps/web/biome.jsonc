@@ -255,6 +255,26 @@
       }
     },
 
+    // Vitest and Playwright load reporters through the default export.
+    {
+      "includes": ["scripts/test-env/*-failures.ts"],
+      "linter": {
+        "rules": {
+          "correctness": { "noNodejsModules": "off" },
+          "style": { "noDefaultExport": "off" }
+        }
+      }
+    },
+    // The reporters print shell commands from their Node processes.
+    {
+      "includes": ["scripts/test-env/rerun-command.ts"],
+      "linter": {
+        "rules": {
+          "correctness": { "noNodejsModules": "off" }
+        }
+      }
+    },
+
     // Standalone Node commands read tooling environment files, use process
     // settings and report results on the terminal. The production query reads
     // pulled settings outside the checkout; development commands also run

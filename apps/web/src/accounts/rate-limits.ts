@@ -249,9 +249,4 @@ function rowsOf(hmac: string | undefined, clientKey: string | undefined): SQL {
   return sql`false`;
 }
 
-export {
-  countQuestInvitation,
-  countSignInLinkRequest,
-  endRateLimitWindowsFor,
-  INVITATION_LIMIT,
-};
+export { countQuestInvitation, countSignInLinkRequest, endRateLimitWindowsFor };

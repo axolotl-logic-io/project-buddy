@@ -17,7 +17,6 @@ import {
   listChangeOpenTo,
   listItemOpenTo,
   listOpenTo,
-  opensQuest,
   performanceMessageOpenTo,
   performanceOpenTo,
   questInvitationOpenTo,
@@ -75,6 +74,7 @@ import {
   setTallyDayAction,
 } from "@/tallies/tally-actions.ts";
 import { readQuestTallies, readTallyQuests } from "@/tallies/tally-store.ts";
+import { readTaskQuests } from "@/tasks/task-store.ts";
 import { HOME_COPY } from "@/ui/copy/home.ts";
 import { LISTS_COPY } from "@/ui/copy/lists.ts";
 import { PERFORMANCE_COPY } from "@/ui/copy/performances.ts";
@@ -324,8 +324,6 @@ function predicateProbes(
       questRow(quest.id, questOpenTo(user)),
     "questOpenTo, the owner's other quest": (user: UserId): Promise<boolean> =>
       questRow(otherQuest.id, questOpenTo(user)),
-    opensQuest: (user: UserId): Promise<boolean> =>
-      questRow(quest.id, opensQuest(user, quest.id)),
     questPendingFor: (user: UserId): Promise<boolean> =>
       questRow(quest.id, questPendingFor(user)),
     listOpenTo: (user: UserId): Promise<boolean> =>
@@ -445,7 +443,6 @@ const EXPECTED_REACH: Readonly<Record<string, readonly Role[]>> = {
   questOwnedBy: ["owner"],
   questOpenTo: OPEN_TO_OWNER_AND_MEMBER,
   "questOpenTo, the owner's other quest": ["owner"],
-  opensQuest: OPEN_TO_OWNER_AND_MEMBER,
   questPendingFor: ["pending invitee"],
   listOpenTo: OPEN_TO_OWNER_AND_MEMBER,
   listItemOpenTo: OPEN_TO_OWNER_AND_MEMBER,
@@ -543,6 +540,7 @@ describe("use_case_quest_member_access", () => {
           readStreakQuests(outsider.id),
           readTallyQuests(outsider.id),
           readQuestTallies(outsider.id, quest.id),
+          readTaskQuests(outsider.id),
         ]),
       ).toEqual([
         [],
@@ -558,6 +556,7 @@ describe("use_case_quest_member_access", () => {
         [],
         [],
         undefined,
+        [],
       ]);
       expect(
         await markTaskDayAction({

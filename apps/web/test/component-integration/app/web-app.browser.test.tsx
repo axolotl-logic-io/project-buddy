@@ -20,6 +20,7 @@ const CHANNEL_TOLERANCE = 1;
 
 // Red, green and blue, before a pixel's alpha.
 const COLOR_CHANNELS = 3;
+const APPLE_TOUCH_ICON_SIZE = 180;
 
 // The size an image at src loads at.
 async function loadedSize(
@@ -102,8 +103,8 @@ describe("use_case_install_app", () => {
     expect(sizes.map(({ declared }) => declared)).toContain("512x512");
     expect(icons.map(({ purpose }) => purpose)).toContain("maskable");
     expect(await loadedSize(APP_ICONS.apple.src)).toStrictEqual({
-      width: APP_ICONS.apple.size,
-      height: APP_ICONS.apple.size,
+      width: APPLE_TOUCH_ICON_SIZE,
+      height: APPLE_TOUCH_ICON_SIZE,
     });
   });
 

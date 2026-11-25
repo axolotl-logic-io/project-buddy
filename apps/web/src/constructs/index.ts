@@ -13,11 +13,7 @@ const constructsById: Readonly<Record<ConstructId, Construct>> = {
   lumen,
 };
 
-export type {
-  Construct,
-  ConstructDefinition,
-  ConstructId,
-} from "@/constructs/construct.ts";
+export type { Construct, ConstructId } from "@/constructs/construct.ts";
 
 export const DEFAULT_CONSTRUCT_ID: ConstructId = "vellum";
 

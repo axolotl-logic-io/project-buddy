@@ -182,11 +182,6 @@ function formatRemaining(remainingMs: number): string {
   return `${twoDigits(minutes)}:${twoDigits(seconds)}`;
 }
 
-// Time left in whole minutes, rounded up, for announcing a phase.
-function remainingMinutes(remainingMs: number): number {
-  return Math.ceil(Math.max(remainingMs, 0) / MS_PER_MINUTE);
-}
-
 export {
   DEFAULT_DURATIONS,
   formatRemaining,
@@ -196,7 +191,6 @@ export {
   parseTimerDurations,
   parseTimerSchedule,
   parseTimerScheduleValue,
-  remainingMinutes,
   TIMER_MINUTES,
   TIMER_PATH,
   type TimerDurations,

@@ -155,9 +155,9 @@
 import { z } from "zod";
 
 // The site's single visual identity. Old theme cookies resolve to this entry.
-const THEMES = [{ id: "parchment", name: "Parchment" }] as const;
+const THEME_IDS = ["parchment"] as const;
 
-type ThemeId = (typeof THEMES)[number]["id"];
+type ThemeId = (typeof THEME_IDS)[number];
 
 // Fixed appearances; light and dark retain the existing cookie values.
 const THEME_MODES = ["light", "soot-brass", "dark"] as const;
@@ -170,11 +170,9 @@ interface ThemeChoice {
 }
 
 const DEFAULT_THEME_CHOICE: ThemeChoice = {
-  theme: THEMES[0].id,
+  theme: THEME_IDS[0],
   mode: "light",
 };
-
-const THEME_IDS: readonly ThemeId[] = THEMES.map(({ id }) => id);
 
 const themeChoiceSchema = z.object({
   theme: z.enum(THEME_IDS).catch(DEFAULT_THEME_CHOICE.theme),
@@ -191,10 +189,4 @@ function parseThemeChoice(raw: {
 }
 
 export type { ThemeChoice, ThemeId, ThemeMode };
-export {
-  DEFAULT_THEME_CHOICE,
-  parseThemeChoice,
-  THEME_IDS,
-  THEME_MODES,
-  THEMES,
-};
+export { DEFAULT_THEME_CHOICE, parseThemeChoice, THEME_IDS, THEME_MODES };

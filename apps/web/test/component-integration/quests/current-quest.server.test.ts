@@ -5,9 +5,9 @@ import { getDb } from "@/db/client.ts";
 import { quests } from "@/db/tables/quests.ts";
 import type { QuestId, UserId } from "@/ids.ts";
 import {
-  changeListItem,
   readListItems,
   readNextTasks,
+  writeListContents,
 } from "@/lists/list-item-store.ts";
 import { readLists, saveList } from "@/lists/list-store.ts";
 import {
@@ -111,15 +111,15 @@ test("use_case_ask_whats_next", async () => {
   if (later === undefined || later === "invalid-text") {
     throw new Error("The later list was not saved");
   }
-  await changeListItem(user.id, quest.id, later.id, {
+  await writeListContents(user.id, quest.id, later.id, {
     kind: "add",
     text: "In a later list",
   });
-  await changeListItem(user.id, quest.id, second.id, {
+  await writeListContents(user.id, quest.id, second.id, {
     kind: "add",
     text: "A possibility",
   });
-  await changeListItem(user.id, quest.id, first.id, {
+  await writeListContents(user.id, quest.id, first.id, {
     kind: "add",
     text: "In the first list",
   });
@@ -128,7 +128,7 @@ test("use_case_ask_whats_next", async () => {
     throw new Error("The task was not saved");
   }
   expect((await readCurrentQuest(user.id))?.nextTask).toBe(firstTask.text);
-  await changeListItem(user.id, quest.id, first.id, {
+  await writeListContents(user.id, quest.id, first.id, {
     kind: "check",
     id: firstTask.id,
     checkedOff: true,

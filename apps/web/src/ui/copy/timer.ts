@@ -65,8 +65,6 @@ export const TIMER_COPY = {
   remainingLabel: "Time left",
   // What a screen reader hears once, as each phase begins.
   phaseStarted: (kind: keyof typeof PHASES): string => `${PHASES[kind]} time.`,
-  progressLabel: (kind: keyof typeof PHASES): string =>
-    `${PHASES[kind]} progress`,
   // The count of others in the trail band.
   others: (others: number): string => `${othersHere(others)} here`,
   othersUnavailable: "Unknown others",

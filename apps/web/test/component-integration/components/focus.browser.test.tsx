@@ -14,7 +14,7 @@ import { type Locator, page, userEvent } from "vitest/browser";
 import { render } from "vitest-browser-react";
 
 import { QuestList } from "@/components/quest-list.tsx";
-import { THEMES, type ThemeId } from "@/themes/themes.ts";
+import { THEME_IDS, type ThemeId } from "@/themes/themes.ts";
 
 import { questIdFixture } from "../../support/id-fixtures.ts";
 import { applyTheme } from "../themes/theme-test-kit.ts";
@@ -134,8 +134,8 @@ async function linkCardFocus(): Promise<
 }
 
 describe("use_case_choose_theme", () => {
-  for (const { id, name } of THEMES) {
-    describe(`the ${name} theme`, () => {
+  for (const id of THEME_IDS) {
+    describe(`the ${id} theme`, () => {
       beforeEach(() => {
         applyTheme(id);
       });

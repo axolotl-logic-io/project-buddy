@@ -19,7 +19,6 @@ type TimerPresence =
   | { readonly kind: "unavailable" };
 
 export {
-  TIMER_PRESENCE_EXPIRY_MINUTES,
   TIMER_PRESENCE_EXPIRY_MS,
   TIMER_PRESENCE_REPORT_MS,
   type TimerPresence,

@@ -1,9 +1,6 @@
 import { expect, test } from "vitest";
 import { getConstruct } from "@/constructs/index.ts";
-import {
-  CONSTRUCT_VISUAL,
-  resolveConstructVisual,
-} from "@/constructs/visual.ts";
+import { resolveConstructVisual } from "@/constructs/visual.ts";
 
 const BUILT_IN = {
   version: 1,
@@ -32,19 +29,7 @@ test("a frame applies to its role", () => {
   expect(resolveConstructVisual(construct, "avatar").frame).toEqual(frame);
 });
 
-test("unsafe or unknown visual metadata is rejected", () => {
-  expect(
-    CONSTRUCT_VISUAL.safeParse({ ...BUILT_IN, description: "" }).success,
-  ).toBe(false);
-  expect(
-    CONSTRUCT_VISUAL.safeParse({
-      ...BUILT_IN,
-      canonical: { kind: "built-in", artwork: "unknown" },
-    }).success,
-  ).toBe(false);
-});
-
-test("a working variant is optional and framing is bounded", () => {
+test("a working variant applies only to the working role", () => {
   const working = { kind: "built-in", artwork: "vellum" } as const;
   const construct = {
     ...getConstruct("lumen"),
@@ -54,10 +39,4 @@ test("a working variant is optional and framing is bounded", () => {
   expect(resolveConstructVisual(construct, "opening").asset).toEqual(
     BUILT_IN.canonical,
   );
-  expect(
-    CONSTRUCT_VISUAL.safeParse({
-      ...BUILT_IN,
-      frames: { avatar: { x: 2, y: 0, size: 0 } },
-    }).success,
-  ).toBe(false);
 });

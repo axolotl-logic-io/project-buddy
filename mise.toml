@@ -13,7 +13,7 @@ description = "Run Biome and the type check in every workspace"
 run = "npm run lint"
 
 [tasks.test]
-description = "Run React Doctor and every test but the browser and end-to-end tests in every workspace"
+description = "Run React Doctor and the full test suite in every workspace"
 run = "npm test"
 
 [tasks."test:e2e"]

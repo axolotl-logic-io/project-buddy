@@ -22,8 +22,11 @@ In another terminal, run `mise run sign-in-link` and open the printed link to si
 ```sh
 mise run lint
 mise run test
-mise run test:e2e
 ```
+
+`npm test` (also `mise run test`) runs the full suite. It runs the fast checks, Vitest browser tests, and database-backed tests in parallel. The database lane runs the server tests before Playwright. Set up the [local test database](docs/project-practices.md#site-tests) before running the full suite.
+
+If a stage fails, copy its rerun commands from the summary and run them from the repository root. Run `npm test` again after fixing the failures. To run only the browser and Playwright suites, use `mise run test:e2e`.
 
 ## Production database
 

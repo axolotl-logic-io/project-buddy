@@ -1,11 +1,9 @@
 import { ListChecks, Pencil, Repeat } from "lucide-react";
 import type { JSX } from "react";
 
-// What each icon draws on a 16 by 16 grid: an outline, in strokes, and
-// optionally a shape filled in the same colour.
+// The outline each icon draws on a 16 by 16 grid.
 interface IconPaths {
   readonly stroke: string;
-  readonly fill?: string;
   readonly lineJoin?: "miter" | "round" | "bevel";
 }
 
@@ -49,24 +47,14 @@ const ICON_PATHS = {
     stroke:
       "M8 2c.5 3 1.5 4.5 5 6-3.5 1.5-4.5 3-5 6-.5-3-1.5-4.5-5-6 3.5-1.5 4.5-3 5-6z",
   },
-  // A page with a folded corner and two lines, for Quick Add.
-  note: { stroke: "M3.5 2h6l3 3v9h-9zM9.5 2v3h3M5.5 8.5h5M5.5 11h3.5" },
-  // A plus sign, for making something new.
+  // An hourglass, for the Timer panel.
   hourglass: {
     stroke:
       "M4 2h8M4 14h8M5 2v2c0 2 3 3 3 4s-3 2-3 4v2m6-12v2c0 2-3 3-3 4s3 2 3 4v2",
   },
-  people: {
-    stroke:
-      "M2 14v-2a3 3 0 0 1 3-3h2a3 3 0 0 1 3 3v2M8.5 5.5a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0ZM11 3a2.5 2.5 0 0 1 0 5m0 1a3 3 0 0 1 3 3v2",
-  },
   plus: { stroke: "M8 3v10M3 8h10" },
   // A bin, for deleting something.
   trash: { stroke: "M2.5 4h11M6 4V2.5h4V4M4 4l.75 9.5h6.5L12 4" },
-  // A paper plane, for sending a message.
-  send: { stroke: "M2.5 8 13.5 2.5 11 13.5 8 9.5zM8 9.5l5.5-7" },
-  // A filled square, for stopping a reply that runs.
-  stop: { stroke: "M4.5 4.5h7v7h-7z", fill: "M4.5 4.5h7v7h-7z" },
   // A sun, for starting the day.
   sun: {
     stroke:
@@ -134,9 +122,6 @@ function Icon({
         viewBox="0 0 16 16"
       >
         <path d={paths.stroke} strokeLinejoin={paths.lineJoin} />
-        {paths.fill !== undefined && (
-          <path d={paths.fill} fill="currentColor" stroke="none" />
-        )}
       </svg>
     </span>
   );

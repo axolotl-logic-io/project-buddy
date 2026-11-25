@@ -7,13 +7,15 @@ import { APP_ICONS } from "@/ui/web-app.ts";
 
 const PUBLIC_FILES: readonly string[] = [
   "/manifest.webmanifest",
-  "/textures/parchment.svg",
+  "/textures/ivory-vellum.webp",
+  "/textures/soot-brass.webp",
+  "/textures/espresso-leather.webp",
   APP_ICONS.small.src,
   APP_ICONS.large.src,
   APP_ICONS.apple.src,
 ];
 
-test("public app assets and paper textures are served without a session", () => {
+test("public app assets and appearance textures are available without a session", () => {
   for (const path of PUBLIC_FILES) {
     expect(
       doesProxyMatch({ config, url: `http://localhost${path}` }),

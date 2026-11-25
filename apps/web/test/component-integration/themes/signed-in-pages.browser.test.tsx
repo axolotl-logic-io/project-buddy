@@ -6,7 +6,7 @@ import QuestPage from "@/app/(workspace)/quests/[questId]/(overview)/page.tsx";
 import { Markdown } from "@/components/markdown.tsx";
 import { getConstruct } from "@/constructs/index.ts";
 import type { getQuest, listQuests } from "@/quests/store.ts";
-import { THEMES } from "@/themes/themes.ts";
+import { THEME_IDS } from "@/themes/themes.ts";
 import { SITE_COPY } from "@/ui/copy/site.ts";
 import { TIMER_COPY } from "@/ui/copy/timer.ts";
 import { FOX_QUEST } from "../app/(workspace)/page-fixtures.ts";
@@ -132,8 +132,8 @@ beforeEach(async () => {
 
 // One set of tests per theme, under the use case's slug.
 describe("use_case_choose_theme", () => {
-  for (const { id, name } of THEMES) {
-    describe(`the ${name} theme, signed in`, () => {
+  for (const id of THEME_IDS) {
+    describe(`the ${id} theme, signed in`, () => {
       beforeEach(() => {
         applyTheme(id);
       });

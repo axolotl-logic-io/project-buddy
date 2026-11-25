@@ -1,7 +1,6 @@
 // What the viewer has typed but not yet sent or saved, such as a performance
-// message or an edit to a construct's prompt, kept in this browser's local
-// storage under a key of its own, so that leaving the page, reloading or
-// closing the tab doesn't lose it. A draft stays in this browser: the server
+// message, kept under its own key in local storage so it survives leaving
+// the page, reloading or closing the tab. A draft stays in this browser: the server
 // never sees it. Without storage, as when the browser blocks it, nothing is
 // kept and no draft is found, and the page works as before. Only the browser
 // imports this module.
@@ -43,14 +42,6 @@ function parseLocalDraft<Draft>(
   }
 }
 
-// The draft kept under key, or undefined if it is missing or invalid.
-function readLocalDraft<Draft>(
-  key: string,
-  draft: z.ZodType<Draft>,
-): Draft | undefined {
-  return parseLocalDraft(readLocalDraftSnapshot(key), draft);
-}
-
 // The writing tab already updates its own editor. Observe changes from
 // other tabs while this tab has no edits of its own.
 function subscribeToLocalDraft(key: string, changed: () => void): () => void {
@@ -85,7 +76,6 @@ function keepLocalDraft(key: string, draft: unknown): void {
 export {
   keepLocalDraft,
   parseLocalDraft,
-  readLocalDraft,
   readLocalDraftSnapshot,
   subscribeToLocalDraft,
 };

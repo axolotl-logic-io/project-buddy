@@ -60,11 +60,6 @@ function openPool(databaseUrl: string): Pool {
   return new Pool({ connectionString: databaseUrl });
 }
 
-// The drizzle database over a caller-owned pool.
-function pooledDatabase(pool: Pool): Database {
-  return drizzle({ client: pool });
-}
-
 // Commits on success and rolls back on failure, on one checked-out
 // connection of the app's pool.
 function inTransaction<T>(work: (tx: Transaction) => Promise<T>): Promise<T> {
@@ -72,4 +67,4 @@ function inTransaction<T>(work: (tx: Transaction) => Promise<T>): Promise<T> {
 }
 
 export type { Database, Transaction };
-export { closeDb, getDb, inTransaction, openPool, pooledDatabase };
+export { closeDb, getDb, inTransaction, openPool };

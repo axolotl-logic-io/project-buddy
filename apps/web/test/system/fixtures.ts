@@ -157,5 +157,4 @@ const test = base.extend<Fixtures, WorkerFixtures>({
   otherAccount: useAccount,
 });
 
-export type { TestData };
 export { test };

@@ -42,7 +42,7 @@ import { quests } from "@/db/tables/quests.ts";
 import { signedInDays } from "@/db/tables/signed-in-days.ts";
 import { tallyDays } from "@/db/tables/tallies.ts";
 import { timerPresence } from "@/db/tables/timer-presence.ts";
-import type { QuestId, UserId } from "@/ids.ts";
+import type { UserId } from "@/ids.ts";
 
 // A `quests` row of owner's: one owner made.
 function questOwnedBy(owner: UserId): SQL {
@@ -129,17 +129,6 @@ function listChangeOpenTo(user: UserId): SQL {
   );
 }
 
-// True when the quest is open to user, whatever table the query reads: for
-// an insert … select, which writes a row only into a quest open to them.
-function opensQuest(user: UserId, questId: QuestId): SQL {
-  return exists(
-    new QueryBuilder()
-      .select({ id: quests.id })
-      .from(quests)
-      .where(and(eq(quests.id, questId), questOpenTo(user))),
-  );
-}
-
 // A `quest_members` row of a quest open to user, who may see the member
 // and remove them, themselves included.
 function questMemberOpenTo(user: UserId): SQL {
@@ -189,7 +178,6 @@ export {
   listChangeOpenTo,
   listItemOpenTo,
   listOpenTo,
-  opensQuest,
   performanceMessageOpenTo,
   performanceOpenTo,
   questInvitationOpenTo,

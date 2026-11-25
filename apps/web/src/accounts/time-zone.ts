@@ -57,11 +57,4 @@ function localTimeZone(
   );
 }
 
-export type { TimeZone };
-export {
-  DEFAULT_TIME_ZONE,
-  localTimeZone,
-  TIME_ZONE,
-  TIME_ZONE_MAX_LENGTH,
-  timeZoneChoices,
-};
+export { DEFAULT_TIME_ZONE, localTimeZone, TIME_ZONE, timeZoneChoices };

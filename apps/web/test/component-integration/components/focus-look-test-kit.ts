@@ -70,4 +70,4 @@ function showsGlow(look: FocusLook): boolean {
   );
 }
 
-export { focusLook, type ShadowLayer, showsGlow };
+export { focusLook, showsGlow };

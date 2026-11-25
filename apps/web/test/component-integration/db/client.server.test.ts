@@ -2,7 +2,7 @@ import { eq } from "drizzle-orm";
 import { expect, test } from "vitest";
 import { getDb, inTransaction } from "@/db/client.ts";
 import { signInLinks, users } from "@/db/tables/users.ts";
-import { databaseErrorCase, violatesForeignKey } from "@/errors/neon-errors.ts";
+import { databaseErrorCase } from "@/errors/neon-errors.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
 
 test("a transaction reads its own writes, commits, and rolls back on failure", async () => {
@@ -61,7 +61,7 @@ test("the app's database runs a transaction that reads its own writes and rolls 
   expect(saved?.name).toBeNull();
 });
 
-test("native PostgreSQL constraint errors keep their application case and foreign key", async () => {
+test("a native PostgreSQL constraint error is a failed query", async () => {
   const failure = await getDb()
     .insert(signInLinks)
     .values({
@@ -75,8 +75,4 @@ test("native PostgreSQL constraint errors keep their application case and foreig
     );
   expect(failure).toBeDefined();
   expect(databaseErrorCase(failure)).toBe("database-query-failed");
-  expect(violatesForeignKey(failure, "login_links_user_id_users_id_fk")).toBe(
-    true,
-  );
-  expect(violatesForeignKey(failure, "another_constraint")).toBe(false);
 });

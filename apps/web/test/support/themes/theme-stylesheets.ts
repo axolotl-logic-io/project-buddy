@@ -245,5 +245,4 @@ export {
   themeImports,
   themeReads,
   themeSetTokens,
-  themeStylesheetNames,
 };

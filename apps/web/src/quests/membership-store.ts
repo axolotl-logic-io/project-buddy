@@ -665,14 +665,7 @@ async function acceptInvitationLink(
   );
 }
 
-export type {
-  AcceptLinkResult,
-  InvitationLink,
-  InviteResult,
-  PendingQuest,
-  QuestPeople,
-  QuestPerson,
-};
+export type { InviteResult, PendingQuest, QuestPeople, QuestPerson };
 export {
   acceptInvitationLink,
   answerInvitation,
