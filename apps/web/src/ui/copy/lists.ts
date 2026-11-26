@@ -1,3 +1,4 @@
+import type { SplitCopy } from "@/components/ui/editable-list-contract.ts";
 import type { ListType } from "@/lists/list.ts";
 import type { StreakChain } from "@/streaks/streaks.ts";
 import { CADENCE_COPY } from "./cadence.ts";
@@ -10,6 +11,10 @@ const LIST_NOUNS: Readonly<
   "quick-note": { one: "note", many: "notes" },
   tally: { one: "tally", many: "tallies" },
 };
+
+function capitalized(word: string): string {
+  return `${word.charAt(0).toUpperCase()}${word.slice(1)}`;
+}
 
 const LISTS_COPY = {
   heading: "Lists",
@@ -46,6 +51,27 @@ const LISTS_COPY = {
   addListItem: (type: ListType): string => `Add ${LIST_NOUNS[type].one}`,
   editListItem: (type: ListType): string => `Edit ${LIST_NOUNS[type].one}`,
   removeListItem: (type: ListType): string => `Remove ${LIST_NOUNS[type].one}`,
+  splitListItem: (type: ListType): string => `Split ${LIST_NOUNS[type].one}`,
+  splitDone: (type: ListType, count: number): string =>
+    `${capitalized(LIST_NOUNS[type].one)} split into ${count} ${LIST_NOUNS[type].many}.`,
+  // The split dialog's words for a list item of the list's type.
+  split: (type: ListType): SplitCopy => {
+    const { one, many } = LIST_NOUNS[type];
+    return {
+      title: `Split ${one}`,
+      description: `Write each part as its own ${one}. The parts replace this ${one}, in its place.`,
+      original: `This ${one}`,
+      parts: `New ${many}`,
+      part: (number: number): string => `${capitalized(one)} ${number}`,
+      removePart: (number: number): string => `Remove ${one} ${number}`,
+      addPart: `Add another ${one}`,
+      pasteHint: `Paste several lines to make a ${one} of each.`,
+      submit: (count: number): string => `Split into ${count} ${many}`,
+      cancel: "Cancel",
+      close: "Close",
+      failed: "The split couldn’t be saved. Try again.",
+    };
+  },
   moveUp: "Move up",
   moveDown: "Move down",
   moveTo: "Move to another list",

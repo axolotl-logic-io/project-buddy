@@ -106,17 +106,17 @@ interface ListWrite {
   readonly type: ListType;
 }
 
-async function takeTaskNumber({
-  tx,
-  user,
-  questId,
-  nextTaskNumber,
-}: ListWrite): Promise<number> {
+// The quest's next count task numbers, in order, taken so no other task
+// gets them.
+async function takeTaskNumbers(
+  { tx, user, questId, nextTaskNumber }: ListWrite,
+  count: number,
+): Promise<number[]> {
   await tx
     .update(quests)
-    .set({ nextTaskNumber: nextTaskNumber + 1 })
+    .set({ nextTaskNumber: nextTaskNumber + count })
     .where(and(eq(quests.id, questId), questOpenTo(user)));
-  return nextTaskNumber;
+  return Array.from({ length: count }, (_, offset) => nextTaskNumber + offset);
 }
 
 async function applyChange(
@@ -133,7 +133,7 @@ async function applyChange(
     }
     let taskNumber: number | null = null;
     if (type === "task") {
-      taskNumber = await takeTaskNumber(write);
+      [taskNumber = null] = await takeTaskNumbers(write, 1);
     }
     let position = (rows.at(-1)?.position ?? -1) + 1;
     if (write.atTop) {
@@ -160,6 +160,61 @@ async function applyChange(
     return "missing";
   }
   return applyExisting(write, { rows, index, row }, change);
+}
+
+// The row's text becomes the first of texts, and the rest become new list
+// items right after it. A new task takes the next task numbers and repeats
+// as the row does, unchecked.
+async function split(
+  write: ListWrite,
+  row: Row,
+  texts: readonly string[],
+): Promise<"saved" | "invalid-text"> {
+  const { tx, user, questId, listId, type } = write;
+  const parts = listItemText(type).array().safeParse(texts).data;
+  const [first, ...rest] = parts ?? [];
+  if (first === undefined) {
+    return "invalid-text";
+  }
+  await tx
+    .update(listItems)
+    .set({ text: first })
+    .where(and(eq(listItems.id, row.id), listItemOpenTo(user)));
+  await tx
+    .update(listItems)
+    .set({ position: sql`${listItems.position} + ${rest.length}::integer` })
+    .where(
+      and(
+        eq(listItems.listId, listId),
+        sql`${listItems.position} > ${row.position}::integer`,
+        listItemOpenTo(user),
+      ),
+    );
+  let numbers: readonly number[] = [];
+  if (type === "task") {
+    numbers = await takeTaskNumbers(write, rest.length);
+  }
+  const added = await tx
+    .insert(listItems)
+    .values(
+      rest.map((text, offset) => ({
+        questId,
+        listId,
+        text,
+        taskNumber: numbers[offset] ?? null,
+        position: row.position + 1 + offset,
+        recurring: row.recurring,
+        cadence: row.cadence,
+      })),
+    )
+    .returning({ id: listItems.id });
+  await recordEvents(
+    tx,
+    { user, questId },
+    "adding",
+    added.map(({ id }) => id),
+  );
+  return "saved";
 }
 
 async function applyExisting(
@@ -189,6 +244,8 @@ async function applyExisting(
       await tx.update(listItems).set({ text }).where(target);
       return "saved";
     }
+    case "split":
+      return split(write, row, change.texts);
     case "check":
       if (write.type !== "task" || change.checkedOff === row.checkedOff) {
         return "unchanged";
@@ -387,10 +444,15 @@ async function inverseFor(
     ({ destination } = change);
   }
   const saved = await listRows(tx, user, questId, destination);
+  const previous = new Set(rows.map(({ id }) => id));
+  const added = saved.filter(({ id }) => !previous.has(id));
   let after = saved.find(({ id }) => id === before?.id);
   if (change.kind === "add") {
-    const previous = new Set(rows.map(({ id }) => id));
-    after = saved.find(({ id }) => !previous.has(id));
+    [after] = added;
+  }
+  let parts: Row[] | undefined;
+  if (change.kind === "split") {
+    parts = added;
   }
   const checkOffAfter = await captureCheckOff(tx, questId, after, change);
   return {
@@ -399,6 +461,7 @@ async function inverseFor(
       kind: change.kind,
       before,
       after,
+      added: parts,
       neighbour,
       checkOff,
       checkOffAfter,

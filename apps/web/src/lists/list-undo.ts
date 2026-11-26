@@ -32,6 +32,7 @@ const LIST_INVERSE = z.object({
   kind: z.enum([
     "add",
     "edit",
+    "split",
     "check",
     "recurring",
     "remove",
@@ -41,6 +42,8 @@ const LIST_INVERSE = z.object({
   ]),
   before: LIST_ITEM_RECORD.optional(),
   after: LIST_ITEM_RECORD.optional(),
+  // The list items a split added after the item it split.
+  added: z.array(LIST_ITEM_RECORD).optional(),
   neighbour: LIST_ITEM_ID.optional(),
   checkOff: CHECK_OFF.optional(),
   checkOffAfter: CHECK_OFF.optional(),
@@ -126,6 +129,50 @@ function sameTask(a: Row, b: SavedRow): boolean {
   );
 }
 
+// Gives a split list item its text back and removes the parts the split
+// added, unless the item or any part has changed since.
+async function unsplit(
+  { tx, user }: Scope,
+  { added = [] }: Inverse,
+  {
+    current,
+    before,
+    after,
+  }: {
+    readonly current: Row;
+    readonly before: SavedRow;
+    readonly after: SavedRow;
+  },
+): Promise<boolean> {
+  if (current.text !== after.text || current.listId !== after.listId) {
+    return false;
+  }
+  const ids = added.map(({ id }) => id);
+  const parts = and(inArray(listItems.id, ids), listItemOpenTo(user));
+  const present = await tx
+    .select(LIST_ITEM_COLUMNS)
+    .from(listItems)
+    .where(parts);
+  const unchanged = added.every((part) =>
+    present.some(
+      (row) =>
+        row.id === part.id &&
+        row.text === part.text &&
+        row.listId === part.listId &&
+        sameTask(row, part),
+    ),
+  );
+  if (!unchanged) {
+    return false;
+  }
+  await tx
+    .update(listItems)
+    .set({ text: before.text })
+    .where(and(eq(listItems.id, current.id), listItemOpenTo(user)));
+  await tx.delete(listItems).where(parts);
+  return true;
+}
+
 async function reverseExisting(
   scope: Scope,
   inverse: Inverse,
@@ -145,6 +192,8 @@ async function reverseExisting(
       }
       await tx.update(listItems).set({ text: before.text }).where(target);
       return true;
+    case "split":
+      return unsplit(scope, inverse, rows);
     case "check":
       if (
         current.taskNumber !== after.taskNumber ||

@@ -11,7 +11,10 @@ import {
   EditableListRow,
   EditableListScope,
 } from "@/components/ui/editable-list.tsx";
-import type { EditorOptions } from "@/components/ui/editable-list-contract.ts";
+import type {
+  EditorOptions,
+  SplitOptions,
+} from "@/components/ui/editable-list-contract.ts";
 import { SelectField } from "@/components/ui/field.tsx";
 import { Alert, FormStatus } from "@/components/ui/form-message.tsx";
 import { Icon } from "@/components/ui/icon.tsx";
@@ -23,7 +26,11 @@ import {
   listItemLimit,
   listItemText,
 } from "@/lists/list.ts";
-import { LIST_ITEM_CHANGE, type ListItemChange } from "@/lists/list-item.ts";
+import {
+  LIST_ITEM_CHANGE,
+  type ListItemChange,
+  SPLIT_PARTS,
+} from "@/lists/list-item.ts";
 import { changeListItemAction } from "@/lists/list-item-actions.ts";
 import type { ListItem } from "@/lists/list-item-store.ts";
 import type { List } from "@/lists/list-store.ts";
@@ -111,6 +118,11 @@ function ListItemRow({
   const down = useCallback(async (): Promise<void> => {
     await run({ kind: "reorder", id, direction: "down" });
   }, [id, run]);
+  const splitInto = useCallback(
+    (texts: readonly string[]): Promise<boolean> =>
+      run({ kind: "split", id, texts: [...texts] }),
+    [id, run],
+  );
   const toggle = useCallback(async (): Promise<void> => {
     await run({ kind: "check", id, checkedOff: !checkedOff });
   }, [id, run, checkedOff]);
@@ -142,6 +154,16 @@ function ListItemRow({
   let menuLabel: string | undefined;
   let detail: JSX.Element | undefined;
   let leading: JSX.Element | undefined;
+  // A checked-off task's text is fixed, so it can't be split either.
+  let split: SplitOptions | undefined;
+  if (!checkedOff) {
+    split = {
+      label: LISTS_COPY.splitListItem(list.type),
+      copy: LISTS_COPY.split(list.type),
+      maxParts: SPLIT_PARTS.max,
+      onSplit: splitInto,
+    };
+  }
   if (list.type === "task") {
     checked = checkedOff;
   }
@@ -195,6 +217,7 @@ function ListItemRow({
       }
       badge={badge}
       leading={leading}
+      split={split}
     >
       <EditableListAction icon="arrow-up" onSelect={up}>
         {LISTS_COPY.moveUp}
