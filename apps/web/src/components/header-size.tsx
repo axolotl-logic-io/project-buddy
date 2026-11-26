@@ -13,18 +13,21 @@ function HeaderSize(): null {
       return;
     }
     const element = header;
+    const root = document.documentElement.style;
+    // A property set on the root restyles the whole page, so a scroll
+    // writes one only when its value changes. Once the band is pinned it
+    // writes nothing.
+    function setRootProperty(name: string, value: string): void {
+      if (root.getPropertyValue(name) !== value) {
+        root.setProperty(name, value);
+      }
+    }
     function updatePanelTop(): void {
       const band = element.querySelector<HTMLElement>(".trail-band");
       if (band !== null) {
         const panelTop = band.getBoundingClientRect().top + band.clientTop;
-        document.documentElement.style.setProperty(
-          "--panel-top",
-          `${panelTop}px`,
-        );
-        document.documentElement.style.setProperty(
-          "--panel-tab-height",
-          `${band.clientHeight}px`,
-        );
+        setRootProperty("--panel-top", `${panelTop}px`);
+        setRootProperty("--panel-tab-height", `${band.clientHeight}px`);
       }
     }
     function update(): void {
@@ -42,10 +45,7 @@ function HeaderSize(): null {
         "--header-controls-height",
         `${controlsHeight}px`,
       );
-      document.documentElement.style.setProperty(
-        "--site-header-height",
-        `${pinnedHeight}px`,
-      );
+      setRootProperty("--site-header-height", `${pinnedHeight}px`);
       updatePanelTop();
     }
     const observer = new ResizeObserver(update);
@@ -58,9 +58,9 @@ function HeaderSize(): null {
       globalThis.removeEventListener("scroll", updatePanelTop);
       globalThis.removeEventListener("resize", updatePanelTop);
       element.style.removeProperty("--header-controls-height");
-      document.documentElement.style.removeProperty("--site-header-height");
-      document.documentElement.style.removeProperty("--panel-top");
-      document.documentElement.style.removeProperty("--panel-tab-height");
+      root.removeProperty("--site-header-height");
+      root.removeProperty("--panel-top");
+      root.removeProperty("--panel-tab-height");
     };
   });
   return null;
