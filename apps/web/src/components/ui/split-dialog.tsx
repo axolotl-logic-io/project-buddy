@@ -200,38 +200,40 @@ function SplitForm({
   // part after it, in place of the empty parts that followed it.
   const paste = useCallback(
     (key: number, lines: readonly string[]): void => {
+      const index = parts.findIndex((part) => part.key === key);
+      const [first = "", ...rest] = lines;
+      const added = rest.map(fresh);
+      const next = [
+        ...parts.slice(0, index),
+        { key, text: first },
+        ...added,
+        ...parts.slice(index + 1).filter((part) => part.text !== ""),
+      ];
+      while (next.length < FEWEST_PARTS) {
+        next.push(fresh(""));
+      }
+      const kept = next.slice(0, maxParts);
+      // The last pasted line takes focus, or the last part if it was cut.
+      focusRef.current =
+        kept[Math.min(index + added.length, kept.length - 1)]?.key;
       setFailed(false);
-      setParts((current) => {
-        const index = current.findIndex((part) => part.key === key);
-        const [first = "", ...rest] = lines;
-        const added = rest.map(fresh);
-        const next = [
-          ...current.slice(0, index),
-          { key, text: first },
-          ...added,
-          ...current.slice(index + 1).filter((part) => part.text !== ""),
-        ];
-        while (next.length < FEWEST_PARTS) {
-          next.push(fresh(""));
-        }
-        focusRef.current = added.at(-1)?.key ?? key;
-        return next.slice(0, maxParts);
-      });
+      setParts(kept);
     },
-    [fresh, maxParts],
+    [fresh, maxParts, parts],
   );
   const add = useCallback((): void => {
     const part = fresh("");
     focusRef.current = part.key;
     setParts((current) => [...current, part].slice(0, maxParts));
   }, [fresh, maxParts]);
-  const remove = useCallback((key: number): void => {
-    setParts((current) => {
-      const index = current.findIndex((part) => part.key === key);
-      focusRef.current = current[Math.max(index - 1, 0)]?.key;
-      return current.filter((part) => part.key !== key);
-    });
-  }, []);
+  const remove = useCallback(
+    (key: number): void => {
+      const index = parts.findIndex((part) => part.key === key);
+      focusRef.current = parts[Math.max(index - 1, 0)]?.key;
+      setParts(parts.filter((part) => part.key !== key));
+    },
+    [parts],
+  );
   const submit = useCallback(
     async (event: SubmitEvent<HTMLFormElement>): Promise<void> => {
       event.preventDefault();
