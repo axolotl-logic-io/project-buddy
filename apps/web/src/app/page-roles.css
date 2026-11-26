@@ -1664,6 +1664,15 @@
     letter-spacing: 3px;
   }
 
+  /* The writing as the dial's masks cut it from the lines: each glyph and a
+     narrow margin round it. */
+  .timer-knockout {
+    fill: black;
+    stroke: black;
+    stroke-width: 6px;
+    stroke-linejoin: round;
+  }
+
   .timer-marker {
     color: var(--timer-ornament-ink);
     fill: none;
