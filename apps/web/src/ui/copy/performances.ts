@@ -1,6 +1,4 @@
 const PERFORMANCE_COPY = {
-  rite: "Rite",
-  list: "List",
   message: "Message",
   send: "Send",
   signedOut: "Your session ended. Sign in again to continue.",

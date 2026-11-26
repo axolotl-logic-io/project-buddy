@@ -94,7 +94,11 @@ describe("use_case_tally_lists", () => {
       .getByRole("button", { name: LISTS_COPY.actions("tally") })
       .click();
     await expect
-      .element(page.getByRole("menuitem", { name: LISTS_COPY.moveUp }))
+      .element(
+        page.getByRole("menuitem", {
+          name: LISTS_COPY.removeListItem("tally"),
+        }),
+      )
       .toBeVisible();
     await expect
       .element(

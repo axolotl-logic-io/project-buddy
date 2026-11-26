@@ -7,8 +7,8 @@ A task is a list item in a task list ([`use_case_list_types`](lists.md#use_case_
 The user finds the quest's next task.
 
 - **Prerequisites:** a quest with open tasks in its lists.
-- **Steps:** open the quest's Overview and read Next task.
-- **Outcome:** the next task is the first open task in the quest, taking its lists in order and each list's list items in their saved order. A quest with no open tasks has no next task.
+- **Steps:** open the quest's Overview and look for the pointing hand.
+- **Outcome:** the next task is the first open task in the quest, taking its lists in order and each list's list items in their saved order, and a pointing hand, read as Next task, marks it in its list's card or under Today. A quest with no open tasks has no next task.
 
 ## use_case_change_tasks
 
@@ -50,7 +50,7 @@ The user sees how many days, weeks or months in a row they have checked off each
 - **Steps:**
   - The user looks at a recurring task in its list.
   - The user looks at Today on the quest's Overview, which lists each recurring task with its streak chain.
-  - The user opens Day grid from Quest settings on the quest's Overview.
+  - The user opens Day grid from Quest settings in the quest panel.
 - **Outcome:** each recurring task shows its streak chain under its text: one filled link for each period of its cadence in a row, up to the current one, in which someone checked it off, then the current period's link, dashed until the task is checked off. A line under the chain gives the streak and what checking the task off does next, such as "4-day streak. Check it off to make it 5." or "2-week streak.". The current period counts once the task is checked off, and an open task doesn't end the streak until the period ends. A period the task wasn't checked off in ends the streak. Each day starts at midnight in the quest owner's time zone, each week on Monday and each month on the 1st. Day grid shows the recurring tasks under Every day, Every week and Every month, each over its last seven periods: filled when checked off, empty when not. Above each square is its weekday's letter, its week's Monday's day of the month, or its month's name. Screen readers announce each period by name, such as "week of Mon 23 Nov", and its mark.
 - **Variations:**
   - With no recurring tasks, Day grid says how to make one.

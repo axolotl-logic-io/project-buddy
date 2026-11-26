@@ -46,5 +46,5 @@ export const HOME_COPY = {
   noTasks:
     "No open tasks. Add a task to a list in an Active quest to see it here. Recurring tasks show under Streaks.",
   tasksLegend:
-    "Check off a task to mark it done. It stays here until midnight in the quest owner’s time zone, so it can be unchecked until then.",
+    "Check off a task to mark it done. It leaves Tasks but stays checked off in its quest’s list, where it can be unchecked.",
 } as const;

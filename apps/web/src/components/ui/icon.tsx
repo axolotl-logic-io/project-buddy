@@ -1,4 +1,4 @@
-import { ListChecks, Pencil, Repeat, Split } from "lucide-react";
+import { ListChecks, Pencil, Repeat, Settings, Split } from "lucide-react";
 import type { JSX } from "react";
 
 // The outline each icon draws on a 16 by 16 grid.
@@ -19,8 +19,6 @@ const ICON_PATHS = {
   // A checkmark for confirming an edit.
   check: { stroke: "M3 8l3 3 7-7" },
   // Arrows for moving an item up or down a list, such as Tasks.
-  "arrow-up": { stroke: "M8 13V3M4 7l4-4 4 4" },
-  "arrow-down": { stroke: "M8 3v10M4 9l4 4 4-4" },
   // A left-pointing arrow, back to where a page sits.
   "arrow-left": { stroke: "M13 8H3M7 4 3 8l4 4" },
   // An open book, for the manual's sections.
@@ -53,6 +51,11 @@ const ICON_PATHS = {
       "M4 2h8M4 14h8M5 2v2c0 2 3 3 3 4s-3 2-3 4v2m6-12v2c0 2-3 3-3 4s3 2 3 4v2",
   },
   plus: { stroke: "M8 3v10M3 8h10" },
+  // A lit candle, for performing a rite.
+  candle: {
+    stroke:
+      "M8 1.5c1.1 1.3 1.5 2.2 1.5 3a1.5 1.5 0 0 1-3 0c0-.8.4-1.7 1.5-3zM6 8h4v6H6zM4 14h8",
+  },
   // A magnifying glass, for finding something.
   search: {
     stroke: "M7 2.5a4.5 4.5 0 1 1 0 9 4.5 4.5 0 0 1 0-9zM10.5 10.5l3 3",
@@ -87,6 +90,7 @@ const PLACE_ICONS = {
   checklist: ListChecks,
   pencil: Pencil,
   repeat: Repeat,
+  settings: Settings,
   split: Split,
 } as const;
 

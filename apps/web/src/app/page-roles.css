@@ -2470,6 +2470,11 @@
     @apply text-muted text-xs;
   }
 
+  /* When a quick note was added, under its text. */
+  .item-added {
+    @apply block text-muted text-xs;
+  }
+
   .editable-grip {
     touch-action: none;
     @apply cursor-grab active:cursor-grabbing;
@@ -2613,38 +2618,15 @@
     @apply gap-5;
   }
 
-  .quest-overview-hero,
   .quest-section-body {
-    @apply rounded-box border border-line/70 bg-surface p-4 sm:p-6;
+    @apply flex min-w-0 flex-col gap-4 rounded-box border border-line/70 bg-surface p-4 sm:p-6;
     background-image: var(--frame-decoration);
   }
 
-  .quest-overview-hero {
-    @apply relative border-line shadow-raised;
-  }
-
-  .quest-overview-hero::after {
-    content: "";
-    position: absolute;
-    inset: var(--frame-inset);
-    border: var(--frame-keyline) solid
-      color-mix(in srgb, var(--frame-ink) 45%, transparent);
-    border-radius: inherit;
-    pointer-events: none;
-  }
-
-  /* Focus overview: the quest's name and construct, then one card per job
-     — the next task, today's recurring tasks, a rite to perform, the lists
-     and, folded away, the quest's settings. */
+  /* Quest overview: the quest's name, then one card per list, with Today's
+     recurring tasks after the first task list. */
   .quest-focus-head {
-    @apply flex items-start justify-between gap-3;
-  }
-
-  .quest-focus-head .construct-avatar {
-    inline-size: clamp(--spacing(10), 6vw, --spacing(16));
-    block-size: auto;
-    aspect-ratio: 1;
-    @apply shrink-0;
+    @apply min-w-0;
   }
 
   .quest-overview-title,
@@ -2652,12 +2634,22 @@
     @apply wrap-anywhere font-heading text-page-heading-phone leading-tight font-semibold sm:text-page-heading;
   }
 
+  /* The quest's name opens with a rubricated initial. */
+  .quest-focus-title::first-letter {
+    font-family: var(--initial-font);
+    font-size: calc(var(--initial-size) * 0.8);
+    font-weight: 400;
+    line-height: 1;
+    color: var(--rubric);
+    margin-inline-end: var(--initial-gap);
+  }
+
   .quest-focus-title:focus {
     outline: none;
   }
 
   .quest-overview-meta {
-    @apply mb-2 flex flex-wrap items-center gap-2 text-muted text-sm;
+    @apply mb-1.5 flex flex-wrap items-center gap-2 text-muted text-sm;
   }
 
   .quest-status-mark {
@@ -2676,25 +2668,226 @@
     @apply mt-2 max-w-prose wrap-anywhere whitespace-pre-line text-muted;
   }
 
-  .quest-overview-label {
-    font-family: var(--label-font);
-    color: var(--label-ink);
-    font-variant-caps: var(--label-caps);
-    letter-spacing: var(--label-tracking);
-    text-transform: var(--label-case);
-    @apply text-sm font-semibold;
+  /* A list's card on the overview: its name and size, linked to the whole
+     list, an add button, its first items, a link to the rest and its rite
+     button. */
+  .quest-card {
+    @apply relative flex min-w-0 flex-col gap-1 rounded-box border border-line bg-surface/80 px-4 py-3 shadow-control;
   }
 
-  .quest-next-task {
-    @apply flex flex-col gap-3;
+  .quest-card-head {
+    @apply -me-2 flex items-center;
   }
 
-  .quest-next-task-text {
-    @apply wrap-anywhere font-heading text-xl leading-snug font-semibold;
+  .quest-card-title {
+    min-block-size: var(--target-size);
+    @apply flex min-w-0 flex-1 items-center gap-1.5 font-heading text-lg font-semibold;
   }
 
-  .quest-next-task-check {
-    @apply w-full sm:w-auto sm:min-w-48 sm:self-start;
+  .quest-card-name {
+    min-block-size: var(--target-size);
+    @apply flex min-w-0 flex-1 items-center gap-1.5 no-underline hover:underline;
+  }
+
+  .quest-card-size {
+    @apply shrink-0 font-body text-sm font-normal text-muted;
+  }
+
+  /* A middle dot between a card's name and its size, hidden from screen
+     readers. */
+  .quest-card-dot::before {
+    content: "·";
+    @apply font-body text-sm font-normal text-muted;
+  }
+
+  .quest-card .quest-card-add {
+    min-inline-size: var(--target-size);
+    @apply shrink-0 justify-center px-0 text-primary hover:no-underline;
+  }
+
+  .quest-card .editable-list {
+    @apply -ms-2.5 -me-2 text-base;
+  }
+
+  .quest-card .editable-row + .editable-row {
+    @apply border-line/40 border-t;
+  }
+
+  /* The quest's next task: a gold wash and a rubricated manicule. */
+  .editable-row:has(.next-task-mark) {
+    background: linear-gradient(
+      90deg,
+      color-mix(in oklab, var(--header-gold) 16%, transparent),
+      transparent 85%
+    );
+  }
+
+  .editable-row:has(.task-check):has(.editable-leading) {
+    @apply grid-cols-[auto_auto_minmax(0,1fr)_auto];
+  }
+
+  .editable-row:has(.task-check):has(.editable-leading) > .editable-detail {
+    @apply col-start-3;
+  }
+
+  .editable-row:has(.next-task-mark) > .editable-leading {
+    @apply self-center;
+  }
+
+  /* A manicule, a pointing hand, named by its label. */
+  .next-task-mark::before {
+    content: "☞";
+  }
+
+  .next-task-mark {
+    color: var(--rubric);
+    @apply me-1 text-lg leading-none;
+  }
+
+  .quest-card-more {
+    min-block-size: var(--target-size);
+    @apply flex items-center justify-between gap-3 border-line/40 border-t text-muted text-sm no-underline hover:text-foreground;
+  }
+
+  .quest-card-more .icon {
+    @apply size-4 shrink-0;
+  }
+
+  .quest-card-foot {
+    @apply mt-1 flex border-line/40 border-t pt-2;
+  }
+
+  /* A list card's button that opens the rite dialog: a candle in rubric. */
+  .rite-open .icon {
+    color: var(--rubric);
+  }
+
+  .rite-dialog-head {
+    @apply -me-2 -mt-2 flex items-start justify-between gap-2;
+  }
+
+  .rite-dialog-head .section-heading {
+    @apply pt-2;
+  }
+
+  .rite-dialog-head .button-quiet {
+    min-inline-size: var(--target-size);
+    @apply shrink-0 justify-center px-0 text-muted hover:text-foreground hover:no-underline;
+  }
+
+  .rite-dialog-list {
+    @apply -mt-3 text-muted text-sm;
+  }
+
+  .rite-dialog-form {
+    @apply flex flex-col gap-4;
+  }
+
+  .rite-group {
+    @apply m-0 grid min-w-0 gap-1.5 border-0 p-0;
+  }
+
+  /* Built in and Yours, in red-letter small capitals. */
+  .rite-group-label {
+    color: var(--rubric);
+    font-variant-caps: all-small-caps;
+    @apply mb-1.5 p-0 font-heading text-sm font-semibold tracking-wider;
+  }
+
+  /* A rite to choose: its name and first message on a card. The radio
+     covers the card, unseen, so the card is its target; the mark before
+     the name shows the choice. */
+  .rite-option {
+    min-block-size: var(--target-size);
+    @apply relative grid cursor-pointer grid-cols-[auto_minmax(0,1fr)] items-start gap-x-2.5 gap-y-0.5 rounded-control border border-line/70 bg-field px-3 py-2.5;
+  }
+
+  .rite-option input {
+    @apply absolute inset-0 m-0 size-full cursor-pointer appearance-none rounded-control opacity-0;
+  }
+
+  .rite-option::before {
+    content: "";
+    @apply mt-0.5 size-5 rounded-full border-2 border-line bg-field;
+  }
+
+  .rite-option:has(input:checked) {
+    background: color-mix(in oklab, var(--header-gold) 12%, var(--field));
+    box-shadow: inset 0 0 0 1px var(--primary);
+    @apply border-primary;
+  }
+
+  .rite-option:has(input:checked)::before {
+    background: radial-gradient(circle, var(--primary) 0 45%, var(--field) 50%);
+    @apply border-primary;
+  }
+
+  .rite-option:has(input:focus-visible) {
+    outline: var(--focus-outline);
+    outline-offset: var(--focus-offset);
+  }
+
+  .rite-option-name {
+    @apply wrap-anywhere font-heading font-semibold;
+  }
+
+  .rite-option-message {
+    @apply col-start-2 block wrap-anywhere text-muted text-xs italic leading-snug;
+  }
+
+  /* The quest panel's link to the quest's settings, above the Timer. */
+  .quest-panel-settings {
+    min-block-size: var(--target-size);
+    @apply mt-4 grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 rounded-control border border-line/70 bg-field/60 px-3 py-2 no-underline hover:border-primary;
+  }
+
+  .quest-panel-settings > .icon {
+    @apply shrink-0 text-muted;
+  }
+
+  .quest-panel-settings > .quest-panel-settings-icon {
+    @apply text-primary;
+  }
+
+  .quest-panel-settings-name {
+    @apply font-heading font-semibold;
+  }
+
+  .quest-panel-settings-hint {
+    @apply text-muted text-xs;
+  }
+
+  .quest-panel-timer {
+    @apply mt-4 border-line/40 border-t pt-3;
+  }
+
+  .quest-panel-label {
+    @apply flex items-center gap-2 font-heading text-lg;
+  }
+
+  .quest-panel-label .icon {
+    @apply text-primary;
+  }
+
+  .quest-settings-links {
+    @apply grid;
+  }
+
+  .quest-settings-links > li + li {
+    @apply border-line/40 border-t;
+  }
+
+  .quest-settings-link {
+    min-block-size: var(--target-size);
+    @apply flex items-center gap-3 py-2 hover:text-primary;
+  }
+
+  .quest-settings-link > :first-child {
+    @apply min-w-0 flex-1 font-semibold;
+  }
+
+  .quest-settings-link .icon {
+    @apply shrink-0 text-muted;
   }
 
   .quest-today {
@@ -2710,103 +2903,8 @@
     @apply flex flex-wrap items-center justify-between gap-x-3 border-line/40 border-t first:border-t-0;
   }
 
-  .quest-today-streak {
-    @apply ms-auto text-end text-muted text-sm;
-  }
-
   .quest-today-check {
     @apply grid min-w-0 flex-1 cursor-pointer grid-cols-[auto_minmax(0,1fr)] items-center gap-1;
-  }
-
-  .rite-choices {
-    @apply m-0 flex min-w-0 flex-wrap gap-2 border-0 p-0;
-  }
-
-  .rite-choice {
-    min-block-size: var(--target-size);
-    @apply relative inline-flex max-w-full cursor-pointer items-center rounded-action border border-line/70 bg-action-paper px-3.5 py-2 font-action font-semibold text-action-ink wrap-anywhere;
-  }
-
-  /* The radio covers its whole chip, unseen, so the chip is its target. */
-  .rite-choice input {
-    @apply absolute inset-0 m-0 size-full cursor-pointer appearance-none opacity-0;
-  }
-
-  .rite-choice:has(input:checked) {
-    @apply border-primary bg-primary text-on-primary;
-  }
-
-  .rite-choice:has(input:focus-visible) {
-    outline: var(--focus-outline);
-    outline-offset: var(--focus-offset);
-  }
-
-  .perform-rite-target {
-    @apply flex flex-wrap items-end gap-3;
-  }
-
-  .perform-rite-target > :first-child {
-    @apply min-w-0 flex-1 basis-40;
-  }
-
-  .quest-list-rows {
-    @apply grid;
-  }
-
-  .quest-list-rows > li + li {
-    @apply border-line/40 border-t;
-  }
-
-  .quest-list-row {
-    min-block-size: var(--target-size);
-    @apply flex items-center gap-3 py-2 hover:text-primary;
-  }
-
-  .quest-list-row > :first-child {
-    @apply min-w-0 flex-1 font-semibold;
-  }
-
-  .quest-list-row .icon {
-    @apply shrink-0 text-muted;
-  }
-
-  .quest-settings > summary {
-    min-block-size: var(--target-size);
-    @apply flex cursor-pointer list-none items-center justify-between gap-3 font-heading text-lg font-semibold;
-  }
-
-  .quest-settings > summary::-webkit-details-marker {
-    display: none;
-  }
-
-  /* A caret that points down when closed and up when open. */
-  .quest-settings > summary::after {
-    content: "";
-    inline-size: --spacing(2);
-    block-size: --spacing(2);
-    rotate: 45deg;
-    translate: 0 -25%;
-    border-block-end: 2px solid currentColor;
-    border-inline-end: 2px solid currentColor;
-    @apply shrink-0 text-muted;
-  }
-
-  .quest-settings[open] > summary::after {
-    rotate: 225deg;
-    translate: 0 25%;
-  }
-
-  .quest-settings h4 {
-    @apply mt-3;
-  }
-
-  /* Closed, the card is just its summary line. */
-  .quest-settings:not([open]) {
-    @apply gap-0 py-2 sm:py-2;
-  }
-
-  .quest-section-body {
-    @apply flex min-w-0 flex-col gap-4;
   }
 
   .quest-timer {
