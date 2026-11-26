@@ -76,9 +76,22 @@ The site receives a quest start request with a name longer than 80 characters.
 ## use_case_open_quest
 
 - **Prerequisites:** `use_case_view_quests`.
-- **Steps:** Choose a quest, then open a section from Overview. Use Back to overview to return.
-- **Outcome:** Overview shows the quest's name and status, then one card for each job: Next task, which the user checks off in place, with the two open tasks after it; Today, with each recurring task and its streak, when the quest has one; Perform a rite; the quest's lists, each with its size; and Quest settings, folded away, with Members, Day grid and the quest's status. Each list opens its own section. The title in the trail band opens its rename editor. The Timer panel docks on wide screens and opens as a drawer on phones. The active performance takes the place of Perform a rite.
+- **Steps:** Choose a quest, then open a list or Quest settings from Overview. Use Back to overview to return.
+- **Outcome:** Overview shows the quest's name and status, then a card for each of the quest's lists, in their order, with Today after the first task list when the quest has recurring tasks. A list's card shows its name, linked to the list, with its size; a button that adds a list item; its first three list items, which the user checks off and edits in place; a link to the rest, such as "2 more in Tasks"; and Perform a rite. A task list's card shows only its open one-off tasks and counts them, and a task checked off there leaves the card at once. The next task is marked with a pointing hand. Today lists each recurring task with its streak and how many are left today, to check off in place. The quest panel holds Quest settings, above the Timer; it docks on wide screens and opens as a drawer on phones, which closes when the user follows Quest settings. The title in the trail band opens its rename editor. While a performance is active, it shows above the cards and the cards have no Perform a rite.
+- **Next:**
+  - `use_case_quest_settings`: see the quest's members, Day grid or status.
+  - [`use_case_perform_rite`](performances.md#use_case_perform_rite): perform a rite on one of the lists.
 - **Access:** Only the quest's owner and accepted members can open it.
+
+## use_case_quest_settings
+
+The user finds what they change least often about a quest.
+
+- **Prerequisites:** `use_case_open_quest`.
+- **Steps:** Choose Quest settings in the quest panel.
+- **Outcome:** Quest settings links to Members, with how many are in the quest, and to Day grid, and shows the quest's status controls, except on Life. Back to overview returns to the overview, and Members and Day grid each lead back to Quest settings.
+- **Next:**
+  - [`use_case_change_quest_status`](quest-status.md#use_case_change_quest_status): complete or abandon the quest.
 
 ## use_case_life
 
@@ -88,7 +101,7 @@ Every user has one Life, a quest for the things they do every day.
 - **Steps:**
   - They go to Quests, or list their quests through the API.
   - On Quests, they check off the Suggested task, or choose Open.
-- **Outcome:** a user without a Life gets one, named Life, with a Tasks list and an Ideas list. They never have two. Quests pins it above their other quests, with a sun on its seal, and says how many of its recurring tasks are done, as 3 of 5 recurring done today; a weekly or monthly task counts as done until its week or month ends. Under it, Suggested offers one of those not done yet, picked at random, with how often it repeats and its streak, to check off in place; once it is checked off, another takes its place, until all are done. Only Life's recurring tasks are suggested. Life is otherwise like any quest: it has Next task and Day grid, members can join it, and any of its tasks can be made to repeat daily, weekly or monthly. It stays Active: it has no status controls, and a request to complete or abandon it is refused.
+- **Outcome:** a user without a Life gets one, named Life, with a Tasks list and an Ideas list. They never have two. Quests pins it above their other quests, with a sun on its seal, and says how many of its recurring tasks are done, as 3 of 5 recurring done today; a weekly or monthly task counts as done until its week or month ends. Under it, Suggested offers one of those not done yet, picked at random, with how often it repeats and its streak, to check off in place; once it is checked off, another takes its place, until all are done. Only Life's recurring tasks are suggested. Life is otherwise like any quest: it has a next task and Day grid, members can join it, and any of its tasks can be made to repeat daily, weekly or monthly. It stays Active: it has no status controls, and a request to complete or abandon it is refused.
 - **Next:**
   - [`use_case_recurring_tasks`](tasks.md#use_case_recurring_tasks): make tasks repeat daily, weekly or monthly.
 
@@ -103,4 +116,4 @@ Anyone in the quest, its owner or an accepted member, changes the quest title in
 ## use_case_tailored_quest_overviews
 
 - **Steps:** Open an Active quest, then a Completed one.
-- **Outcome:** each quest's Overview shows Next task and links to its lists, and Quest settings links to Day grid and Members. A Completed or Abandoned quest shows Quest settings open, so Restore quest is in view. While a quest is Active, its construct's portrait and name sit after the breadcrumbs and before the Timer panel control, clear of docked panels, and open the construct's profile ([`use_case_view_character_profile`](constructs.md#use_case_view_character_profile)). A Completed or Abandoned quest's trail band shows no construct.
+- **Outcome:** each quest's Overview shows its lists' cards and marks its next task. A Completed or Abandoned quest's Overview says so, and its Quest settings offers Restore quest. While a quest is Active, its construct's portrait and name sit after the breadcrumbs and before the quest panel control, clear of docked panels, and open the construct's profile ([`use_case_view_character_profile`](constructs.md#use_case_view_character_profile)). A Completed or Abandoned quest's trail band shows no construct.

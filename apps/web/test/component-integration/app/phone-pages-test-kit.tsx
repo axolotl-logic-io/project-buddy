@@ -39,6 +39,7 @@ import { listRites, readRite } from "@/rites/rite-store.ts";
 import { readStreakQuests } from "@/streaks/streak-store.ts";
 import { readTaskQuests } from "@/tasks/task-store.ts";
 
+import { QUEST_OVERVIEW_COPY } from "@/ui/copy/quest-overview.ts";
 import { NEW_QUEST_COPY, QUEST_COPY, QUESTS_COPY } from "@/ui/copy/quests.ts";
 
 import { TIMER_COPY } from "@/ui/copy/timer.ts";
@@ -48,6 +49,7 @@ import {
   signOut,
 } from "../auth/current-user-test-kit.ts";
 
+import { mockQuestOverview, TASKS } from "../quests/quest-overview-fixtures.ts";
 import { STREAK_QUEST } from "../streaks/streak-quest-fixtures.ts";
 import { inWorkspace } from "./workspace-test-kit.tsx";
 
@@ -193,6 +195,7 @@ function questPageFor(section = "overview"): () => Promise<JSX.Element> {
         name: LONG_QUEST_NAME,
       });
       vi.mocked(listQuests).mockResolvedValue([FOX_QUEST]);
+      mockQuestOverview();
     },
     async () => (
       <QuestLayout params={QUEST_PARAMS}>
@@ -224,11 +227,10 @@ const PHONE_PAGES: readonly PhonePage[] = [
         vi.mocked(readTaskQuests).mockResolvedValue([
           {
             quest: { ...STREAK_QUEST.quest, name: LONG_QUEST_NAME },
-            tasks: STREAK_QUEST.tasks.map(({ id, listId, text, done }) => ({
+            tasks: STREAK_QUEST.tasks.map(({ id, listId, text }) => ({
               id,
               listId,
               text,
-              done,
             })),
           },
         ]);
@@ -325,15 +327,39 @@ const PHONE_PAGES: readonly PhonePage[] = [
   },
   { name: "a quest", path: QUEST_PATH, render: questPage },
   {
-    name: "a quest with the Timer drawer open",
+    name: "a quest with its panel open",
     path: QUEST_PATH,
     render: questPage,
     open: async (): Promise<void> => {
-      await page.getByRole("button", { name: TIMER_COPY.panel.expand }).click();
+      await page
+        .getByRole("button", { name: QUEST_OVERVIEW_COPY.panel.expand })
+        .click();
       await page
         .getByRole("button", { name: TIMER_COPY.start, exact: true })
         .click();
     },
+  },
+  {
+    name: "a quest's rite dialog",
+    path: QUEST_PATH,
+    render: questPage,
+    open: async (): Promise<void> => {
+      await page
+        .getByRole("button", {
+          name: QUEST_OVERVIEW_COPY.performRiteOn(TASKS.name),
+        })
+        .click();
+      await vi.waitFor(() =>
+        page
+          .getByRole("dialog", { name: QUEST_OVERVIEW_COPY.performRite })
+          .element(),
+      );
+    },
+  },
+  {
+    name: "a quest's settings",
+    path: QUEST_PATH,
+    render: questPageFor("settings"),
   },
   {
     name: "a quest's Day grid",

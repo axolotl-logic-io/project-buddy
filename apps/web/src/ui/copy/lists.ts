@@ -72,8 +72,6 @@ const LISTS_COPY = {
       failed: "The split couldn’t be saved. Try again.",
     };
   },
-  moveUp: "Move up",
-  moveDown: "Move down",
   moveTo: "Move to another list",
   destination: "Destination list",
   move: "Move",

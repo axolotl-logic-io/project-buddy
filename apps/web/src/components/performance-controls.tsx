@@ -21,92 +21,18 @@ import {
   subscribeToLocalDraft,
 } from "@/components/local-draft.ts";
 import { Button } from "@/components/ui/button.tsx";
-import { SelectField, TextAreaField } from "@/components/ui/field.tsx";
+import { TextAreaField } from "@/components/ui/field.tsx";
 import { Alert, FormStatus } from "@/components/ui/form-message.tsx";
 import { usePerformanceScroll } from "@/components/use-performance-scroll.ts";
 import type { Construct } from "@/constructs/index.ts";
 import type { QuestId, UserId } from "@/ids.ts";
-import type { List } from "@/lists/list-store.ts";
 import {
   sendMessageAction,
-  startPerformanceAction,
   stopPerformanceAction,
 } from "@/performances/performance-actions.ts";
 import type { PerformanceId } from "@/performances/performance-store.ts";
-import type { Rite } from "@/rites/rite.ts";
 import { SIGN_IN_PATH } from "@/routes.ts";
 import { PERFORMANCE_COPY } from "@/ui/copy/performances.ts";
-
-function PerformRite({
-  questId,
-  rites,
-  lists,
-}: {
-  readonly questId: QuestId;
-  readonly rites: readonly Rite[];
-  readonly lists: readonly List[];
-}): JSX.Element {
-  const [error, setError] = useState("");
-  const [pending, setPending] = useState(false);
-  const perform = useCallback(
-    async (event: SubmitEvent<HTMLFormElement>): Promise<void> => {
-      event.preventDefault();
-      setPending(true);
-      setError("");
-      try {
-        const form = new FormData(event.currentTarget);
-        setError(
-          (await startPerformanceAction({
-            questId,
-            riteId: form.get("riteId"),
-            listId: form.get("listId"),
-          })) ?? "",
-        );
-      } catch {
-        setError(PERFORMANCE_COPY.unavailable);
-      } finally {
-        setPending(false);
-      }
-    },
-    [questId],
-  );
-  return (
-    <form onSubmit={perform} className="grid gap-3">
-      <fieldset className="rite-choices">
-        <legend className="sr-only">{PERFORMANCE_COPY.rite}</legend>
-        {rites.map((rite, index) => (
-          <label key={rite.id} className="rite-choice">
-            <input
-              type="radio"
-              name="riteId"
-              value={rite.id}
-              defaultChecked={index === 0}
-              required={true}
-            />
-            {rite.name}
-          </label>
-        ))}
-      </fieldset>
-      <div className="perform-rite-target">
-        <SelectField
-          label={PERFORMANCE_COPY.list}
-          name="listId"
-          required={true}
-        >
-          {lists.map((list) => (
-            <option key={list.id} value={list.id}>
-              {list.name}
-            </option>
-          ))}
-        </SelectField>
-        <Button type="submit" disabled={pending === true || lists.length === 0}>
-          {PERFORMANCE_COPY.start}
-        </Button>
-      </div>
-      {error !== "" && <Alert>{error}</Alert>}
-    </form>
-  );
-}
 
 const REQUEST = z.object({ id: z.guid(), text: z.string() });
 const DRAFT = z.object({ text: z.string(), request: REQUEST.optional() });
@@ -308,4 +234,4 @@ function MessageComposer({
   );
 }
 
-export { MessageComposer, PerformRite };
+export { MessageComposer };

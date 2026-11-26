@@ -174,7 +174,11 @@ describe("use_case_split_list_item", () => {
     await page.getByText(LISTS_COPY.done).click();
     await actions().click();
     await expect
-      .element(page.getByRole("menuitem", { name: LISTS_COPY.moveUp }))
+      .element(
+        page.getByRole("menuitem", {
+          name: LISTS_COPY.removeListItem("task"),
+        }),
+      )
       .toBeVisible();
     await expect
       .element(

@@ -8,6 +8,10 @@ Use these terms in code, copy, prompts, docs and issues so the same words descri
 
 A workspace for something the user wants to learn, make or do, or for their daily work. A quest has an owner, a status and its lists. List items belong to the quest's lists and persist across performances. [Quest use cases](../apps/web/use-cases/quests.md)
 
+### Quest panel
+
+The panel beside a quest's pages: **Quest settings**, with the quest's members, Day grid and status, above the Timer. It docks on wide screens and opens as a drawer on phones. [Open quest use case](../apps/web/use-cases/quests.md#use_case_open_quest), [Quest settings use case](../apps/web/use-cases/quests.md#use_case_quest_settings)
+
 ### Life
 
 The quest every user has for the things they do every day. Each user has exactly one, made when they first need it, named Life. Quests pins it above their other quests with how many of its recurring tasks are done today and one of those not done yet, suggested at random to check off. Life stays Active. [Life use case](../apps/web/use-cases/quests.md#use_case_life)
@@ -56,7 +60,7 @@ A list item in a task list: a piece of work the user has committed to. To **chec
 
 ### Next task
 
-The first open task in the quest, taking its task lists in order and each list's tasks in their saved order. A quest with no open tasks has no next task. [Next task use case](../apps/web/use-cases/tasks.md#use_case_ask_whats_next)
+The first open task in the quest, taking its task lists in order and each list's tasks in their saved order. A quest with no open tasks has no next task. A pointing hand marks it on the quest's Overview. [Next task use case](../apps/web/use-cases/tasks.md#use_case_ask_whats_next)
 
 ### Quick note
 
@@ -90,7 +94,7 @@ A run of consecutive periods of a recurring task's cadence (days, weeks or month
 
 ### Home
 
-The signed-in landing page at the site's root, above Quests in the breadcrumbs. It shows links to Quests, the Grimoire and the Timer, then the user's experience, then **Streaks**: a grid for each cadence, Every day, Every week and Every month, with every recurring task of that cadence in the Active quests open to them over its last seven periods, which they can check off in place in any of those periods since the task was added. Then **Tallies**: every tally of those quests with its day totals over the same dates, each of which they can change, and an Increment for today. Then **Tasks**: every one-off task of those quests that is open or was checked off today, which they can check off or uncheck in place. [Home streaks use case](../apps/web/use-cases/home.md#use_case_home_streaks), [Home tallies use case](../apps/web/use-cases/home.md#use_case_home_tallies), [Home tasks use case](../apps/web/use-cases/home.md#use_case_home_tasks)
+The signed-in landing page at the site's root, above Quests in the breadcrumbs. It shows links to Quests, the Grimoire and the Timer, then the user's experience, then **Streaks**: a grid for each cadence, Every day, Every week and Every month, with every recurring task of that cadence in the Active quests open to them over its last seven periods, which they can check off in place in any of those periods since the task was added. Then **Tallies**: every tally of those quests with its day totals over the same dates, each of which they can change, and an Increment for today. Then **Tasks**: every open one-off task of those quests, which they can check off in place; a checked-off task leaves Tasks, and Undo brings it back. [Home streaks use case](../apps/web/use-cases/home.md#use_case_home_streaks), [Home tallies use case](../apps/web/use-cases/home.md#use_case_home_tallies), [Home tasks use case](../apps/web/use-cases/home.md#use_case_home_tasks)
 
 ## Rites and performances
 
@@ -154,7 +158,7 @@ The private Profile count of distinct dates with a qualifying signed-in visit. D
 
 ### Timer schedule
 
-A repeating work and break cycle defined by a fixed start time and the two period lengths. Anyone with its link sees the current period and time remaining. The same schedule can run on the **Timer** page or in a quest's **Timer panel**. Sharing the link shares only the schedule. [Timer use cases](../apps/web/use-cases/timer.md)
+A repeating work and break cycle defined by a fixed start time and the two period lengths. Anyone with its link sees the current period and time remaining. The same schedule can run on the **Timer** page or in a quest's **quest panel**. Sharing the link shares only the schedule. [Timer use cases](../apps/web/use-cases/timer.md)
 
 ### Global timer
 

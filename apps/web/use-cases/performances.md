@@ -8,9 +8,10 @@ The user starts a performance on one of the quest's lists, then stops it.
 
 - **Prerequisites:** a quest open to the user, as its owner or a member. A start or Stop applies to everyone in the quest.
 - **Steps:**
-  - On the quest's Overview, under Perform a rite, the user chooses a built-in or own rite and one of the quest's lists, and chooses Perform.
+  - On the quest's Overview, the user chooses Perform a rite on a list's card.
+  - In the dialog that opens, they choose a built-in rite or one of their own, each shown with its first message for that list, and choose Perform.
   - Later, they choose Stop beside the performance.
-- **Outcome:** the performance takes the place of Perform a rite on Overview with the rite's first message, such as "Let’s brainstorm for Ideas. What comes to mind first?" It stays active across visits, for everyone in the quest, until Stop ends it. Starting saves the rite's name, first message and replies as a rite snapshot, so editing or forgetting the rite leaves the performance unchanged. Starting another performance ends the active one, because a quest has at most one. Stop closes the performance and the composer with a closing message the site writes from the rite's name and the list's words, such as "Brainstorm ends. 4 ideas added." The list items it added stay in the list.
+- **Outcome:** the dialog names the list and has the first rite chosen. Cancel, Close, Escape or a click outside closes it without performing. A refused start keeps the dialog open and says why. Once the rite is performed, the dialog closes, focus goes to the quest's name, and the performance shows on Overview above the cards, which have no Perform a rite while it runs, with the rite's first message, such as "Let’s brainstorm for Ideas. What comes to mind first?" It stays active across visits, for everyone in the quest, until Stop ends it. Starting saves the rite's name, first message and replies as a rite snapshot, so editing or forgetting the rite leaves the performance unchanged. Starting another performance ends the active one, because a quest has at most one. Stop closes the performance and the composer with a closing message the site writes from the rite's name and the list's words, such as "Brainstorm ends. 4 ideas added." The list items it added stay in the list.
 - **Next:**
   - `use_case_send_message`: send a message.
   - [`use_case_customize_rite`](grimoire.md#use_case_customize_rite): write a rite of their own.

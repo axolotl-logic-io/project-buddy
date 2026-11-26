@@ -347,28 +347,6 @@ async function applyExisting(
         .where(and(eq(listItems.listId, listId), listItemOpenTo(user)));
       return "saved";
     }
-    case "reorder": {
-      let neighbourIndex = index + 1;
-      if (change.direction === "up") {
-        neighbourIndex = index - 1;
-      }
-      const neighbour = rows[neighbourIndex];
-      if (neighbour === undefined) {
-        return "unchanged";
-      }
-      await tx
-        .update(listItems)
-        .set({
-          position: sql`case when ${listItems.id} = ${row.id} then ${neighbour.position}::integer else ${row.position}::integer end`,
-        })
-        .where(
-          and(
-            inArray(listItems.id, [row.id, neighbour.id]),
-            listItemOpenTo(user),
-          ),
-        );
-      return "saved";
-    }
     default: {
       const exhaustive: never = change;
       return exhaustive;
@@ -626,43 +604,9 @@ function readNextTasks(
   });
 }
 
-// A list's number of list items, and how many of them are open.
-interface ListCount {
-  readonly total: number;
-  readonly open: number;
-}
-
-// How many list items each of the quest's lists holds, and how many of
-// them are open: not checked off now. A list with no items is absent.
-function countListItems(
-  user: UserId,
-  questId: QuestId,
-): Promise<ReadonlyMap<ListId, ListCount>> {
-  return withAppErrors("countListItems", async () => {
-    const rows = await getDb()
-      .select({
-        listId: listItems.listId,
-        total: sql<number>`count(*)`.mapWith(Number),
-        open: sql<number>`count(*) filter (where not ${CHECKED_OFF_NOW})`.mapWith(
-          Number,
-        ),
-      })
-      .from(listItems)
-      .where(and(eq(listItems.questId, questId), listItemOpenTo(user)))
-      .groupBy(listItems.listId);
-    return new Map(
-      rows.map(({ listId, total, open }) => [
-        LIST_ID.parse(listId),
-        { total, open },
-      ]),
-    );
-  });
-}
-
 export type { ListItem, OpenTask };
 export {
   changeWithin,
-  countListItems,
   readListContents,
   readListItems,
   readNextTasks,

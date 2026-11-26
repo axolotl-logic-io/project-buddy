@@ -37,11 +37,6 @@ const LIST_ITEM_CHANGE = z.discriminatedUnion("kind", [
     id: LIST_ITEM_ID,
     before: LIST_ITEM_ID.optional(),
   }),
-  z.object({
-    kind: z.literal("reorder"),
-    id: LIST_ITEM_ID,
-    direction: z.enum(["up", "down"]),
-  }),
 ]);
 
 type ListItemChange = z.infer<typeof LIST_ITEM_CHANGE>;

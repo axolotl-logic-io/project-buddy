@@ -3,14 +3,18 @@ import { page } from "vitest/browser";
 import { render } from "vitest-browser-react";
 import QuestLayout from "@/app/(workspace)/quests/[questId]/(overview)/layout.tsx";
 import QuestPage from "@/app/(workspace)/quests/[questId]/(overview)/page.tsx";
+import type { QuestActionResult } from "@/components/use-quest-action.ts";
 import { LIST_ID } from "@/lists/list.ts";
 import { LIST_ITEM_ID } from "@/lists/list-item.ts";
 import { changeListItemAction } from "@/lists/list-item-actions.ts";
-import { type OpenTask, readNextTasks } from "@/lists/list-item-store.ts";
+import { readNextTasks } from "@/lists/list-item-store.ts";
 import { type List, readLists } from "@/lists/list-store.ts";
+import { startPerformanceAction } from "@/performances/performance-actions.ts";
 import { listPerformances } from "@/performances/performance-store.ts";
 import { listQuestPeople } from "@/quests/membership-store.ts";
 import { getQuest, type Quest } from "@/quests/store.ts";
+import { BUILT_IN_RITES } from "@/rites/rite.ts";
+import { listRites } from "@/rites/rite-store.ts";
 import { readRecurringTasks, readTaskHistory } from "@/streaks/streak-store.ts";
 import type { TaskHistory } from "@/streaks/streaks.ts";
 import { DAY_GRID_COPY } from "@/ui/copy/day-grid.ts";
@@ -18,12 +22,25 @@ import { LISTS_COPY } from "@/ui/copy/lists.ts";
 import { PERFORMANCE_COPY } from "@/ui/copy/performances.ts";
 import { QUEST_OVERVIEW_COPY } from "@/ui/copy/quest-overview.ts";
 import { QUEST_SIDEBAR_COPY } from "@/ui/copy/quest-sidebar.ts";
+import { QUEST_STATUS_COPY } from "@/ui/copy/quest-status.ts";
 import { TIMER_COPY } from "@/ui/copy/timer.ts";
 import {
   SIGNED_IN_USER,
   signInAs,
 } from "../../../../auth/current-user-test-kit.ts";
 import { PERFORMANCE } from "../../../../performances/performance-test-kit.tsx";
+import {
+  DONE_TASK,
+  FOURTH_TASK,
+  mockQuestOverview,
+  NEXT_TASK,
+  OWN_RITE,
+  TASKS,
+} from "../../../../quests/quest-overview-fixtures.ts";
+import {
+  SKETCH,
+  SKETCH_ID,
+} from "../../../../streaks/streak-quest-fixtures.ts";
 import { applyTheme } from "../../../../themes/theme-test-kit.ts";
 import {
   LAPTOP_VIEWPORT,
@@ -51,7 +68,8 @@ const LIST: List = {
   version: 0,
 };
 
-beforeEach(() => {
+beforeEach(async () => {
+  await setViewport(LAPTOP_VIEWPORT);
   signInAs(SIGNED_IN_USER);
   vi.mocked(readLists).mockResolvedValue([LIST]);
   vi.mocked(listQuestPeople).mockResolvedValue(undefined);
@@ -59,6 +77,7 @@ beforeEach(() => {
   vi.mocked(readTaskHistory).mockResolvedValue(HISTORY);
   vi.mocked(readRecurringTasks).mockResolvedValue([]);
   vi.mocked(readNextTasks).mockResolvedValue([]);
+  vi.mocked(listRites).mockResolvedValue([]);
 });
 
 afterEach(async () => {
@@ -104,101 +123,210 @@ async function open(quest: Quest, section?: string): Promise<void> {
   );
 }
 
+// The quest panel's link to the quest's settings, named and then hinted.
+const SETTINGS_LINK = new RegExp(`^${QUEST_OVERVIEW_COPY.settings}`, "u");
+// A card for the list Tasks, named and then sized.
+const TASKS_CARD = new RegExp(`^${TASKS.name} `, "u");
+
 test("use_case_open_quest", async () => {
+  vi.mocked(listRites).mockResolvedValue([...BUILT_IN_RITES]);
   await open(FOX_QUEST);
-  await expect
-    .element(page.getByRole("heading", { name: "Next task" }))
-    .toBeVisible();
   await expect
     .element(page.getByRole("link", { name: `${LIST.name} 0 open` }))
     .toHaveAttribute("href", `/quests/${FOX_QUEST.id}?section=${LIST.id}`);
   await expect
     .element(
-      page.getByRole("region", { name: QUEST_OVERVIEW_COPY.performRite }),
+      page.getByRole("button", {
+        name: QUEST_OVERVIEW_COPY.performRiteOn(LIST.name),
+      }),
     )
     .toBeVisible();
-  // An Active quest keeps its settings folded away until the user opens them.
-  const dayGrid = page.getByRole("link", { name: QUEST_SIDEBAR_COPY.dayGrid });
-  await expect.element(dayGrid).not.toBeInTheDocument();
-  await page.getByText(QUEST_OVERVIEW_COPY.settings).click();
   await expect
-    .element(dayGrid)
-    .toHaveAttribute("href", `/quests/${FOX_QUEST.id}?section=days`);
+    .element(page.getByRole("link", { name: SETTINGS_LINK }))
+    .toHaveAttribute("href", `/quests/${FOX_QUEST.id}?section=settings`);
+  await expect
+    .element(page.getByRole("link", { name: QUEST_SIDEBAR_COPY.dayGrid }))
+    .not.toBeInTheDocument();
   await expect
     .element(page.getByRole("textbox", { name: "Message" }))
     .not.toBeInTheDocument();
 });
 
-// Bench's next open tasks, in order, numbered from #12.
-const FIRST_NUMBER = 12;
-// The next task's text, after its task number.
-const NEXT_TEXT = /Sand the legs$/u;
-const NEXT: OpenTask[] = [
-  ["e3a1c8b0-5d1f-4a5e-9c2b-1f0e2d3c4b51", "Sand the legs"],
-  ["e3a1c8b0-5d1f-4a5e-9c2b-1f0e2d3c4b52", "Glue the seat"],
-  ["e3a1c8b0-5d1f-4a5e-9c2b-1f0e2d3c4b53", "Oil the top"],
-].map(([id, text], index) => ({
-  id: LIST_ITEM_ID.parse(id),
-  listId: LIST.id,
-  taskNumber: FIRST_NUMBER + index,
-  text: text ?? "",
-  checkedOff: false,
-  recurring: false,
-  cadence: "daily",
-  createdAt: new Date("2026-11-01T09:00:00Z"),
-}));
+// Holds the list item action's next change unsaved until the returned
+// function saves it.
+function holdListItemAction(): () => void {
+  let finish: (result: QuestActionResult) => void = () => undefined;
+  vi.mocked(changeListItemAction)
+    .mockReset()
+    .mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          finish = resolve;
+        }),
+    );
+  return (): void => finish({ kind: "saved" });
+}
 
-test("use_case_open_quest: Overview checks off the next task and recurring tasks in place", async () => {
-  vi.mocked(readNextTasks).mockResolvedValue(NEXT);
-  vi.mocked(readRecurringTasks).mockResolvedValue([
-    {
-      id: LIST_ITEM_ID.parse("5d0f43d4-4b0c-4cb5-9d5c-3a8f3e1c0b21"),
-      listId: LIST.id,
-      number: 1,
-      text: STRETCH,
-      cadence: "daily",
-      done: false,
-      createdAt: new Date("2026-11-01T09:00:00Z"),
-    },
-  ]);
-  vi.mocked(changeListItemAction).mockReset();
-  vi.mocked(changeListItemAction).mockResolvedValue({ kind: "saved" });
+test("use_case_open_quest: a list card checks off its next task and hides it", async () => {
+  mockQuestOverview();
+  const finish = holdListItemAction();
   await open(FOX_QUEST);
-  const next = page.getByRole("region", { name: QUEST_SIDEBAR_COPY.nextTask });
-  await expect.element(next.getByText(NEXT_TEXT)).toBeVisible();
+  const card = page.getByRole("region", { name: TASKS_CARD });
+  await expect.element(card.getByText("4 open")).toBeVisible();
   await expect
-    .element(next.getByText("Then: #13 Glue the seat · #14 Oil the top"))
+    .element(
+      card
+        .getByRole("listitem")
+        .filter({ hasText: NEXT_TASK.text })
+        .getByRole("img", { name: QUEST_SIDEBAR_COPY.nextTask }),
+    )
     .toBeVisible();
-  await next.getByRole("button", { name: LISTS_COPY.checkOff }).click();
+  await expect.element(card.getByText(DONE_TASK.text)).not.toBeInTheDocument();
+  await expect
+    .element(card.getByText(FOURTH_TASK.text))
+    .not.toBeInTheDocument();
+  await expect
+    .element(
+      card.getByRole("link", { name: QUEST_OVERVIEW_COPY.more(1, TASKS.name) }),
+    )
+    .toHaveAttribute("href", `/quests/${FOX_QUEST.id}?section=${TASKS.id}`);
+  await card
+    .getByRole("listitem")
+    .filter({ hasText: NEXT_TASK.text })
+    .getByRole("checkbox", { name: LISTS_COPY.checkOff })
+    .click();
+  // Until the saved check-off comes back with the page without the task.
+  await expect.element(card.getByText(NEXT_TASK.text)).not.toBeInTheDocument();
+  await expect.element(card.getByText(FOURTH_TASK.text)).toBeVisible();
+  await expect.element(card.getByText("3 open")).toBeVisible();
   expect(changeListItemAction).toHaveBeenLastCalledWith({
     questId: FOX_QUEST.id,
-    listId: LIST.id,
-    change: { kind: "check", id: NEXT[0]?.id, checkedOff: true },
+    listId: TASKS.id,
+    change: { kind: "check", id: NEXT_TASK.id, checkedOff: true },
+  });
+  finish();
+});
+
+// Today's heading, with how many of its tasks are left after it.
+const TODAY_HEADING = new RegExp(`^${QUEST_OVERVIEW_COPY.today}`, "u");
+// The stretch's streak: done today, after a day missed on 2026-11-20.
+const STRETCH_STREAK = "4-day streak";
+
+test("use_case_open_quest: Today checks off recurring tasks in place, with their streaks", async () => {
+  mockQuestOverview();
+  const finish = holdListItemAction();
+  await open(FOX_QUEST);
+  const today = page.getByRole("region", { name: TODAY_HEADING });
+  await expect.element(today.getByText("1 of 2 left")).toBeVisible();
+  await expect.element(today.getByText(STRETCH_STREAK)).toBeVisible();
+  await today
+    .getByRole("listitem")
+    .filter({ hasText: SKETCH })
+    .getByRole("checkbox", { name: LISTS_COPY.checkOff })
+    .click();
+  await expect.element(today.getByText("0 of 2 left")).toBeVisible();
+  expect(changeListItemAction).toHaveBeenLastCalledWith({
+    questId: FOX_QUEST.id,
+    listId: TASKS.id,
+    change: { kind: "check", id: SKETCH_ID, checkedOff: true },
+  });
+  finish();
+});
+
+// The rite dialog's choices, named for the rite and then its first message.
+const OWN_RITE_CHOICE = new RegExp(`^${OWN_RITE.name}`, "u");
+const BRAINSTORM_CHOICE = /^Brainstorm/u;
+
+describe("use_case_perform_rite", () => {
+  function riteDialog(): ReturnType<typeof page.getByRole> {
+    return page.getByRole("dialog", { name: QUEST_OVERVIEW_COPY.performRite });
+  }
+
+  async function openRiteDialog(): Promise<void> {
+    mockQuestOverview();
+    await open(FOX_QUEST);
+    await page
+      .getByRole("button", {
+        name: QUEST_OVERVIEW_COPY.performRiteOn(TASKS.name),
+      })
+      .click();
+    await vi.waitFor(() => riteDialog().element());
+  }
+
+  test("performs the chosen rite on the card's list", async () => {
+    vi.mocked(startPerformanceAction).mockReset().mockResolvedValue(undefined);
+    await openRiteDialog();
+    const dialog = riteDialog();
+    await expect
+      .element(dialog.getByText(QUEST_OVERVIEW_COPY.rite.on(TASKS.name)))
+      .toBeVisible();
+    await expect
+      .element(
+        dialog
+          .getByRole("group", { name: QUEST_OVERVIEW_COPY.rite.own })
+          .getByRole("radio", { name: OWN_RITE_CHOICE }),
+      )
+      .toBeVisible();
+    await dialog.getByRole("radio", { name: BRAINSTORM_CHOICE }).click();
+    await dialog
+      .getByRole("button", { name: PERFORMANCE_COPY.start, exact: true })
+      .click();
+    expect(startPerformanceAction).toHaveBeenLastCalledWith({
+      questId: FOX_QUEST.id,
+      riteId: "brainstorm",
+      listId: TASKS.id,
+    });
+    await expect.element(dialog).not.toBeInTheDocument();
   });
 
-  const today = page.getByRole("region", { name: QUEST_OVERVIEW_COPY.today });
-  await today.getByRole("checkbox", { name: STRETCH }).click();
+  test("keeps the dialog open and says why when the performance is refused", async () => {
+    vi.mocked(startPerformanceAction)
+      .mockReset()
+      .mockResolvedValue(PERFORMANCE_COPY.unavailable);
+    await openRiteDialog();
+    const dialog = riteDialog();
+    await dialog
+      .getByRole("button", { name: PERFORMANCE_COPY.start, exact: true })
+      .click();
+    await expect
+      .element(dialog.getByRole("alert"))
+      .toHaveTextContent(PERFORMANCE_COPY.unavailable);
+    await dialog
+      .getByRole("button", { name: QUEST_OVERVIEW_COPY.rite.cancel })
+      .click();
+    await expect.element(dialog).not.toBeInTheDocument();
+    expect(startPerformanceAction).toHaveBeenCalledOnce();
+  });
+});
+
+test("use_case_quest_settings", async () => {
+  await open(FOX_QUEST, "settings");
+  const settings = page.getByRole("region", {
+    name: QUEST_OVERVIEW_COPY.settings,
+  });
   await expect
-    .poll(() => changeListItemAction)
-    .toHaveBeenLastCalledWith({
-      questId: FOX_QUEST.id,
-      listId: LIST.id,
-      change: {
-        kind: "check",
-        id: LIST_ITEM_ID.parse("5d0f43d4-4b0c-4cb5-9d5c-3a8f3e1c0b21"),
-        checkedOff: true,
-      },
-    });
+    .element(settings.getByRole("link", { name: QUEST_SIDEBAR_COPY.dayGrid }))
+    .toHaveAttribute("href", `/quests/${FOX_QUEST.id}?section=days`);
+  await expect
+    .element(settings.getByRole("button", { name: QUEST_STATUS_COPY.complete }))
+    .toBeVisible();
+  await expect
+    .element(page.getByRole("link", { name: QUEST_OVERVIEW_COPY.back }))
+    .toHaveAttribute("href", `/quests/${FOX_QUEST.id}`);
 });
 
 test("use_case_tailored_quest_overviews", async () => {
   await open({ ...FOX_QUEST, name: "Morning", status: "completed" });
   await expect
-    .element(page.getByRole("link", { name: QUEST_SIDEBAR_COPY.dayGrid }))
-    .toHaveAttribute("href", `/quests/${FOX_QUEST.id}?section=days`);
-  await expect
     .element(page.getByRole("button", { name: "Start Day" }))
     .not.toBeInTheDocument();
+  await open(
+    { ...FOX_QUEST, name: "Morning", status: "completed" },
+    "settings",
+  );
+  await expect
+    .element(page.getByRole("button", { name: QUEST_STATUS_COPY.restore }))
+    .toBeVisible();
 });
 
 test("use_case_tasks_panel", async () => {
@@ -268,11 +396,11 @@ describe("use_case_timer_quest_panel", () => {
         ).toHaveLength(performances.length);
         if (viewport === NARROWEST_VIEWPORT) {
           await page
-            .getByRole("button", { name: TIMER_COPY.panel.expand })
+            .getByRole("button", { name: QUEST_OVERVIEW_COPY.panel.expand })
             .click();
         }
         const panel = page.getByRole("dialog", {
-          name: TIMER_COPY.panel.label,
+          name: QUEST_OVERVIEW_COPY.panel.label,
         });
         await panel.getByLabelText(TIMER_COPY.workLabel).selectOptions("25");
         await panel.getByLabelText(TIMER_COPY.breakLabel).selectOptions("10");
@@ -302,7 +430,7 @@ describe("use_case_timer_quest_panel", () => {
           viewport.width,
         );
         await panel
-          .getByRole("button", { name: TIMER_COPY.panel.collapse })
+          .getByRole("button", { name: QUEST_OVERVIEW_COPY.panel.collapse })
           .click();
         await expect
           .element(page.getByRole("heading", { name: FOX_QUEST.name }))

@@ -715,6 +715,37 @@ function EditableListRow({
   );
 }
 
+// The editor for a new list item, open until it saves or the user cancels
+// or clicks away. onCancel runs after a save or a cancel, where the opener
+// takes focus back; onDismiss runs after a click away.
+function NewListItem({
+  editor,
+  disabled,
+  onSave,
+  onCancel,
+  onDismiss,
+}: {
+  readonly editor: EditorOptions;
+  readonly disabled: boolean;
+  readonly onSave: (text: string) => Promise<boolean>;
+  readonly onCancel: () => void;
+  readonly onDismiss: () => void;
+}): JSX.Element {
+  return (
+    <div className="editable-add-form">
+      <Icon name="plus" />
+      <TextEditor
+        initial=""
+        editor={editor}
+        disabled={disabled}
+        onSave={onSave}
+        onCancel={onCancel}
+        onDismiss={onDismiss}
+      />
+    </div>
+  );
+}
+
 function AddListItem({
   label,
   editor,
@@ -736,17 +767,13 @@ function AddListItem({
   }, [dismiss]);
   if (open === true) {
     return (
-      <div className="editable-add-form">
-        <Icon name="plus" />
-        <TextEditor
-          initial=""
-          editor={editor}
-          disabled={disabled}
-          onSave={onSave}
-          onCancel={collapse}
-          onDismiss={dismiss}
-        />
-      </div>
+      <NewListItem
+        editor={editor}
+        disabled={disabled}
+        onSave={onSave}
+        onCancel={collapse}
+        onDismiss={dismiss}
+      />
     );
   }
   return (
@@ -771,7 +798,7 @@ function EditableListAction({
   label,
 }: {
   readonly children: ReactNode;
-  readonly icon: "arrow-up" | "arrow-down" | "trash" | "checklist" | "repeat";
+  readonly icon: "trash" | "checklist" | "repeat";
   readonly onSelect: () => Promise<void>;
   readonly disabled?: boolean;
   readonly label?: string;
@@ -795,4 +822,5 @@ export {
   EditableListAction,
   EditableListRow,
   EditableListScope,
+  NewListItem,
 };
