@@ -15,6 +15,7 @@ import {
   setViewport,
 } from "../viewports-test-kit.ts";
 
+vi.mock("next/navigation", () => import("../components/router-test-kit.ts"));
 vi.mock(
   "@/auth/current-user.ts",
   () => import("../auth/current-user-test-kit.ts"),
@@ -46,8 +47,27 @@ const LONG_NAME =
 const PLAN_FORGOTTEN_ON = /^Forgotten Nov 20, 2026$/u;
 const EMPTY_FORGOTTEN = /^You have no forgotten rites\./u;
 const PLAN_RESTORED = /^“Plan” is restored/u;
+const ONE_REPLY = /\b1 reply\b/u;
+const LIST_MEANING = /\{list\}the list’s name/u;
 
 type SearchParams = Record<string, string>;
+
+// The store's answer: the active rites, or the forgotten ones.
+function storeHolds(active: readonly Rite[], forgotten: readonly Rite[]): void {
+  vi.mocked(listRites).mockImplementation((_user, wanted) => {
+    if (wanted === true) {
+      return Promise.resolve([...forgotten]);
+    }
+    return Promise.resolve([...active]);
+  });
+}
+
+// A rite's row in the finder, by its name.
+function row(name: string): ReturnType<typeof page.getByRole> {
+  return page.getByRole("listitem").filter({
+    has: page.getByRole("link", { name, exact: true }),
+  });
+}
 
 async function renderForgottenTab(
   search: SearchParams = {},
@@ -82,39 +102,148 @@ afterEach(async () => {
   await setViewport(LAPTOP_VIEWPORT);
 });
 
-test("use_case_grimoire_page", async () => {
-  vi.mocked(listRites).mockResolvedValueOnce([...BUILT_IN_RITES]);
-  await render(
-    await GrimoirePage({
-      params: Promise.resolve({}),
-      searchParams: Promise.resolve({ filter: "built-in", q: "capt" }),
-    }),
-  );
-  await expect
-    .element(page.getByRole("searchbox", { name: "Search rites" }))
-    .toHaveValue("capt");
-  await expect
-    .element(page.getByRole("link", { name: "Create rite" }))
-    .toHaveAttribute("href", "/grimoire/new");
-  await expect
-    .element(page.getByRole("link", { name: "View" }))
-    .toHaveAttribute("href", "/grimoire/capture");
-  await expect
-    .element(page.getByRole("heading", { name: "Brainstorm" }))
-    .not.toBeInTheDocument();
+describe("use_case_grimoire_page", () => {
+  test("opens on the tab and search in its address, and each row opens its rite", async () => {
+    storeHolds([...BUILT_IN_RITES, ACTIVE_PLAN], [SKETCH]);
+    await render(
+      await GrimoirePage({
+        params: Promise.resolve({}),
+        searchParams: Promise.resolve({ filter: "built-in", q: "capt" }),
+      }),
+    );
+    await expect
+      .element(page.getByRole("searchbox", { name: "Find a rite" }))
+      .toHaveValue("capt");
+    await expect
+      .element(page.getByRole("tab", { name: "Built-in 1" }))
+      .toHaveAttribute("aria-selected", "true");
+    await expect
+      .element(page.getByRole("link", { name: "Capture", exact: true }))
+      .toHaveAttribute("href", "/grimoire/capture");
+    await expect
+      .element(page.getByRole("link", { name: "Brainstorm" }))
+      .not.toBeInTheDocument();
+  });
+
+  test("finds rites by name or first message as the user types, and counts each tab's matches", async () => {
+    storeHolds([...BUILT_IN_RITES, ACTIVE_PLAN], [SKETCH]);
+    await render(
+      await GrimoirePage({
+        params: Promise.resolve({}),
+        searchParams: Promise.resolve({}),
+      }),
+    );
+    const all = BUILT_IN_RITES.length + 1;
+    await expect
+      .element(page.getByRole("tab", { name: `All ${all}` }))
+      .toHaveAttribute("aria-selected", "true");
+    await expect
+      .element(page.getByRole("tab", { name: "Yours 1" }))
+      .toBeVisible();
+    await expect
+      .element(page.getByRole("tab", { name: "Forgotten 1" }))
+      .toBeVisible();
+    await expect.element(row("Plan")).toMatchTextContent(ONE_REPLY);
+    await expect
+      .element(row("Capture").getByText("Built-in", { exact: true }))
+      .toBeVisible();
+    const search = page.getByRole("searchbox", { name: "Find a rite" });
+    await search.fill("plan begins");
+    await expect.element(row("Plan")).toBeVisible();
+    await expect.element(row("Capture")).not.toBeInTheDocument();
+    await expect
+      .element(page.getByRole("tab", { name: "Built-in 0" }))
+      .toBeVisible();
+    await page.getByRole("button", { name: "Clear the search" }).click();
+    await expect.element(search).toHaveValue("");
+    await expect.element(search).toHaveFocus();
+    await expect.element(row("Capture")).toBeVisible();
+  });
+
+  test("sets each placeholder in a first message apart from its words", async () => {
+    storeHolds([...BUILT_IN_RITES], []);
+    await render(
+      await GrimoirePage({
+        params: Promise.resolve({}),
+        searchParams: Promise.resolve({ q: "capture" }),
+      }),
+    );
+    await expect
+      .element(row("Capture").getByText("{list}", { exact: true }))
+      .toBeVisible();
+  });
+
+  test("Yours explains how to get a rite of one's own when there is none", async () => {
+    storeHolds([...BUILT_IN_RITES], []);
+    await render(
+      await GrimoirePage({
+        params: Promise.resolve({}),
+        searchParams: Promise.resolve({}),
+      }),
+    );
+    await page.getByRole("tab", { name: "Yours 0" }).click();
+    await expect
+      .element(
+        page.getByText("You have no rites of your own yet.", { exact: false }),
+      )
+      .toBeVisible();
+  });
+
+  test("a built-in rite reads as read-only, with Make a copy and the placeholders explained", async () => {
+    const [capture] = BUILT_IN_RITES;
+    vi.mocked(readRite).mockResolvedValue(capture);
+    await render(
+      await RitePage({
+        params: Promise.resolve({ riteId: "capture" }),
+        searchParams: Promise.resolve({}),
+      }),
+    );
+    await expect.element(page.getByText("Built-in rite")).toBeVisible();
+    await expect.element(page.getByText("Read-only")).toBeVisible();
+    await expect
+      .element(page.getByRole("button", { name: "Make a copy" }))
+      .toBeVisible();
+    await expect
+      .element(page.getByRole("button", { name: "Forget" }))
+      .not.toBeInTheDocument();
+    expect(page.getByRole("textbox").elements()).toHaveLength(0);
+    const legend = page.getByRole("region", { name: "Placeholders" });
+    await expect.element(legend).toMatchTextContent(LIST_MEANING);
+  });
+
+  test("the user's own rite opens in the editor, with Make a copy and Forget above it", async () => {
+    vi.mocked(readRite).mockResolvedValue(ACTIVE_PLAN);
+    await render(
+      await RitePage({
+        params: Promise.resolve({ riteId: ACTIVE_PLAN.id }),
+        searchParams: Promise.resolve({}),
+      }),
+    );
+    await expect.element(page.getByText("Your rite")).toBeVisible();
+    await expect
+      .element(page.getByRole("textbox", { name: "Rite name" }))
+      .toHaveValue("Plan");
+    await expect
+      .element(page.getByRole("button", { name: "Make a copy" }))
+      .toBeVisible();
+    await page.getByRole("button", { name: "Forget" }).click();
+    await vi.waitFor(() => {
+      expect(lastChange()).toEqual({ id: ACTIVE_PLAN.id, change: "forget" });
+    });
+  });
 });
 
 describe("use_case_view_retirement", () => {
   test("lists forgotten rites in the order given, with the day each was forgotten and its actions", async () => {
-    vi.mocked(listRites).mockResolvedValue([PLAN, SKETCH]);
+    storeHolds([], [PLAN, SKETCH]);
     await renderForgottenTab();
-    expect(listRites).toHaveBeenLastCalledWith(SIGNED_IN_USER.id, true);
-    const names = page.getByRole("heading", { level: 2 }).elements();
+    expect(listRites).toHaveBeenCalledWith(SIGNED_IN_USER.id, true);
+    const names = page.getByRole("tabpanel").getByRole("link").elements();
     expect(names.map((name) => name.textContent)).toEqual(["Plan", "Sketch"]);
-    const plan = page.getByRole("listitem").filter({ hasText: "Plan" });
+    const plan = row("Plan");
     await expect.element(plan.getByText(PLAN_FORGOTTEN_ON)).toBeVisible();
     await expect
-      .element(plan.getByRole("link", { name: "View" }))
+      .element(plan.getByRole("link", { name: "Plan" }))
       .toHaveAttribute("href", `/grimoire/${PLAN.id}`);
     await expect
       .element(plan.getByRole("button", { name: "Restore" }))
@@ -125,22 +254,20 @@ describe("use_case_view_retirement", () => {
   });
 
   test("searches the forgotten rites by name and explains no matches", async () => {
-    vi.mocked(listRites).mockResolvedValue([PLAN, SKETCH]);
+    storeHolds([], [PLAN, SKETCH]);
     await renderForgottenTab({ q: "sket" });
-    await expect
-      .element(page.getByRole("heading", { name: "Sketch" }))
-      .toBeVisible();
-    await expect
-      .element(page.getByRole("heading", { name: "Plan" }))
-      .not.toBeInTheDocument();
-    await renderForgottenTab({ q: "nothing like it" });
+    await expect.element(row("Sketch")).toBeVisible();
+    await expect.element(row("Plan")).not.toBeInTheDocument();
+    await page
+      .getByRole("searchbox", { name: "Find a rite" })
+      .fill("nothing like it");
     await expect
       .element(page.getByText("No rites match your search."))
       .toBeVisible();
   });
 
   test("explains an empty Forgotten tab as copy, not a notice", async () => {
-    vi.mocked(listRites).mockResolvedValue([]);
+    storeHolds([], []);
     await renderForgottenTab();
     await expect.element(page.getByText(EMPTY_FORGOTTEN)).toBeVisible();
     expect(page.getByRole("status").elements()).toHaveLength(0);
@@ -167,28 +294,26 @@ describe("use_case_view_retirement", () => {
   });
 
   for (const mode of ["light", "dark"]) {
-    test(`at 320 px in ${mode} mode, names take the card's width, actions wrap beneath and the notice wraps`, async () => {
+    test(`at 320 px in ${mode} mode, names wrap beside the reply count, actions wrap beneath and the notice wraps`, async () => {
       applyTheme("parchment", mode);
       await setViewport(NARROWEST_VIEWPORT);
       const long = { ...PLAN, name: LONG_NAME };
-      vi.mocked(listRites).mockResolvedValue([long]);
+      storeHolds([], [long]);
       vi.mocked(readRite).mockResolvedValue(long);
       await renderForgottenTab({ changed: "forget", rite: PLAN.id });
       expect(document.documentElement.scrollWidth).toBeLessThanOrEqual(
         NARROWEST_VIEWPORT.width,
       );
-      const card = page.getByRole("listitem").element().getBoundingClientRect();
+      const card = row(LONG_NAME).element().getBoundingClientRect();
       const name = page
-        .getByRole("heading", { name: LONG_NAME })
+        .getByRole("link", { name: LONG_NAME })
         .element()
         .getBoundingClientRect();
-      const view = page
-        .getByRole("link", { name: "View" })
+      const count = row(LONG_NAME)
+        .getByText("1 reply")
         .element()
         .getBoundingClientRect();
-      expect(name.right).toBeLessThanOrEqual(card.right);
-      expect(name.width).toBeGreaterThan(card.width / 2);
-      expect(view.top).toBeGreaterThanOrEqual(name.bottom);
+      expect(name.right).toBeLessThanOrEqual(count.left);
       for (const action of ["Restore", "Delete forever"]) {
         const box = page
           .getByRole("button", { name: action })
@@ -206,11 +331,11 @@ describe("use_case_view_retirement", () => {
 
 describe("use_case_restore_retired_definition", () => {
   test("Restore on a card submits the rite's restoration", async () => {
-    vi.mocked(listRites).mockResolvedValue([PLAN, SKETCH]);
+    storeHolds([], [PLAN, SKETCH]);
     await renderForgottenTab();
     await page
       .getByRole("listitem")
-      .filter({ hasText: "Plan" })
+      .filter({ has: page.getByRole("link", { name: "Plan" }) })
       .getByRole("button", { name: "Restore" })
       .click();
     await vi.waitFor(() => {
@@ -219,10 +344,10 @@ describe("use_case_restore_retired_definition", () => {
   });
 
   test("after its card goes, a persistent notice names the restored rite and holds the focus", async () => {
-    vi.mocked(listRites).mockResolvedValue([PLAN, SKETCH]);
+    storeHolds([], [PLAN, SKETCH]);
     const view = await renderForgottenTab();
     await page.getByRole("button", { name: "Restore" }).first().click();
-    vi.mocked(listRites).mockResolvedValue([SKETCH]);
+    storeHolds([], [SKETCH]);
     vi.mocked(readRite).mockResolvedValue(ACTIVE_PLAN);
     await view.rerender(
       await forgottenTab({ changed: "restore", rite: PLAN.id }),
@@ -230,30 +355,26 @@ describe("use_case_restore_retired_definition", () => {
     const notice = page.getByRole("status");
     await expect.element(notice).toMatchTextContent(PLAN_RESTORED);
     await expect.element(notice).toHaveFocus();
-    await expect
-      .element(page.getByRole("heading", { name: "Plan" }))
-      .not.toBeInTheDocument();
+    await expect.element(row("Plan")).not.toBeInTheDocument();
     expect(readRite).toHaveBeenLastCalledWith(SIGNED_IN_USER.id, PLAN.id, true);
   });
 
   test("a change naming no rite of the user's shows no notice", async () => {
-    vi.mocked(listRites).mockResolvedValue([SKETCH]);
+    storeHolds([], [SKETCH]);
     vi.mocked(readRite).mockResolvedValue(undefined);
     await renderForgottenTab({ changed: "restore", rite: PLAN.id });
-    await expect
-      .element(page.getByRole("heading", { name: "Sketch" }))
-      .toBeVisible();
+    await expect.element(row("Sketch")).toBeVisible();
     expect(page.getByRole("status").elements()).toHaveLength(0);
   });
 });
 
 describe("use_case_delete_retired_definition", () => {
   test("Keep forgotten cancels, and the dialog names the rite", async () => {
-    vi.mocked(listRites).mockResolvedValue([PLAN, SKETCH]);
+    storeHolds([], [PLAN, SKETCH]);
     await renderForgottenTab();
     const trigger = page
       .getByRole("listitem")
-      .filter({ hasText: "Plan" })
+      .filter({ has: page.getByRole("link", { name: "Plan" }) })
       .getByRole("button", { name: "Delete forever" });
     await trigger.click();
     const dialog = page.getByRole("alertdialog");
@@ -267,11 +388,11 @@ describe("use_case_delete_retired_definition", () => {
   });
 
   test("confirming submits the deletion, and the notice holds the focus once the card goes", async () => {
-    vi.mocked(listRites).mockResolvedValue([PLAN, SKETCH]);
+    storeHolds([], [PLAN, SKETCH]);
     const view = await renderForgottenTab();
     await page
       .getByRole("listitem")
-      .filter({ hasText: "Plan" })
+      .filter({ has: page.getByRole("link", { name: "Plan" }) })
       .getByRole("button", { name: "Delete forever" })
       .click();
     await page
@@ -281,7 +402,7 @@ describe("use_case_delete_retired_definition", () => {
     await vi.waitFor(() => {
       expect(lastChange()).toEqual({ id: PLAN.id, change: "delete" });
     });
-    vi.mocked(listRites).mockResolvedValue([SKETCH]);
+    storeHolds([], [SKETCH]);
     await view.rerender(
       await forgottenTab({ changed: "delete", rite: PLAN.id }),
     );
@@ -290,9 +411,7 @@ describe("use_case_delete_retired_definition", () => {
       .element(notice)
       .toHaveTextContent("The rite is deleted forever.");
     await expect.element(notice).toHaveFocus();
-    await expect
-      .element(page.getByRole("heading", { name: "Plan" }))
-      .not.toBeInTheDocument();
+    await expect.element(row("Plan")).not.toBeInTheDocument();
   });
 
   test("the read-only view asks before deleting, and Keep forgotten keeps the rite", async () => {
@@ -322,7 +441,7 @@ describe("use_case_delete_retired_definition", () => {
   });
 
   test("a refused change says the rite is unavailable", async () => {
-    vi.mocked(listRites).mockResolvedValue([SKETCH]);
+    storeHolds([], [SKETCH]);
     await renderForgottenTab({ changed: "unavailable" });
     await expect
       .element(page.getByRole("status"))

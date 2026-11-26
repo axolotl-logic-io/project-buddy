@@ -1504,6 +1504,108 @@
   .new-quest-trail-tools {
     @apply ml-auto flex shrink-0 items-center self-center;
   }
+
+  /* A placeholder in a rite's message, set as a token so it stands apart
+     from the words around it. */
+  .rite-placeholder {
+    background: color-mix(in oklab, var(--header-gold) 16%, var(--field));
+    border-color: color-mix(in oklab, var(--header-gold) 45%, var(--line));
+    @apply rounded-control border px-1 font-mono text-[0.78em] font-normal not-italic text-foreground;
+  }
+
+  /* A rite's name in the finder: its row is the target, but the name
+     itself keeps the minimum target height too. */
+  .rite-finder-link {
+    @apply inline-flex min-h-6 items-center;
+  }
+
+  /* A forgotten rite's seal, faded: it is put aside. */
+  .rite-finder-forgotten .quest-seal {
+    @apply opacity-60;
+  }
+
+  /* A rite's first message in the Grimoire's finder, on one line. */
+  .rite-finder-first {
+    @apply truncate text-muted text-[0.86rem] italic;
+  }
+
+  .rite-workspace {
+    @apply gap-5;
+  }
+
+  /* A rite's header: its seal, what it is to the user, and its actions,
+     which wrap beneath on a phone. */
+  .rite-head {
+    border-color: color-mix(in oklab, var(--line) 50%, transparent);
+    @apply flex flex-wrap items-center gap-x-3.5 gap-y-3 border-b pb-4;
+  }
+
+  .rite-head-text {
+    flex: 1 1 9rem;
+    @apply flex min-w-0 flex-col gap-0.5;
+  }
+
+  /* The reply count, then when the rite last changed, dot-separated. */
+  .rite-head-meta span + span::before {
+    content: "·";
+    @apply mx-1.5;
+  }
+
+  .rite-head-actions {
+    @apply flex flex-wrap items-center gap-2;
+  }
+
+  .rite-editor {
+    @apply flex min-w-0 flex-col gap-4;
+  }
+
+  .rite-section {
+    @apply flex min-w-0 flex-col gap-2;
+  }
+
+  /* A message the user may not change, with a gold edge. */
+  .rite-readonly {
+    border-inline-start: 3px solid var(--header-gold);
+    @apply whitespace-pre-wrap py-1 ps-3 wrap-anywhere;
+  }
+
+  /* A rite's replies, numbered, when the user may not change them. */
+  .rite-replies {
+    counter-reset: reply;
+    @apply flex min-w-0 flex-col rounded-control border border-line bg-field;
+  }
+
+  .rite-replies li {
+    counter-increment: reply;
+    @apply flex gap-3 border-line/40 border-b px-3 py-2.5 whitespace-pre-wrap wrap-anywhere last:border-b-0;
+  }
+
+  .rite-replies li::before {
+    content: counter(reply);
+    @apply min-w-5 shrink-0 font-heading font-bold text-muted tabular-nums;
+  }
+
+  /* What each placeholder stands for, beside the messages that use them. */
+  .rite-legend {
+    @apply flex min-w-0 flex-col gap-2 rounded-control border border-dashed border-line px-3.5 py-3;
+  }
+
+  .rite-legend dl {
+    @apply grid gap-x-5 gap-y-1.5 text-sm sm:grid-cols-2;
+  }
+
+  .rite-legend dl div {
+    @apply flex min-w-0 flex-wrap items-baseline gap-2;
+  }
+
+  .rite-legend dd {
+    @apply text-muted;
+  }
+
+  /* Save and Cancel, set off from the fields above. */
+  .rite-savebar {
+    @apply flex flex-wrap gap-2 border-line border-t pt-4;
+  }
 }
 
 @layer components {

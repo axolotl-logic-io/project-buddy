@@ -6,18 +6,16 @@ import { Tabs } from "radix-ui";
 import {
   type ChangeEvent,
   type JSX,
-  type KeyboardEvent,
-  type RefObject,
   startTransition,
   useCallback,
   useContext,
   useEffect,
   useId,
   useOptimistic,
-  useRef,
   useState,
   useTransition,
 } from "react";
+import { FinderSearch } from "@/components/finder-search.tsx";
 import { takeLeftQuest } from "@/components/left-quest.ts";
 import {
   QuestStatusControls,
@@ -553,37 +551,6 @@ function LeftQuestStatus(): null {
   return null;
 }
 
-// Whether a key press is meant for the control it lands in.
-function typing(target: EventTarget | null): boolean {
-  if (!(target instanceof HTMLElement)) {
-    return false;
-  }
-  return (
-    target.isContentEditable ||
-    target instanceof HTMLInputElement ||
-    target instanceof HTMLTextAreaElement ||
-    target instanceof HTMLSelectElement
-  );
-}
-
-// "/" anywhere but a field focuses the search.
-function focusOnSlash(
-  fieldRef: RefObject<HTMLInputElement | null>,
-  event: globalThis.KeyboardEvent,
-): void {
-  if (
-    event.key !== QUEST_FINDER_COPY.searchKey ||
-    event.metaKey ||
-    event.ctrlKey ||
-    event.altKey ||
-    typing(event.target)
-  ) {
-    return;
-  }
-  event.preventDefault();
-  fieldRef.current?.focus();
-}
-
 // Quests' finder: a search across the user's quests and tasks, and, when
 // it is empty, their quests by status. Typing searches as it pauses; the
 // search is kept in the address, so a reload or a shared link finds the
@@ -603,7 +570,6 @@ function QuestFinder({
   const router = useRouter();
   const [query, setQuery] = useState(search);
   const [busy, startSearch] = useTransition();
-  const fieldRef = useRef<HTMLInputElement>(null);
   const trimmed = query.trim();
   useEffect(() => {
     if (trimmed === search) {
@@ -622,58 +588,16 @@ function QuestFinder({
     }, SEARCH_DELAY_MS);
     return (): void => clearTimeout(timer);
   }, [router, search, trimmed]);
-  useEffect(() => {
-    function onKey(event: globalThis.KeyboardEvent): void {
-      focusOnSlash(fieldRef, event);
-    }
-    document.addEventListener("keydown", onKey);
-    return (): void => document.removeEventListener("keydown", onKey);
-  }, []);
-  const type = useCallback((event: ChangeEvent<HTMLInputElement>): void => {
-    setQuery(event.currentTarget.value);
-  }, []);
-  const clear = useCallback((): void => {
-    setQuery("");
-    fieldRef.current?.focus();
-  }, []);
-  const clearOnEscape = useCallback(
-    (event: KeyboardEvent<HTMLInputElement>): void => {
-      if (event.key === "Escape" && event.currentTarget.value !== "") {
-        event.preventDefault();
-        setQuery("");
-      }
-    },
-    [],
-  );
   return (
     <QuestStatusFeedback>
       <LeftQuestStatus />
       <div className="quest-finder">
-        <search className="quest-finder-search">
-          <Icon name="search" />
-          <input
-            aria-label={QUEST_FINDER_COPY.searchLabel}
-            aria-keyshortcuts={QUEST_FINDER_COPY.searchKey}
-            autoComplete="off"
-            onChange={type}
-            onKeyDown={clearOnEscape}
-            placeholder={QUEST_FINDER_COPY.searchPlaceholder}
-            ref={fieldRef}
-            type="search"
-            value={query}
-          />
-          {query === "" && <kbd>{QUEST_FINDER_COPY.searchKey}</kbd>}
-          {query !== "" && (
-            <button
-              aria-label={QUEST_FINDER_COPY.clear}
-              className="quest-finder-clear"
-              onClick={clear}
-              type="button"
-            >
-              <Icon name="close" />
-            </button>
-          )}
-        </search>
+        <FinderSearch
+          label={QUEST_FINDER_COPY.searchLabel}
+          onValueChange={setQuery}
+          placeholder={QUEST_FINDER_COPY.searchPlaceholder}
+          value={query}
+        />
         {trimmed === "" && (
           <QuestBrowser initialStatus={initialStatus} quests={quests} />
         )}

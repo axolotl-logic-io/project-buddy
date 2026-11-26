@@ -139,7 +139,7 @@ describe("header breadcrumbs", () => {
     ]);
   });
 
-  test("a rite leads to the Grimoire, and a new rite is named Create rite", async () => {
+  test("a rite leads to the Grimoire, and a new rite is named New rite", async () => {
     stores.readRite.mockResolvedValue({ id: "brainstorm", name: "Brainstorm" });
     expect(await headerBreadcrumbs(MEMBER, ["grimoire", "brainstorm"])).toEqual(
       [{ label: "Grimoire", href: "/grimoire" }, { label: "Brainstorm" }],
@@ -147,7 +147,7 @@ describe("header breadcrumbs", () => {
     expect(stores.readRite).toHaveBeenCalledWith(USER, "brainstorm", true);
     expect(await headerBreadcrumbs(MEMBER, ["grimoire", "new"])).toEqual([
       { label: "Grimoire", href: "/grimoire" },
-      { label: "Create rite" },
+      { label: "New rite" },
     ]);
   });
 
