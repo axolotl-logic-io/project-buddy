@@ -2084,6 +2084,34 @@
     @apply border-line;
   }
 
+  /* The ribbon at the top of Home: its links to Quests, the Grimoire and
+     the Timer in a row, a rule between each. Too narrow for the rules, as
+     on a phone, the links spread across the row without them. */
+  .home-places {
+    @apply @container;
+  }
+
+  .home-places-list {
+    @apply flex items-center @max-sm:justify-between;
+  }
+
+  .home-places-list > li {
+    @apply flex items-center;
+  }
+
+  .home-places-list > li + li::before {
+    content: "";
+    @apply h-5 border-line border-l @max-sm:hidden;
+  }
+
+  .home-place {
+    @apply flex min-h-(--target-size) items-center gap-2 rounded-control px-3 font-heading text-accent text-lg hover:underline hover:underline-offset-4 @max-sm:px-0 @max-sm:text-base;
+  }
+
+  .home-places-list > li:first-child .home-place {
+    @apply ps-0;
+  }
+
   /* Home's head: the user's circle in a small ring beside its title, the
      bar toward the next circle and a link to Profile. */
   .experience-strip {
