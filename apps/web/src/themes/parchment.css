@@ -386,7 +386,7 @@
     --timer-sigil-display: block;
     --timer-seal-display: block;
     /* Hours fit inside the seal's square, which is a share of the face. */
-    --timer-hours-size: 12cqi;
+    --timer-hours-fit: 12cqi;
 
     /* Display, frame and ornament roles. */
     --label-font: var(--typeface-source-serif-4);
