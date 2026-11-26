@@ -10,7 +10,7 @@ import { PROBLEMS_COPY } from "@/ui/copy/problems.ts";
 // applies the saved mode.
 function PageNotFound({ message }: { readonly message: string }): JSX.Element {
   return (
-    <div className="panel flex flex-col items-start gap-4">
+    <div className="panel flex flex-col items-start gap-4" data-frame="feature">
       <SavedChoices />
       <h1 className="page-heading">{PROBLEMS_COPY.notFoundHeading}</h1>
       <p>{message}</p>

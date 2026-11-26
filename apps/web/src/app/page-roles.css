@@ -360,7 +360,10 @@
     @apply rounded-box border border-line bg-surface/70 px-4 py-3 shadow-control;
   }
 
-  :is(.panel, .dialog-panel) {
+  /* A page's box, a dialog and a panel that stands on the page carry the
+     appearance's frame. A page has one frame: a panel inside a page's box,
+     another frame or a list is a plain box, with no keyline or corners. */
+  :is(.panel, .dialog-panel, .page-workspace) {
     border: var(--frame-width) var(--frame-style) var(--frame-ink);
     border-radius: var(--frame-radius);
     background-image: var(--frame-decoration);
@@ -369,6 +372,11 @@
       inset 0 0 0 calc(var(--frame-inset) + var(--frame-keyline))
       var(--frame-ink),
       var(--raised-shadow);
+  }
+
+  :is(.panel, .dialog-panel, .page-workspace, li) .panel {
+    --frame-inset: 0px;
+    --frame-keyline: 0px;
   }
 
   .ornament[data-ornament="emblem"] {
@@ -420,8 +428,8 @@
 
     .ornament::before,
     .ornament::after,
-    :is(.panel, .dialog-panel)::before,
-    :is(.panel, .dialog-panel)::after {
+    :is(.panel, .dialog-panel, .page-workspace)::before,
+    :is(.panel, .dialog-panel, .page-workspace)::after {
       position: absolute;
       pointer-events: none;
       content: "";
@@ -443,7 +451,7 @@
       --frame-corner: var(--orn-corner-panel-size);
     }
 
-    .panel[data-frame="feature"] {
+    :is(.panel[data-frame="feature"], .page-workspace) {
       --frame-corner: var(--orn-corner-feature-size);
     }
 
@@ -451,12 +459,12 @@
       --frame-corner: var(--orn-corner-dialog-size);
     }
 
-    :is(.panel, .dialog-panel, li) .panel {
+    :is(.panel, .dialog-panel, .page-workspace, li) .panel {
       --frame-corner: 0px;
     }
 
-    :is(.panel, .dialog-panel)::before,
-    :is(.panel, .dialog-panel)::after {
+    :is(.panel, .dialog-panel, .page-workspace)::before,
+    :is(.panel, .dialog-panel, .page-workspace)::after {
       inset: max(0px, calc(var(--frame-inset) - var(--frame-corner) / 4));
       background: var(--ornament-ink);
       mask:
@@ -466,7 +474,7 @@
         var(--orn-corner-br) bottom right / var(--frame-corner) no-repeat;
     }
 
-    :is(.panel, .dialog-panel)::after {
+    :is(.panel, .dialog-panel, .page-workspace)::after {
       background: var(--ornament-accent-ink);
       mask-image:
         var(--orn-corner-accent-tl), var(--orn-corner-accent-tr),
@@ -1206,65 +1214,10 @@
     @apply max-[22.5rem]:sr-only;
   }
 
-  /* Life's stepped frame sits behind the card so it cannot clip focus rings. */
+  /* Life, pinned above the finder: a plain box, since the page's box
+     carries the page's one frame. */
   .life-pin {
-    @apply relative isolate flex min-w-0 flex-col gap-2.5 px-3.5 py-4 sm:px-4;
-  }
-
-  .life-pin::before,
-  .life-pin::after {
-    content: "";
-    @apply pointer-events-none absolute -z-10 border;
-  }
-
-  .life-pin::before {
-    --life-step: 4px;
-    --life-cut: 9px;
-    --life-far-step: calc(100% - var(--life-step));
-    --life-far-cut: calc(100% - var(--life-cut));
-    clip-path: polygon(
-      0 var(--life-cut),
-      var(--life-step) var(--life-cut),
-      var(--life-step) var(--life-step),
-      var(--life-cut) var(--life-step),
-      var(--life-cut) 0,
-      var(--life-far-cut) 0,
-      var(--life-far-cut) var(--life-step),
-      var(--life-far-step) var(--life-step),
-      var(--life-far-step) var(--life-cut),
-      100% var(--life-cut),
-      100% var(--life-far-cut),
-      var(--life-far-step) var(--life-far-cut),
-      var(--life-far-step) var(--life-far-step),
-      var(--life-far-cut) var(--life-far-step),
-      var(--life-far-cut) 100%,
-      var(--life-cut) 100%,
-      var(--life-cut) var(--life-far-step),
-      var(--life-step) var(--life-far-step),
-      var(--life-step) var(--life-far-cut),
-      0 var(--life-far-cut)
-    );
-    @apply inset-0 border-line bg-surface;
-  }
-
-  .life-pin::after {
-    @apply inset-1.25 border-line/45;
-  }
-
-  .life-pin-corner {
-    @apply pointer-events-none absolute top-0 left-0 -z-10 text-header-gold;
-  }
-
-  .life-pin-corner[data-corner="top-right"] {
-    @apply right-0 left-auto -scale-x-100;
-  }
-
-  .life-pin-corner[data-corner="bottom-left"] {
-    @apply top-auto bottom-0 -scale-y-100;
-  }
-
-  .life-pin-corner[data-corner="bottom-right"] {
-    @apply top-auto right-0 bottom-0 left-auto -scale-100;
+    @apply flex min-w-0 flex-col gap-2.5 rounded-box border border-line bg-surface px-3.5 py-4 sm:px-4;
   }
 
   .life-pin-head {
@@ -1684,7 +1637,8 @@
     block-size: 40px;
   }
   .page-workspace {
-    @apply min-w-0 rounded-box border border-line bg-surface;
+    position: relative;
+    @apply min-w-0 bg-surface;
   }
 
   .page-workspace-heading {
