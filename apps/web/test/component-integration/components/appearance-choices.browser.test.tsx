@@ -108,6 +108,11 @@ function appliedColors(): ThemeMode | "unclear" {
   return mode;
 }
 
+// The page's texture, drawn on a still layer behind the page.
+function pageTexture(): string {
+  return getComputedStyle(document.body, "::before").backgroundImage;
+}
+
 // The swatch's texture: the element inside its label that shows a
 // background image. Ornament drawn over or around it may sit beside it.
 function material(name: string): HTMLElement {
@@ -440,13 +445,13 @@ describe("use_case_choose_theme", () => {
         .poll(() => document.cookie.split("; "))
         .toContain(`theme=parchment.${mode}`);
       expect(appliedColors()).toBe(mode);
-      const texture = getComputedStyle(document.body).backgroundImage;
+      const texture = pageTexture();
       expect(texture, "the page shows a texture image").toMatch(PAINT_URL);
       await decodePaint(texture);
       await commands.emulateColorScheme("dark");
-      expect(getComputedStyle(document.body).backgroundImage).toBe(texture);
+      expect(pageTexture()).toBe(texture);
       await commands.emulateColorScheme("light");
-      expect(getComputedStyle(document.body).backgroundImage).toBe(texture);
+      expect(pageTexture()).toBe(texture);
       await closePanel();
     },
   );
