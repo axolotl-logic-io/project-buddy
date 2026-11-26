@@ -135,8 +135,29 @@
     @apply rounded-control underline decoration-(length:--line-width) decoration-line underline-offset-4 hover:text-primary hover:decoration-primary;
   }
 
-  :is(.circle-progress-ring, .profile-ring, .experience-strip-ring) > svg {
+  /* A ring of progress (src/components/ui/progress-arc.tsx): an arc over
+     a track. Each ring paints its own. */
+  .progress-track,
+  .progress-arc {
+    fill: none;
+  }
+
+  /* The ring of a user's progress toward their next circle
+     (src/components/experience/progress-ring.tsx), filling the box it sits
+     in: its arc over a track around a disc. Where it shows sets the three
+     colours. */
+  .experience-ring {
     @apply absolute inset-0 size-full;
+  }
+
+  .experience-ring .progress-track {
+    fill: var(--ring-disc);
+    stroke: var(--ring-track);
+  }
+
+  .experience-ring .progress-arc {
+    stroke: var(--ring-arc);
+    stroke-linecap: round;
   }
 
   /* Letterpress actions: brass commits, paper offers alternatives, ink
@@ -339,7 +360,10 @@
     @apply rounded-box border border-line bg-surface/70 px-4 py-3 shadow-control;
   }
 
-  :is(.panel, .dialog-panel) {
+  /* A page's box, a dialog and a panel that stands on the page carry the
+     appearance's frame. A page has one frame: a panel inside a page's box,
+     another frame or a list is a plain box, with no keyline or corners. */
+  :is(.panel, .dialog-panel, .page-workspace) {
     border: var(--frame-width) var(--frame-style) var(--frame-ink);
     border-radius: var(--frame-radius);
     background-image: var(--frame-decoration);
@@ -348,6 +372,11 @@
       inset 0 0 0 calc(var(--frame-inset) + var(--frame-keyline))
       var(--frame-ink),
       var(--raised-shadow);
+  }
+
+  :is(.panel, .dialog-panel, .page-workspace, li) .panel {
+    --frame-inset: 0px;
+    --frame-keyline: 0px;
   }
 
   .ornament[data-ornament="emblem"] {
@@ -399,8 +428,8 @@
 
     .ornament::before,
     .ornament::after,
-    :is(.panel, .dialog-panel)::before,
-    :is(.panel, .dialog-panel)::after {
+    :is(.panel, .dialog-panel, .page-workspace)::before,
+    :is(.panel, .dialog-panel, .page-workspace)::after {
       position: absolute;
       pointer-events: none;
       content: "";
@@ -422,7 +451,7 @@
       --frame-corner: var(--orn-corner-panel-size);
     }
 
-    .panel[data-frame="feature"] {
+    :is(.panel[data-frame="feature"], .page-workspace) {
       --frame-corner: var(--orn-corner-feature-size);
     }
 
@@ -430,12 +459,12 @@
       --frame-corner: var(--orn-corner-dialog-size);
     }
 
-    :is(.panel, .dialog-panel, li) .panel {
+    :is(.panel, .dialog-panel, .page-workspace, li) .panel {
       --frame-corner: 0px;
     }
 
-    :is(.panel, .dialog-panel)::before,
-    :is(.panel, .dialog-panel)::after {
+    :is(.panel, .dialog-panel, .page-workspace)::before,
+    :is(.panel, .dialog-panel, .page-workspace)::after {
       inset: max(0px, calc(var(--frame-inset) - var(--frame-corner) / 4));
       background: var(--ornament-ink);
       mask:
@@ -445,7 +474,7 @@
         var(--orn-corner-br) bottom right / var(--frame-corner) no-repeat;
     }
 
-    :is(.panel, .dialog-panel)::after {
+    :is(.panel, .dialog-panel, .page-workspace)::after {
       background: var(--ornament-accent-ink);
       mask-image:
         var(--orn-corner-accent-tl), var(--orn-corner-accent-tr),
@@ -529,8 +558,10 @@
      an hourglass inside a gear and the site's name, and, for a signed-in user,
      the ring of their progress at its right end. The site panel and its
      contents keep the theme's own look. The expand buttons sit in the
-     breadcrumb row; the panels open from the same row. */
+     breadcrumb row; the panels open from the same row. The bar's two
+     discs, the brand's medallion and the ring, are one size: a target's. */
   .site-header {
+    --hud-disc-size: var(--target-size);
     @apply relative z-20 flex flex-wrap items-center gap-2 py-2 shadow-raised;
     padding-inline: var(--header-gutter);
     background-color: var(--hud-ink);
@@ -550,11 +581,15 @@
 
   .hud-medallion {
     @apply flex shrink-0 items-center justify-center rounded-full border-2;
-    inline-size: calc(var(--target-size) * 0.75);
-    block-size: calc(var(--target-size) * 0.75);
+    inline-size: var(--hud-disc-size);
+    block-size: var(--hud-disc-size);
     background: var(--hud-paper);
     color: var(--hud-ink);
     border-color: var(--hud-gold);
+  }
+
+  .hud-medallion > .icon > svg {
+    @apply size-5;
   }
 
   /* On a phone the brand is its medallion alone, a whole target, and the
@@ -569,9 +604,9 @@
     }
   }
 
-  /* The ring of the user's progress toward their next circle, a target's
-     size, at the bar's right end: gold filling an ink track, with the
-     circle's number inside. */
+  /* The ring of the user's progress toward their next circle, the
+     medallion's size, at the bar's right end: gold filling an ink track,
+     with the circle's number inside. */
   .circle-progress {
     --ring-disc: var(--hud-ink);
     --ring-track: var(--hud-line);
@@ -581,8 +616,8 @@
 
   .circle-progress-ring {
     @apply relative grid place-items-center;
-    inline-size: var(--target-size);
-    block-size: var(--target-size);
+    inline-size: var(--hud-disc-size);
+    block-size: var(--hud-disc-size);
   }
 
   .circle-progress-number {
@@ -1179,65 +1214,10 @@
     @apply max-[22.5rem]:sr-only;
   }
 
-  /* Life's stepped frame sits behind the card so it cannot clip focus rings. */
+  /* Life, pinned above the finder: a plain box, since the page's box
+     carries the page's one frame. */
   .life-pin {
-    @apply relative isolate flex min-w-0 flex-col gap-2.5 px-3.5 py-4 sm:px-4;
-  }
-
-  .life-pin::before,
-  .life-pin::after {
-    content: "";
-    @apply pointer-events-none absolute -z-10 border;
-  }
-
-  .life-pin::before {
-    --life-step: 4px;
-    --life-cut: 9px;
-    --life-far-step: calc(100% - var(--life-step));
-    --life-far-cut: calc(100% - var(--life-cut));
-    clip-path: polygon(
-      0 var(--life-cut),
-      var(--life-step) var(--life-cut),
-      var(--life-step) var(--life-step),
-      var(--life-cut) var(--life-step),
-      var(--life-cut) 0,
-      var(--life-far-cut) 0,
-      var(--life-far-cut) var(--life-step),
-      var(--life-far-step) var(--life-step),
-      var(--life-far-step) var(--life-cut),
-      100% var(--life-cut),
-      100% var(--life-far-cut),
-      var(--life-far-step) var(--life-far-cut),
-      var(--life-far-step) var(--life-far-step),
-      var(--life-far-cut) var(--life-far-step),
-      var(--life-far-cut) 100%,
-      var(--life-cut) 100%,
-      var(--life-cut) var(--life-far-step),
-      var(--life-step) var(--life-far-step),
-      var(--life-step) var(--life-far-cut),
-      0 var(--life-far-cut)
-    );
-    @apply inset-0 border-line bg-surface;
-  }
-
-  .life-pin::after {
-    @apply inset-1.25 border-line/45;
-  }
-
-  .life-pin-corner {
-    @apply pointer-events-none absolute top-0 left-0 -z-10 text-header-gold;
-  }
-
-  .life-pin-corner[data-corner="top-right"] {
-    @apply right-0 left-auto -scale-x-100;
-  }
-
-  .life-pin-corner[data-corner="bottom-left"] {
-    @apply top-auto bottom-0 -scale-y-100;
-  }
-
-  .life-pin-corner[data-corner="bottom-right"] {
-    @apply top-auto right-0 bottom-0 left-auto -scale-100;
+    @apply flex min-w-0 flex-col gap-2.5 rounded-box border border-line bg-surface px-3.5 py-4 sm:px-4;
   }
 
   .life-pin-head {
@@ -1504,6 +1484,108 @@
   .new-quest-trail-tools {
     @apply ml-auto flex shrink-0 items-center self-center;
   }
+
+  /* A placeholder in a rite's message, set as a token so it stands apart
+     from the words around it. */
+  .rite-placeholder {
+    background: color-mix(in oklab, var(--header-gold) 16%, var(--field));
+    border-color: color-mix(in oklab, var(--header-gold) 45%, var(--line));
+    @apply rounded-control border px-1 font-mono text-[0.78em] font-normal not-italic text-foreground;
+  }
+
+  /* A rite's name in the finder: its row is the target, but the name
+     itself keeps the minimum target height too. */
+  .rite-finder-link {
+    @apply inline-flex min-h-6 items-center;
+  }
+
+  /* A forgotten rite's seal, faded: it is put aside. */
+  .rite-finder-forgotten .quest-seal {
+    @apply opacity-60;
+  }
+
+  /* A rite's first message in the Grimoire's finder, on one line. */
+  .rite-finder-first {
+    @apply truncate text-muted text-[0.86rem] italic;
+  }
+
+  .rite-workspace {
+    @apply gap-5;
+  }
+
+  /* A rite's header: its seal, what it is to the user, and its actions,
+     which wrap beneath on a phone. */
+  .rite-head {
+    border-color: color-mix(in oklab, var(--line) 50%, transparent);
+    @apply flex flex-wrap items-center gap-x-3.5 gap-y-3 border-b pb-4;
+  }
+
+  .rite-head-text {
+    flex: 1 1 9rem;
+    @apply flex min-w-0 flex-col gap-0.5;
+  }
+
+  /* The reply count, then when the rite last changed, dot-separated. */
+  .rite-head-meta span + span::before {
+    content: "·";
+    @apply mx-1.5;
+  }
+
+  .rite-head-actions {
+    @apply flex flex-wrap items-center gap-2;
+  }
+
+  .rite-editor {
+    @apply flex min-w-0 flex-col gap-4;
+  }
+
+  .rite-section {
+    @apply flex min-w-0 flex-col gap-2;
+  }
+
+  /* A message the user may not change, with a gold edge. */
+  .rite-readonly {
+    border-inline-start: 3px solid var(--header-gold);
+    @apply whitespace-pre-wrap py-1 ps-3 wrap-anywhere;
+  }
+
+  /* A rite's replies, numbered, when the user may not change them. */
+  .rite-replies {
+    counter-reset: reply;
+    @apply flex min-w-0 flex-col rounded-control border border-line bg-field;
+  }
+
+  .rite-replies li {
+    counter-increment: reply;
+    @apply flex gap-3 border-line/40 border-b px-3 py-2.5 whitespace-pre-wrap wrap-anywhere last:border-b-0;
+  }
+
+  .rite-replies li::before {
+    content: counter(reply);
+    @apply min-w-5 shrink-0 font-heading font-bold text-muted tabular-nums;
+  }
+
+  /* What each placeholder stands for, beside the messages that use them. */
+  .rite-legend {
+    @apply flex min-w-0 flex-col gap-2 rounded-control border border-dashed border-line px-3.5 py-3;
+  }
+
+  .rite-legend dl {
+    @apply grid gap-x-5 gap-y-1.5 text-sm sm:grid-cols-2;
+  }
+
+  .rite-legend dl div {
+    @apply flex min-w-0 flex-wrap items-baseline gap-2;
+  }
+
+  .rite-legend dd {
+    @apply text-muted;
+  }
+
+  /* Save and Cancel, set off from the fields above. */
+  .rite-savebar {
+    @apply flex flex-wrap gap-2 border-line border-t pt-4;
+  }
 }
 
 @layer components {
@@ -1555,7 +1637,8 @@
     block-size: 40px;
   }
   .page-workspace {
-    @apply min-w-0 rounded-box border border-line bg-surface;
+    position: relative;
+    @apply min-w-0 bg-surface;
   }
 
   .page-workspace-heading {
@@ -1637,6 +1720,15 @@
     letter-spacing: 3px;
   }
 
+  /* The writing as the dial's masks cut it from the lines: each glyph and a
+     narrow margin round it. */
+  .timer-knockout {
+    fill: black;
+    stroke: black;
+    stroke-width: 6px;
+    stroke-linejoin: round;
+  }
+
   .timer-marker {
     color: var(--timer-ornament-ink);
     fill: none;
@@ -1669,14 +1761,12 @@
     }
   }
 
-  .timer-track,
-  .timer-progress {
-    fill: none;
+  .timer-ring :is(.progress-track, .progress-arc) {
     r: var(--timer-radius);
     stroke-width: var(--timer-stroke);
   }
 
-  .timer-track {
+  .timer-ring .progress-track {
     stroke: var(--timer-track);
     opacity: 0.2;
   }
@@ -1692,7 +1782,7 @@
     opacity: var(--timer-hatch-opacity);
   }
 
-  .timer-progress-rest {
+  .timer-ring-rest .progress-arc {
     stroke: var(--accent);
   }
 
@@ -1728,8 +1818,13 @@
     line-height: var(--timer-number-leading);
   }
 
+  /* Hours share one size in every appearance; an appearance whose dial
+     frames them in a smaller space sets --timer-hours-fit to shrink them. */
   .timer-countdown[data-hours="true"] {
-    font-size: var(--timer-hours-size);
+    font-size: min(
+      var(--timer-hours-size),
+      var(--timer-hours-fit, var(--timer-hours-size))
+    );
   }
 
   .timer-next {

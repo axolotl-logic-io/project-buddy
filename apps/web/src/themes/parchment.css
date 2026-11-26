@@ -377,14 +377,16 @@
 
     --timer-marker-active: var(--foreground);
     --timer-phase-font: var(--timer-blackletter-font);
-    --timer-radius: 162px;
-    --timer-stroke: 12px;
+    --timer-radius: 156px;
+    --timer-stroke: 10px;
     --timer-guide-outer: 186px;
     --timer-guide-middle: 0px;
-    --timer-guide-inner: 136px;
+    --timer-guide-inner: 130px;
     --timer-inscription-display: block;
     --timer-sigil-display: block;
     --timer-seal-display: block;
+    /* Hours fit inside the seal's square, which is a share of the face. */
+    --timer-hours-fit: 12cqi;
 
     /* Display, frame and ornament roles. */
     --label-font: var(--typeface-source-serif-4);

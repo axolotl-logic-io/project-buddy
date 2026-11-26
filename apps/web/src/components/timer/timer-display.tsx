@@ -7,6 +7,7 @@ import { TimerDial } from "@/components/timer/timer-dial.tsx";
 import { TimerHourglass } from "@/components/timer/timer-hourglass.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { Notice } from "@/components/ui/form-message.tsx";
+import { ProgressArc } from "@/components/ui/progress-arc.tsx";
 import {
   formatRemaining,
   msUntilNextSecond,
@@ -17,9 +18,10 @@ import {
 } from "@/timer/schedule.ts";
 import { TIMER_COPY } from "@/ui/copy/timer.ts";
 
-// Normalize progress so the site appearance can choose its dial radius.
+// The ring's centre in the face's view. Each appearance sets the ring's
+// radius and stroke in CSS; this radius is the first appearance's.
+const RING_CENTRE = 210;
 const RING_RADIUS = 173;
-const RING_LENGTH = 100;
 const MS_PER_HOUR = 3_600_000;
 
 // The current time in milliseconds since the epoch.
@@ -72,9 +74,9 @@ function TimerFace({
   readonly phase: Extract<TimerPhase, { kind: "work" | "break" }>;
 }): JSX.Element {
   const giltId = useId();
-  let arc = "timer-progress";
+  let ring = "timer-ring";
   if (phase.kind === "break") {
-    arc += " timer-progress-rest";
+    ring += " timer-ring-rest";
   }
   let next = TIMER_COPY.next("break");
   if (phase.kind === "break") {
@@ -86,7 +88,7 @@ function TimerFace({
   return (
     <div className="timer-face">
       <TimerHourglass elapsedFraction={phase.elapsedFraction} />
-      <svg aria-hidden="true" className="timer-ring" viewBox="0 0 420 420">
+      <svg aria-hidden="true" className={ring} viewBox="0 0 420 420">
         <defs>
           <pattern
             id={giltId}
@@ -102,23 +104,11 @@ function TimerFace({
           </pattern>
         </defs>
         <TimerDial elapsedFraction={phase.elapsedFraction} />
-        <circle
-          className="timer-track"
-          cx="210"
-          cy="210"
-          r={RING_RADIUS}
-          pathLength={RING_LENGTH}
-        />
-        <circle
-          className={arc}
-          stroke={`url(#${giltId})`}
-          cx="210"
-          cy="210"
-          r={RING_RADIUS}
-          strokeDasharray={RING_LENGTH}
-          strokeDashoffset={RING_LENGTH * (1 - phase.elapsedFraction)}
-          pathLength={RING_LENGTH}
-          transform="rotate(-90 210 210)"
+        <ProgressArc
+          centre={RING_CENTRE}
+          fraction={phase.elapsedFraction}
+          paint={`url(#${giltId})`}
+          radius={RING_RADIUS}
         />
       </svg>
       <div className="timer-readout">

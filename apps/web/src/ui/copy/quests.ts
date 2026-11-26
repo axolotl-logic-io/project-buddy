@@ -55,8 +55,6 @@ export const LIFE_COPY = {
 export const QUEST_FINDER_COPY = {
   searchLabel: "Find a quest or task",
   searchPlaceholder: "Find a quest or task…",
-  searchKey: "/",
-  clear: "Clear the search",
   statuses: "Quests by status",
   shared: "Shared",
   sortLabel: "Sort",

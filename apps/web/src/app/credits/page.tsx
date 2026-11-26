@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 export default function CreditsPage(): JSX.Element {
   return (
     <div className="page-column">
-      <div className="panel flex flex-col gap-4">
+      <div className="panel flex flex-col gap-4" data-frame="feature">
         <h1 className="page-heading">{CREDITS_COPY.heading}</h1>
         <p>
           {CREDITS_COPY.iconCredit(

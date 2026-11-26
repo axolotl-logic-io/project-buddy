@@ -34,7 +34,7 @@ import SignUpPage from "@/app/signup/page.tsx";
 
 import { readLife, readQuestEntries } from "@/quests/quest-index-store.ts";
 import { getQuest, listQuests } from "@/quests/store.ts";
-import { BUILT_IN_RITES } from "@/rites/rite.ts";
+import { BUILT_IN_RITES, type Rite } from "@/rites/rite.ts";
 import { listRites, readRite } from "@/rites/rite-store.ts";
 import { readStreakQuests } from "@/streaks/streak-store.ts";
 import { readTaskQuests } from "@/tasks/task-store.ts";
@@ -100,6 +100,16 @@ function linkPage(
     });
   };
 }
+
+// The user's own rite, with a long name and a placeholder in each message.
+const OWN_RITE: Rite = {
+  id: "0b6c3d8e-1f2a-4b5c-8d9e-0f1a2b3c4d5e",
+  name: "Morningpagesbeforeanythingelseatallintheday",
+  source: "own",
+  firstMessage: "Write three pages for {list} before anything else.",
+  replies: ["Keep going, {user}.", "Added “{text}” to {list}."],
+  updatedAt: new Date("2026-11-20T12:00:00Z"),
+};
 
 // A workspace page, signed in, once the stores answer as setUp makes them.
 function workspacePage(
@@ -231,7 +241,12 @@ const PHONE_PAGES: readonly PhonePage[] = [
     path: ["grimoire"],
     render: workspacePage(
       () => {
-        vi.mocked(listRites).mockResolvedValue([...BUILT_IN_RITES]);
+        vi.mocked(listRites).mockImplementation((_user, forgotten) => {
+          if (forgotten === true) {
+            return Promise.resolve([]);
+          }
+          return Promise.resolve([...BUILT_IN_RITES, OWN_RITE]);
+        });
       },
       () => GrimoirePage({ params: NO_PARAMS, searchParams: NO_PARAMS }),
     ),
@@ -246,6 +261,32 @@ const PHONE_PAGES: readonly PhonePage[] = [
       () =>
         RitePage({
           params: Promise.resolve({ riteId: "capture" }),
+          searchParams: NO_PARAMS,
+        }),
+    ),
+  },
+  {
+    name: "the user's own rite",
+    path: ["grimoire", OWN_RITE.id],
+    render: workspacePage(
+      () => {
+        vi.mocked(readRite).mockResolvedValue(OWN_RITE);
+      },
+      () =>
+        RitePage({
+          params: Promise.resolve({ riteId: OWN_RITE.id }),
+          searchParams: NO_PARAMS,
+        }),
+    ),
+  },
+  {
+    name: "a new rite",
+    path: ["grimoire", "new"],
+    render: workspacePage(
+      () => undefined,
+      () =>
+        RitePage({
+          params: Promise.resolve({ riteId: "new" }),
           searchParams: NO_PARAMS,
         }),
     ),

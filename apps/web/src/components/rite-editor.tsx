@@ -17,6 +17,7 @@ import {
   readLocalDraftSnapshot,
   subscribeToLocalDraft,
 } from "@/components/local-draft.ts";
+import { PlaceholderLegend } from "@/components/rite-text.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { TextAreaField, TextField } from "@/components/ui/field.tsx";
 import { Alert, FormStatus } from "@/components/ui/form-message.tsx";
@@ -156,7 +157,7 @@ function RiteEditor({
     repliesError = error.message;
   }
   return (
-    <form onSubmit={save} className="grid gap-3">
+    <form onSubmit={save} className="rite-editor">
       <TextField
         label={GRIMOIRE_COPY.name}
         name="name"
@@ -183,7 +184,8 @@ function RiteEditor({
         onChange={updateReplies}
         error={repliesError}
       />
-      <div className="flex gap-2">
+      <PlaceholderLegend />
+      <div className="rite-savebar">
         <Button type="submit" disabled={pending}>
           {GRIMOIRE_COPY.save}
         </Button>

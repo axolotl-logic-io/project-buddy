@@ -69,7 +69,7 @@ function PageError({
     message = PROBLEMS_COPY.unknownError;
   }
   return (
-    <div className="panel flex flex-col gap-4">
+    <div className="panel flex flex-col gap-4" data-frame="feature">
       <SavedChoices />
       <Heading className="page-heading">{PROBLEMS_COPY.errorHeading}</Heading>
       <Alert>{message}</Alert>
