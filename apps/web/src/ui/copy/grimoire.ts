@@ -3,30 +3,59 @@ import { pageTitle } from "./site.ts";
 const GRIMOIRE_COPY = {
   heading: "Grimoire",
   title: pageTitle("Grimoire"),
-  create: "Create rite",
+  create: "New rite",
   copy: "Make a copy",
   copyName: (name: string): string => `Copy of ${name}`,
-  view: "View",
-  edit: "Edit",
   name: "Rite name",
   firstMessage: "First message",
   firstMessageHint:
-    "The rite says this when a performance begins. Use {rite} and {list} in it.",
+    "The rite says this when a performance begins. It can use {rite} and {list}.",
   replies: "Replies",
-  hint: "Use {rite}, {list}, {text} and {user} in replies.",
+  hint: "The rite answers each message with one of these, picked at random.",
   save: "Save rite",
   saved: "Rite saved.",
   cancel: "Cancel",
   forget: "Forget",
   restore: "Restore",
   delete: "Delete forever",
-  search: "Search rites",
-  filter: "Show rites",
-  find: "Search",
+  searchLabel: "Find a rite",
+  searchPlaceholder: "Find a rite…",
+  filter: "Rites by source",
+  builtInTag: "Built-in",
+  // The word after a rite's count of replies.
+  repliesAfterCount: (count: number): "reply" | "replies" => {
+    if (count === 1) {
+      return "reply";
+    }
+    return "replies";
+  },
+  // Says how many replies a rite has.
+  replyCount: (count: number): string => {
+    if (count === 1) {
+      return "1 reply";
+    }
+    return `${count} replies`;
+  },
+  editedOn: (day: string): string => `Edited ${day}`,
+  forgottenOn: (day: string): string => `Forgotten ${day}`,
+  sources: {
+    "built-in": "Built-in rite",
+    own: "Your rite",
+    forgotten: "Forgotten rite",
+  },
+  readOnly: "Read-only",
+  placeholders: "Placeholders",
+  placeholderMeanings: {
+    rite: "the rite’s name",
+    list: "the list’s name",
+    text: "the message’s text",
+    user: "the message’s author",
+  },
   empty: "There are no rites in this collection.",
+  emptyOwn:
+    "You have no rites of your own yet. Choose New rite, or make a copy of a built-in rite.",
   emptyForgotten:
     "You have no forgotten rites. Forget one of your rites from its page to put it aside here.",
-  forgottenOn: (day: string): string => `Forgotten ${day}`,
   confirmDelete: (name: string): string => `Delete “${name}” forever?`,
   confirmDeleteDetail:
     "The rite is removed for good and can’t be restored. Performances that used it keep their rite snapshots.",

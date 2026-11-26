@@ -7,6 +7,7 @@ import {
   publicBreadcrumbs,
 } from "@/components/header-breadcrumbs.ts";
 import { NewQuest } from "@/components/new-quest.tsx";
+import { NewRite } from "@/components/new-rite.tsx";
 import { QuestTitle } from "@/components/quest-title.tsx";
 import { SignedInHeader } from "@/components/signed-in-header.tsx";
 import { TimerPreferences } from "@/components/timer/timer-preferences.tsx";
@@ -68,6 +69,9 @@ async function HeaderLinksAt({
       const current = place === resolved.length - 1;
       if (current && signedIn && path[0] === "quests" && path.length === 1) {
         return { ...item, action: <NewQuest /> };
+      }
+      if (current && signedIn && path[0] === "grimoire" && path.length === 1) {
+        return { ...item, action: <NewRite /> };
       }
       return item;
     },
