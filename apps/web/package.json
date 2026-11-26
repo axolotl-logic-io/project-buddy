@@ -11,7 +11,6 @@
     "format": "biome format --write",
     "format:check": "biome format",
     "test": "bash scripts/test-env/test.sh",
-    "test:core": "bash scripts/test-env/test.sh core",
     "test:doctor": "npx --yes react-doctor@0.9.23 --yes --no-score --no-supply-chain",
     "test:repository": "vitest run --project repository --project vite-integration",
     "test:browser": "npm run browsers:install && vitest run --project 'browser*' --reporter=default --reporter=./scripts/test-env/vitest-failures.ts",

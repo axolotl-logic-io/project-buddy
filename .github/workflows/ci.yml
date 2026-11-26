@@ -1,20 +1,19 @@
-# Runs on each PR and on each push to integration. Each job runs
-# its own npm script, so a failure names its stage:
+# Runs on each PR and on each push to integration. Each job runs the npm
+# script of the same name, so a failure names its stage:
 #
 # - lint: `npm run lint`, Biome and the type check in every workspace.
-# - test: `npm run test:core`, React Doctor and every test but the browser and
-#   end-to-end tests, in every workspace.
-# - test:e2e: `npm run test:e2e`, the Vitest browser tests (Chromium and
-#   WebKit), then the Playwright end-to-end tests against a production build.
+# - test: `npm test`, the full suite in every workspace: React Doctor, the
+#   script, repository and server tests, the Vitest browser tests (Chromium
+#   and WebKit), and the Playwright tests against a production build.
 #
 # It needs no secrets and reaches no outside service but the package, image
-# and browser downloads. The test and test:e2e jobs start the test database
-# from apps/web/compose.test-db.yml on the runner, and `npm run test-env:init`
+# and browser downloads. The test job starts the test database from
+# apps/web/compose.test-db.yml on the runner, and `npm run test-env:init`
 # writes .env.test for it from .env.test.example: a localhost DATABASE_URL,
 # the mock model and the email outbox. The test commands refuse any other
 # (scripts/test-db/test-database.ts), so no job can reach the shared Neon
 # database, Claude or Resend. Nothing here deploys. Branch protection on
-# integration requires all three jobs, and requires a PR's branch to be up to
+# integration requires both jobs, and requires a PR's branch to be up to
 # date with integration before it merges.
 name: CI
 
@@ -52,31 +51,9 @@ jobs:
   test:
     name: test
     runs-on: ubuntu-latest
-    timeout-minutes: 20
-    steps:
-      - uses: actions/checkout@v5
-
-      - uses: actions/setup-node@v5
-        with:
-          # As the root mise.toml says.
-          node-version: 24
-          cache: npm
-
-      - run: npm ci --no-audit --no-fund
-      - run: npm run test-env:init --workspace @project-buddy/web
-      - run: npm run test-db:up --workspace @project-buddy/web
-      # The site's tests reset and migrate the test database first.
-      - run: npm run test:core
-
-  test-e2e:
-    name: test:e2e
-    runs-on: ubuntu-latest
-    timeout-minutes: 35
+    timeout-minutes: 40
     env:
       NEXT_TELEMETRY_DISABLED: 1
-    defaults:
-      run:
-        working-directory: apps/web
     steps:
       - uses: actions/checkout@v5
 
@@ -87,18 +64,19 @@ jobs:
           cache: npm
 
       - run: npm ci --no-audit --no-fund
-        working-directory: .
 
       # The browsers and the system libraries WebKit needs, which a local
       # machine has and a fresh runner doesn't.
       - run: npx playwright install --with-deps chromium webkit
+        working-directory: apps/web
 
-      - run: npm run test-env:init
-      - run: npm run test-db:up
-      # Runs the browser tests, resets and migrates the test database, then
-      # builds the site and serves it on .env.test's port for the Playwright
-      # tests.
-      - run: npm run test:e2e
+      - run: npm run test-env:init --workspace @project-buddy/web
+      - run: npm run test-db:up --workspace @project-buddy/web
+      # Runs the fast checks, the browser tests and the database lane in
+      # parallel. The database lane resets and migrates the test database
+      # before the server tests, and again before it builds the site and
+      # serves it on .env.test's port for the Playwright tests.
+      - run: npm test
 
       # The HTML report holds each failed test's trace (playwright.config.ts).
       - name: Upload the Playwright report

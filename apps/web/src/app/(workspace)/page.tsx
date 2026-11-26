@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import type { JSX } from "react";
 import { requireUser } from "@/auth/current-user.ts";
 import { ExperienceStrip } from "@/components/experience/experience-card.tsx";
+import { HomePlaces } from "@/components/home-places.tsx";
 import { HomeTasks } from "@/components/home-tasks.tsx";
 import { PageWorkspace } from "@/components/page-workspace.tsx";
 import { StreakTable } from "@/components/streak-table.tsx";
@@ -15,8 +16,9 @@ import { HOME_COPY } from "@/ui/copy/home.ts";
 
 export const metadata: Metadata = { title: HOME_COPY.title };
 
-// Home, where a signed-in user lands: their experience, then the streaks of
-// their recurring tasks, the day ledger of their tallies and their one-off
+// Home, where a signed-in user lands: a ribbon of links to Quests, the
+// Grimoire and the Timer, then their experience, then the streaks of their
+// recurring tasks, the day ledger of their tallies and their one-off
 // tasks, across their Active quests.
 export default async function HomePage(): Promise<JSX.Element> {
   const user = await requireUser();
@@ -30,6 +32,7 @@ export default async function HomePage(): Promise<JSX.Element> {
     <PageFrame>
       <PageWorkspace>
         <div className="workspace-content flex flex-col gap-6">
+          <HomePlaces />
           <ExperienceStrip experience={experience} />
           <StreakTable quests={quests} />
           <TallyLedger quests={tallies} />

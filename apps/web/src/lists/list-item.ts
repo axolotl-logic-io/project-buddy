@@ -5,6 +5,9 @@ import { LIST_ID } from "./list.ts";
 const LIST_ITEM_ID = z.guid().toLowerCase().brand<"ListItemId">();
 type ListItemId = z.infer<typeof LIST_ITEM_ID>;
 
+// How many list items a split can make from one.
+const SPLIT_PARTS = { min: 2, max: 20 } as const;
+
 const LIST_ITEM_CHANGE = z.discriminatedUnion("kind", [
   z.object({ kind: z.literal("add"), text: z.string() }),
   z.object({ kind: z.literal("undo"), version: z.number().int().positive() }),
@@ -15,6 +18,13 @@ const LIST_ITEM_CHANGE = z.discriminatedUnion("kind", [
     cadence: z.enum(CADENCES).nullable(),
   }),
   z.object({ kind: z.literal("edit"), id: LIST_ITEM_ID, text: z.string() }),
+  // A list item replaced by its parts, in its place: the first part keeps
+  // the item, and the rest are new list items after it.
+  z.object({
+    kind: z.literal("split"),
+    id: LIST_ITEM_ID,
+    texts: z.array(z.string()).min(SPLIT_PARTS.min).max(SPLIT_PARTS.max),
+  }),
   z.object({
     kind: z.literal("check"),
     id: LIST_ITEM_ID,
@@ -37,4 +47,4 @@ const LIST_ITEM_CHANGE = z.discriminatedUnion("kind", [
 type ListItemChange = z.infer<typeof LIST_ITEM_CHANGE>;
 
 export type { ListItemChange, ListItemId };
-export { LIST_ITEM_CHANGE, LIST_ITEM_ID };
+export { LIST_ITEM_CHANGE, LIST_ITEM_ID, SPLIT_PARTS };

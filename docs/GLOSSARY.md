@@ -48,7 +48,7 @@ A named, ordered collection of list items in a quest. Every list belongs to one 
 
 ### List item
 
-Anything in a list. A list item has its list's type. To **move** a list item is to place it in another list of the same quest. It keeps its text and takes the new list's type, and the site refuses the move when the text is too long for that type. [List types use case](../apps/web/use-cases/lists.md#use_case_list_types)
+Anything in a list. A list item has its list's type. To **move** a list item is to place it in another list of the same quest. It keeps its text and takes the new list's type, and the site refuses the move when the text is too long for that type. To **split** a list item is to replace it with two or more list items in its place. The first keeps its identity, such as its task number, and the others are new. [List types use case](../apps/web/use-cases/lists.md#use_case_list_types) and [Split use case](../apps/web/use-cases/lists.md#use_case_split_list_item)
 
 ### Task
 
@@ -90,7 +90,7 @@ A run of consecutive periods of a recurring task's cadence (days, weeks or month
 
 ### Home
 
-The signed-in landing page at the site's root, above Quests in the breadcrumbs. It shows the user's experience, then **Streaks**: a grid for each cadence, Every day, Every week and Every month, with every recurring task of that cadence in the Active quests open to them over its last seven periods, which they can check off in place in any of those periods since the task was added. Then **Tallies**: every tally of those quests with its day totals over the same dates, each of which they can change, and an Increment for today. Then **Tasks**: every one-off task of those quests that is open or was checked off today, which they can check off or uncheck in place. [Home streaks use case](../apps/web/use-cases/home.md#use_case_home_streaks), [Home tallies use case](../apps/web/use-cases/home.md#use_case_home_tallies), [Home tasks use case](../apps/web/use-cases/home.md#use_case_home_tasks)
+The signed-in landing page at the site's root, above Quests in the breadcrumbs. It shows links to Quests, the Grimoire and the Timer, then the user's experience, then **Streaks**: a grid for each cadence, Every day, Every week and Every month, with every recurring task of that cadence in the Active quests open to them over its last seven periods, which they can check off in place in any of those periods since the task was added. Then **Tallies**: every tally of those quests with its day totals over the same dates, each of which they can change, and an Increment for today. Then **Tasks**: every one-off task of those quests that is open or was checked off today, which they can check off or uncheck in place. [Home streaks use case](../apps/web/use-cases/home.md#use_case_home_streaks), [Home tallies use case](../apps/web/use-cases/home.md#use_case_home_tallies), [Home tasks use case](../apps/web/use-cases/home.md#use_case_home_tasks)
 
 ## Rites and performances
 

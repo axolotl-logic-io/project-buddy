@@ -56,7 +56,7 @@ database() {
     stage environment_setup 'Test environment setup' "$workspace test-env:init" \
       bash scripts/test-env/require-env-test.sh
     blocked 'Server tests' '.env.test is missing'
-    if [[ "$mode" == all ]]; then blocked 'Playwright system tests' '.env.test is missing'; fi
+    blocked 'Playwright system tests' '.env.test is missing'
     return 1
   fi
   if stage server_reset 'Server test database reset' "$workspace test-db:reset" npm run --silent test-db:reset; then
@@ -66,39 +66,34 @@ database() {
     blocked 'Server tests' 'database reset failed'
     result=1
   fi
-  if [[ "$mode" == all ]]; then
-    if (( installed != 0 )); then
-      blocked 'Playwright system tests' 'browser installation failed'
-      return 1
-    fi
-    if stage system_reset 'Playwright test database reset' "$workspace test-db:reset" npm run --silent test-db:reset; then
-      stage system 'Playwright system tests' "$workspace test:system" "${test_node[@]}" \
-        ../../node_modules/@playwright/test/cli.js test || result=1
-    else
-      blocked 'Playwright system tests' 'database reset failed'
-      result=1
-    fi
+  if (( installed != 0 )); then
+    blocked 'Playwright system tests' 'browser installation failed'
+    return 1
+  fi
+  if stage system_reset 'Playwright test database reset' "$workspace test-db:reset" npm run --silent test-db:reset; then
+    stage system 'Playwright system tests' "$workspace test:system" "${test_node[@]}" \
+      ../../node_modules/@playwright/test/cli.js test || result=1
+  else
+    blocked 'Playwright system tests' 'database reset failed'
+    result=1
   fi
   return "$result"
 }
 
-mode="${1:-all}"
 result=0
 fast &
 fast_pid=$!
-if [[ "$mode" == all ]]; then
-  # Start installation once. Wait for it in the parent before starting either browser runner.
-  stage install 'Browser installation' "$workspace browsers:install" npm run --silent browsers:install &
-  install_pid=$!
-  if wait "$install_pid"; then
-    installed=0
-    stage browser 'Vitest browser tests' "$workspace test:browser" "${vitest[@]}" --project 'browser*' &
-    browser_pid=$!
-  else
-    installed=1
-    blocked 'Vitest browser tests' 'browser installation failed'
-    result=1
-  fi
+# Start installation once. Wait for it in the parent before starting either browser runner.
+stage install 'Browser installation' "$workspace browsers:install" npm run --silent browsers:install &
+install_pid=$!
+if wait "$install_pid"; then
+  installed=0
+  stage browser 'Vitest browser tests' "$workspace test:browser" "${vitest[@]}" --project 'browser*' &
+  browser_pid=$!
+else
+  installed=1
+  blocked 'Vitest browser tests' 'browser installation failed'
+  result=1
 fi
 database &
 database_pid=$!

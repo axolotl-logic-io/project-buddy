@@ -18,9 +18,13 @@ import {
   useState,
 } from "react";
 import { Button } from "@/components/ui/button.tsx";
-import type { EditorOptions } from "@/components/ui/editable-list-contract.ts";
+import type {
+  EditorOptions,
+  SplitOptions,
+} from "@/components/ui/editable-list-contract.ts";
 import { Alert } from "@/components/ui/form-message.tsx";
 import { Icon } from "@/components/ui/icon.tsx";
+import { SplitDialog } from "@/components/ui/split-dialog.tsx";
 import { TaskCheck } from "@/components/ui/task-check.tsx";
 import { EDITABLE_LIST_COPY } from "@/ui/copy/editable-list.ts";
 
@@ -501,6 +505,7 @@ function EditableListRow({
   badge,
   detail,
   leading,
+  split,
 }: {
   readonly id: string;
   readonly text: string;
@@ -522,10 +527,30 @@ function EditableListRow({
   // More about the item, shown under its text while it isn't being edited,
   // such as a recurring task's streak chain.
   readonly detail?: ReactNode;
+  // A Split action at the top of the menu, which opens a dialog that
+  // replaces the item with parts.
+  readonly split?: SplitOptions | undefined;
 }): JSX.Element {
   const sort = useContext(SortContext);
   const [editing, setEditing] = useState(false);
+  const [splitting, setSplitting] = useState(false);
   const editRef = useRef<HTMLButtonElement>(null);
+  const moreRef = useRef<HTMLButtonElement>(null);
+  const startSplitting = useCallback((): void => setSplitting(true), []);
+  // The dialog takes focus from the closing menu, and gives it back to the
+  // menu's button.
+  const keepFocusForSplit = useCallback(
+    (event: Event): void => {
+      if (splitting === true) {
+        event.preventDefault();
+      }
+    },
+    [splitting],
+  );
+  const returnFocus = useCallback((event: Event): void => {
+    event.preventDefault();
+    moreRef.current?.focus();
+  }, []);
   const startEditing = useCallback((): void => setEditing(true), []);
   const dismissEditing = useCallback((): void => setEditing(false), []);
   const stopEditing = useCallback((): void => {
@@ -640,6 +665,7 @@ function EditableListRow({
         <DropdownMenu.Root>
           <DropdownMenu.Trigger asChild={true}>
             <Button
+              ref={moreRef}
               variant="quiet"
               className="editable-more"
               aria-label={actionsLabel}
@@ -649,15 +675,38 @@ function EditableListRow({
               <Icon name="more" />
             </Button>
           </DropdownMenu.Trigger>
-          <DropdownMenu.Content className="editable-menu" align="end">
+          <DropdownMenu.Content
+            className="editable-menu"
+            align="end"
+            onCloseAutoFocus={keepFocusForSplit}
+          >
             {menuLabel !== undefined && (
               <DropdownMenu.Label className="editable-menu-label">
                 {menuLabel}
               </DropdownMenu.Label>
             )}
+            {split !== undefined && (
+              <DropdownMenu.Item
+                className="editable-menu-item"
+                onSelect={startSplitting}
+              >
+                <Icon name="split" />
+                {split.label}
+              </DropdownMenu.Item>
+            )}
             {children}
           </DropdownMenu.Content>
         </DropdownMenu.Root>
+        {split !== undefined && (
+          <SplitDialog
+            open={splitting}
+            onOpenChange={setSplitting}
+            onCloseAutoFocus={returnFocus}
+            text={text}
+            editor={editor}
+            split={split}
+          />
+        )}
       </span>
       {editing === false && detail !== undefined && (
         <span className="editable-detail">{detail}</span>
