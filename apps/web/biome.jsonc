@@ -100,6 +100,8 @@
         "src/components/site-panel.tsx",
         "src/components/close-panel-around.ts",
         "src/components/experience/circle-progress.tsx",
+        "src/components/experience/progress-ring.tsx",
+        "src/components/ui/progress-arc.tsx",
         "src/components/appearance-choices.tsx",
         "src/components/quick-add.tsx",
         "src/components/ui/field.tsx",

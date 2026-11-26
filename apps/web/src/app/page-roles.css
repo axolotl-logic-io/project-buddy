@@ -135,8 +135,29 @@
     @apply rounded-control underline decoration-(length:--line-width) decoration-line underline-offset-4 hover:text-primary hover:decoration-primary;
   }
 
-  :is(.circle-progress-ring, .profile-ring, .experience-strip-ring) > svg {
+  /* A ring of progress (src/components/ui/progress-arc.tsx): an arc over
+     a track. Each ring paints its own. */
+  .progress-track,
+  .progress-arc {
+    fill: none;
+  }
+
+  /* The ring of a user's progress toward their next circle
+     (src/components/experience/progress-ring.tsx), filling the box it sits
+     in: its arc over a track around a disc. Where it shows sets the three
+     colours. */
+  .experience-ring {
     @apply absolute inset-0 size-full;
+  }
+
+  .experience-ring .progress-track {
+    fill: var(--ring-disc);
+    stroke: var(--ring-track);
+  }
+
+  .experience-ring .progress-arc {
+    stroke: var(--ring-arc);
+    stroke-linecap: round;
   }
 
   /* Letterpress actions: brass commits, paper offers alternatives, ink
@@ -529,8 +550,10 @@
      an hourglass inside a gear and the site's name, and, for a signed-in user,
      the ring of their progress at its right end. The site panel and its
      contents keep the theme's own look. The expand buttons sit in the
-     breadcrumb row; the panels open from the same row. */
+     breadcrumb row; the panels open from the same row. The bar's two
+     discs, the brand's medallion and the ring, are one size: a target's. */
   .site-header {
+    --hud-disc-size: var(--target-size);
     @apply relative z-20 flex flex-wrap items-center gap-2 py-2 shadow-raised;
     padding-inline: var(--header-gutter);
     background-color: var(--hud-ink);
@@ -550,11 +573,15 @@
 
   .hud-medallion {
     @apply flex shrink-0 items-center justify-center rounded-full border-2;
-    inline-size: calc(var(--target-size) * 0.75);
-    block-size: calc(var(--target-size) * 0.75);
+    inline-size: var(--hud-disc-size);
+    block-size: var(--hud-disc-size);
     background: var(--hud-paper);
     color: var(--hud-ink);
     border-color: var(--hud-gold);
+  }
+
+  .hud-medallion > .icon > svg {
+    @apply size-5;
   }
 
   /* On a phone the brand is its medallion alone, a whole target, and the
@@ -569,9 +596,9 @@
     }
   }
 
-  /* The ring of the user's progress toward their next circle, a target's
-     size, at the bar's right end: gold filling an ink track, with the
-     circle's number inside. */
+  /* The ring of the user's progress toward their next circle, the
+     medallion's size, at the bar's right end: gold filling an ink track,
+     with the circle's number inside. */
   .circle-progress {
     --ring-disc: var(--hud-ink);
     --ring-track: var(--hud-line);
@@ -581,8 +608,8 @@
 
   .circle-progress-ring {
     @apply relative grid place-items-center;
-    inline-size: var(--target-size);
-    block-size: var(--target-size);
+    inline-size: var(--hud-disc-size);
+    block-size: var(--hud-disc-size);
   }
 
   .circle-progress-number {
@@ -1669,14 +1696,12 @@
     }
   }
 
-  .timer-track,
-  .timer-progress {
-    fill: none;
+  .timer-ring :is(.progress-track, .progress-arc) {
     r: var(--timer-radius);
     stroke-width: var(--timer-stroke);
   }
 
-  .timer-track {
+  .timer-ring .progress-track {
     stroke: var(--timer-track);
     opacity: 0.2;
   }
@@ -1692,7 +1717,7 @@
     opacity: var(--timer-hatch-opacity);
   }
 
-  .timer-progress-rest {
+  .timer-ring-rest .progress-arc {
     stroke: var(--accent);
   }
 

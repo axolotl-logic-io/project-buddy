@@ -50,7 +50,10 @@ import { SITE_COPY, SITE_PANEL_COPY } from "@/ui/copy/site.ts";
 import { THEME_COPY } from "@/ui/copy/theme.ts";
 import { TIMER_COPY } from "@/ui/copy/timer.ts";
 import { animationsSettled } from "../../support/animations-test-kit.ts";
-import { filledFraction } from "../../support/progress-arc-test-kit.ts";
+import {
+  filledFraction,
+  progressArc,
+} from "../../support/progress-arc-test-kit.ts";
 import { SIGNED_IN_USER, signInAs } from "../auth/current-user-test-kit.ts";
 import { MABEL_EXPERIENCE } from "../experience/experience-store-test-kit.ts";
 import {
@@ -128,6 +131,26 @@ function textLines(element: Element): number {
 
 function heightOf(target: Locator): number {
   return target.element().getBoundingClientRect().height;
+}
+
+// The width of the brand's medallion, the disc that leads the brand.
+function medallionWidth(): number {
+  return (
+    page
+      .getByRole("link", { name: SITE_COPY.name })
+      .element()
+      .firstElementChild?.getBoundingClientRect().width ?? 0
+  );
+}
+
+// The width of the ring inside `within`, out to its stroke's outer edge: the
+// arc's own box leaves out the stroke, so add the stroke, scaled from the
+// arc's units to the page's.
+function drawnRingWidth(within: Element): number {
+  const arc = progressArc(within, "The header's ring");
+  const { width } = arc.getBoundingClientRect();
+  const stroke = Number.parseFloat(getComputedStyle(arc).strokeWidth);
+  return width * (1 + stroke / arc.getBBox().width);
 }
 
 // The names of the links in the panel's list labelled label, in order.
@@ -320,9 +343,8 @@ describe("use_case_experience_ring", () => {
       );
       expect(
         Number.parseFloat(
-          getComputedStyle(
-            graphic?.querySelector("circle[stroke]") ?? ring.element(),
-          ).strokeWidth,
+          getComputedStyle(progressArc(ring.element(), "The header's ring"))
+            .strokeWidth,
         ),
       ).toBeGreaterThan(1);
       const titleBox = page
@@ -330,6 +352,10 @@ describe("use_case_experience_ring", () => {
         .element()
         .getBoundingClientRect();
       expect(ringBox.height).toBeGreaterThanOrEqual(MINIMUM_TARGET_PX);
+      expect(
+        medallionWidth(),
+        "the brand's medallion is the ring's size",
+      ).toBeCloseTo(drawnRingWidth(ring.element()), 0);
       expect(titleBox.right <= ringBox.left, "the brand, then the ring").toBe(
         true,
       );
