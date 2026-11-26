@@ -1,5 +1,5 @@
 // The one-off tasks of the user's Active quests, for Home's Tasks.
-import { and, asc, eq, not, or, sql } from "drizzle-orm";
+import { and, asc, eq, not } from "drizzle-orm";
 import {
   listItemOpenTo,
   listOpenTo,
@@ -12,26 +12,23 @@ import { withAppErrors } from "@/errors/to-app-error.ts";
 import { parseQuestId, type QuestId, type UserId } from "@/ids.ts";
 import { LIST_ID, type ListId } from "@/lists/list.ts";
 import { LIST_ITEM_ID, type ListItemId } from "@/lists/list-item.ts";
-import { QUEST_TODAY } from "@/lists/quest-today.ts";
 
-// A one-off task with the list that holds it, so it can be checked off
-// where it is shown.
+// An open one-off task with the list that holds it, so it can be checked
+// off where it is shown.
 interface OneOffTask {
   readonly id: ListItemId;
   readonly listId: ListId;
   readonly text: string;
-  readonly done: boolean;
 }
 
-// An Active quest's one-off tasks, in list order.
+// An Active quest's open one-off tasks, in list order.
 interface TaskQuest {
   readonly quest: { readonly id: QuestId; readonly name: string };
   readonly tasks: readonly OneOffTask[];
 }
 
-// Every Active quest open to the user that has a one-off task to show,
-// oldest first, with those tasks: each open one, and each checked off on
-// the quest's today, so a check-off can be taken back until midnight.
+// Every Active quest open to the user that has an open one-off task,
+// oldest first, with those tasks. A checked-off task stays in its list.
 function readTaskQuests(user: UserId): Promise<readonly TaskQuest[]> {
   return withAppErrors("readTaskQuests", async () => {
     const rows = await getDb()
@@ -41,7 +38,6 @@ function readTaskQuests(user: UserId): Promise<readonly TaskQuest[]> {
         id: listItems.id,
         listId: listItems.listId,
         text: listItems.text,
-        done: listItems.checkedOff,
       })
       .from(listItems)
       .innerJoin(lists, eq(lists.id, listItems.listId))
@@ -54,10 +50,7 @@ function readTaskQuests(user: UserId): Promise<readonly TaskQuest[]> {
           eq(quests.status, "active"),
           eq(lists.type, "task"),
           eq(listItems.recurring, false),
-          or(
-            not(listItems.checkedOff),
-            sql`${listItems.checkedOffOn} = ${QUEST_TODAY}`,
-          ),
+          not(listItems.checkedOff),
         ),
       )
       .orderBy(

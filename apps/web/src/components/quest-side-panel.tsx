@@ -1,5 +1,6 @@
 "use client";
 
+import { usePathname, useSearchParams } from "next/navigation";
 import {
   type JSX,
   type ReactNode,
@@ -58,6 +59,18 @@ function QuestSidePanel({
   );
   const wide = useWideScreen();
   const [expanded, setExpanded] = useState<boolean | undefined>();
+  // On a narrow screen the panel covers the page, so following one of its
+  // links, such as Quest settings, closes it to show where the link went.
+  const pathname = usePathname();
+  const search = useSearchParams();
+  const location = `${pathname}?${search}`;
+  const [shownAt, setShownAt] = useState(location);
+  if (shownAt !== location) {
+    setShownAt(location);
+    if (!wide) {
+      setExpanded(false);
+    }
+  }
   const open = expanded ?? (wide || initialSection !== undefined);
   const panelId = useId();
   const dialogRef = useRef<HTMLDialogElement>(null);
@@ -126,11 +139,11 @@ function QuestSidePanel({
       >
         <aside className="quest-sidebar" aria-label={labels.label}>
           <div className="quest-panel-heading">
-            <h2 className="flex items-center gap-2 font-heading text-lg">
+            <h2 className="flex min-w-0 items-center gap-2 font-heading text-lg">
               {icon !== undefined && (
                 <Icon name={icon} className="text-primary" />
               )}
-              {title}
+              <span className="truncate">{title}</span>
             </h2>
             <Button
               variant="quiet"

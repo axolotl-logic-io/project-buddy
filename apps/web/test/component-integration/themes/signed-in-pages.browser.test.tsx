@@ -7,8 +7,8 @@ import { Markdown } from "@/components/markdown.tsx";
 import { getConstruct } from "@/constructs/index.ts";
 import type { getQuest, listQuests } from "@/quests/store.ts";
 import { THEME_IDS } from "@/themes/themes.ts";
+import { QUEST_OVERVIEW_COPY } from "@/ui/copy/quest-overview.ts";
 import { SITE_COPY } from "@/ui/copy/site.ts";
-import { TIMER_COPY } from "@/ui/copy/timer.ts";
 import { FOX_QUEST } from "../app/(workspace)/page-fixtures.ts";
 import { siteHeaderAt } from "../app/site-header-test-kit.tsx";
 import { inWorkspace } from "../app/workspace-test-kit.tsx";
@@ -88,10 +88,9 @@ async function sectionsAlongsideLongName(): Promise<boolean> {
   // The quest opens on its latest message; the frame is at the page's top.
   window.scrollTo(0, 0);
   const heading = page.getByRole("heading", { level: 1, name: LONG_NAME });
-  const link = page.getByRole("heading", {
-    name: TIMER_COPY.heading,
-    exact: true,
-  });
+  const link = page
+    .getByRole("complementary", { name: QUEST_OVERVIEW_COPY.panel.label })
+    .getByRole("heading", { level: 2 });
   const brand = page.getByRole("link", { name: SITE_COPY.name });
   const sectionBounds = link.element().getBoundingClientRect();
   return (
@@ -138,7 +137,7 @@ describe("use_case_choose_theme", () => {
         applyTheme(id);
       });
 
-      test("a long quest title keeps the Timer panel on its row below the brand at 1280 px", async () => {
+      test("a long quest title keeps the quest panel on its row below the brand at 1280 px", async () => {
         expect(await sectionsAlongsideLongName()).toBe(true);
       });
 

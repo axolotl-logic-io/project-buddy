@@ -44,7 +44,6 @@ import { saveListAction } from "@/lists/list-actions.ts";
 import type { ListItemChange } from "@/lists/list-item.ts";
 import { changeListItemAction } from "@/lists/list-item-actions.ts";
 import {
-  countListItems,
   readListContents,
   readListItems,
   readNextTasks,
@@ -539,7 +538,6 @@ describe("use_case_quest_member_access", () => {
           readListItems(outsider.id, quest.id, tasks.id),
           readListContents(outsider.id, quest.id, tasks.id),
           readNextTasks(outsider.id, quest.id, 1),
-          countListItems(outsider.id, quest.id),
           listPerformances(outsider.id, quest.id),
           readPerformanceMessages(outsider.id, performanceId),
           listQuickAddQuests(),
@@ -555,7 +553,6 @@ describe("use_case_quest_member_access", () => {
         [],
         undefined,
         [],
-        new Map(),
         [],
         [],
         [],
@@ -618,7 +615,6 @@ describe("use_case_quest_member_access", () => {
         { kind: "recurring", id: first.id, cadence: "daily" },
         { kind: "move", id: first.id, destination: ideas.id },
         { kind: "place", id: second.id, before: first.id },
-        { kind: "reorder", id: first.id, direction: "down" },
         { kind: "remove", id: second.id },
         { kind: "undo", version },
       ];
@@ -718,7 +714,7 @@ describe("use_case_quest_member_access", () => {
         await change({ kind: "edit", id: first.id, text: "Wedge porcelain" }),
       ).toMatchObject(saved);
       expect(
-        await change({ kind: "reorder", id: first.id, direction: "down" }),
+        await change({ kind: "place", id: first.id, before: undefined }),
       ).toMatchObject(saved);
       const moved = await change({
         kind: "move",

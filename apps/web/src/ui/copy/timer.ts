@@ -28,11 +28,6 @@ const PHASES = { work: "Work", break: "Break" } as const;
 
 export const TIMER_COPY = {
   heading: "Timer",
-  panel: {
-    label: "Timer panel",
-    expand: "Open Timer panel",
-    collapse: "Close Timer panel",
-  },
   preferences: "Timer preferences",
   closePreferences: "Close timer preferences",
   displayLabel: "Running timer",

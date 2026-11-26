@@ -196,7 +196,11 @@ describe("use_case_recurring_tasks", () => {
       .getByRole("button", { name: LISTS_COPY.actions("plain") })
       .click();
     await expect
-      .element(page.getByRole("menuitem", { name: LISTS_COPY.moveUp }))
+      .element(
+        page.getByRole("menuitem", {
+          name: LISTS_COPY.removeListItem("plain"),
+        }),
+      )
       .toBeVisible();
     await expect
       .element(

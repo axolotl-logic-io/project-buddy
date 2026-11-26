@@ -47,9 +47,9 @@ The user sees, and checks off, every one-off task in one place.
 - **Prerequisites:** [`use_case_change_tasks`](tasks.md#use_case_change_tasks), with a one-off task in an Active quest.
 - **Steps:**
   - They open Home.
-  - They check off a task, or uncheck one they checked off today.
+  - They check off a task, then choose Undo.
   - They follow a quest's name.
-- **Outcome:** below Tallies, Tasks lists each Active quest open to them that has a one-off task to show, oldest first. Each quest's name links to it, with its count of open tasks. Under it are its open one-off tasks, and those checked off on its today, in the quest's list order. Checking off or unchecking a task does the same as in its list and earns or takes back the same experience. The change shows at once, the page says what changed, and it stays after a reload. A task checked off today stays until midnight in the quest owner's time zone, then leaves Home. Recurring tasks show under Streaks instead, and list items in other kinds of list never show.
+- **Outcome:** below Tallies, Tasks lists each Active quest open to them that has a one-off task to show, oldest first. Each quest's name links to it, with its count of open tasks. Under it are its open one-off tasks, in the quest's list order. Checking off a task does the same as in its list and earns the same experience. The task leaves Tasks at once, focus moves to the next task, and the page says what changed, with Undo, which unchecks it and takes the experience back. The change stays after a reload, and the task stays checked off in its list. Recurring tasks show under Streaks instead, and list items in other kinds of list never show.
 - **Variations:**
   - With no one-off task to show, Tasks says how to add one.
   - A member sees the shared quest's tasks too, with days in the owner's time zone.

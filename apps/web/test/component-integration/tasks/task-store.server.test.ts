@@ -1,12 +1,9 @@
 // "use_case_home_tasks" in use-cases/home.md, against the test database:
-// Home reads the one-off tasks of each Active quest open to the user, open
-// or checked off today, and nothing of anyone else's.
+// Home reads the open one-off tasks of each Active quest open to the user,
+// and nothing of anyone else's.
 
-import { eq, sql } from "drizzle-orm";
 import { describe, expect, test } from "vitest";
 import type { User } from "@/accounts/users-store.ts";
-import { getDb } from "@/db/client.ts";
-import { listItems } from "@/db/tables/lists.ts";
 import type { ListId } from "@/lists/list.ts";
 import {
   type ListItem,
@@ -42,7 +39,7 @@ async function add(
 }
 
 describe("use_case_home_tasks", () => {
-  test("Home reads each Active quest's one-off tasks, open or checked off today, in list order", async () => {
+  test("Home reads each Active quest's open one-off tasks, in list order", async () => {
     const owner = await testUser();
     const errands = await testData(owner).quest(
       "Errands",
@@ -56,7 +53,6 @@ describe("use_case_home_tasks", () => {
     const post = await add(owner, errands, 0, "Post the parcel");
     const bank = await add(owner, errands, 0, "Call the bank");
     const stretch = await add(owner, errands, 0, "Stretch");
-    const older = await add(owner, errands, 0, "Return the library books");
     const seeds = await add(owner, garden, 0, "Order seeds");
     // Ideas are plain list items, not tasks.
     await add(owner, garden, 1, "A pond");
@@ -67,48 +63,22 @@ describe("use_case_home_tasks", () => {
         id: stretch.id,
         cadence: "daily",
       }),
-      ...[bank, older].map(({ id }) =>
-        writeListContents(owner.id, errands.id, listId, {
-          kind: "check",
-          id,
-          checkedOff: true,
-        }),
-      ),
+      // Checked off: it stays in its list but leaves Home.
+      writeListContents(owner.id, errands.id, listId, {
+        kind: "check",
+        id: bank.id,
+        checkedOff: true,
+      }),
     ]);
-    // Checked off yesterday: done, and gone from Home.
-    await getDb()
-      .update(listItems)
-      .set({ checkedOffOn: sql`${listItems.checkedOffOn} - 1` })
-      .where(eq(listItems.id, older.id));
 
     expect(await readTaskQuests(owner.id)).toEqual([
       {
         quest: { id: errands.id, name: "Errands" },
-        tasks: [
-          {
-            id: post.id,
-            listId,
-            text: "Post the parcel",
-            done: false,
-          },
-          {
-            id: bank.id,
-            listId,
-            text: "Call the bank",
-            done: true,
-          },
-        ],
+        tasks: [{ id: post.id, listId, text: "Post the parcel" }],
       },
       {
         quest: { id: garden.id, name: "Garden" },
-        tasks: [
-          {
-            id: seeds.id,
-            listId: seeds.listId,
-            text: "Order seeds",
-            done: false,
-          },
-        ],
+        tasks: [{ id: seeds.id, listId: seeds.listId, text: "Order seeds" }],
       },
     ]);
   });

@@ -38,7 +38,6 @@ const LIST_INVERSE = z.object({
     "remove",
     "move",
     "place",
-    "reorder",
   ]),
   before: LIST_ITEM_RECORD.optional(),
   after: LIST_ITEM_RECORD.optional(),
@@ -218,8 +217,7 @@ async function reverseExisting(
         .where(target);
       return true;
     case "move":
-    case "place":
-    case "reorder": {
+    case "place": {
       if (
         current.listId !== after.listId ||
         current.position !== after.position ||
