@@ -195,6 +195,21 @@ function usePerformanceScroll(): RefObject<HTMLDivElement | null> {
       });
     }
 
+    // Content can shrink and regrow within one frame, as when a sent
+    // message gives way to its reply. A layout read in between clamps the
+    // document upward, and that clamp's scroll event arrives only after the
+    // regrowth, when it looks like the reader leaving the end. Mutations are
+    // seen before that event, so keep to the end and record it here.
+    function onMutation(): void {
+      if (following && !pendingNavigation && resizeFrame === 0) {
+        window.scrollTo({
+          top: document.documentElement.scrollHeight,
+          behavior: "instant",
+        });
+        lastY = window.scrollY;
+      }
+    }
+
     function onSend(): void {
       following = true;
       pendingNavigation = false;
@@ -206,6 +221,12 @@ function usePerformanceScroll(): RefObject<HTMLDivElement | null> {
     element.addEventListener("send-message", onSend);
     const observer = new ResizeObserver(follow);
     observer.observe(element);
+    const mutations = new MutationObserver(onMutation);
+    mutations.observe(element, {
+      childList: true,
+      characterData: true,
+      subtree: true,
+    });
     element.addEventListener("focusin", onFocusIn);
     globalThis.addEventListener("pointerdown", onPointerDown);
     globalThis.addEventListener("click", onClick, { capture: true });
@@ -222,6 +243,7 @@ function usePerformanceScroll(): RefObject<HTMLDivElement | null> {
       cancelAnimationFrame(resizeFrame);
       element.removeEventListener("send-message", onSend);
       observer.disconnect();
+      mutations.disconnect();
       element.removeEventListener("focusin", onFocusIn);
       globalThis.removeEventListener("pointerdown", onPointerDown);
       globalThis.removeEventListener("click", onClick, { capture: true });

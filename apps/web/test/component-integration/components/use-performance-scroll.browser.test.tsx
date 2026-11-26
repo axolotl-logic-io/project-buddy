@@ -223,6 +223,26 @@ describe("use_case_follow_latest_messages", () => {
     expect(bottomGap()).toBeLessThanOrEqual(1);
   });
 
+  test("content that shrinks and regrows before a frame keeps following", async () => {
+    await openPerformance();
+    await expect.element(firstParagraph).toBeInTheDocument();
+    await expect.poll(bottomGap).toBeLessThanOrEqual(1);
+    const extra = Object.assign(document.createElement("div"), {
+      textContent: LONG_TEXT,
+    });
+    transcript().append(extra);
+    await layoutSettled();
+    expect(bottomGap()).toBeLessThanOrEqual(1);
+    // A sent message gives way to its reply: the page shrinks, the browser
+    // clamps the reader upward on a layout read, and the reply grows the
+    // page again before the clamp's scroll event arrives.
+    extra.remove();
+    expect(bottomGap()).toBeLessThanOrEqual(1);
+    grow();
+    await layoutSettled();
+    expect(bottomGap()).toBeLessThanOrEqual(1);
+  });
+
   for (const keyboard of ["visual", "layout"]) {
     test(`composer focus keeps the reading place through ${keyboard} keyboard resizing and growth`, async () => {
       await setViewport(PHONE_VIEWPORT);
