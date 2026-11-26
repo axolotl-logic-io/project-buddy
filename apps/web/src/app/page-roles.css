@@ -1864,8 +1864,13 @@
     line-height: var(--timer-number-leading);
   }
 
+  /* Hours share one size in every appearance; an appearance whose dial
+     frames them in a smaller space sets --timer-hours-fit to shrink them. */
   .timer-countdown[data-hours="true"] {
-    font-size: var(--timer-hours-size);
+    font-size: min(
+      var(--timer-hours-size),
+      var(--timer-hours-fit, var(--timer-hours-size))
+    );
   }
 
   .timer-next {
