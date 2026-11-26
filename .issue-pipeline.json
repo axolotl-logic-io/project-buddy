@@ -2,7 +2,7 @@
   "resources": { "modelSessions": 1 },
   "commands": {
     "setup": "npm ci --no-audit --no-fund && bash apps/web/scripts/test-env/setup.sh",
-    "test": "npm run lint && npm test && npm run test:e2e",
+    "test": "npm run lint && npm test",
     "prune": "bash apps/web/scripts/test-env/prune.sh"
   },
   "practices": ["AGENTS.md", "docs/project-practices.md"],

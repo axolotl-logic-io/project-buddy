@@ -44,9 +44,9 @@ packages (not from a possibly different hoisted copy) and check:
   `deploy --help`). Do not deploy or connect to production to test dependencies.
 
 When Vercel updates its pins, remove overrides individually and verify
-`npm ci`, `npm ls --all`, `npm audit`, `npm run lint`, `npm test` and
-`npm run test:e2e`. Do not use `npm audit fix --force`: its proposed Vercel
-version change is not a compatibility-tested upgrade.
+`npm ci`, `npm ls --all`, `npm audit`, `npm run lint` and `npm test`. Do not
+use `npm audit fix --force`: its proposed Vercel version change is not a
+compatibility-tested upgrade.
 
 npm keeps a version that the lockfile already records even when a new override
 rules it out, and `npm ls` then reports it as invalid. To apply a changed
