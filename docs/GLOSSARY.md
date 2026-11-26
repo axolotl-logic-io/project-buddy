@@ -48,7 +48,7 @@ A named, ordered collection of list items in a quest. Every list belongs to one 
 
 ### List item
 
-Anything in a list. A list item has its list's type. To **move** a list item is to place it in another list of the same quest. It keeps its text and takes the new list's type, and the site refuses the move when the text is too long for that type. [List types use case](../apps/web/use-cases/lists.md#use_case_list_types)
+Anything in a list. A list item has its list's type. To **move** a list item is to place it in another list of the same quest. It keeps its text and takes the new list's type, and the site refuses the move when the text is too long for that type. To **split** a list item is to replace it with two or more list items in its place. The first keeps its identity, such as its task number, and the others are new. [List types use case](../apps/web/use-cases/lists.md#use_case_list_types) and [Split use case](../apps/web/use-cases/lists.md#use_case_split_list_item)
 
 ### Task
 

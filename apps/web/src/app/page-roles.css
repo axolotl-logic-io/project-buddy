@@ -2488,6 +2488,89 @@
     @apply flex cursor-pointer items-center gap-2 rounded-action px-3 text-action-ink outline-none data-[highlighted]:bg-field data-[highlighted]:underline data-[highlighted]:underline-offset-4 data-[disabled]:cursor-not-allowed data-[disabled]:opacity-50;
   }
 
+  /* The split dialog: the list item being split, quoted with a rubric
+     edge, over the numbered parts that will replace it. A thread joins the
+     parts' numbers, so they read as one item come apart. */
+  .split-label {
+    font-family: var(--label-font);
+    color: var(--label-ink);
+    font-variant-caps: var(--label-caps);
+    letter-spacing: var(--label-tracking);
+    text-transform: var(--label-case);
+    @apply text-sm font-semibold;
+  }
+
+  .split-original {
+    @apply flex min-w-0 flex-col gap-1.5;
+  }
+
+  /* Quoted, not boxed, so it can't be taken for a field to write in. */
+  .split-original-text {
+    border-inline-start: 3px solid var(--rubric);
+    @apply py-1 ps-3 whitespace-pre-wrap wrap-anywhere;
+  }
+
+  .split-form {
+    @apply flex min-w-0 flex-col gap-4;
+  }
+
+  .split-parts {
+    @apply flex min-w-0 flex-col gap-2;
+  }
+
+  .split-parts > legend {
+    @apply mb-1.5;
+  }
+
+  .split-part-list {
+    @apply relative flex flex-col gap-2;
+  }
+
+  .split-part-list::before {
+    content: "";
+    inset-block: calc(var(--target-size) / 2);
+    inset-inline-start: calc(var(--target-size) / 2);
+    @apply pointer-events-none absolute border-s border-dashed border-line;
+  }
+
+  .split-part {
+    grid-template-columns: var(--target-size) minmax(0, 1fr) var(--target-size);
+    @apply relative grid items-start gap-x-2 gap-y-1;
+  }
+
+  .split-part-number {
+    block-size: var(--target-size);
+    @apply col-start-1 flex items-center justify-center;
+  }
+
+  .split-part-seal {
+    @apply grid size-7 place-items-center rounded-full border border-line bg-surface font-heading font-semibold text-accent text-sm leading-none;
+  }
+
+  .split-part > .input-field {
+    min-block-size: var(--target-size);
+    @apply col-start-2;
+  }
+
+  .split-part > textarea.input-field {
+    @apply resize-y;
+    min-block-size: calc(2.5 * var(--target-size));
+  }
+
+  .split-part-remove {
+    min-inline-size: var(--target-size);
+    @apply col-start-3 text-muted;
+  }
+
+  .split-part > .error-text {
+    @apply col-start-2 -col-end-1;
+  }
+
+  .split-add {
+    @apply justify-start gap-3 self-start rounded-action px-3 text-action-ink hover:bg-field/60;
+    margin-inline-start: calc(var(--target-size) + 0.5rem - 0.75rem);
+  }
+
   .editable-add {
     @apply w-full justify-start gap-3 rounded-action px-3 text-left text-action-ink hover:bg-field/60;
   }
