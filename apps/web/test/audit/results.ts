@@ -1,13 +1,17 @@
+import { writeFile } from "node:fs/promises";
+import { join } from "node:path";
+import type { TestInfo } from "@playwright/test";
 import type lighthouse from "lighthouse";
 import { z } from "zod";
-import { PAGE, PROFILE } from "./options.ts";
+import { ACTION, PAGE, PROFILE } from "./options.ts";
+import { auditRun } from "./run-options.ts";
 
 const PERCENT = 100;
 
 type Report = NonNullable<Awaited<ReturnType<typeof lighthouse>>>;
 type Result = Report["lhr"];
 
-const CASE = z.enum(["cold", "warm", "change", "snapshot"]);
+const CASE = z.enum(["cold", "warm", "change", "snapshot", ...ACTION.options]);
 const NUMBERS = z.record(z.string(), z.number());
 const SAMPLE = z.object({
   page: PAGE,
@@ -31,6 +35,7 @@ const SAMPLE = z.object({
 
 const METRICS = {
   "largest-contentful-paint": "lcpMs",
+  "interaction-to-next-paint": "inpMs",
   "total-blocking-time": "tbtMs",
   "cumulative-layout-shift": "cls",
   "speed-index": "speedIndexMs",
@@ -141,5 +146,40 @@ function lighthouseProblems(lhr: Result, url: string): string[] {
   return failures;
 }
 
-export type { Case, Report, Sample };
-export { CASE, lighthouseNumbers, lighthouseProblems, SAMPLE };
+async function keepReport(
+  sample: Sample,
+  result: Case,
+  report: Report | undefined,
+  url: string,
+): Promise<void> {
+  if (report === undefined) {
+    throw new Error("Lighthouse returned no report");
+  }
+  const { lhr } = report;
+  result.report = `${sample.page}-${sample.profile}-${sample.sample}-${result.name}.json`;
+  await writeFile(
+    join(auditRun().directory, result.report),
+    JSON.stringify(lhr),
+  );
+  lighthouseNumbers(lhr, result);
+  result.failures.push(...lighthouseProblems(lhr, url));
+}
+
+async function reportSample(
+  sample: Sample,
+  testInfo: TestInfo,
+): Promise<string[]> {
+  await testInfo.attach("audit-sample", {
+    body: JSON.stringify(sample),
+    contentType: "application/json",
+  });
+  return [
+    ...sample.failures,
+    ...sample.cases.flatMap(({ name, failures }) =>
+      failures.map((failure) => `${name}: ${failure}`),
+    ),
+  ];
+}
+
+export type { Case, Sample };
+export { keepReport, reportSample, SAMPLE };
