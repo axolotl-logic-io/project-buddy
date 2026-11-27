@@ -54,6 +54,13 @@ arg "[sql]" help="One SQL statement, quoted"
 '''
 run = 'node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON "{{config_root}}/scripts/ops/query.ts" "$usage_environment" "$usage_sql"'
 
+# Releases integration to production: checks, release PR, merge, and the
+# Release workflow. Needs `gh auth login`; see scripts/ops/deploy.ts.
+[tasks.deploy]
+description = "Check integration, open and merge the release PR into main, and follow the production release; --dry-run prints the PR instead"
+usage = 'flag "--dry-run" help="Run the checks and print the release PR without opening or merging it"'
+run = 'node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON "{{config_root}}/scripts/ops/deploy.ts" {% if usage.dry_run %}--dry-run{% endif %}'
+
 # Which local scripts recent T3 Code threads for this project ran, and which
 # they did not, read from T3 Code's local database.
 [tasks.script-usage]
