@@ -11,6 +11,12 @@ test("use_case_change_auth_page", async ({ page }) => {
   const requested = Promise.withResolvers<void>();
   const release = Promise.withResolvers<void>();
   await page.route(SIGNUP_REQUEST, async (route) => {
+    // Hold the navigation response. A speculative response can be canceled
+    // by the router as soon as the navigation finishes.
+    if ((await route.request().headerValue("next-router-prefetch")) !== null) {
+      await route.abort();
+      return;
+    }
     const response = await route.fetch();
     requested.resolve();
     await release.promise;
@@ -44,16 +50,16 @@ test("use_case_change_auth_page", async ({ page }) => {
       ),
     ).toBe("none");
     await expect(status).toBeVisible();
+
+    release.resolve();
+    await expect(signUpIntro).toBeVisible();
+    await expect(signInIntro).toBeHidden();
+    await expect(band).not.toHaveAttribute("aria-busy");
+    await expect(status).toBeEmpty();
   } finally {
     release.resolve();
-    // Next can prefetch another response alongside the navigation.
     await page.unrouteAll({ behavior: "wait" });
   }
-
-  await expect(signUpIntro).toBeVisible();
-  await expect(signInIntro).toBeHidden();
-  await expect(band).not.toHaveAttribute("aria-busy");
-  await expect(status).toBeEmpty();
 
   await page.goBack();
   await expect(signInIntro).toBeVisible();
