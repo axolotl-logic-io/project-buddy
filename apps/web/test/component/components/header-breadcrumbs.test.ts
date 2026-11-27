@@ -1,5 +1,6 @@
 // The header's trail for each path: the Timer's public trails, Home and
-// the signed-in sections, and what a quest or rite page's crumb names. The
+// the signed-in sections, with Quests, the Grimoire and the Timer under
+// Home, and what a quest or rite page's crumb names. The
 // stores are stand-ins, so a foreign or unknown id reads as missing, as the
 // acting-user stores answer it.
 
@@ -48,27 +49,35 @@ beforeEach(() => {
 });
 
 describe("header breadcrumbs", () => {
-  test("Home is the root, and Quests sits under it", async () => {
+  test("Home is the root", async () => {
     expect(await headerBreadcrumbs(MEMBER, [])).toEqual([{ label: "Home" }]);
-    expect(await headerBreadcrumbs(MEMBER, ["quests"])).toEqual([
+  });
+
+  test.each([
+    { section: "quests", label: "Quests" },
+    { section: "grimoire", label: "Grimoire" },
+    { section: "timer", label: "Timer" },
+  ])("$label sits under Home", async ({ section, label }) => {
+    expect(await headerBreadcrumbs(MEMBER, [section])).toEqual([
       HOME,
-      { label: "Quests" },
+      { label },
     ]);
   });
 
   test.each([
-    { section: "grimoire", label: "Grimoire" },
     { section: "profile", label: "Profile" },
     { section: "settings", label: "Settings" },
-    { section: "timer", label: "Timer" },
   ])("$label is a top-level destination", async ({ section, label }) => {
     expect(await headerBreadcrumbs(MEMBER, [section])).toEqual([{ label }]);
   });
 
-  test("a timer link sits under Timer, named by its durations, and carries its running schedule", async () => {
-    expect(await headerBreadcrumbs(MEMBER, RUNNING)).toEqual(RUNNING_TRAIL);
+  test("a timer link sits under Home and Timer, named by its durations, and carries its running schedule", async () => {
+    expect(await headerBreadcrumbs(MEMBER, RUNNING)).toEqual([
+      HOME,
+      ...RUNNING_TRAIL,
+    ]);
     expect(await headerBreadcrumbs(MEMBER, ["timer", "25", "16", "0"])).toEqual(
-      [{ label: "Timer", href: "/timer" }, { label: "Unknown timer" }],
+      [HOME, { label: "Timer", href: "/timer" }, { label: "Unknown timer" }],
     );
     expect(await headerBreadcrumbs(MEMBER, ["timer", "25"])).toEqual([]);
   });
@@ -78,6 +87,7 @@ describe("header breadcrumbs", () => {
     expect(
       await headerBreadcrumbs(MEMBER, ["timer", "25", "15", later]),
     ).toEqual([
+      HOME,
       { label: "Timer", href: "/timer" },
       { label: "Work 25 · Break 15" },
     ]);
@@ -139,13 +149,14 @@ describe("header breadcrumbs", () => {
     ]);
   });
 
-  test("a rite leads to the Grimoire, and a new rite is named New rite", async () => {
+  test("a rite leads to Home and the Grimoire, and a new rite is named New rite", async () => {
     stores.readRite.mockResolvedValue({ id: "brainstorm", name: "Brainstorm" });
     expect(await headerBreadcrumbs(MEMBER, ["grimoire", "brainstorm"])).toEqual(
-      [{ label: "Grimoire", href: "/grimoire" }, { label: "Brainstorm" }],
+      [HOME, { label: "Grimoire", href: "/grimoire" }, { label: "Brainstorm" }],
     );
     expect(stores.readRite).toHaveBeenCalledWith(USER, "brainstorm", true);
     expect(await headerBreadcrumbs(MEMBER, ["grimoire", "new"])).toEqual([
+      HOME,
       { label: "Grimoire", href: "/grimoire" },
       { label: "New rite" },
     ]);
