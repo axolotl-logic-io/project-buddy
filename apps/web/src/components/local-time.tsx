@@ -1,7 +1,8 @@
 "use client";
 
-import { type JSX, useSyncExternalStore } from "react";
+import type { JSX } from "react";
 import { formatTime, type TimeDetail } from "@/components/time-format.ts";
+import { useHydrated } from "@/components/use-hydrated.ts";
 
 // The zone of the time the server renders, the same on every server.
 const SERVER_TIME_ZONE = "UTC";
@@ -10,20 +11,6 @@ const SERVER_TIME_ZONE = "UTC";
 // so every digit is the same width, and kept on one line, so a narrow column
 // never breaks a time apart ("11:38 / AM").
 const TIME_CLASS = "font-body tabular-nums whitespace-nowrap";
-
-function subscribeToNothing(): () => void {
-  return (): void => {
-    // Whether the page is hydrated never changes once it is.
-  };
-}
-
-function hydrated(): boolean {
-  return true;
-}
-
-function notHydrated(): boolean {
-  return false;
-}
 
 // An instant in the zone of the browser that shows it. The server renders it
 // in UTC but unseen, so it keeps its room in the line without showing a
@@ -38,11 +25,7 @@ function LocalTime({
   readonly dateTime: Date;
   readonly detail: TimeDetail;
 }): JSX.Element {
-  const isHydrated = useSyncExternalStore(
-    subscribeToNothing,
-    hydrated,
-    notHydrated,
-  );
+  const isHydrated = useHydrated();
   if (!isHydrated) {
     return (
       <time
