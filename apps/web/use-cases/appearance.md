@@ -33,7 +33,7 @@ The user reads pages and operates controls in their chosen appearance.
 
 - **Prerequisites:** none.
 - **Steps:**
-  - The user opens the sign-in, sign-up and Credits pages.
+  - The user opens the sign-in, sign-up and Credits pages, and reads the sign-in page while sign-up loads.
   - After signing in, they visit Home, Quests, a quest's Overview, the Grimoire, a rite, a construct, the Timer, Profile and Settings.
   - They open the available dialogs, menus and editors, and read any errors those forms show.
 - **Outcome:** page content, controls and feedback remain accessible in all three appearances, on a desktop and at 320 px.

@@ -13,9 +13,11 @@ import { LOGIN_COPY } from "@/ui/copy/login.ts";
 import { QUEST_OVERVIEW_COPY } from "@/ui/copy/quest-overview.ts";
 import { NEW_QUEST_COPY, QUEST_COPY, QUESTS_COPY } from "@/ui/copy/quests.ts";
 import { QUICK_ADD_COPY } from "@/ui/copy/quick-add.ts";
-import { SITE_PANEL_COPY } from "@/ui/copy/site.ts";
+import { SIGNUP_COPY } from "@/ui/copy/signup.ts";
+import { SITE_COPY, SITE_PANEL_COPY } from "@/ui/copy/site.ts";
 import { TIMER_COPY } from "@/ui/copy/timer.ts";
 import { test } from "./fixtures.ts";
+import { holdPageResponse } from "./hold-page-response.ts";
 import { logIn } from "./log-in.ts";
 import { fillWhenReady, waitForHydrated } from "./page-helpers.ts";
 
@@ -23,6 +25,7 @@ const VIEWPORTS = [
   { width: 1280, height: 720 },
   { width: 320, height: 720 },
 ];
+const SIGNUP_REQUEST = /\/signup(?:\?|$)/u;
 const TASKS_SECTION = /^Tasks/u;
 const AXE_TAGS = ["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa", "best-practice"];
 
@@ -97,6 +100,33 @@ test.describe("use_case_accessible_pages", () => {
             await audit(page, "Invalid email");
           });
         }
+
+        test("Sign-in page while sign-up is loading", async ({ page }) => {
+          await holdPageResponse(
+            page,
+            SIGNUP_REQUEST,
+            async ({ requested, release }) => {
+              await page.goto("/login");
+              const signUp = page.getByRole("link", {
+                name: LOGIN_COPY.signUpLink,
+              });
+              await waitForHydrated(signUp);
+              await signUp.click({ noWaitAfter: true });
+              await requested;
+              const band = page.getByRole("region", {
+                name: SITE_COPY.breadcrumbs,
+              });
+              await expect(band).toHaveAttribute("aria-busy", "true");
+              await expect(band.getByRole("status")).toHaveText(
+                SITE_COPY.loading,
+              );
+              await audit(page, "Page change in progress");
+              release();
+              await expect(page.getByText(SIGNUP_COPY.intro)).toBeVisible();
+              await expect(band).not.toHaveAttribute("aria-busy");
+            },
+          );
+        });
 
         test("Credits", async ({ page }) => {
           await page.goto("/credits");
@@ -264,14 +294,14 @@ test.describe("use_case_accessible_pages", () => {
           await expect(rename).toBeHidden();
 
           const { expand, collapse } = QUEST_OVERVIEW_COPY.panel;
-          const close = page.getByRole("button", { name: collapse });
-          if (!(await close.isVisible())) {
+          const closeQuestPanel = page.getByRole("button", { name: collapse });
+          if (!(await closeQuestPanel.isVisible())) {
             await clickReady(page.getByRole("button", { name: expand }));
           }
-          await expect(close).toBeVisible();
+          await expect(closeQuestPanel).toBeVisible();
           await audit(page, "Quest panel open");
-          await close.click();
-          await expect(close).toBeHidden();
+          await closeQuestPanel.click();
+          await expect(closeQuestPanel).toBeHidden();
 
           await page
             .getByRole("region", { name: TASKS_SECTION })
