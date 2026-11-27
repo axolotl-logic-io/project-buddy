@@ -7,7 +7,7 @@ import {
   requestSignInLink,
   type SignInLinkRequest,
 } from "@/accounts/sign-in-links.ts";
-import type { LinkRequestState } from "@/app/login/link-request-state.ts";
+import type { LinkRequestState } from "@/app/(stream)/(site)/login/link-request-state.ts";
 import { AppError } from "@/errors/app-error.ts";
 
 // The longest address that mail can be delivered to (RFC 5321).

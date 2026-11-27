@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import { generateMetadata as constructMetadata } from "@/app/(workspace)/constructs/[constructId]/page.tsx";
+import { generateMetadata as constructMetadata } from "@/app/(stream)/(site)/(workspace)/constructs/[constructId]/page.tsx";
 
 import { getConstruct } from "@/constructs/index.ts";
 import { testUser } from "../../../support/test-database/user-test-kit.ts";

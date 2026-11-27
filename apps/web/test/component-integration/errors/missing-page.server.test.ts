@@ -1,12 +1,12 @@
 // "use_case_open_missing_page" in use-cases/when-things-go-wrong.md, where it
 // needs the server: a page for something that doesn't exist, or a garbled
-// link, ends in Next's notFound(), which shows src/app/not-found.tsx. Next
+// link, ends in Next's notFound(), which shows src/app/(stream)/(site)/not-found.tsx. Next
 // shows the same page for an address the site has no route for; the page's
 // link back to the user's quests is not-found.test.tsx's.
 
 import { expect, test } from "vitest";
-import ConstructPage from "@/app/(workspace)/constructs/[constructId]/page.tsx";
-import QuestPage from "@/app/(workspace)/quests/[questId]/(overview)/page.tsx";
+import ConstructPage from "@/app/(stream)/(site)/(workspace)/constructs/[constructId]/page.tsx";
+import QuestPage from "@/app/(stream)/(site)/(workspace)/quests/[questId]/(overview)/page.tsx";
 import { listQuests } from "@/quests/store.ts";
 import { testData } from "../../support/test-database/data-test-kit.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";

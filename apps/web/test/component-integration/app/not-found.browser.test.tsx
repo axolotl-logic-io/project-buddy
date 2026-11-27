@@ -7,8 +7,8 @@
 import { afterEach, describe, expect, test, vi } from "vitest";
 import { page } from "vitest/browser";
 import { render } from "vitest-browser-react";
-import QuestNotFound from "@/app/(workspace)/quests/[questId]/(overview)/not-found.tsx";
-import NotFound from "@/app/not-found.tsx";
+import QuestNotFound from "@/app/(stream)/(site)/(workspace)/quests/[questId]/(overview)/not-found.tsx";
+import NotFound from "@/app/(stream)/(site)/not-found.tsx";
 import { userMessage } from "@/errors/app-error.ts";
 import {
   DEFAULT_THEME_ATTRIBUTES,

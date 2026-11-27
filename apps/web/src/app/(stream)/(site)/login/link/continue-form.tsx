@@ -13,7 +13,7 @@ import { USER_NAME_MAX_LENGTH } from "@/accounts/user-name.ts";
 import {
   type ContinueSignInState,
   continueSignInAction,
-} from "@/app/login/link/actions.ts";
+} from "@/app/(stream)/(site)/login/link/actions.ts";
 import { TimeZoneField } from "@/components/time-zone-field.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { TextField } from "@/components/ui/field.tsx";
