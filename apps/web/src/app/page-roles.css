@@ -2623,8 +2623,12 @@
     background-image: var(--frame-decoration);
   }
 
-  /* Quest overview: the quest's name, then one card per list, with Today's
-     recurring tasks after the first task list. */
+  /* Quest overview: the page's frame, holding the quest's name, the add
+     box and a section for each list, between ornamented rules. */
+  .quest-folio {
+    @apply flex flex-col gap-6 px-4 py-6 sm:px-8 sm:pt-8 sm:pb-7;
+  }
+
   .quest-focus-head {
     @apply min-w-0;
   }
@@ -2649,7 +2653,7 @@
   }
 
   .quest-overview-meta {
-    @apply mb-1.5 flex flex-wrap items-center gap-2 text-muted text-sm;
+    @apply mb-3.5 flex flex-wrap items-center gap-2 text-muted text-sm;
   }
 
   .quest-status-mark {
@@ -2668,49 +2672,201 @@
     @apply mt-2 max-w-prose wrap-anywhere whitespace-pre-line text-muted;
   }
 
-  /* A list's card on the overview: its name and size, linked to the whole
-     list, an add button, its first items, a link to the rest and its rite
-     button. */
-  .quest-card {
-    @apply relative flex min-w-0 flex-col gap-1 rounded-box border border-line bg-surface/80 px-4 py-3 shadow-control;
+  /* The add box under the quest's name: a field over a double keyline,
+     the lists it can add to, as chips, and its hint. */
+  .add-box {
+    box-shadow:
+      inset 0 0 0 3px var(--field),
+      inset 0 0 0 4px color-mix(in oklab, var(--line) 40%, transparent);
+    @apply flex min-w-0 flex-col rounded-box border border-line bg-field p-3.5;
   }
 
-  .quest-card-head {
-    @apply -me-2 flex items-center;
+  .add-box-row {
+    @apply grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2.5;
   }
 
-  .quest-card-title {
+  .add-box-row > .icon {
+    @apply px-1 text-primary;
+  }
+
+  .add-box-field {
     min-block-size: var(--target-size);
-    @apply flex min-w-0 flex-1 items-center gap-1.5 font-heading text-lg font-semibold;
+    border-block-end: var(--rule-width) solid var(--line);
+    @apply w-full min-w-0 bg-transparent px-1 text-lg text-foreground outline-none placeholder:text-muted placeholder:italic;
   }
 
-  .quest-card-name {
+  .add-box-field:focus-visible {
+    border-block-end-color: var(--primary);
+    box-shadow: 0 1px 0 var(--primary);
+  }
+
+  .add-box-field[aria-invalid="true"] {
+    @apply border-danger;
+  }
+
+  .add-box-targets {
+    @apply mt-3.5 flex flex-wrap items-center gap-2 text-sm;
+  }
+
+  .add-box-choices {
+    @apply contents;
+  }
+
+  .add-box-choices-label {
+    @apply me-0.5 text-muted;
+  }
+
+  /* A list to add to: its radio covers the chip, unseen, and a diamond
+     before the name marks the choice. */
+  .add-box-choice {
     min-block-size: var(--target-size);
-    @apply flex min-w-0 flex-1 items-center gap-1.5 no-underline hover:underline;
+    @apply relative inline-flex max-w-full cursor-pointer items-center gap-1.5 rounded-action border border-line/60 px-3 hover:border-primary;
   }
 
-  .quest-card-size {
-    @apply shrink-0 font-body text-sm font-normal text-muted;
+  .add-box-choice input {
+    @apply absolute inset-0 m-0 size-full cursor-pointer appearance-none rounded-action opacity-0;
   }
 
-  /* A middle dot between a card's name and its size, hidden from screen
+  .add-box-choice:has(input:checked) {
+    @apply border-primary bg-secondary-surface text-foreground;
+  }
+
+  .add-box-choice:has(input:checked)::before {
+    content: "";
+    inline-size: 5px;
+    block-size: 5px;
+    rotate: 45deg;
+    background: var(--primary);
+    @apply shrink-0;
+  }
+
+  .add-box-choice:has(input:focus-visible) {
+    outline: var(--focus-outline);
+    outline-offset: var(--focus-offset);
+  }
+
+  .add-box .add-box-new {
+    @apply rounded-action border border-dashed border-line/60 px-3 text-muted text-sm font-normal no-underline hover:border-primary hover:text-foreground;
+  }
+
+  .add-box .add-box-new[aria-pressed="true"] {
+    @apply border-primary text-foreground;
+  }
+
+  .add-box-new .icon {
+    @apply size-4;
+  }
+
+  .add-box-hint {
+    @apply mt-4 text-muted text-sm;
+  }
+
+  .add-box > .notice,
+  .list-section > .notice {
+    @apply mt-2 rounded-none border-0 bg-transparent p-0 text-muted;
+  }
+
+  .add-box > .button-quiet {
+    @apply self-start;
+  }
+
+  /* A list's section on the overview: a small-capital heading with its
+     size, linked to the whole list, a rule, Add and the rite candle, then
+     its first items, its editor and a link to the rest. */
+  .list-section {
+    @apply flex min-w-0 flex-col;
+  }
+
+  .list-section-head {
+    @apply -me-2 mb-1 flex flex-wrap items-center gap-x-3;
+  }
+
+  .list-section-title {
+    @apply flex min-w-0 shrink items-center gap-2 font-heading text-sm font-semibold tracking-wider text-muted uppercase;
+  }
+
+  .list-section-name {
+    min-block-size: var(--target-size);
+    @apply flex min-w-0 items-baseline gap-1.5 self-center text-foreground no-underline hover:underline;
+    padding-block: 0.75rem;
+  }
+
+  .list-section-size {
+    @apply shrink-0 font-body font-normal tracking-normal text-muted normal-case;
+  }
+
+  /* A middle dot between a section's name and its size, hidden from screen
      readers. */
-  .quest-card-dot::before {
+  .list-section-dot::before {
     content: "·";
-    @apply font-body text-sm font-normal text-muted;
+    @apply font-body font-normal text-muted;
   }
 
-  .quest-card .quest-card-add {
-    min-inline-size: var(--target-size);
-    @apply shrink-0 justify-center px-0 text-primary hover:no-underline;
+  .list-section-rule {
+    border-block-start: var(--rule-width) solid
+      color-mix(in oklab, var(--line) 45%, transparent);
+    @apply hidden min-w-4 flex-1 sm:block;
   }
 
-  .quest-card .editable-list {
+  /* The add box's list: its heading in gold, after a diamond. */
+  .list-section-mark {
+    inline-size: 6px;
+    block-size: 6px;
+    rotate: 45deg;
+    background: var(--primary);
+    @apply hidden shrink-0;
+  }
+
+  .list-section[data-target="true"] .list-section-mark {
+    @apply block;
+  }
+
+  .list-section[data-target="true"] .list-section-name {
+    @apply text-primary;
+  }
+
+  .list-section-head .list-section-add {
+    @apply ms-auto shrink-0 gap-1.5 px-2.5 text-primary sm:ms-0;
+  }
+
+  .list-section-add .icon {
+    @apply size-4;
+  }
+
+  .list-section-head .rite-open {
+    @apply shrink-0 px-0;
+  }
+
+  .list-section .editable-list {
     @apply -ms-2.5 -me-2 text-base;
   }
 
-  .quest-card .editable-row + .editable-row {
-    @apply border-line/40 border-t;
+  .list-section .editable-row + .editable-row {
+    @apply border-line/30 border-t;
+  }
+
+  /* The editor under a section's items: a field, Add and Done, with its
+     hint under them. On a phone the field takes its own row. */
+  .list-adder {
+    @apply grid grid-cols-2 items-center gap-2 border-line/30 border-t pt-2 pb-1 sm:grid-cols-[minmax(0,1fr)_auto_auto];
+  }
+
+  .list-adder > .input-field {
+    min-block-size: var(--target-size);
+    @apply col-span-full border-primary sm:col-span-1;
+  }
+
+  .list-adder-hint {
+    @apply col-span-full text-muted text-sm;
+  }
+
+  .list-section-more {
+    min-block-size: var(--target-size);
+    @apply flex items-center justify-between gap-3 border-line/30 border-t ps-2.5 pe-1 text-muted text-sm no-underline hover:text-foreground;
+  }
+
+  .list-section-more .icon {
+    @apply size-4 shrink-0;
   }
 
   /* The quest's next task: a gold wash and a rubricated manicule. */
@@ -2744,20 +2900,8 @@
     @apply me-1 text-lg leading-none;
   }
 
-  .quest-card-more {
-    min-block-size: var(--target-size);
-    @apply flex items-center justify-between gap-3 border-line/40 border-t text-muted text-sm no-underline hover:text-foreground;
-  }
-
-  .quest-card-more .icon {
-    @apply size-4 shrink-0;
-  }
-
-  .quest-card-foot {
-    @apply mt-1 flex border-line/40 border-t pt-2;
-  }
-
-  /* A list card's button that opens the rite dialog: a candle in rubric. */
+  /* A list section's button that opens the rite dialog: a candle in
+     rubric. */
   .rite-open .icon {
     color: var(--rubric);
   }

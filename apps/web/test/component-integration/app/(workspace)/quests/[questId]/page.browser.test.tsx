@@ -1,10 +1,11 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
-import { page } from "vitest/browser";
+import { page, userEvent } from "vitest/browser";
 import { render } from "vitest-browser-react";
 import QuestLayout from "@/app/(workspace)/quests/[questId]/(overview)/layout.tsx";
 import QuestPage from "@/app/(workspace)/quests/[questId]/(overview)/page.tsx";
 import type { QuestActionResult } from "@/components/use-quest-action.ts";
 import { LIST_ID } from "@/lists/list.ts";
+import { saveListAction } from "@/lists/list-actions.ts";
 import { LIST_ITEM_ID } from "@/lists/list-item.ts";
 import { changeListItemAction } from "@/lists/list-item-actions.ts";
 import { readNextTasks } from "@/lists/list-item-store.ts";
@@ -35,6 +36,7 @@ import {
   mockQuestOverview,
   NEXT_TASK,
   OWN_RITE,
+  PHRASES,
   TASKS,
 } from "../../../../quests/quest-overview-fixtures.ts";
 import {
@@ -125,8 +127,8 @@ async function open(quest: Quest, section?: string): Promise<void> {
 
 // The quest panel's link to the quest's settings, named and then hinted.
 const SETTINGS_LINK = new RegExp(`^${QUEST_OVERVIEW_COPY.settings}`, "u");
-// A card for the list Tasks, named and then sized.
-const TASKS_CARD = new RegExp(`^${TASKS.name} `, "u");
+// The section for the list Tasks, named and then sized.
+const TASKS_SECTION = new RegExp(`^${TASKS.name} `, "u");
 
 test("use_case_open_quest", async () => {
   vi.mocked(listRites).mockResolvedValue([...BUILT_IN_RITES]);
@@ -167,38 +169,44 @@ function holdListItemAction(): () => void {
   return (): void => finish({ kind: "saved" });
 }
 
-test("use_case_open_quest: a list card checks off its next task and hides it", async () => {
+test("use_case_open_quest: a list section checks off its next task and hides it", async () => {
   mockQuestOverview();
   const finish = holdListItemAction();
   await open(FOX_QUEST);
-  const card = page.getByRole("region", { name: TASKS_CARD });
-  await expect.element(card.getByText("4 open")).toBeVisible();
+  const section = page.getByRole("region", { name: TASKS_SECTION });
+  await expect.element(section.getByText("5 open")).toBeVisible();
   await expect
     .element(
-      card
+      section
         .getByRole("listitem")
         .filter({ hasText: NEXT_TASK.text })
         .getByRole("img", { name: QUEST_SIDEBAR_COPY.nextTask }),
     )
     .toBeVisible();
-  await expect.element(card.getByText(DONE_TASK.text)).not.toBeInTheDocument();
   await expect
-    .element(card.getByText(FOURTH_TASK.text))
+    .element(section.getByText(DONE_TASK.text))
+    .not.toBeInTheDocument();
+  await expect
+    .element(section.getByText(FOURTH_TASK.text))
     .not.toBeInTheDocument();
   await expect
     .element(
-      card.getByRole("link", { name: QUEST_OVERVIEW_COPY.more(1, TASKS.name) }),
+      section.getByRole("link", {
+        name: QUEST_OVERVIEW_COPY.more(1, TASKS.name),
+      }),
     )
     .toHaveAttribute("href", `/quests/${FOX_QUEST.id}?section=${TASKS.id}`);
-  await card
+  await section
     .getByRole("listitem")
     .filter({ hasText: NEXT_TASK.text })
     .getByRole("checkbox", { name: LISTS_COPY.checkOff })
     .click();
   // Until the saved check-off comes back with the page without the task.
-  await expect.element(card.getByText(NEXT_TASK.text)).not.toBeInTheDocument();
-  await expect.element(card.getByText(FOURTH_TASK.text)).toBeVisible();
-  await expect.element(card.getByText("3 open")).toBeVisible();
+  await expect
+    .element(section.getByText(NEXT_TASK.text))
+    .not.toBeInTheDocument();
+  await expect.element(section.getByText(FOURTH_TASK.text)).toBeVisible();
+  await expect.element(section.getByText("4 open")).toBeVisible();
   expect(changeListItemAction).toHaveBeenLastCalledWith({
     questId: FOX_QUEST.id,
     listId: TASKS.id,
@@ -207,30 +215,146 @@ test("use_case_open_quest: a list card checks off its next task and hides it", a
   finish();
 });
 
-// Today's heading, with how many of its tasks are left after it.
-const TODAY_HEADING = new RegExp(`^${QUEST_OVERVIEW_COPY.today}`, "u");
+// The heading the overview no longer has: recurring tasks show in their lists.
+const TODAY_HEADING = /^Today/u;
 // The stretch's streak: done today, after a day missed on 2026-11-20.
 const STRETCH_STREAK = "4-day streak";
 
-test("use_case_open_quest: Today checks off recurring tasks in place, with their streaks", async () => {
+test("use_case_open_quest: a list section checks off recurring tasks in place, with their streaks", async () => {
   mockQuestOverview();
   const finish = holdListItemAction();
   await open(FOX_QUEST);
-  const today = page.getByRole("region", { name: TODAY_HEADING });
-  await expect.element(today.getByText("1 of 2 left")).toBeVisible();
-  await expect.element(today.getByText(STRETCH_STREAK)).toBeVisible();
-  await today
-    .getByRole("listitem")
-    .filter({ hasText: SKETCH })
-    .getByRole("checkbox", { name: LISTS_COPY.checkOff })
-    .click();
-  await expect.element(today.getByText("0 of 2 left")).toBeVisible();
+  await expect
+    .element(page.getByRole("heading", { name: TODAY_HEADING }))
+    .not.toBeInTheDocument();
+  const section = page.getByRole("region", { name: TASKS_SECTION });
+  await expect.element(section.getByText(STRETCH_STREAK)).toBeVisible();
+  const sketch = section.getByRole("listitem").filter({ hasText: SKETCH });
+  await sketch.getByRole("checkbox", { name: LISTS_COPY.checkOff }).click();
+  await expect
+    .element(sketch.getByRole("checkbox", { name: LISTS_COPY.uncheck }))
+    .toBeChecked();
+  await expect.element(section.getByText("4 open")).toBeVisible();
   expect(changeListItemAction).toHaveBeenLastCalledWith({
     questId: FOX_QUEST.id,
     listId: TASKS.id,
     change: { kind: "check", id: SKETCH_ID, checkedOff: true },
   });
   finish();
+});
+
+describe("use_case_open_quest: the add box", () => {
+  const AddBox = QUEST_OVERVIEW_COPY.addBox;
+
+  function addBox(): ReturnType<typeof page.getByRole> {
+    return page.getByRole("form", { name: AddBox.label });
+  }
+
+  beforeEach(() => {
+    mockQuestOverview();
+    vi.mocked(changeListItemAction)
+      .mockReset()
+      .mockResolvedValue({ kind: "saved" });
+  });
+
+  test("adds to the first task list and stays ready for the next", async () => {
+    await open(FOX_QUEST);
+    const field = addBox().getByRole("textbox", {
+      name: QUEST_OVERVIEW_COPY.addTo("task", TASKS.name),
+    });
+    await expect
+      .element(addBox().getByRole("radio", { name: TASKS.name }))
+      .toBeChecked();
+    await field.fill("Order the textbook");
+    await userEvent.keyboard("{Enter}");
+    expect(changeListItemAction).toHaveBeenLastCalledWith({
+      questId: FOX_QUEST.id,
+      listId: TASKS.id,
+      change: { kind: "add", text: "Order the textbook" },
+    });
+    await expect.element(field).toHaveValue("");
+    await expect.element(field).toHaveFocus();
+    await expect
+      .element(
+        addBox().getByText(AddBox.added("Order the textbook", TASKS.name)),
+      )
+      .toBeVisible();
+  });
+
+  test("adds to the list chosen under it", async () => {
+    await open(FOX_QUEST);
+    await addBox().getByRole("radio", { name: PHRASES.name }).click();
+    const field = addBox().getByRole("textbox", {
+      name: QUEST_OVERVIEW_COPY.addTo("quick-note", PHRASES.name),
+    });
+    await expect.element(field).toHaveFocus();
+    await expect
+      .element(
+        page.getByRole("region", {
+          name: new RegExp(`^${PHRASES.name} `, "u"),
+        }),
+      )
+      .toHaveAttribute("data-target", "true");
+    await field.fill("¿Dónde está la estación?");
+    await userEvent.keyboard("{Enter}");
+    expect(changeListItemAction).toHaveBeenLastCalledWith({
+      questId: FOX_QUEST.id,
+      listId: PHRASES.id,
+      change: { kind: "add", text: "¿Dónde está la estación?" },
+    });
+  });
+
+  test("names a new task list with New list, and Escape goes back", async () => {
+    vi.mocked(saveListAction).mockReset().mockResolvedValue({ saved: true });
+    await open(FOX_QUEST);
+    await addBox().getByRole("button", { name: AddBox.newList }).click();
+    const naming = addBox().getByRole("textbox", { name: AddBox.nameList });
+    await expect.element(naming).toHaveFocus();
+    await userEvent.keyboard("{Escape}");
+    await expect
+      .element(
+        addBox().getByRole("textbox", {
+          name: QUEST_OVERVIEW_COPY.addTo("task", TASKS.name),
+        }),
+      )
+      .toBeVisible();
+    await addBox().getByRole("button", { name: AddBox.newList }).click();
+    await naming.fill("Reading");
+    await userEvent.keyboard("{Enter}");
+    const form = vi.mocked(saveListAction).mock.lastCall?.[1];
+    expect(form?.get("questId")).toBe(FOX_QUEST.id);
+    expect(form?.get("name")).toBe("Reading");
+    expect(form?.get("type")).toBe("task");
+    await expect
+      .element(addBox().getByText(AddBox.made("Reading")))
+      .toBeVisible();
+  });
+});
+
+test("use_case_open_quest: a list section's Add opens an editor under its items", async () => {
+  mockQuestOverview();
+  vi.mocked(changeListItemAction)
+    .mockReset()
+    .mockResolvedValue({ kind: "saved" });
+  await open(FOX_QUEST);
+  const section = page.getByRole("region", { name: TASKS_SECTION });
+  const label = QUEST_OVERVIEW_COPY.addTo("task", TASKS.name);
+  const opener = section.getByRole("button", { name: label });
+  await opener.click();
+  const field = section.getByRole("textbox", { name: label });
+  await expect.element(field).toHaveFocus();
+  await field.fill("Read a chapter aloud");
+  await userEvent.keyboard("{Enter}");
+  expect(changeListItemAction).toHaveBeenLastCalledWith({
+    questId: FOX_QUEST.id,
+    listId: TASKS.id,
+    change: { kind: "add", text: "Read a chapter aloud" },
+  });
+  await expect.element(field).toHaveValue("");
+  await expect.element(field).toHaveFocus();
+  await userEvent.keyboard("{Escape}");
+  await expect.element(field).not.toBeInTheDocument();
+  await expect.element(opener).toHaveFocus();
 });
 
 // The rite dialog's choices, named for the rite and then its first message.
@@ -253,7 +377,7 @@ describe("use_case_perform_rite", () => {
     await vi.waitFor(() => riteDialog().element());
   }
 
-  test("performs the chosen rite on the card's list", async () => {
+  test("performs the chosen rite on the section's list", async () => {
     vi.mocked(startPerformanceAction).mockReset().mockResolvedValue(undefined);
     await openRiteDialog();
     const dialog = riteDialog();

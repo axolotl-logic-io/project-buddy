@@ -8,7 +8,7 @@ import { ListItems } from "@/components/list-items.tsx";
 import { ListSettings } from "@/components/list-settings.tsx";
 import { MessageComposer } from "@/components/performance-controls.tsx";
 import { PerformanceTranscript } from "@/components/performance-transcript.tsx";
-import { QuestListCard, TodayCard } from "@/components/quest-list-card.tsx";
+import { QuestFolio } from "@/components/quest-folio.tsx";
 import { QuestMembers } from "@/components/quest-members.tsx";
 import { QuestPanel } from "@/components/quest-panel.tsx";
 import { QuestSharingMark } from "@/components/quest-sharing-mark.tsx";
@@ -51,10 +51,9 @@ function sectionPath(id: QuestId, section?: Section | ListId): Route {
   return `/quests/${id}?section=${section}`;
 }
 
-// The quest's overview: its title, status and summary, then each list as a
-// card with Today's recurring tasks after the first task list. While a
-// performance runs it comes after the title, and the cards have no rite
-// button.
+// The quest's overview, in the page's frame: its title, status and
+// summary, then the add box and each list's section. While a performance
+// runs it comes after the title, and the sections have no rite button.
 async function overviewOf({
   user,
   quest,
@@ -72,48 +71,19 @@ async function overviewOf({
   if (lists.some(({ type }) => type === "tally")) {
     talliesRead = readQuestTallies(user, quest.id);
   }
-  const [contents, nextTasks, rites, recurring, tallies] = await Promise.all([
+  const [contents, nextTasks, rites, tallies] = await Promise.all([
     Promise.all(lists.map(({ id }) => readListItems(user, quest.id, id))),
     readNextTasks(user, quest.id, 1),
     listRites(user),
-    readRecurringTasks(user, quest.id),
     talliesRead,
   ]);
-  const next = nextTasks[0]?.id;
-  let cardRites: typeof rites | undefined = rites;
+  let sectionRites: typeof rites | undefined = rites;
   if (runningContent !== undefined) {
-    cardRites = undefined;
-  }
-  const firstTasks = lists.findIndex(({ type }) => type === "task");
-  const cards = lists.map((list, index) => (
-    <QuestListCard
-      key={list.id}
-      questId={quest.id}
-      list={list}
-      contents={contents[index] ?? []}
-      href={sectionPath(quest.id, list.id)}
-      tallies={tallies}
-      next={next}
-      rites={cardRites}
-    />
-  ));
-  if (recurring.length > 0) {
-    cards.splice(
-      firstTasks + 1,
-      0,
-      <TodayCard
-        key="today"
-        questId={quest.id}
-        history={history}
-        tasks={recurring}
-        lists={lists}
-        next={next}
-      />,
-    );
+    sectionRites = undefined;
   }
   return (
-    <>
-      <section className="quest-focus-head" aria-label={quest.name}>
+    <div className="page-workspace quest-folio">
+      <header className="quest-focus-head">
         <p className="quest-overview-meta">
           <span className="quest-status-mark">
             {QUEST_STATUS_COPY.labels[quest.status]}
@@ -134,14 +104,24 @@ async function overviewOf({
           quest.startingContext !== "" && (
             <p className="quest-overview-summary">{quest.startingContext}</p>
           )}
-      </section>
+      </header>
       {quest.status !== "active" && (
         <Notice>{QUEST_STATUS_COPY.effects}</Notice>
       )}
       {runningContent}
-      {cards}
-      <ListSettings questId={quest.id} />
-    </>
+      <QuestFolio
+        questId={quest.id}
+        lists={lists.map((list, index) => ({
+          list,
+          contents: contents[index] ?? [],
+          href: sectionPath(quest.id, list.id),
+        }))}
+        history={history}
+        tallies={tallies}
+        next={nextTasks[0]?.id}
+        rites={sectionRites}
+      />
+    </div>
   );
 }
 

@@ -18,7 +18,6 @@ function capitalized(word: string): string {
 
 const LISTS_COPY = {
   heading: "Lists",
-  add: "Add list",
   settings: "List settings",
   save: "Save list",
   saved: "List saved.",
