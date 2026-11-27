@@ -181,6 +181,7 @@ async function measure(
           return category?.supportedModes?.includes("timespan") === true;
         }) ?? [];
       const timespan = await startTimespan(lighthousePage, {
+        config,
         flags: { ...flags, onlyCategories, throttlingMethod: "provided" },
       });
       try {
@@ -227,10 +228,16 @@ async function measure(
       );
       return;
     }
-    const open = page.getByRole("button", { name: target.dialog, exact: true });
+    const open = page.getByRole("button", {
+      name: target.dialog.open,
+      exact: true,
+    });
     await waitForHydrated(open);
     await open.click();
-    const dialog = page.getByRole("dialog");
+    const dialog = page.getByRole("dialog", {
+      name: target.dialog.name,
+      exact: true,
+    });
     await expect(dialog, "snapshot state check").toBeVisible();
     await keepReport(
       sample,

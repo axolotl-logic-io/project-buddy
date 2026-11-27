@@ -37,7 +37,7 @@ interface AuditPage extends Destination {
     readonly link: string;
     readonly to?: Destination;
   };
-  readonly dialog?: string;
+  readonly dialog?: { readonly open: string; readonly name: string };
 }
 
 async function seedPages(testData: TestData): Promise<Seed> {
@@ -97,14 +97,17 @@ function auditPages(seed: Seed): Record<PageName, AuditPage> {
       marker: mainLink(seed.quest),
       ownContent: true,
       change: { from: "/", panel: true, link: "Quests" },
-      dialog: NEW_QUEST_COPY.open,
+      dialog: { open: NEW_QUEST_COPY.open, name: NEW_QUEST_COPY.title },
     },
     overview: {
       path: `/quests/${seed.questId}`,
       marker: mainText(seed.task),
       ownContent: true,
       change: { from: "/quests", link: seed.quest },
-      dialog: QUEST_OVERVIEW_COPY.performRiteOn("Tasks"),
+      dialog: {
+        open: QUEST_OVERVIEW_COPY.performRiteOn("Tasks"),
+        name: QUEST_OVERVIEW_COPY.performRite,
+      },
     },
     grimoire: {
       path: "/grimoire",
