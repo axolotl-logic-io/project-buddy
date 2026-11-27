@@ -1,7 +1,7 @@
 // "use_case_session_expired" in use-cases/access.md: the signed-out access
-// gate for a session that lapsed, an auth workflow, so it stays in
-// Playwright (e2e-auth-only). The other failure cases are
-// Vitest's: test/component-integration/errors/missing-page.server.test.ts,
+// gate for a session that lapsed, which only the built site's proxy shows.
+// The other failure cases are Vitest's:
+// test/component-integration/errors/missing-page.server.test.ts,
 // test/component-integration/performances/messages.server.test.ts and
 // the storage-unavailable.server.test.ts files.
 
