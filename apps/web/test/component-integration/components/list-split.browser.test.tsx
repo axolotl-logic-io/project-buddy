@@ -171,7 +171,6 @@ describe("use_case_split_list_item", () => {
 
   test("a checked-off task offers no Split", async () => {
     await render(list([task(SHOP, { checkedOff: true })]));
-    await page.getByText(LISTS_COPY.done).click();
     await actions().click();
     await expect
       .element(

@@ -78,6 +78,10 @@ The panel, open from any page, that adds a list item to a list of an Active ques
 
 The field under a quest's name on its Overview that adds list items to whichever of the quest's lists is chosen under it, one after another, or names a new task list. Unlike Quick Add, it adds only to the quest that is open. [Open quest use case](../apps/web/use-cases/quests.md#use_case_open_quest)
 
+### List page
+
+The page for one of a quest's lists, open from its section on Overview. Its **search box** narrows the list to the list items that contain what the user types, and Enter adds that text as a new list item unless the list already has it. The gear beside the list's name shows its settings. [Quest lists use case](../apps/web/use-cases/lists.md#use_case_quest_lists)
+
 ## Days and streaks
 
 ### Quest day

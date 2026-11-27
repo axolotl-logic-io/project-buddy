@@ -4,8 +4,7 @@ import type { JSX, ReactNode } from "react";
 import { z } from "zod";
 import type { User } from "@/accounts/users-store.ts";
 import { DayGrid } from "@/components/day-grid.tsx";
-import { ListItems } from "@/components/list-items.tsx";
-import { ListSettings } from "@/components/list-settings.tsx";
+import { ListPage } from "@/components/list-page.tsx";
 import { MessageComposer } from "@/components/performance-controls.tsx";
 import { PerformanceTranscript } from "@/components/performance-transcript.tsx";
 import { QuestFolio } from "@/components/quest-folio.tsx";
@@ -145,15 +144,39 @@ async function questPage(
   ]);
   const listId = LIST_ID.safeParse(section).data;
   const list = lists.find(({ id }) => id === listId);
-  let contents: Awaited<ReturnType<typeof readListItems>> = [];
-  let tallies: Awaited<ReturnType<typeof readQuestTallies>>;
-  if (list !== undefined) {
-    contents = await readListItems(user, quest.id, list.id);
-  }
-  if (list?.type === "tally") {
-    tallies = await readQuestTallies(user, quest.id);
-  }
   const running = performances.find(({ endedAt }) => endedAt === null);
+  let listPage: JSX.Element | undefined;
+  if (list !== undefined) {
+    let talliesRead: ReturnType<typeof readQuestTallies> | undefined;
+    if (list.type === "tally") {
+      talliesRead = readQuestTallies(user, quest.id);
+    }
+    const [contents, nextTasks, rites, tallies] = await Promise.all([
+      readListItems(user, quest.id, list.id),
+      readNextTasks(user, quest.id, 1),
+      listRites(user),
+      talliesRead,
+    ]);
+    let listRitesShown: typeof rites | undefined = rites;
+    if (running !== undefined) {
+      listRitesShown = undefined;
+    }
+    listPage = (
+      <ListPage
+        key={list.id}
+        questId={quest.id}
+        quest={quest.name}
+        back={sectionPath(quest.id)}
+        list={list}
+        contents={contents}
+        destinations={lists.filter(({ id }) => id !== list.id)}
+        history={history}
+        tallies={tallies}
+        next={nextTasks[0]?.id}
+        rites={listRitesShown}
+      />
+    );
+  }
   const construct = getConstruct(quest.constructId);
   let runningContent: ReactNode;
   if (running !== undefined) {
@@ -258,27 +281,7 @@ async function questPage(
           {quest.status !== "active" && !onOverview && (
             <Notice>{QUEST_STATUS_COPY.effects}</Notice>
           )}
-          {list !== undefined && (
-            <section className="quest-section-body" aria-label={list.name}>
-              <Button asChild={true} variant="quiet">
-                <Link href={sectionPath(quest.id)}>
-                  <Icon name="arrow-left" />
-                  {QUEST_OVERVIEW_COPY.back}
-                </Link>
-              </Button>
-              <h2 className="quest-overview-title">{list.name}</h2>
-              <ListItems
-                key={list.id}
-                list={list}
-                questId={quest.id}
-                contents={contents}
-                history={history}
-                tallies={tallies}
-                destinations={lists.filter(({ id }) => id !== list.id)}
-              />
-              <ListSettings key={list.id} questId={quest.id} list={list} />
-            </section>
-          )}
+          {listPage}
           {current === "settings" && (
             <Button asChild={true} variant="quiet">
               <Link href={sectionPath(quest.id)}>

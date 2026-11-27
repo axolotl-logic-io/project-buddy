@@ -17,6 +17,8 @@ interface Entry {
   readonly inputRef: RefObject<HTMLInputElement | null>;
   readonly change: (event: ChangeEvent<HTMLInputElement>) => void;
   readonly submit: (event: SubmitEvent<HTMLFormElement>) => Promise<void>;
+  // Empties the field and drops its problem.
+  readonly clear: () => void;
 }
 
 function useEntry(
@@ -46,7 +48,11 @@ function useEntry(
     },
     [add, text, validate],
   );
-  return { text, problem, inputRef, change, submit };
+  const clear = useCallback((): void => {
+    setText("");
+    setProblem(undefined);
+  }, []);
+  return { text, problem, inputRef, change, submit, clear };
 }
 
 export type { Entry };

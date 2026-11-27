@@ -237,7 +237,6 @@ describe("use_case_daily_streaks", () => {
     await screen.rerender(
       list([{ ...stretch, checkedOff: true }, task(WATER, 2)], days),
     );
-    await page.getByText(LISTS_COPY.done, { exact: true }).click();
     await expect
       .element(row(STRETCH).getByText("5-day streak.", { exact: true }))
       .toBeVisible();

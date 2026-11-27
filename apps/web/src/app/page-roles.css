@@ -2698,7 +2698,7 @@
   .add-box-field {
     min-block-size: var(--target-size);
     border-block-end: var(--rule-width) solid var(--line);
-    @apply w-full min-w-0 bg-transparent px-1 text-lg text-foreground outline-none placeholder:text-muted placeholder:italic;
+    @apply w-full min-w-0 bg-transparent px-1 text-base text-foreground outline-none placeholder:text-muted placeholder:italic sm:text-lg;
   }
 
   .add-box-field:focus-visible {
@@ -2851,6 +2851,81 @@
 
   .list-section .editable-row + .editable-row {
     @apply border-line/30 border-t;
+  }
+
+  /* A list's own page, in the page's frame: a link back to its quest, its
+     name with its size, the rite candle and the settings button, then the
+     add box, which searches the list too, its open items and Done. */
+  .list-page-top {
+    @apply flex min-w-0 flex-col;
+  }
+
+  .list-page-back {
+    min-block-size: var(--target-size);
+    @apply -ms-2.5 -mt-2.5 mb-1 inline-flex items-center gap-1 self-start rounded-action px-2.5 text-muted no-underline underline-offset-4 hover:text-foreground hover:underline;
+  }
+
+  .list-page-back .icon {
+    @apply size-4;
+  }
+
+  /* On a phone the name and size wrap before the candle and the settings
+     button do, so they stay on the row's end. */
+  .list-page-head {
+    @apply -me-2 flex items-center gap-x-1;
+  }
+
+  .list-page-name {
+    @apply flex min-w-0 flex-1 flex-wrap items-baseline gap-x-3.5 gap-y-0.5;
+  }
+
+  .list-page-head .rite-open,
+  .list-page-head .list-page-settings-open {
+    @apply shrink-0 px-0;
+  }
+
+  .list-page-head .list-page-settings-open[aria-expanded="true"] {
+    @apply bg-field text-primary;
+  }
+
+  .list-page-settings {
+    @apply mt-4 rounded-box border border-line/70 bg-field/45 p-4;
+  }
+
+  /* The list's name and type, then Save, on one row from a tablet up. */
+  .list-settings-form {
+    @apply grid gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,12rem)_auto] sm:items-end;
+  }
+
+  .list-settings-form > .notice {
+    @apply col-span-full;
+  }
+
+  .list-page .editable-list {
+    @apply text-base;
+  }
+
+  .list-page .editable-row + .editable-row {
+    @apply border-line/30 border-t;
+  }
+
+  /* Where an item's text holds what the add box searches for. */
+  .editable-match {
+    background: color-mix(in oklab, var(--primary) 35%, transparent);
+    border-radius: 2px;
+    @apply px-px text-inherit;
+  }
+
+  .list-page-empty {
+    @apply px-2.5 py-3 text-muted italic;
+  }
+
+  .list-page-done {
+    @apply flex min-w-0 flex-col;
+  }
+
+  .list-page-done-head {
+    @apply flex items-baseline gap-2 px-2.5 pb-1 font-heading text-lg font-semibold;
   }
 
   /* The editor under a section's items: a field, Add and Done, with its
