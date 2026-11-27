@@ -4,33 +4,75 @@ import { usePathname, useSearchParams } from "next/navigation";
 import {
   type JSX,
   type ReactNode,
+  type RefObject,
   type SyntheticEvent,
   useCallback,
   useEffect,
   useId,
+  useLayoutEffect,
   useRef,
   useState,
-  useSyncExternalStore,
 } from "react";
 import { createPortal } from "react-dom";
 import { Button } from "@/components/ui/button.tsx";
 import { Icon } from "@/components/ui/icon.tsx";
+import { useHydrated } from "@/components/use-hydrated.ts";
 import { useWideScreen } from "@/components/use-wide-screen.ts";
 
-// The parallel header slot can be replaced during navigation. Subscribe
-// to its DOM presence so the control follows the current header.
-function subscribeHeaderControl(notify: () => void): () => void {
-  const observer = new MutationObserver(notify);
-  observer.observe(document.body, { childList: true, subtree: true });
-  return (): void => observer.disconnect();
-}
-
-function headerControlElement(): HTMLElement | null {
-  return document.querySelector<HTMLElement>(".header-panel-control");
-}
-
-function serverHeaderControl(): null {
+// The App Router keeps a page the user left mounted but hidden, with its
+// header slot, so the document can hold several page headers. The quest
+// panel's control belongs in the one on screen.
+function headerControlOnScreen(): HTMLElement | null {
+  for (const header of document.querySelectorAll(".page-header")) {
+    if (header.checkVisibility()) {
+      return header.querySelector<HTMLElement>(".header-panel-control");
+    }
+  }
   return null;
+}
+
+// Keeps slot in the header on screen while the page is shown, or in
+// fallback when no header is. Hiding or leaving the page takes it out at
+// once, so the next page's header never holds a quest panel control.
+function useHeaderSlot(
+  slot: HTMLElement | null,
+  fallback: RefObject<HTMLElement | null>,
+): void {
+  useLayoutEffect(() => {
+    if (slot === null) {
+      return;
+    }
+    const own = slot;
+    function follow(): void {
+      const home = headerControlOnScreen() ?? fallback.current;
+      if (home === null) {
+        own.remove();
+      } else if (own.parentElement !== home) {
+        home.append(own);
+      }
+    }
+    // Page changes add headers or hide and show kept ones.
+    const observer = new MutationObserver(follow);
+    observer.observe(document.body, {
+      attributeFilter: ["style"],
+      childList: true,
+      subtree: true,
+    });
+    follow();
+    return (): void => {
+      observer.disconnect();
+      own.remove();
+    };
+  }, [slot, fallback]);
+}
+
+function newHeaderSlot(): HTMLElement | null {
+  if (typeof document === "undefined") {
+    return null;
+  }
+  const slot = document.createElement("div");
+  slot.className = "header-panel-slot";
+  return slot;
 }
 
 function QuestSidePanel({
@@ -52,11 +94,10 @@ function QuestSidePanel({
     readonly collapse: string;
   };
 }): JSX.Element {
-  const headerControl = useSyncExternalStore(
-    subscribeHeaderControl,
-    headerControlElement,
-    serverHeaderControl,
-  );
+  const [headerSlot] = useState(newHeaderSlot);
+  const layoutRef = useRef<HTMLDivElement>(null);
+  useHeaderSlot(headerSlot, layoutRef);
+  const isHydrated = useHydrated();
   const wide = useWideScreen();
   const [expanded, setExpanded] = useState<boolean | undefined>();
   // On a narrow screen the panel covers the page, so following one of its
@@ -123,11 +164,15 @@ function QuestSidePanel({
     </Button>
   );
   let expandControl = expandButton;
-  if (headerControl !== null) {
-    expandControl = createPortal(expandButton, headerControl);
+  if (isHydrated && headerSlot !== null) {
+    expandControl = createPortal(expandButton, headerSlot);
   }
   return (
-    <div className="quest-layout" data-sidebar-open={expanded ?? "auto"}>
+    <div
+      className="quest-layout"
+      data-sidebar-open={expanded ?? "auto"}
+      ref={layoutRef}
+    >
       <div className="quest-main">{children}</div>
       {expandControl}
       <dialog
