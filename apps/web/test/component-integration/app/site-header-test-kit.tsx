@@ -1,5 +1,5 @@
 import type { JSX } from "react";
-import HeaderLinks from "@/app/(site)/@header/[...path]/page.tsx";
+import HeaderLinks from "@/app/(stream)/(site)/@header/[...path]/page.tsx";
 
 // The site header of the page at path, as the root layout renders it with
 // the @header slot: the bar, and the trail band whose heading names the

@@ -4,16 +4,16 @@ import { render } from "vitest-browser-react";
 import type {
   signOutAction,
   signOutEverywhereAction,
-} from "@/app/(site)/(workspace)/settings/actions.ts";
-import SettingsError from "@/app/(site)/(workspace)/settings/error.tsx";
-import { SignOutButtons } from "@/app/(site)/(workspace)/settings/sign-out-buttons.tsx";
+} from "@/app/(stream)/(site)/(workspace)/settings/actions.ts";
+import SettingsError from "@/app/(stream)/(site)/(workspace)/settings/error.tsx";
+import { SignOutButtons } from "@/app/(stream)/(site)/(workspace)/settings/sign-out-buttons.tsx";
 import { ACCOUNT_COPY } from "@/ui/copy/account.ts";
 
 const actions = vi.hoisted(() => ({
   signOutAction: vi.fn<typeof signOutAction>(),
   signOutEverywhereAction: vi.fn<typeof signOutEverywhereAction>(),
 }));
-vi.mock("@/app/(site)/(workspace)/settings/actions.ts", () => actions);
+vi.mock("@/app/(stream)/(site)/(workspace)/settings/actions.ts", () => actions);
 // Resolves once she has signed out: the Server Action was called. It never
 // finishes, as the real one ends in a redirect.
 function signingOut(): Promise<void> {

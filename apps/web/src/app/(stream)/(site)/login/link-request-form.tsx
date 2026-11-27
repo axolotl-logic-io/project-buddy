@@ -12,7 +12,7 @@ import {
 import {
   IDLE,
   type LinkRequestState,
-} from "@/app/(site)/login/link-request-state.ts";
+} from "@/app/(stream)/(site)/login/link-request-state.ts";
 import { Button } from "@/components/ui/button.tsx";
 import { TextField } from "@/components/ui/field.tsx";
 import { Alert, FormStatus } from "@/components/ui/form-message.tsx";

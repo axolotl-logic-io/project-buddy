@@ -7,7 +7,7 @@ import type { JSX } from "react";
 import { afterEach, describe, expect, test, vi } from "vitest";
 import { type Locator, page, userEvent } from "vitest/browser";
 import { render } from "vitest-browser-react";
-import { changeQuestStatusAction } from "@/app/(site)/(workspace)/quests/status-actions.ts";
+import { changeQuestStatusAction } from "@/app/(stream)/(site)/(workspace)/quests/status-actions.ts";
 import { QuestFinder } from "@/components/quest-finder.tsx";
 import { LIST_ID } from "@/lists/list.ts";
 import { LIST_ITEM_ID } from "@/lists/list-item.ts";

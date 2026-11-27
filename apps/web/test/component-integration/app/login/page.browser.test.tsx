@@ -1,11 +1,11 @@
 import { expect, test, vi } from "vitest";
 import { page } from "vitest/browser";
 import { render } from "vitest-browser-react";
-import { requestSignInLinkAction } from "@/app/(site)/login/actions.ts";
-import LoginPage from "@/app/(site)/login/page.tsx";
+import { requestSignInLinkAction } from "@/app/(stream)/(site)/login/actions.ts";
+import LoginPage from "@/app/(stream)/(site)/login/page.tsx";
 import { LOGIN_COPY } from "@/ui/copy/login.ts";
 
-vi.mock("@/app/(site)/login/actions.ts", () => ({
+vi.mock("@/app/(stream)/(site)/login/actions.ts", () => ({
   requestSignInLinkAction: vi.fn(),
 }));
 // The sign-in page, reached with searchParams.

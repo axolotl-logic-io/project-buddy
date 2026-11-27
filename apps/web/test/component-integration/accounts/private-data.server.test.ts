@@ -28,8 +28,8 @@ import {
   tallyDayOpenTo,
 } from "@/accounts/owner-scope.ts";
 import type { User } from "@/accounts/users-store.ts";
-import QuestsPage from "@/app/(site)/(workspace)/quests/(list)/page.tsx";
-import QuestPage from "@/app/(site)/(workspace)/quests/[questId]/(overview)/page.tsx";
+import QuestsPage from "@/app/(stream)/(site)/(workspace)/quests/(list)/page.tsx";
+import QuestPage from "@/app/(stream)/(site)/(workspace)/quests/[questId]/(overview)/page.tsx";
 import { getDb } from "@/db/client.ts";
 import { events } from "@/db/tables/events.ts";
 import { listChanges } from "@/db/tables/list-changes.ts";

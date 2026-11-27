@@ -3,6 +3,12 @@ import { readSessionToken, SESSION_COOKIE_NAME } from "@/auth/session-token.ts";
 import { readSessionSecret } from "@/env.ts";
 import { appErrorResponse } from "@/errors/app-error.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
+import {
+  COMPLETE_PAGE_PATH,
+  COMPLETE_ROUTE_PREFIX,
+  completePageResponse,
+  deliverPage,
+} from "@/page-delivery.ts";
 import { SIGN_IN_PATH } from "@/routes.ts";
 import {
   APPEARANCE_PREFERENCE_PATH,
@@ -54,7 +60,7 @@ function themeFontPreloadLinks(cookieValue: string | undefined): string {
 // Lets a page request through with its theme's font preload hints, after
 // any `Link` the response already has.
 function nextPage(request: NextRequest): Response {
-  const response = NextResponse.next();
+  const response = deliverPage(request);
   response.headers.append(
     "link",
     themeFontPreloadLinks(request.cookies.get(THEME_COOKIE_NAME)?.value),
@@ -74,6 +80,15 @@ function nextPage(request: NextRequest): Response {
 export async function proxy(request: NextRequest): Promise<Response> {
   const { pathname } = request.nextUrl;
   const isApi = pathname.startsWith("/api/");
+  if (
+    pathname === COMPLETE_ROUTE_PREFIX ||
+    pathname.startsWith(`${COMPLETE_ROUTE_PREFIX}/`)
+  ) {
+    return new NextResponse(null, { status: HTTP_STATUS.notFound });
+  }
+  if (pathname === COMPLETE_PAGE_PATH && request.method === "GET") {
+    return completePageResponse(request);
+  }
   if (pathname === APPEARANCE_PREFERENCE_PATH) {
     return NextResponse.next();
   }

@@ -5,8 +5,8 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { commands, page, userEvent } from "vitest/browser";
 import { render } from "vitest-browser-react";
-import InvalidTimerPage from "@/app/(site)/(workspace)/timer/[...invalid]/page.tsx";
-import TimerPage from "@/app/(site)/(workspace)/timer/[work]/[break]/[start]/page.tsx";
+import InvalidTimerPage from "@/app/(stream)/(site)/(workspace)/timer/[...invalid]/page.tsx";
+import TimerPage from "@/app/(stream)/(site)/(workspace)/timer/[work]/[break]/[start]/page.tsx";
 import { TimerDisplay } from "@/components/timer/timer-display.tsx";
 import { TimerSetup } from "@/components/timer/timer-setup.tsx";
 import { reportTimerPresenceAction } from "@/timer/presence-action.ts";

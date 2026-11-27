@@ -3,7 +3,7 @@ import { expect, test, vi } from "vitest";
 import { endRateLimitWindowsFor } from "@/accounts/rate-limits.ts";
 import { requestSignInLink } from "@/accounts/sign-in-links.ts";
 import { findUserByEmail } from "@/accounts/users-store.ts";
-import { continueSignInAction } from "@/app/(site)/login/link/actions.ts";
+import { continueSignInAction } from "@/app/(stream)/(site)/login/link/actions.ts";
 import { currentUser } from "@/auth/current-user.ts";
 import { getDb } from "@/db/client.ts";
 import { signInLinks } from "@/db/tables/users.ts";

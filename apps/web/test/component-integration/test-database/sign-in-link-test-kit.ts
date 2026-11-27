@@ -9,7 +9,7 @@ import type { Mock } from "vitest";
 import { endRateLimitWindowsFor } from "@/accounts/rate-limits.ts";
 import { requestSignInLink } from "@/accounts/sign-in-links.ts";
 import type { User } from "@/accounts/users-store.ts";
-import { continueSignInAction } from "@/app/(site)/login/link/actions.ts";
+import { continueSignInAction } from "@/app/(stream)/(site)/login/link/actions.ts";
 import type { EmailMessage } from "@/email/email-message.ts";
 import { HOME_PATH } from "@/routes.ts";
 import { afterTasksDone } from "./after-test-kit.ts";

@@ -5,8 +5,8 @@ import {
   answerLinkRequest,
   EMAIL_FIELD,
   typedEmail,
-} from "@/app/(site)/login/link-request.ts";
-import type { LinkRequestState } from "@/app/(site)/login/link-request-state.ts";
+} from "@/app/(stream)/(site)/login/link-request.ts";
+import type { LinkRequestState } from "@/app/(stream)/(site)/login/link-request-state.ts";
 import { localPath, SIGN_IN_DESTINATION_PARAMETER } from "@/routes.ts";
 import { LOGIN_COPY } from "@/ui/copy/login.ts";
 

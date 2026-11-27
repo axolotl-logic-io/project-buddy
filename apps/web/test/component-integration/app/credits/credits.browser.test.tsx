@@ -2,9 +2,9 @@ import type { JSX } from "react";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { page } from "vitest/browser";
 import { render } from "vitest-browser-react";
-import CreditsPage from "@/app/(site)/credits/page.tsx";
-import LoginPage from "@/app/(site)/login/page.tsx";
-import NotFound from "@/app/(site)/not-found.tsx";
+import CreditsPage from "@/app/(stream)/(site)/credits/page.tsx";
+import LoginPage from "@/app/(stream)/(site)/login/page.tsx";
+import NotFound from "@/app/(stream)/(site)/not-found.tsx";
 import { CREDITS_COPY } from "@/ui/copy/credits.ts";
 import { tabForward } from "../../../support/keyboard-test-kit.ts";
 import {
@@ -30,7 +30,7 @@ vi.mock(
   () => import("../../auth/current-user-test-kit.ts"),
 );
 // The rendered controls do not submit Server Actions in this case.
-vi.mock("@/app/(site)/login/actions.ts", () => ({
+vi.mock("@/app/(stream)/(site)/login/actions.ts", () => ({
   requestSignInLinkAction: vi.fn(),
 }));
 

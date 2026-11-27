@@ -1,8 +1,8 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { page } from "vitest/browser";
 import { render } from "vitest-browser-react";
-import RitePage from "@/app/(site)/(workspace)/grimoire/[riteId]/page.tsx";
-import GrimoirePage from "@/app/(site)/(workspace)/grimoire/page.tsx";
+import RitePage from "@/app/(stream)/(site)/(workspace)/grimoire/[riteId]/page.tsx";
+import GrimoirePage from "@/app/(stream)/(site)/(workspace)/grimoire/page.tsx";
 import { BUILT_IN_RITES, type Rite } from "@/rites/rite.ts";
 import { changeRiteAction } from "@/rites/rite-actions.ts";
 import { listRites, readRite } from "@/rites/rite-store.ts";

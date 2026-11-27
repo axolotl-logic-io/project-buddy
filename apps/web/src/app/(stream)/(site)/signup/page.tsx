@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import type { JSX } from "react";
-import { requestSignInLinkAction } from "@/app/(site)/login/actions.ts";
-import { LinkRequestForm } from "@/app/(site)/login/link-request-form.tsx";
-import { SignInPanel } from "@/app/(site)/login/sign-in-panel.tsx";
+import { requestSignInLinkAction } from "@/app/(stream)/(site)/login/actions.ts";
+import { LinkRequestForm } from "@/app/(stream)/(site)/login/link-request-form.tsx";
+import { SignInPanel } from "@/app/(stream)/(site)/login/sign-in-panel.tsx";
 import { LOGIN_COPY } from "@/ui/copy/login.ts";
 import { SIGNUP_COPY } from "@/ui/copy/signup.ts";
 
