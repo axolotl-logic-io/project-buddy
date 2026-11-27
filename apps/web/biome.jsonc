@@ -150,7 +150,7 @@
       "includes": [
         "test/audit/browser.ts",
         "test/audit/command.ts",
-        "test/audit/lighthouse.spec.ts",
+        "test/audit/results.ts",
         "test/audit/reporter.ts",
         "test/audit/run-options.ts"
       ],

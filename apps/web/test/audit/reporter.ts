@@ -9,6 +9,7 @@ import type {
   TestResult,
 } from "@playwright/test/reporter";
 import { z } from "zod";
+import { ACTION } from "./options.ts";
 import { type Case, SAMPLE, type Sample } from "./results.ts";
 import { auditRun } from "./run-options.ts";
 
@@ -32,8 +33,11 @@ const SUMMARY = z.object({ rows: z.array(ROW) });
 type Range = z.infer<typeof RANGE>;
 type Row = z.infer<typeof ROW>;
 
+const PERFORMANCE_METRICS = ["lcpMs", "inpMs", "cls", "swapMs", "outcomeMs"];
+
 const HEADLINES = [
   "lcpMs",
+  "inpMs",
   "tbtMs",
   "cls",
   "speedIndexMs",
@@ -91,6 +95,9 @@ function rowsOf(samples: Sample[]): Row[] {
         if (result.name === "change") {
           Object.assign(group.row.numbers, { feedbackMs: null });
         }
+        if (result.name === "change" || ACTION.safeParse(result.name).success) {
+          Object.assign(group.row.numbers, { inpMs: null });
+        }
         cases.set(key, group);
       }
       for (const [name, number] of valuesOf(result)) {
@@ -114,9 +121,9 @@ function display(value: number): string {
   return String(Number(value.toFixed(DISPLAY_DECIMALS)));
 }
 
-function printSummary(rows: Row[]): void {
+function printSummary(rows: Row[], headlines: readonly string[]): void {
   for (const row of rows) {
-    const entries = HEADLINES.flatMap((name) => {
+    const entries = headlines.flatMap((name) => {
       const { [name]: stats } = row.numbers;
       if (stats === undefined) {
         return [];
@@ -131,6 +138,9 @@ function printSummary(rows: Row[]): void {
     process.stdout.write(
       `${row.page} ${row.profile} ${row.case}  ${entries.join("  ")}\n`,
     );
+  }
+  if (headlines === PERFORMANCE_METRICS) {
+    return;
   }
   const diagnostics = new Map<string, number>();
   for (const { numbers } of rows) {
@@ -181,7 +191,11 @@ function formatDelta(
   return `${name}=${sign}${display(delta)}${noise}`;
 }
 
-async function compareRows(rows: Row[], directory: string): Promise<void> {
+async function compareRows(
+  rows: Row[],
+  directory: string,
+  performance: boolean,
+): Promise<void> {
   const previous = SUMMARY.parse(
     JSON.parse(await readFile(join(directory, "summary.json"), "utf8")),
   );
@@ -199,9 +213,11 @@ async function compareRows(rows: Row[], directory: string): Promise<void> {
       ...Object.keys(earlier?.numbers ?? {}),
     ]);
     for (const name of names) {
-      const { [name]: current } = row.numbers;
-      const { [name]: baseline } = earlier?.numbers ?? {};
-      deltas.push(formatDelta(name, current, baseline));
+      if (!performance || PERFORMANCE_METRICS.includes(name)) {
+        const { [name]: current } = row.numbers;
+        const { [name]: baseline } = earlier?.numbers ?? {};
+        deltas.push(formatDelta(name, current, baseline));
+      }
     }
     process.stdout.write(
       `${row.page} ${row.profile} ${row.case}  ${deltas.join("  ")}\n`,
@@ -237,7 +253,11 @@ class AuditReporter implements Reporter {
   }
 
   async onEnd(result: FullResult): Promise<undefined | { status: "failed" }> {
-    const { directory, compare } = auditRun();
+    const { directory, compare, performance } = auditRun();
+    let headlines = HEADLINES;
+    if (performance) {
+      headlines = PERFORMANCE_METRICS;
+    }
     const rows = rowsOf(this.samples);
     const summary = {
       status: result.status,
@@ -256,11 +276,11 @@ class AuditReporter implements Reporter {
       failures: this.failures,
     };
     await writeFile(join(directory, "summary.json"), JSON.stringify(summary));
-    printSummary(rows);
+    printSummary(rows, headlines);
     process.stdout.write(`\nAudit JSON  ${directory}\n`);
     if (compare !== undefined) {
       try {
-        await compareRows(rows, compare);
+        await compareRows(rows, compare, performance);
       } catch (error) {
         if (error instanceof Error) {
           process.stderr.write(`Comparison failed: ${error.message}\n`);

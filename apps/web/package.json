@@ -17,6 +17,7 @@
     "test:server": "npm run test-db:reset && node --env-file=.env.test --disable-warning=MODULE_TYPELESS_PACKAGE_JSON ../../node_modules/vitest/vitest.mjs run --config vitest.server.config.mts",
     "test:system": "npm run test-db:reset && node --env-file=.env.test --disable-warning=MODULE_TYPELESS_PACKAGE_JSON ../../node_modules/@playwright/test/cli.js test",
     "audit": "bash scripts/test-env/require-env-test.sh && node --env-file=.env.test --disable-warning=MODULE_TYPELESS_PACKAGE_JSON test/audit/command.ts",
+    "audit:performance": "npm run audit -- --performance",
     "test:e2e": "bash scripts/test-env/require-env-test.sh && npm run test:browser && npm run test:system --",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",

@@ -1,5 +1,3 @@
-import { writeFile } from "node:fs/promises";
-import { join } from "node:path";
 import {
   type BrowserContext,
   expect,
@@ -19,13 +17,7 @@ import {
 } from "./observations.ts";
 import { PAGE, PROFILE } from "./options.ts";
 import { auditPages, checkContent, openSitePanel, seedPages } from "./pages.ts";
-import {
-  type Case,
-  lighthouseNumbers,
-  lighthouseProblems,
-  type Report,
-  type Sample,
-} from "./results.ts";
+import { type Case, keepReport, reportSample, type Sample } from "./results.ts";
 import { auditRun } from "./run-options.ts";
 
 const PAGE_CHANGE_TIMEOUT_MS = 10_000;
@@ -44,26 +36,6 @@ async function goto(page: Page, url: string): Promise<void> {
       `address check: expected ${url}, browser ended at ${page.url()} (status ${response?.status() ?? "unknown"})`,
     );
   }
-}
-
-function reportName(sample: Sample, result: Case): string {
-  return `${sample.page}-${sample.profile}-${sample.sample}-${result.name}.json`;
-}
-
-async function keepReport(
-  sample: Sample,
-  result: Case,
-  report: Report | undefined,
-  url: string,
-): Promise<void> {
-  if (report === undefined) {
-    throw new Error("Lighthouse returned no report");
-  }
-  const { lhr } = report;
-  result.report = reportName(sample, result);
-  await writeFile(join(run.directory, result.report), JSON.stringify(lhr));
-  lighthouseNumbers(lhr, result);
-  result.failures.push(...lighthouseProblems(lhr, url));
 }
 
 async function measure(
@@ -95,6 +67,9 @@ async function measure(
   };
   if (target.signedOut === true) {
     flags.onlyCategories?.push("seo");
+  }
+  if (run.performance) {
+    flags.onlyCategories = ["performance"];
   }
   const traffic = await recordNetwork(network);
 
@@ -214,6 +189,10 @@ async function measure(
     }
   });
 
+  if (run.performance) {
+    return;
+  }
+
   await runCase("snapshot", url, async (result) => {
     await goto(page, url);
     if (target.dialog === undefined) {
@@ -329,19 +308,9 @@ for (const pageName of PAGE.options.filter(
           );
         } catch (problem) {
           sample.failures.push(String(problem));
-        } finally {
-          await testInfo.attach("audit-sample", {
-            body: JSON.stringify(sample),
-            contentType: "application/json",
-          });
         }
-        const runFailures = [
-          ...sample.failures,
-          ...sample.cases.flatMap(({ name, failures }) =>
-            failures.map((failure) => `${name}: ${failure}`),
-          ),
-        ];
-        expect(runFailures, "audit run checks").toStrictEqual([]);
+        const failures = await reportSample(sample, testInfo);
+        expect(failures, "audit run checks").toStrictEqual([]);
       });
     }
   }
