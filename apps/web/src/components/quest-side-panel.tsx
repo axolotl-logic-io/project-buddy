@@ -4,6 +4,7 @@ import { usePathname, useSearchParams } from "next/navigation";
 import {
   type JSX,
   type ReactNode,
+  type RefObject,
   type SyntheticEvent,
   useCallback,
   useEffect,
@@ -30,21 +31,24 @@ function headerControlOnScreen(): HTMLElement | null {
   return null;
 }
 
-// Keeps slot in the header on screen while the page is shown. Hiding or
-// leaving the page takes it out at once, so the next page's header never
-// holds a quest panel control.
-function useHeaderSlot(slot: HTMLElement | null): void {
+// Keeps slot in the header on screen while the page is shown, or in
+// fallback when no header is. Hiding or leaving the page takes it out at
+// once, so the next page's header never holds a quest panel control.
+function useHeaderSlot(
+  slot: HTMLElement | null,
+  fallback: RefObject<HTMLElement | null>,
+): void {
   useLayoutEffect(() => {
     if (slot === null) {
       return;
     }
     const own = slot;
     function follow(): void {
-      const control = headerControlOnScreen();
-      if (control === null) {
+      const home = headerControlOnScreen() ?? fallback.current;
+      if (home === null) {
         own.remove();
-      } else if (own.parentElement !== control) {
-        control.append(own);
+      } else if (own.parentElement !== home) {
+        home.append(own);
       }
     }
     // Page changes add headers or hide and show kept ones.
@@ -59,7 +63,7 @@ function useHeaderSlot(slot: HTMLElement | null): void {
       observer.disconnect();
       own.remove();
     };
-  }, [slot]);
+  }, [slot, fallback]);
 }
 
 function newHeaderSlot(): HTMLElement | null {
@@ -91,7 +95,8 @@ function QuestSidePanel({
   };
 }): JSX.Element {
   const [headerSlot] = useState(newHeaderSlot);
-  useHeaderSlot(headerSlot);
+  const layoutRef = useRef<HTMLDivElement>(null);
+  useHeaderSlot(headerSlot, layoutRef);
   const isHydrated = useHydrated();
   const wide = useWideScreen();
   const [expanded, setExpanded] = useState<boolean | undefined>();
@@ -163,7 +168,11 @@ function QuestSidePanel({
     expandControl = createPortal(expandButton, headerSlot);
   }
   return (
-    <div className="quest-layout" data-sidebar-open={expanded ?? "auto"}>
+    <div
+      className="quest-layout"
+      data-sidebar-open={expanded ?? "auto"}
+      ref={layoutRef}
+    >
       <div className="quest-main">{children}</div>
       {expandControl}
       <dialog
