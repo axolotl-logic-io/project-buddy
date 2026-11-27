@@ -1,10 +1,10 @@
 "use server";
 
-import { refresh } from "next/cache";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { TIME_ZONE } from "@/accounts/time-zone.ts";
 import { endEverySession, saveTimeZone } from "@/accounts/users-store.ts";
+import { revalidateWorkspace } from "@/app/revalidate-workspace.ts";
 import { requireUser } from "@/auth/current-user.ts";
 import { SESSION_COOKIE_NAME } from "@/auth/session-token.ts";
 import { SIGN_IN_PATH } from "@/routes.ts";
@@ -35,7 +35,7 @@ export async function setTimeZoneAction(
   if (!(timeZone.success && (await saveTimeZone(user.id, timeZone.data)))) {
     return UNKNOWN;
   }
-  refresh();
+  revalidateWorkspace();
   return SAVED;
 }
 

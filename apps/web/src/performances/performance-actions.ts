@@ -1,7 +1,7 @@
 "use server";
 
-import { refresh } from "next/cache";
 import { z } from "zod";
+import { revalidateWorkspace } from "@/app/revalidate-workspace.ts";
 import { currentUser, requireUser } from "@/auth/current-user.ts";
 import { AppError } from "@/errors/app-error.ts";
 import { QUEST_ID } from "@/ids.ts";
@@ -37,7 +37,7 @@ async function startPerformanceAction(
   ) {
     return PERFORMANCE_COPY.unavailable;
   }
-  refresh();
+  revalidateWorkspace();
   return undefined;
 }
 
@@ -52,7 +52,7 @@ async function stopPerformanceAction(
   ) {
     return PERFORMANCE_COPY.unavailable;
   }
-  refresh();
+  revalidateWorkspace();
   return undefined;
 }
 
@@ -71,7 +71,7 @@ async function sendMessageAction(
     if ((await sendMessage(user.id, input.questId, input)) === undefined) {
       return PERFORMANCE_COPY.required;
     }
-    refresh();
+    revalidateWorkspace();
     return undefined;
   } catch (error) {
     if (error instanceof AppError) {

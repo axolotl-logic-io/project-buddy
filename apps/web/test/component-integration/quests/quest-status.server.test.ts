@@ -21,7 +21,7 @@ import {
   addRemovedMember,
 } from "./quest-members-test-kit.ts";
 
-vi.mock("next/cache", () => ({ refresh: vi.fn() }));
+vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
 
 const INVALID: StatusActionState = {
   kind: "invalid",

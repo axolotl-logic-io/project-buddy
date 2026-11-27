@@ -1,8 +1,8 @@
 "use server";
 
-import { refresh } from "next/cache";
 import { notFound, redirect } from "next/navigation";
 import { z } from "zod";
+import { revalidateWorkspace } from "@/app/revalidate-workspace.ts";
 import { requireUser } from "@/auth/current-user.ts";
 import { GRIMOIRE_COPY } from "@/ui/copy/grimoire.ts";
 import { forgottenTabHref } from "./forgotten-tab.ts";
@@ -67,7 +67,7 @@ async function saveRiteAction(request: unknown): Promise<RiteSave> {
   if (rite === undefined) {
     return { kind: "unavailable" };
   }
-  refresh();
+  revalidateWorkspace();
   return { kind: "saved", id: rite.id };
 }
 
@@ -92,6 +92,7 @@ async function copyRiteAction(form: FormData): Promise<void> {
   if (copied === undefined) {
     notFound();
   }
+  revalidateWorkspace();
   redirect(`/grimoire/${copied.id}`);
 }
 
@@ -112,6 +113,7 @@ async function changeRiteAction(form: FormData): Promise<void> {
   ) {
     redirect(forgottenTabHref("unavailable"));
   }
+  revalidateWorkspace();
   redirect(forgottenTabHref(input.change, input.id));
 }
 

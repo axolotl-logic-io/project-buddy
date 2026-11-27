@@ -1,7 +1,7 @@
 // Starting quests, in the test database: what New quest makes from a name
 // and an optional Why, as the stores give it to the pages.
 
-import { describe, expect, test } from "vitest";
+import { describe, expect, test, vi } from "vitest";
 import type { User } from "@/accounts/users-store.ts";
 import {
   type StartQuestState,
@@ -19,6 +19,8 @@ import { expectRedirect } from "../../../test-database/navigation-test-kit.ts";
 import { signIn } from "../../../test-database/session-test-kit.ts";
 
 const IDLE: StartQuestState = { kind: "idle" };
+
+vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
 
 // The New quest form, with a name and any other field.
 function startForm(

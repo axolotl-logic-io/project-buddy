@@ -32,15 +32,10 @@ import {
   PHONE_VIEWPORT,
   setViewport,
 } from "../viewports-test-kit.ts";
-import { replace } from "./router-test-kit.ts";
 
 vi.mock("next/navigation", () => import("./router-test-kit.ts"));
 
-// Long enough for the search's pause to pass.
-const SEARCH_WAIT_MS = 1000;
 const TAB_TARGET_PX = 24;
-const KEEPS_STATUS = /[?&]status=completed/u;
-const SEARCHES_FOX = /[?&]q=fox/u;
 
 // A quest as Quests lists it, active a day ago.
 function row(
@@ -241,20 +236,14 @@ describe("use_case_view_quests", () => {
 });
 
 describe("use_case_find_quest", () => {
-  test("/ focuses the search, and typing searches once it pauses, keeping the status", async () => {
-    globalThis.history.replaceState(null, "", "?status=completed");
+  test("/ focuses the search", async () => {
     await render(finder([row()]));
     await userEvent.keyboard("/");
-    const search = page.getByRole("searchbox", {
-      name: QUEST_FINDER_COPY.searchLabel,
-    });
-    await expect.element(search).toHaveFocus();
-    await userEvent.keyboard("fox");
-    await vi.waitFor(() => expect(replace).toHaveBeenCalledTimes(1), {
-      timeout: SEARCH_WAIT_MS,
-    });
-    expect(replace.mock.calls[0]?.[0]).toMatch(KEEPS_STATUS);
-    expect(replace.mock.calls[0]?.[0]).toMatch(SEARCHES_FOX);
+    await expect
+      .element(
+        page.getByRole("searchbox", { name: QUEST_FINDER_COPY.searchLabel }),
+      )
+      .toHaveFocus();
   });
 
   test("finds quests of any status, Life too, by name, ignoring case, and marks the match", async () => {

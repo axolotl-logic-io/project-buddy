@@ -7,18 +7,15 @@ const THREE_VISITING_DATES = 3;
 
 const navigation = vi.hoisted(() => ({
   pathname: "/profile",
-  refresh: vi.fn(),
 }));
 vi.mock("next/navigation", () => ({
   usePathname: (): string => navigation.pathname,
-  useRouter: (): { refresh: () => void } => ({ refresh: navigation.refresh }),
 }));
 
 beforeEach(() => {
   vi.useFakeTimers({ toFake: ["Date"] });
   vi.setSystemTime(new Date("2026-11-01T23:59:59.999Z"));
   vi.mocked(recordVisitAction).mockReset().mockResolvedValue("known");
-  navigation.refresh.mockClear();
   navigation.pathname = "/profile";
 });
 
@@ -27,10 +24,9 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
-test("a visible visit records once, refreshes its new total and ignores same-day activity", async () => {
+test("a visible visit records once and ignores same-day activity", async () => {
   vi.mocked(recordVisitAction).mockResolvedValue("added");
   const screen = await render(<SignedInVisits />);
-  expect(navigation.refresh).toHaveBeenCalledTimes(1);
   document.dispatchEvent(new Event("pointerdown"));
   document.dispatchEvent(new Event("keydown"));
   globalThis.dispatchEvent(new Event("focus"));
@@ -88,10 +84,9 @@ test("in-flight visits deduplicate and a failed report retries on the next foreg
   document.dispatchEvent(new Event("keydown"));
   await Promise.resolve();
   expect(recordVisitAction).toHaveBeenCalledTimes(2);
-  expect(navigation.refresh).not.toHaveBeenCalled();
 });
 
-test("a report completing during navigation still refreshes the saved total", async () => {
+test("a report completing during navigation still counts as the day's report", async () => {
   const answer =
     Promise.withResolvers<Awaited<ReturnType<typeof recordVisitAction>>>();
   vi.mocked(recordVisitAction).mockReturnValueOnce(answer.promise);
@@ -100,7 +95,7 @@ test("a report completing during navigation still refreshes the saved total", as
   await screen.rerender(<SignedInVisits />);
   answer.resolve("added");
   await answer.promise;
-  expect(navigation.refresh).toHaveBeenCalledTimes(1);
+  document.dispatchEvent(new Event("pointerdown"));
   expect(recordVisitAction).toHaveBeenCalledTimes(1);
 });
 
