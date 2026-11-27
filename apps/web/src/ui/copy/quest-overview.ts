@@ -4,8 +4,6 @@ import { CADENCE_COPY } from "./cadence.ts";
 import { LISTS_COPY } from "./lists.ts";
 
 const QUEST_OVERVIEW_COPY = {
-  back: "Back to overview",
-  backToSettings: "Back to Quest settings",
   quest: "Quest",
   status: "Quest status",
   private: "Private",
@@ -28,21 +26,21 @@ const QUEST_OVERVIEW_COPY = {
   // the editor's field, named for its list.
   addTo: (type: ListType, list: string): string =>
     `${LISTS_COPY.addListItem(type)} to ${list}`,
-  // The editor under a list section's items.
+  // The editor above a list section's items.
   adder: {
     add: "Add",
     done: "Done",
     hint: "Enter adds and keeps this open. Escape closes it.",
   },
-  // The add box under the quest's name, which adds to any of its lists.
+  // The add box under the quest's name, which searches the quest's lists
+  // and adds to any of them. Its field and hints are LIST_PAGE_COPY's.
   addBox: {
-    label: "Add to a list",
+    label: "Search or add to a list",
     add: "Add",
     target: "Add to",
     newList: "New list",
     nameList: "Name the new list",
     nameProblem: "Name the list in 1 to 80 characters on one line.",
-    hint: "Enter adds to the list marked in gold, and the box stays ready for the next one.",
     namingHint: "Enter makes a task list with this name. Escape goes back.",
     added: (text: string, list: string): string =>
       `Added “${text}” to ${list}.`,
@@ -60,16 +58,20 @@ const QUEST_OVERVIEW_COPY = {
     cancel: "Cancel",
     close: "Close",
   },
-  settings: "Quest settings",
-  // Under the quest panel's link to the quest's settings.
-  settingsHint: "Members, Day grid and the quest’s status",
-  // The panel beside the quest, with its settings link and the Timer.
+  // Under the quest panel's link to Members: how many are in the quest,
+  // the owner included.
+  membersHint: (count: number): string => {
+    if (count === 1) {
+      return "Just you. Invite others by email.";
+    }
+    return `${count} in this quest`;
+  },
+  // The panel beside the quest: Members, the quest's status, and the Timer.
   panel: {
     label: "Quest panel",
     expand: "Open quest panel",
     collapse: "Close quest panel",
   },
-  members: (count: number): string => `Members (${count})`,
   // A list's size beside its name: a task list counts its open tasks, and
   // any other list counts all its items.
   listSize: (

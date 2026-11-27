@@ -41,6 +41,10 @@ const QUESTS: Breadcrumb & { readonly href: Route } = {
   label: QUESTS_COPY.heading,
   href: "/quests",
 };
+const GRIMOIRE: Breadcrumb & { readonly href: Route } = {
+  label: GRIMOIRE_COPY.heading,
+  href: "/grimoire",
+};
 const TIMER_ROOT: Breadcrumb & { readonly href: Route } = {
   label: TIMER_COPY.heading,
   href: TIMER_PATH,
@@ -50,10 +54,14 @@ const ROOTS: ReadonlyMap<string, Breadcrumb & { readonly href: Route }> =
   new Map([
     ["quests", QUESTS],
     ["constructs", QUESTS],
-    ["grimoire", { label: GRIMOIRE_COPY.heading, href: "/grimoire" }],
+    ["grimoire", GRIMOIRE],
     ["profile", { label: PROFILE_COPY.heading, href: "/profile" }],
     ["settings", { label: SETTINGS_COPY.heading, href: "/settings" }],
   ]);
+
+// The sections whose trails start at Home for a signed-in user. Profile
+// and Settings stand alone.
+const UNDER_HOME: ReadonlySet<Breadcrumb> = new Set([QUESTS, GRIMOIRE]);
 
 // A timer link's trail: the Timer, then the schedule it names. Once the
 // schedule has started, its crumb carries it for the band's timer tools; a
@@ -95,6 +103,8 @@ function publicBreadcrumbs(
   return timerLinkBreadcrumbs(TIMER_ROOT, path);
 }
 
+// A signed-in user's trail: Home, then Quests, the Grimoire or the Timer
+// and what is open under it. Profile and Settings stand alone.
 // Resolve names only through the same acting-user stores as the page. Unknown
 // or inaccessible destinations, such as Invitations for anyone but an admin,
 // expose no trail. The last item is the page's heading, so it is worded as
@@ -107,7 +117,11 @@ async function headerBreadcrumbs(
 ): Promise<readonly HeaderBreadcrumb[]> {
   const [section = "", id, child] = path;
   if (section === "timer") {
-    return publicBreadcrumbs(path);
+    const trail = publicBreadcrumbs(path);
+    if (trail.length === 0) {
+      return trail;
+    }
+    return [HOME, ...trail];
   }
   if (path.length === 0) {
     return [{ label: HOME.label }];
@@ -117,7 +131,7 @@ async function headerBreadcrumbs(
     if (root === undefined) {
       return [];
     }
-    if (root === QUESTS) {
+    if (UNDER_HOME.has(root)) {
       return [HOME, { label: root.label }];
     }
     return [{ label: root.label }];
@@ -161,10 +175,7 @@ async function headerBreadcrumbs(
   if (name === undefined) {
     return [];
   }
-  if (root === QUESTS) {
-    return [HOME, root, { label: name }];
-  }
-  return [root, { label: name }];
+  return [HOME, root, { label: name }];
 }
 
 export { headerBreadcrumbs, publicBreadcrumbs };

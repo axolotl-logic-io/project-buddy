@@ -1,11 +1,8 @@
 import type { Route } from "next";
-import Link from "next/link";
 import type { JSX, ReactNode } from "react";
 import { z } from "zod";
 import type { User } from "@/accounts/users-store.ts";
-import { DayGrid } from "@/components/day-grid.tsx";
-import { ListItems } from "@/components/list-items.tsx";
-import { ListSettings } from "@/components/list-settings.tsx";
+import { ListPage } from "@/components/list-page.tsx";
 import { MessageComposer } from "@/components/performance-controls.tsx";
 import { PerformanceTranscript } from "@/components/performance-transcript.tsx";
 import { QuestFolio } from "@/components/quest-folio.tsx";
@@ -13,13 +10,7 @@ import { QuestMembers } from "@/components/quest-members.tsx";
 import { QuestPanel } from "@/components/quest-panel.tsx";
 import { QuestSharingMark } from "@/components/quest-sharing-mark.tsx";
 import { QuestSidePanel } from "@/components/quest-side-panel.tsx";
-import {
-  QuestStatusControls,
-  QuestStatusFeedback,
-} from "@/components/quest-status-controls.tsx";
-import { Button } from "@/components/ui/button.tsx";
 import { Notice } from "@/components/ui/form-message.tsx";
-import { Icon } from "@/components/ui/icon.tsx";
 import { getConstruct } from "@/constructs/index.ts";
 import type { QuestId } from "@/ids.ts";
 import { LIST_ID, type ListId } from "@/lists/list.ts";
@@ -32,16 +23,14 @@ import {
 import { listQuestPeople } from "@/quests/membership-store.ts";
 import { getQuest, type Quest } from "@/quests/store.ts";
 import { listRites } from "@/rites/rite-store.ts";
-import { readRecurringTasks, readTaskHistory } from "@/streaks/streak-store.ts";
+import { readTaskHistory } from "@/streaks/streak-store.ts";
 import type { TaskHistory } from "@/streaks/streaks.ts";
 import { readQuestTallies } from "@/tallies/tally-store.ts";
 import { PERFORMANCE_COPY } from "@/ui/copy/performances.ts";
-import { QUEST_MEMBERS_COPY } from "@/ui/copy/quest-members.ts";
 import { QUEST_OVERVIEW_COPY } from "@/ui/copy/quest-overview.ts";
-import { QUEST_SIDEBAR_COPY } from "@/ui/copy/quest-sidebar.ts";
 import { QUEST_STATUS_COPY } from "@/ui/copy/quest-status.ts";
 
-const SECTION = z.enum(["settings", "members", "days"]);
+const SECTION = z.enum(["members"]);
 type Section = z.infer<typeof SECTION>;
 
 function sectionPath(id: QuestId, section?: Section | ListId): Route {
@@ -145,15 +134,39 @@ async function questPage(
   ]);
   const listId = LIST_ID.safeParse(section).data;
   const list = lists.find(({ id }) => id === listId);
-  let contents: Awaited<ReturnType<typeof readListItems>> = [];
-  let tallies: Awaited<ReturnType<typeof readQuestTallies>>;
-  if (list !== undefined) {
-    contents = await readListItems(user, quest.id, list.id);
-  }
-  if (list?.type === "tally") {
-    tallies = await readQuestTallies(user, quest.id);
-  }
   const running = performances.find(({ endedAt }) => endedAt === null);
+  let listPage: JSX.Element | undefined;
+  if (list !== undefined) {
+    let talliesRead: ReturnType<typeof readQuestTallies> | undefined;
+    if (list.type === "tally") {
+      talliesRead = readQuestTallies(user, quest.id);
+    }
+    const [contents, nextTasks, rites, tallies] = await Promise.all([
+      readListItems(user, quest.id, list.id),
+      readNextTasks(user, quest.id, 1),
+      listRites(user),
+      talliesRead,
+    ]);
+    let listRitesShown: typeof rites | undefined = rites;
+    if (running !== undefined) {
+      listRitesShown = undefined;
+    }
+    listPage = (
+      <ListPage
+        key={list.id}
+        questId={quest.id}
+        quest={quest.name}
+        back={sectionPath(quest.id)}
+        list={list}
+        contents={contents}
+        destinations={lists.filter(({ id }) => id !== list.id)}
+        history={history}
+        tallies={tallies}
+        next={nextTasks[0]?.id}
+        rites={listRitesShown}
+      />
+    );
+  }
   const construct = getConstruct(quest.constructId);
   let runningContent: ReactNode;
   if (running !== undefined) {
@@ -164,11 +177,12 @@ async function questPage(
         <MessageComposer
           key={running.id}
           questId={quest.id}
-          performanceId={running.id}
+          performance={running}
           viewer={user}
           author={viewer.name ?? PERFORMANCE_COPY.unnamed}
           construct={construct}
           answered={entries.map(({ id }) => id)}
+          given={entries.flatMap(({ replyIndex }) => replyIndex ?? [])}
         >
           <PerformanceTranscript
             performance={running}
@@ -192,116 +206,29 @@ async function questPage(
       runningContent,
     });
   }
-  let settings: JSX.Element | undefined;
-  if (current === "settings") {
-    let membersLabel: string = QUEST_MEMBERS_COPY.heading;
-    if (people !== undefined) {
-      membersLabel = QUEST_OVERVIEW_COPY.members(1 + people.members.length);
-    }
-    settings = (
-      <section
-        aria-label={QUEST_OVERVIEW_COPY.settings}
-        className="quest-section-body"
-      >
-        <h2 className="quest-overview-title">{QUEST_OVERVIEW_COPY.settings}</h2>
-        <ul className="quest-settings-links">
-          <li>
-            <Link
-              href={sectionPath(quest.id, "members")}
-              className="quest-settings-link"
-            >
-              <span>{membersLabel}</span>
-              <Icon name="chevron-right" />
-            </Link>
-          </li>
-          <li>
-            <Link
-              href={sectionPath(quest.id, "days")}
-              className="quest-settings-link"
-            >
-              <span>{QUEST_SIDEBAR_COPY.dayGrid}</span>
-              <Icon name="chevron-right" />
-            </Link>
-          </li>
-        </ul>
-        {!quest.life && (
-          <>
-            <h3 className="font-heading font-semibold">
-              {QUEST_OVERVIEW_COPY.status}
-            </h3>
-            <QuestStatusControls quest={quest} />
-          </>
-        )}
-      </section>
-    );
-  }
-  let dayGrid: JSX.Element | undefined;
-  if (current === "days" && history !== undefined) {
-    dayGrid = (
-      <section aria-label={QUEST_SIDEBAR_COPY.dayGrid}>
-        <DayGrid
-          history={history}
-          tasks={await readRecurringTasks(user, quest.id)}
-        />
-      </section>
-    );
-  }
   return (
     <QuestSidePanel
       title={quest.name}
       labels={QUEST_OVERVIEW_COPY.panel}
-      panel={<QuestPanel questId={quest.id} />}
+      panel={
+        <QuestPanel quest={quest} people={1 + (people?.members.length ?? 0)} />
+      }
     >
       <div className="quest-workspace quest-overview">
-        <QuestStatusFeedback>
-          {overview}
-          {quest.status !== "active" && !onOverview && (
-            <Notice>{QUEST_STATUS_COPY.effects}</Notice>
-          )}
-          {list !== undefined && (
-            <section className="quest-section-body" aria-label={list.name}>
-              <Button asChild={true} variant="quiet">
-                <Link href={sectionPath(quest.id)}>
-                  <Icon name="arrow-left" />
-                  {QUEST_OVERVIEW_COPY.back}
-                </Link>
-              </Button>
-              <h2 className="quest-overview-title">{list.name}</h2>
-              <ListItems
-                key={list.id}
-                list={list}
-                questId={quest.id}
-                contents={contents}
-                history={history}
-                tallies={tallies}
-                destinations={lists.filter(({ id }) => id !== list.id)}
-              />
-              <ListSettings key={list.id} questId={quest.id} list={list} />
-            </section>
-          )}
-          {current === "settings" && (
-            <Button asChild={true} variant="quiet">
-              <Link href={sectionPath(quest.id)}>
-                <Icon name="arrow-left" />
-                {QUEST_OVERVIEW_COPY.back}
-              </Link>
-            </Button>
-          )}
-          {(current === "members" || current === "days") && (
-            <Button asChild={true} variant="quiet">
-              <Link href={sectionPath(quest.id, "settings")}>
-                <Icon name="arrow-left" />
-                {QUEST_OVERVIEW_COPY.backToSettings}
-              </Link>
-            </Button>
-          )}
-          {settings}
-          {current === "members" && people !== undefined && (
-            <QuestMembers viewer={user} people={people} quest={quest} />
-          )}
-          {dayGrid}
-          {!onOverview && runningContent}
-        </QuestStatusFeedback>
+        {overview}
+        {quest.status !== "active" && !onOverview && (
+          <Notice>{QUEST_STATUS_COPY.effects}</Notice>
+        )}
+        {listPage}
+        {current === "members" && people !== undefined && (
+          <QuestMembers
+            viewer={user}
+            people={people}
+            quest={quest}
+            back={sectionPath(quest.id)}
+          />
+        )}
+        {!onOverview && runningContent}
       </div>
     </QuestSidePanel>
   );

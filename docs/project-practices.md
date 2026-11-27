@@ -63,7 +63,7 @@ Never print a `.env*` file. Never copy a secret into code, docs, logs, issues or
 
 ## Product
 
-- **No requests to AI model companies.** A rite's reply is one of its fixed templates, filled in on the server.
+- **No requests to AI model companies.** A rite's reply is one of its fixed templates. The browser chooses and fills it so it shows at once; the server checks the choice against the rite's reply order and fills the saved copy.
 
 ## Site design
 
@@ -119,7 +119,7 @@ Changes to rites, constructs, reply templates or relevant user flows update the 
 - **Use cases drive tests.** Playwright e2e tests cover only the auth workflows: sign-up, sign-in, sign-out, the sign-in limits, and the signed-out access gate. Every other use case gets a Vitest test. A case that needs a real server or database gets a server test (`*.server.test.ts`) that calls the Server Action, route handler or store with real users and sessions from the kit in `test/support/test-database/`, which deletes them after the test. A case that needs only the UI gets a browser integration or feature-entrypoint test (`*.browser.test.tsx`). A test that needs the browser's time zone is `*.zoned.browser.test.tsx`, and one that needs a touch screen is `*.touch.browser.test.tsx`. [Tests](../README.md#tests) in the README lists the commands.
 - **Give each outcome one primary test.** Add another test when it exercises a distinct risk, such as browser focus, a database constraint, or a session in the built site. When two tests exercise the same outcome through the same entry point, retain the distinct assertions in one case.
 - **Check a regression test against the bug.** Run it with the bug present and confirm it fails for the expected reason. If a test repeatedly needs updates after changes that preserve its outcome, rewrite the assertion or delete it if another test already covers the outcome.
-- **Local replies:** every environment fills rite replies on the server. Tests use the real rites and inject only the particular storage or reply fault a test exercises.
+- **Local replies:** every environment chooses rite replies in the browser and checks and fills them on the server. Tests use the real rites and inject only the particular storage or reply fault a test exercises.
 - **The test database:** the orchestrator provides `.env.test` with its local database and `E2E_PORT` pinned to the checkout's lane; test commands consume it without allocating names or ports or tearing down lane resources. For manual work, run `npm run test-env:init` or copy `.env.test.example` by hand. Guards require localhost or 127.0.0.1, a safe database name and the file email outbox.
 - **Phone checks:** a new page gets an entry in `PHONE_PAGES` (`test/component-integration/app/phone-pages-test-kit.tsx`).
 - **Check what the user sees, not class names.** UI tests find elements by role, label or text and check what is shown or done, never a CSS class name such as `card` or `error-box`.

@@ -20,6 +20,7 @@ import {
   readLocalDraftSnapshot,
   subscribeToLocalDraft,
 } from "@/components/local-draft.ts";
+import { Markdown } from "@/components/markdown.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { TextAreaField } from "@/components/ui/field.tsx";
 import { Alert, FormStatus } from "@/components/ui/form-message.tsx";
@@ -30,11 +31,19 @@ import {
   sendMessageAction,
   stopPerformanceAction,
 } from "@/performances/performance-actions.ts";
-import type { PerformanceId } from "@/performances/performance-store.ts";
+import type { Performance } from "@/performances/performance-store.ts";
+import { answerMessage } from "@/performances/performance-turn.ts";
+import { REPLY_CHOICE } from "@/rites/rite.ts";
 import { SIGN_IN_PATH } from "@/routes.ts";
 import { PERFORMANCE_COPY } from "@/ui/copy/performances.ts";
 
-const REQUEST = z.object({ id: z.guid(), text: z.string() });
+// A message being sent, with the reply the rite gave it in this browser.
+const REQUEST = z.object({
+  id: z.guid(),
+  text: z.string(),
+  reply: REPLY_CHOICE.optional(),
+  answer: z.string(),
+});
 const DRAFT = z.object({ text: z.string(), request: REQUEST.optional() });
 type Draft = z.infer<typeof DRAFT>;
 type Request = z.infer<typeof REQUEST>;
@@ -43,23 +52,31 @@ function withoutDraft(): null {
   return null;
 }
 
+// The active performance's composer, under its transcript. The rite answers
+// each message here in the browser, so its reply shows at once, while the
+// server saves the message, its list item and the reply.
 function MessageComposer({
   questId,
-  performanceId,
+  performance,
   viewer,
   author,
   construct,
   answered,
+  given,
   children,
 }: {
   readonly questId: QuestId;
-  readonly performanceId: PerformanceId;
+  readonly performance: Performance;
   readonly viewer: UserId;
   readonly author: string;
   readonly construct: Construct;
+  // The ids of the messages saved in the performance.
   readonly answered: readonly string[];
+  // The replies the rite has given in the performance, by place, in order.
+  readonly given: readonly number[];
   readonly children: ReactNode;
 }): JSX.Element {
+  const performanceId = performance.id;
   const key = `performance:${viewer}:${performanceId}`;
   const root = usePerformanceScroll();
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -112,7 +129,9 @@ function MessageComposer({
         const result = await sendMessageAction({
           questId,
           performanceId,
-          ...next,
+          id: next.id,
+          text: next.text,
+          reply: next.reply,
         });
         if (result === undefined) {
           update({ text: latestRef.current.text });
@@ -155,9 +174,20 @@ function MessageComposer({
         return;
       }
       update({ text: "" });
-      await send({ text, id: crypto.randomUUID() });
+      const { reply, choice } = answerMessage(
+        performance,
+        given,
+        { text, author },
+        Math.random,
+      );
+      await send({
+        text,
+        id: crypto.randomUUID(),
+        reply: choice,
+        answer: reply,
+      });
     },
-    [performanceId, questId, send, update],
+    [author, given, performance, performanceId, questId, send, update],
   );
 
   const retry = useCallback(async (): Promise<void> => {
@@ -173,16 +203,8 @@ function MessageComposer({
         <div className="grid min-w-0 gap-2">
           <p className="font-semibold">{author}</p>
           <p className="wrap-anywhere whitespace-pre-wrap">{request.text}</p>
-          {busy === true && (
-            <div
-              className="performance-working flex items-center gap-2"
-              data-construct={construct.id}
-            >
-              <ConstructAvatar construct={construct} decorative={true} />
-              <span>{construct.name}</span>
-              <FormStatus>{PERFORMANCE_COPY.working}</FormStatus>
-            </div>
-          )}
+          <PendingReplyHead construct={construct} saving={busy} />
+          <Markdown text={request.answer} running={false} topHeadingLevel={3} />
         </div>
       )}
       <form className="performance-composer grid gap-2" onSubmit={act}>
@@ -230,6 +252,35 @@ function MessageComposer({
           </Alert>
         )}
       </form>
+    </div>
+  );
+}
+
+// The construct above a reply the server hasn't saved yet: its portrait
+// moves, and the text beside it says so, only while the reply is saving.
+function PendingReplyHead({
+  construct,
+  saving,
+}: {
+  readonly construct: Construct;
+  readonly saving: boolean;
+}): JSX.Element {
+  if (!saving) {
+    return (
+      <div className="flex items-center gap-2">
+        <ConstructAvatar construct={construct} />
+        <p className="font-semibold">{construct.name}</p>
+      </div>
+    );
+  }
+  return (
+    <div
+      className="performance-working flex items-center gap-2"
+      data-construct={construct.id}
+    >
+      <ConstructAvatar construct={construct} decorative={true} />
+      <span className="font-semibold">{construct.name}</span>
+      <FormStatus>{PERFORMANCE_COPY.working}</FormStatus>
     </div>
   );
 }

@@ -60,7 +60,7 @@ function QuestSidePanel({
   const wide = useWideScreen();
   const [expanded, setExpanded] = useState<boolean | undefined>();
   // On a narrow screen the panel covers the page, so following one of its
-  // links, such as Quest settings, closes it to show where the link went.
+  // links, such as Members, closes it to show where the link went.
   const pathname = usePathname();
   const search = useSearchParams();
   const location = `${pathname}?${search}`;

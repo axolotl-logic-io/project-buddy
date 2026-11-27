@@ -122,7 +122,7 @@ describe("use_case_tally_lists", () => {
     });
     await expect.element(field).toHaveFocus();
     await field.fill("-2.75");
-    await page.getByRole("button", { name: TALLIES_COPY.add }).click();
+    await card(WORDS).getByRole("button", { name: TALLIES_COPY.add }).click();
 
     await expect
       .poll(() => vi.mocked(incrementTallyAction).mock.calls)
@@ -176,7 +176,7 @@ describe("use_case_tally_lists", () => {
       name: TALLIES_COPY.incrementBy(WORDS),
     });
     await field.fill("1.1234567");
-    await page.getByRole("button", { name: TALLIES_COPY.add }).click();
+    await card(WORDS).getByRole("button", { name: TALLIES_COPY.add }).click();
 
     await expect
       .element(page.getByText(TALLIES_COPY.problems["invalid-amount"]))

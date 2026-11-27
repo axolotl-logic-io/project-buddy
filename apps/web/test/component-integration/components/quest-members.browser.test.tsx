@@ -93,6 +93,7 @@ function members(viewer = OWNER.id): JSX.Element {
       viewer={viewer}
       people={PEOPLE}
       quest={{ id: QUEST_ID, name: "Fox quest" }}
+      back={`/quests/${QUEST_ID}`}
     />
   );
 }
@@ -428,27 +429,40 @@ describe("member management inside a drawer", () => {
   });
 });
 
+// A seal's width, the least a name sits from its row's start, and the most
+// a row's control sits from its end.
+const SEAL_WIDTH = 32;
+const ROW_INSET = 16;
+
 describe("Members rows", () => {
   for (const viewport of [
     SMALL_PHONE_VIEWPORT,
     TABLET_VIEWPORT,
     LAPTOP_VIEWPORT,
   ]) {
-    test(`start names at the list's edge with the control at the row's end at ${viewport.width} px`, async () => {
+    test(`keep each name beside its seal, with the control at the row's end, at ${viewport.width} px`, async () => {
       await setViewport(viewport);
+      applyTheme("parchment");
       await render(members());
-      const list = page
+      const row = page
         .getByRole("list", { name: QUEST_MEMBERS_COPY.listLabel })
+        .getByRole("listitem")
+        .filter({ hasText: "Rae" })
         .element()
         .getBoundingClientRect();
-      const name = page.getByText("Rae", { exact: true }).element();
-      const nameBox = name.getBoundingClientRect();
+      const nameBox = page
+        .getByText("Rae", { exact: true })
+        .element()
+        .getBoundingClientRect();
       const removeBox = page
         .getByRole("button", { name: QUEST_MEMBERS_COPY.removeLabel("Rae") })
         .element()
         .getBoundingClientRect();
-      expect(nameBox.left).toBe(list.left);
-      expect(Math.round(removeBox.right)).toBe(Math.round(list.right));
+      // The seal sits between the row's start and the name.
+      expect(nameBox.left - row.left).toBeGreaterThan(SEAL_WIDTH);
+      expect(removeBox.left).toBeGreaterThan(nameBox.right);
+      expect(row.right - removeBox.right).toBeGreaterThanOrEqual(0);
+      expect(row.right - removeBox.right).toBeLessThanOrEqual(ROW_INSET);
       expect(removeBox.top).toBeLessThan(nameBox.bottom);
     });
   }

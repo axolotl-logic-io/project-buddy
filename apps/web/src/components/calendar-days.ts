@@ -1,4 +1,4 @@
-// The days, weeks and months Home's tables, the Day grid and a tally's card
+// The days, weeks and months Home's tables and a tally's card
 // show: their weekdays, days of the month, months and names.
 import type { Cadence, LocalDate } from "@/streaks/streaks.ts";
 import { CADENCE_COPY } from "@/ui/copy/cadence.ts";

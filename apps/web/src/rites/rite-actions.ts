@@ -6,7 +6,7 @@ import { z } from "zod";
 import { requireUser } from "@/auth/current-user.ts";
 import { GRIMOIRE_COPY } from "@/ui/copy/grimoire.ts";
 import { forgottenTabHref } from "./forgotten-tab.ts";
-import { MAX_RITE_NAME, RITE_DEFINITION } from "./rite.ts";
+import { checkFinalReply, MAX_RITE_NAME, RITE_FIELDS } from "./rite.ts";
 import {
   changeRiteAvailability,
   OWN_RITE_ID,
@@ -17,13 +17,15 @@ import {
 type RiteSave =
   | {
       readonly kind: "invalid";
-      readonly field: "name" | "firstMessage" | "replies";
+      readonly field: "name" | "firstMessage" | "replies" | "finalReply";
       readonly message: string;
     }
   | { readonly kind: "unavailable" }
   | { readonly kind: "saved"; readonly id: string };
 
-const SAVE = RITE_DEFINITION.extend({ id: OWN_RITE_ID.optional() });
+const SAVE = RITE_FIELDS.extend({ id: OWN_RITE_ID.optional() }).superRefine(
+  checkFinalReply,
+);
 
 async function saveRiteAction(request: unknown): Promise<RiteSave> {
   const user = await requireUser();
@@ -51,6 +53,13 @@ async function saveRiteAction(request: unknown): Promise<RiteSave> {
         message: GRIMOIRE_COPY.invalidReplies,
       };
     }
+    if (issue?.path[0] === "finalReply") {
+      return {
+        kind: "invalid",
+        field: "finalReply",
+        message: GRIMOIRE_COPY.invalidFinalReply,
+      };
+    }
     return { kind: "unavailable" };
   }
   const { id, ...definition } = parsed.data;
@@ -76,6 +85,9 @@ async function copyRiteAction(form: FormData): Promise<void> {
     name: GRIMOIRE_COPY.copyName(source.name).slice(0, MAX_RITE_NAME),
     firstMessage: source.firstMessage,
     replies: source.replies,
+    order: source.order,
+    loop: source.loop,
+    finalReply: source.finalReply,
   });
   if (copied === undefined) {
     notFound();

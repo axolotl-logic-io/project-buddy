@@ -113,7 +113,7 @@ The user changes the time zone whose midnight starts a new day in their quests.
 
 - **Prerequisites:** `use_case_sign_in_by_link`.
 - **Steps:** on Settings, under Time zone, the user chooses a time zone, such as America/Chicago, and chooses Save time zone.
-- **Outcome:** the page says the time zone is saved, and Settings shows it after a reload. From then on, a new day in each quest they own starts at midnight in that time zone, for every member: recurring tasks read as unchecked again at the start of their day, week or month, and streaks and Day grid count periods there ([`use_case_recurring_tasks`](tasks.md#use_case_recurring_tasks)). Another user's time zone is never changed.
+- **Outcome:** the page says the time zone is saved, and Settings shows it after a reload. From then on, a new day in each quest they own starts at midnight in that time zone, for every member: recurring tasks read as unchecked again at the start of their day, week or month, and streaks count periods there ([`use_case_recurring_tasks`](tasks.md#use_case_recurring_tasks)). Another user's time zone is never changed.
 - **Variations:**
   - A time zone the site doesn't know is refused: the field says to choose one from the list, and the saved time zone stays.
   - An account made before time zones has UTC until the user changes it.

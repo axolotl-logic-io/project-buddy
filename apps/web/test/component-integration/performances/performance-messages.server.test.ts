@@ -22,7 +22,12 @@ import {
 } from "@/performances/performance-store.ts";
 import { QUEST_NAME } from "@/quests/quest-name.ts";
 import { createQuest, getQuest, type Quest } from "@/quests/store.ts";
-import { riteReply } from "@/rites/rite.ts";
+import {
+  type ReplyChoice,
+  type RiteDefinition,
+  riteReply,
+} from "@/rites/rite.ts";
+import { saveRite } from "@/rites/rite-store.ts";
 import { LISTS_COPY } from "@/ui/copy/lists.ts";
 import { PERFORMANCE_COPY } from "@/ui/copy/performances.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
@@ -43,6 +48,7 @@ interface SendMessageRequest {
   readonly performanceId: PerformanceId;
   readonly id: string;
   readonly text: string;
+  readonly reply?: ReplyChoice;
 }
 
 // A signed-in user with a Brainstorm performance active on the quest's
@@ -262,4 +268,86 @@ test("use_case_session_expired_in_performance", async () => {
   await signIn(user);
   expect(await readPerformanceMessages(user.id, performance.id)).toEqual([]);
   expect(await listItemTexts(setup)).toEqual([]);
+});
+
+// A signed-in user performing their own rite on the quest's first list.
+async function performingOwn(
+  definition: Omit<RiteDefinition, "name" | "firstMessage">,
+): Promise<Performing> {
+  const user = await testUser();
+  const quest = await createQuest(user.id, QUEST_NAME.parse("Workshop"));
+  await signIn(user);
+  const [list] = await readLists(user.id, quest.id);
+  const rite = await saveRite(user.id, {
+    ...definition,
+    name: "Plan",
+    firstMessage: "Plan begins.",
+  });
+  if (list === undefined || rite === undefined) {
+    throw new Error("The performance could not be prepared");
+  }
+  await startPerformanceAction({
+    questId: quest.id,
+    listId: list.id,
+    riteId: rite.id,
+  });
+  const [performance] = await listPerformances(user.id, quest.id);
+  if (performance === undefined) {
+    throw new Error("The performance was not started");
+  }
+  return { user, quest, list, performance };
+}
+
+test("use_case_reply_order: the browser's choice of reply is saved", async () => {
+  const setup = await performingOwn({
+    replies: ["First {text}", "Second {text}"],
+    order: "random",
+    loop: true,
+    finalReply: "",
+  });
+
+  expect(
+    await sendMessageAction({
+      ...request(setup, "idea"),
+      reply: { kind: "reply", index: 1 },
+    }),
+  ).toBeUndefined();
+
+  expect(
+    await readPerformanceMessages(setup.user.id, setup.performance.id),
+  ).toMatchObject([{ reply: "Second idea", replyIndex: 1 }]);
+});
+
+test("use_case_conclude_rite", async () => {
+  const setup = await performingOwn({
+    replies: ["First", "Second"],
+    order: "ordered",
+    loop: false,
+    finalReply: "That is {list} done.",
+  });
+  const { user, quest, list, performance } = setup;
+
+  const sent = ["One", "Two", "Three"];
+  expect(await sendMessageAction(request(setup, "One"))).toBeUndefined();
+  expect(await sendMessageAction(request(setup, "Two"))).toBeUndefined();
+  expect(await sendMessageAction(request(setup, "Three"))).toBeUndefined();
+
+  expect(await readPerformanceMessages(user.id, performance.id)).toMatchObject([
+    { reply: "First", replyIndex: 0 },
+    { reply: "Second", replyIndex: 1 },
+    { reply: `That is ${list.name} done.`, replyIndex: null },
+  ]);
+  const [ended] = await listPerformances(user.id, quest.id);
+  expect(ended?.endedAt).not.toBeNull();
+  expect(ended?.closing).toBe(
+    PERFORMANCE_COPY.closing(
+      "Plan",
+      sent.length,
+      LISTS_COPY.nouns(list.type).many,
+    ),
+  );
+  expect(await sendMessageAction(request(setup, "Four"))).toBe(
+    PERFORMANCE_COPY.required,
+  );
+  expect(await listItemTexts(setup)).toEqual(sent);
 });

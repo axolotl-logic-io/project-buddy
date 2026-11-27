@@ -24,9 +24,9 @@ The user sends a message and gets the rite's reply.
 - **Steps:**
   - The user types a message and sends it.
   - Their message appears in the performance at once, under their name.
-  - The performance shows that a reply is coming, then the rite's reply appears with the construct's name and portrait.
-  - The user cannot send another message until the reply has finished. Their next text stays in the box until they can send it.
-- **Outcome:** the list has one new list item holding the message's text, with the list's type. The message and its reply are in the performance, in that order, and both are still there after the user reloads the page. The reply is one of the rite's replies, picked at random, and can prompt the user with a brainstorming or planning cue. An empty message, or one of only spaces, cannot be sent.
+  - The rite's reply appears at once, with the construct's name and portrait, while the performance shows that the message is saving.
+  - The user cannot send another message until the message is saved. Their next text stays in the box until they can send it.
+- **Outcome:** the list has one new list item holding the message's text, with the list's type. The message and its reply are in the performance, in that order, and both are still there after the user reloads the page. The reply is one of the rite's replies, chosen in the rite's reply order ([`use_case_reply_order`](grimoire.md#use_case_reply_order)), and can prompt the user with a brainstorming or planning cue. If another member's message came first and changed which replies are due, the saved reply replaces the one shown. When a rite that concludes has given all its replies, the next message gets its final reply and ends the performance ([`use_case_conclude_rite`](grimoire.md#use_case_conclude_rite)). An empty message, or one of only spaces, cannot be sent.
 - **Variations:**
   - A message the list can't hold, such as one over its length limit, adds nothing. Instead of a reply, the site answers with a note that names the list's items, such as "Use 1 to 200 characters for each item."
 - **Next:**

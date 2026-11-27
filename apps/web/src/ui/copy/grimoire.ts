@@ -11,7 +11,34 @@ const GRIMOIRE_COPY = {
   firstMessageHint:
     "The rite says this when a performance begins. It can use {rite} and {list}.",
   replies: "Replies",
-  hint: "The rite answers each message with one of these, picked at random.",
+  // What the reply list's hint says the rite does with it, by reply order.
+  repliesHint: {
+    ordered:
+      "The rite answers each message with the next of these, from the top.",
+    random:
+      "The rite answers each message with one of these, picked at random, so a reply can come again soon.",
+    "random-no-repeats":
+      "The rite answers each message with one of these, picked at random, and gives every one before it repeats any.",
+  },
+  order: "Reply order",
+  orders: {
+    ordered: "In order",
+    random: "Random, with repeats",
+    "random-no-repeats": "Random, without repeats",
+  },
+  ending: "After the last reply",
+  endings: {
+    loop: "Loop: start the replies again",
+    conclude: "Conclude with a final reply",
+  },
+  // What a rite does after its last reply, said in its page's header.
+  endingFacts: {
+    loop: "Loops",
+    conclude: "Concludes",
+  },
+  finalReply: "Final reply",
+  finalReplyHint:
+    "The rite answers the message after its last reply with this, and the performance ends. It can use every placeholder.",
   save: "Save rite",
   saved: "Rite saved.",
   cancel: "Cancel",
@@ -73,6 +100,8 @@ const GRIMOIRE_COPY = {
   invalidFirstMessage: "Enter a first message of up to 5000 characters.",
   invalidReplies:
     "Enter at least one reply. Use up to 50 replies of 5000 characters each.",
+  invalidFinalReply:
+    "Enter a final reply of up to 5000 characters, or choose to loop.",
   filters: {
     all: "All",
     "built-in": "Built-in",

@@ -489,6 +489,29 @@ function TextEditor({
   );
 }
 
+// An item's text with the first place it holds match, ignoring case,
+// marked.
+function Marked({
+  text,
+  match,
+}: {
+  readonly text: string;
+  readonly match: string;
+}): JSX.Element {
+  const at = text.toLocaleLowerCase().indexOf(match.toLocaleLowerCase());
+  if (match === "" || at < 0) {
+    return <span>{text}</span>;
+  }
+  const end = at + match.length;
+  return (
+    <span>
+      {text.slice(0, at)}
+      <mark className="editable-match">{text.slice(at, end)}</mark>
+      {text.slice(end)}
+    </span>
+  );
+}
+
 function EditableListRow({
   id,
   text,
@@ -506,6 +529,7 @@ function EditableListRow({
   detail,
   leading,
   split,
+  match = "",
 }: {
   readonly id: string;
   readonly text: string;
@@ -530,6 +554,8 @@ function EditableListRow({
   // A Split action at the top of the menu, which opens a dialog that
   // replaces the item with parts.
   readonly split?: SplitOptions | undefined;
+  // Text being searched for, marked where the item's text holds it.
+  readonly match?: string;
 }): JSX.Element {
   const sort = useContext(SortContext);
   const [editing, setEditing] = useState(false);
@@ -640,7 +666,7 @@ function EditableListRow({
           onClick={startEditing}
           disabled={disabled || checked === true}
         >
-          {text}
+          <Marked text={text} match={match} />
         </Button>
       )}
       <span className="editable-actions">
@@ -790,6 +816,19 @@ function AddListItem({
   );
 }
 
+// A heading in a row's menu, over the choices after it.
+function EditableListMenuLabel({
+  children,
+}: {
+  readonly children: ReactNode;
+}): JSX.Element {
+  return (
+    <DropdownMenu.Label className="editable-menu-label">
+      {children}
+    </DropdownMenu.Label>
+  );
+}
+
 function EditableListAction({
   children,
   icon,
@@ -798,7 +837,7 @@ function EditableListAction({
   label,
 }: {
   readonly children: ReactNode;
-  readonly icon: "trash" | "checklist" | "repeat";
+  readonly icon: "trash" | "checklist" | "repeat" | "chevron-right";
   readonly onSelect: () => Promise<void>;
   readonly disabled?: boolean;
   readonly label?: string;
@@ -820,6 +859,7 @@ export {
   AddListItem,
   EditableList,
   EditableListAction,
+  EditableListMenuLabel,
   EditableListRow,
   EditableListScope,
   NewListItem,

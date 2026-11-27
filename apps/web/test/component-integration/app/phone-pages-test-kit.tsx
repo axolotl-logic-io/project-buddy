@@ -31,7 +31,10 @@ import CreditsPage from "@/app/credits/page.tsx";
 import SignInLinkPage from "@/app/login/link/page.tsx";
 import LoginPage from "@/app/login/page.tsx";
 import SignUpPage from "@/app/signup/page.tsx";
-
+import {
+  listQuestPeople,
+  type QuestPeople,
+} from "@/quests/membership-store.ts";
 import { readLife, readQuestEntries } from "@/quests/quest-index-store.ts";
 import { getQuest, listQuests } from "@/quests/store.ts";
 import { BUILT_IN_RITES, type Rite } from "@/rites/rite.ts";
@@ -43,12 +46,12 @@ import { QUEST_OVERVIEW_COPY } from "@/ui/copy/quest-overview.ts";
 import { NEW_QUEST_COPY, QUEST_COPY, QUESTS_COPY } from "@/ui/copy/quests.ts";
 
 import { TIMER_COPY } from "@/ui/copy/timer.ts";
+import { userIdFixture } from "../../support/id-fixtures.ts";
 import {
   SIGNED_IN_USER,
   signInAs,
   signOut,
 } from "../auth/current-user-test-kit.ts";
-
 import { mockQuestOverview, TASKS } from "../quests/quest-overview-fixtures.ts";
 import { STREAK_QUEST } from "../streaks/streak-quest-fixtures.ts";
 import { inWorkspace } from "./workspace-test-kit.tsx";
@@ -78,6 +81,24 @@ const LONG_QUEST_NAME = "Unbroken".repeat(LONG_QUEST_NAME_REPEATS);
 const LINK_TOKEN = "Ab3_-Ab3_-Ab3_-Ab3_-Ab3_-Ab3_-Ab3_-Ab3_-Ab3";
 const NO_PARAMS: Promise<Record<string, never>> = Promise.resolve({});
 const QUEST_PARAMS = Promise.resolve({ questId: FOX_QUEST.id });
+// The quest's people, with a member and an invitation whose names run long.
+const QUEST_PEOPLE: QuestPeople = {
+  owner: { id: SIGNED_IN_USER.id, displayName: "Morgan" },
+  members: [
+    {
+      id: userIdFixture(),
+      displayName: "Raewyn".repeat(LONG_QUEST_NAME_REPEATS),
+      joinedAt: new Date("2026-11-01T09:00:00Z"),
+    },
+  ],
+  invited: [
+    {
+      id: userIdFixture(),
+      displayName: "ash@example.test",
+      invitedAt: new Date("2026-11-02T09:00:00Z"),
+    },
+  ],
+};
 const QUESTS_PATH = ["quests"] as const;
 const QUEST_PATH = ["quests", FOX_QUEST.id] as const;
 
@@ -110,6 +131,9 @@ const OWN_RITE: Rite = {
   source: "own",
   firstMessage: "Write three pages for {list} before anything else.",
   replies: ["Keep going, {user}.", "Added “{text}” to {list}."],
+  order: "random",
+  loop: true,
+  finalReply: "",
   updatedAt: new Date("2026-11-20T12:00:00Z"),
 };
 
@@ -195,6 +219,7 @@ function questPageFor(section = "overview"): () => Promise<JSX.Element> {
         name: LONG_QUEST_NAME,
       });
       vi.mocked(listQuests).mockResolvedValue([FOX_QUEST]);
+      vi.mocked(listQuestPeople).mockResolvedValue(QUEST_PEOPLE);
       mockQuestOverview();
     },
     async () => (
@@ -357,14 +382,9 @@ const PHONE_PAGES: readonly PhonePage[] = [
     },
   },
   {
-    name: "a quest's settings",
+    name: "a quest's Members",
     path: QUEST_PATH,
-    render: questPageFor("settings"),
-  },
-  {
-    name: "a quest's Day grid",
-    path: QUEST_PATH,
-    render: questPageFor("days"),
+    render: questPageFor("members"),
   },
   {
     name: "a quest with its title editor open",

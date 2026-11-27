@@ -25,6 +25,9 @@ test("use_case_set_name", async () => {
     name: "Named replies",
     firstMessage: "Ready when you are.",
     replies: ["Hi {user}"],
+    order: "random",
+    loop: true,
+    finalReply: "",
   });
   const [list] = await readLists(user.id, quest.id);
   if (rite === undefined || list === undefined) {

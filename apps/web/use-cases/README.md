@@ -15,7 +15,7 @@ A case written before its test is listed in `test/component-integration/use-case
 - **Signing in** is by a link the site emails them. There are no passwords.
 - **Invitations:** anyone in a quest can invite an address; one with no account gets an invited account at once, which completes sign-up the first time its user continues from an emailed link with a name ([Quest members](quest-members.md)).
 - **Private data:** each user's quests, with their lists and performances, are open to them and the members they invite alone ([`use_case_private_data`](accounts.md#use_case_private_data), [`use_case_quest_member_access`](quest-members.md#use_case_quest_member_access)). A quest not open to them looks exactly like one that doesn't exist.
-- **Local replies:** each reply is picked from the rite's reply list, without requests to model companies.
+- **Local replies:** each reply is chosen from the rite's reply list in its reply order, without requests to model companies.
 
 ## Conventions
 

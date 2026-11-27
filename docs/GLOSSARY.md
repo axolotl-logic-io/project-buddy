@@ -10,7 +10,7 @@ A workspace for something the user wants to learn, make or do, or for their dail
 
 ### Quest panel
 
-The panel beside a quest's pages: **Quest settings**, with the quest's members, Day grid and status, above the Timer. It docks on wide screens and opens as a drawer on phones. [Open quest use case](../apps/web/use-cases/quests.md#use_case_open_quest), [Quest settings use case](../apps/web/use-cases/quests.md#use_case_quest_settings)
+The panel beside a quest's pages: a link to the quest's **Members**, the quest's status controls, and the Timer. It docks on wide screens and opens as a drawer on phones. [Open quest use case](../apps/web/use-cases/quests.md#use_case_open_quest), [Quest panel use case](../apps/web/use-cases/quests.md#use_case_quest_panel)
 
 ### Life
 
@@ -76,7 +76,11 @@ The panel, open from any page, that adds a list item to a list of an Active ques
 
 ### Add box
 
-The field under a quest's name on its Overview that adds list items to whichever of the quest's lists is chosen under it, one after another, or names a new task list. Unlike Quick Add, it adds only to the quest that is open. [Open quest use case](../apps/web/use-cases/quests.md#use_case_open_quest)
+The field under a quest's name on its Overview that searches the quest's lists and adds list items to whichever of them is chosen under it, one after another, or names a new task list. It works as the search box on a List page does. Unlike Quick Add, it adds only to the quest that is open. [Open quest use case](../apps/web/use-cases/quests.md#use_case_open_quest)
+
+### List page
+
+The page for one of a quest's lists, open from its section on Overview. Its **search box** narrows the list to the list items that contain what the user types, and Enter adds that text as a new list item unless the list already has it. The gear beside the list's name shows its settings. [Quest lists use case](../apps/web/use-cases/lists.md#use_case_quest_lists)
 
 ## Days and streaks
 
@@ -94,17 +98,17 @@ A task marked to do again in every period of its **cadence**: daily, weekly or m
 
 ### Streak
 
-A run of consecutive periods of a recurring task's cadence (days, weeks or months) in each of which someone checked it off. A period without a check-off breaks the run. **Day grid** shows each recurring task's marks for up to seven recent periods, grouped by cadence. [Daily streak use case](../apps/web/use-cases/tasks.md#use_case_daily_streaks)
+A run of consecutive periods of a recurring task's cadence (days, weeks or months) in each of which someone checked it off. A period without a check-off breaks the run. [Daily streak use case](../apps/web/use-cases/tasks.md#use_case_daily_streaks)
 
 ### Home
 
-The signed-in landing page at the site's root, above Quests in the breadcrumbs. It shows links to Quests, the Grimoire and the Timer, then the user's experience, then **Streaks**: a grid for each cadence, Every day, Every week and Every month, with every recurring task of that cadence in the Active quests open to them over its last seven periods, which they can check off in place in any of those periods since the task was added. Then **Tallies**: every tally of those quests with its day totals over the same dates, each of which they can change, and an Increment for today. Then **Tasks**: every open one-off task of those quests, which they can check off in place; a checked-off task leaves Tasks, and Undo brings it back. [Home streaks use case](../apps/web/use-cases/home.md#use_case_home_streaks), [Home tallies use case](../apps/web/use-cases/home.md#use_case_home_tallies), [Home tasks use case](../apps/web/use-cases/home.md#use_case_home_tasks)
+The signed-in landing page at the site's root, above Quests, the Grimoire and the Timer in the breadcrumbs. It shows links to Quests, the Grimoire and the Timer, then the user's experience, then **Streaks**: a grid for each cadence, Every day, Every week and Every month, with every recurring task of that cadence in the Active quests open to them over its last seven periods, which they can check off in place in any of those periods since the task was added. Then **Tallies**: every tally of those quests with its day totals over the same dates, each of which they can change, and an Increment for today. Then **Tasks**: every open one-off task of those quests, which they can check off in place; a checked-off task leaves Tasks, and Undo brings it back. [Home streaks use case](../apps/web/use-cases/home.md#use_case_home_streaks), [Home tallies use case](../apps/web/use-cases/home.md#use_case_home_tallies), [Home tasks use case](../apps/web/use-cases/home.md#use_case_home_tasks)
 
 ## Rites and performances
 
 ### Rite
 
-A named way to add list items to a list and reply to the user. A **rite definition** supplies the name, a first message and a list of replies. The site writes the messages for stopping a performance, and for a message the list can't hold, from the rite's name and the list's type. The built-in rites are **Capture**, which confirms each message, and **Brainstorm**, which replies with brainstorming cues. Either can be performed on any list. [Customize rite use case](../apps/web/use-cases/grimoire.md#use_case_customize_rite)
+A named way to add list items to a list and reply to the user. A **rite definition** supplies the name, a first message, a list of replies and a **reply order**. The order is **in order**, **random, with repeats** or **random, without repeats**. Without repeats, the rite uses each reply once before it uses any again. A rite either **loops**, starting its replies again after the last, or **concludes** with a **final reply** that ends the performance. The site writes the messages for stopping a performance, and for a message the list can't hold, from the rite's name and the list's type. The built-in rites are **Capture**, which confirms each message, and **Brainstorm**, which replies with brainstorming cues without repeats. Both loop. Either can be performed on any list. [Customize rite use case](../apps/web/use-cases/grimoire.md#use_case_customize_rite)
 
 ### First message
 
@@ -112,7 +116,7 @@ The rite's opening line in a performance, shown before anyone sends a message. I
 
 ### Reply
 
-The rite's answer to a message in a performance, picked at random from the rite's reply list. A reply can prompt the user with a brainstorming or planning cue that helps them think of more, based on their goals or what they just wrote. Replies can use the rite's name, the list's name, the message's text and its author's name.
+The rite's answer to a message in a performance, chosen from the rite's reply list in the rite's reply order. The browser chooses and shows the reply at once. The server checks that the rite could give that reply, and chooses again if not. A reply can prompt the user with a brainstorming or planning cue that helps them think of more, based on their goals or what they just wrote. Replies can use the rite's name, the list's name, the message's text and its author's name.
 
 ### Performance
 

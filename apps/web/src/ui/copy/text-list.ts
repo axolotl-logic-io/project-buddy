@@ -6,6 +6,9 @@ const TEXT_LIST_COPY = {
   edit: "Edit reply",
   remove: "Remove reply",
   actions: (text: string): string => `Actions for “${text}”`,
+  // The marks before a reply: its place, when the order matters, or a bullet.
+  number: (place: number): string => `${place}.`,
+  bullet: "•",
   invalid: (max: number): string =>
     `Use 1 to ${max} characters for each reply.`,
 };

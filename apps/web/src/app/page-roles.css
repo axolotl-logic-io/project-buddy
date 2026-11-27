@@ -482,26 +482,6 @@
     }
   }
 
-  /* A list whose items are rows divided by rules rather than cards, as the
-     Quests index lists its quests, with Quick Add,
-     and other lists of records. Inside
-     a framed workspace, a card for each item would stack a second layer of
-     borders. */
-  .divided-rows {
-    @apply flex min-w-0 flex-col;
-  }
-
-  .divided-rows > li {
-    @apply flex min-w-0 flex-col gap-2 border-line border-b py-4 first:pt-0 last:border-b-0 last:pb-0;
-  }
-
-  /* A divided row with a control at its end: the text starts at the
-     list's edge and the control sits beside it, wrapping beneath it only
-     when the row runs out of room. */
-  .divided-rows > .divided-row-action {
-    @apply flex-row flex-wrap items-center justify-between gap-x-3;
-  }
-
   /* A shape that stands in for content while it loads: an empty card, in
      the theme's surface and a fainter line. */
   .skeleton {
@@ -1224,6 +1204,13 @@
     @apply flex min-w-0 items-center gap-3;
   }
 
+  /* Life's name, which opens it like Open does. */
+  /* Life's name, a link at least 24 px tall, as a touch target must be. */
+  .life-pin-name {
+    min-block-size: 1.5rem;
+    @apply inline-flex items-center hover:text-primary;
+  }
+
   /* The suggested task, under Life's name. */
   .life-pin-suggestion {
     @apply flex min-w-0 flex-wrap items-center gap-x-2.5 rounded-control border border-line/45 bg-field/85 py-0 ps-2.5 pe-3 text-sm sm:ms-11.5;
@@ -1563,6 +1550,20 @@
   .rite-replies li::before {
     content: counter(reply);
     @apply min-w-5 shrink-0 font-heading font-bold text-muted tabular-nums;
+  }
+
+  /* A rite that picks its replies at random bullets them instead. */
+  .rite-replies-bulleted li::before {
+    content: "•";
+  }
+
+  /* A reply's number or bullet in the rite editor's reply list. */
+  .text-list-marker {
+    @apply min-w-5 py-2.5 font-heading font-bold text-muted tabular-nums;
+  }
+
+  .editable-row:has(> .editable-leading > .text-list-marker) {
+    @apply grid-cols-[auto_minmax(0,1fr)_auto] gap-x-2;
   }
 
   /* What each placeholder stands for, beside the messages that use them. */
@@ -2054,34 +2055,6 @@
   .editable-form .button-quiet {
     min-inline-size: var(--target-size);
     @apply shrink-0 justify-center text-muted hover:text-foreground hover:no-underline;
-  }
-
-  .day-grid {
-    @apply flex flex-col gap-3;
-  }
-
-  .day-grid-days {
-    @apply flex flex-wrap gap-1;
-  }
-
-  .day-grid-day {
-    @apply flex w-7 flex-col items-center gap-0.5 text-muted text-xs;
-  }
-
-  .day-grid-square {
-    @apply size-6 rounded-control border-2 border-muted;
-  }
-
-  .day-grid-day[data-mark="done"] .day-grid-square {
-    @apply border-primary bg-primary;
-  }
-
-  .day-grid-day[data-mark="pending"] .day-grid-square {
-    @apply border-primary;
-  }
-
-  .day-grid-day[data-mark="untracked"] .day-grid-square {
-    @apply border-line;
   }
 
   /* The ribbon at the top of Home: its links to Quests, the Grimoire and
@@ -2594,16 +2567,14 @@
     @apply flex min-w-0 flex-wrap items-start;
   }
 
+  /* The editor takes the text's place, so the actions stay at the row's
+     end while the user edits. */
   .editable-row > .editable-form {
-    @apply col-start-1 -col-end-1;
+    @apply col-start-1;
   }
 
   .editable-row:has(.task-check) > .editable-form {
     @apply col-start-2;
-  }
-
-  .editable-row:has(.editable-form) > .editable-actions {
-    @apply col-start-1 -col-end-1 justify-start;
   }
 
   .editable-form .error-text {
@@ -2698,7 +2669,7 @@
   .add-box-field {
     min-block-size: var(--target-size);
     border-block-end: var(--rule-width) solid var(--line);
-    @apply w-full min-w-0 bg-transparent px-1 text-lg text-foreground outline-none placeholder:text-muted placeholder:italic;
+    @apply w-full min-w-0 bg-transparent px-1 text-base text-foreground outline-none placeholder:text-muted placeholder:italic sm:text-lg;
   }
 
   .add-box-field:focus-visible {
@@ -2778,7 +2749,7 @@
 
   /* A list's section on the overview: a small-capital heading with its
      size, linked to the whole list, a rule, Add and the rite candle, then
-     its first items, its editor and a link to the rest. */
+     its editor, its first items and a link to the rest. */
   .list-section {
     @apply flex min-w-0 flex-col;
   }
@@ -2853,10 +2824,94 @@
     @apply border-line/30 border-t;
   }
 
-  /* The editor under a section's items: a field, Add and Done, with its
+  /* A list's own page, in the page's frame: a link back to its quest, its
+     name with its size, the rite candle and the settings button, then the
+     add box, which searches the list too, its open items and Done. */
+  .list-page-top {
+    @apply flex min-w-0 flex-col;
+  }
+
+  .list-page-back {
+    min-block-size: var(--target-size);
+    @apply -ms-2.5 -mt-2.5 mb-1 inline-flex max-w-full items-center gap-1 self-start rounded-action px-2.5 text-muted no-underline underline-offset-4 hover:text-foreground hover:underline;
+  }
+
+  .list-page-back .icon {
+    @apply size-4 shrink-0;
+  }
+
+  /* A long quest name wraps rather than widening the page. */
+  .list-page-back-name {
+    @apply min-w-0 wrap-anywhere;
+  }
+
+  /* On a phone the name and size wrap before the candle and the settings
+     button do, so they stay on the row's end. */
+  .list-page-head {
+    @apply -me-2 flex items-center gap-x-1;
+  }
+
+  .list-page-name {
+    @apply flex min-w-0 flex-1 flex-wrap items-baseline gap-x-3.5 gap-y-0.5;
+  }
+
+  .list-page-head .rite-open,
+  .list-page-head .list-page-settings-open {
+    @apply shrink-0 px-0;
+  }
+
+  .list-page-head .list-page-settings-open[aria-expanded="true"] {
+    @apply bg-field text-primary;
+  }
+
+  .list-page-settings {
+    @apply mt-4 rounded-box border border-line/70 bg-field/45 p-4;
+  }
+
+  /* The list's name and type, then Save, on one row from a tablet up. */
+  .list-settings-form {
+    @apply grid gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,12rem)_auto] sm:items-end;
+  }
+
+  .list-settings-form > .notice {
+    @apply col-span-full;
+  }
+
+  .list-page .editable-list {
+    @apply text-base;
+  }
+
+  .list-page .editable-row + .editable-row {
+    @apply border-line/30 border-t;
+  }
+
+  /* Where an item's text holds what the add box searches for. */
+  .editable-match {
+    background: color-mix(in oklab, var(--primary) 35%, transparent);
+    border-radius: 2px;
+    @apply px-px text-inherit;
+  }
+
+  .list-page-empty {
+    @apply px-2.5 py-3 text-muted italic;
+  }
+
+  .list-page-done {
+    @apply flex min-w-0 flex-col;
+  }
+
+  .list-page-done-head {
+    @apply flex items-baseline gap-2 px-2.5 pb-1 font-heading text-lg font-semibold;
+  }
+
+  /* The editor above a section's items: a field, Add and Done, with its
      hint under them. On a phone the field takes its own row. */
   .list-adder {
-    @apply grid grid-cols-2 items-center gap-2 border-line/30 border-t pt-2 pb-1 sm:grid-cols-[minmax(0,1fr)_auto_auto];
+    @apply grid grid-cols-2 items-center gap-2 pt-1 pb-2 sm:grid-cols-[minmax(0,1fr)_auto_auto];
+  }
+
+  .list-adder + .editable-list {
+    @apply border-line/30 border-t;
   }
 
   .list-adder > .input-field {
@@ -2875,6 +2930,67 @@
 
   .list-section-more .icon {
     @apply size-4 shrink-0;
+  }
+
+  /* A section heading that names its rows without linking anywhere, as
+     Members' People does. */
+  .list-section-label {
+    min-block-size: var(--target-size);
+    @apply flex items-center text-foreground;
+  }
+
+  /* The people on a quest's Members page: a seal with each one's
+     initial, their name over their role, and Remove, Withdraw or Leave
+     quest at the row's end. */
+  .member-rows {
+    @apply flex min-w-0 flex-col;
+  }
+
+  .member-row {
+    @apply grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 rounded-control px-2.5 py-2.5 hover:bg-field/60;
+  }
+
+  .member-row + .member-row {
+    @apply rounded-t-none border-line/30 border-t;
+  }
+
+  .member-seal {
+    @apply font-normal;
+  }
+
+  /* An invitation not accepted yet: an outlined seal, waiting to be
+     filled. */
+  .member-row[data-role="invited"] .member-seal {
+    @apply border border-line border-dashed bg-transparent text-muted;
+  }
+
+  .member-who {
+    @apply flex min-w-0 flex-col;
+  }
+
+  .member-name {
+    @apply wrap-anywhere font-heading font-semibold;
+  }
+
+  .member-role {
+    @apply text-muted text-sm;
+  }
+
+  .member-row[data-role="invited"] .member-role {
+    @apply italic;
+  }
+
+  /* The owner's role, gold after a diamond, as the quest's status is. */
+  .member-row[data-role="owner"] .member-role {
+    @apply inline-flex items-center gap-1.5 self-start text-primary;
+  }
+
+  .member-row[data-role="owner"] .member-role::before {
+    content: "";
+    inline-size: --spacing(1);
+    block-size: --spacing(1);
+    rotate: 45deg;
+    background: var(--primary);
   }
 
   /* The quest's next task: a gold wash and a rubricated manicule. */
@@ -2987,26 +3103,41 @@
     @apply col-start-2 block wrap-anywhere text-muted text-xs italic leading-snug;
   }
 
-  /* The quest panel's link to the quest's settings, above the Timer. */
-  .quest-panel-settings {
+  /* The quest panel's link to the quest's Members, with how many are in
+     it, above Complete and Abandon. */
+  .quest-panel-members {
     min-block-size: var(--target-size);
     @apply mt-4 grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 rounded-control border border-line/70 bg-field/60 px-3 py-2 no-underline hover:border-primary;
   }
 
-  .quest-panel-settings > .icon {
+  .quest-panel-members > .icon {
     @apply shrink-0 text-muted;
   }
 
-  .quest-panel-settings > .quest-panel-settings-icon {
+  .quest-panel-members > .quest-panel-members-icon {
     @apply text-primary;
   }
 
-  .quest-panel-settings-name {
+  .quest-panel-members-name {
     @apply font-heading font-semibold;
   }
 
-  .quest-panel-settings-hint {
+  .quest-panel-members-hint {
     @apply text-muted text-xs;
+  }
+
+  /* Complete and Abandon side by side, sharing the panel's width, or
+     Restore quest across it, with what they did and Undo beneath. */
+  .quest-panel-status {
+    @apply mt-3 grid gap-2;
+  }
+
+  .quest-panel-status form:has(> [name="fromStatus"]) {
+    @apply grid auto-cols-fr grid-flow-col gap-2;
+  }
+
+  .quest-panel-status .quest-status-feedback {
+    @apply text-sm;
   }
 
   .quest-panel-timer {
@@ -3019,27 +3150,6 @@
 
   .quest-panel-label .icon {
     @apply text-primary;
-  }
-
-  .quest-settings-links {
-    @apply grid;
-  }
-
-  .quest-settings-links > li + li {
-    @apply border-line/40 border-t;
-  }
-
-  .quest-settings-link {
-    min-block-size: var(--target-size);
-    @apply flex items-center gap-3 py-2 hover:text-primary;
-  }
-
-  .quest-settings-link > :first-child {
-    @apply min-w-0 flex-1 font-semibold;
-  }
-
-  .quest-settings-link .icon {
-    @apply shrink-0 text-muted;
   }
 
   .quest-today {
@@ -3142,46 +3252,6 @@
     margin-inline: calc(-1 * var(--header-gutter));
     padding-inline-start: var(--header-gutter);
     @apply sticky top-0 z-10 flex items-center justify-between border-line/40 border-b bg-sidebar-surface;
-  }
-
-  .quest-member-invite {
-    @apply flex flex-col gap-2;
-  }
-
-  .quest-member-invite > button {
-    @apply self-start;
-  }
-
-  @supports (display: contents) {
-    .quest-member-invite {
-      grid-template-columns: minmax(0, 1fr) auto;
-      @apply grid items-stretch;
-    }
-
-    .quest-member-invite > .field {
-      display: contents;
-    }
-
-    .quest-member-invite .field-label {
-      grid-row: 1;
-    }
-
-    .quest-member-invite .input-field {
-      grid-area: 2 / 1;
-      min-inline-size: 0;
-    }
-
-    .quest-member-invite > button {
-      grid-area: 2 / 2;
-      @apply self-stretch;
-    }
-
-    .quest-member-invite .field-label,
-    .quest-member-invite .field-hint,
-    .quest-member-invite [role="alert"],
-    .quest-member-invite [role="status"] {
-      grid-column: 1 / -1;
-    }
   }
 
   .quest-sidebar .workspace-content {

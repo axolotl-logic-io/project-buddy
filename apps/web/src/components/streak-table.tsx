@@ -32,7 +32,6 @@ import {
   withMark,
 } from "@/streaks/streaks.ts";
 import { CADENCE_COPY } from "@/ui/copy/cadence.ts";
-import { DAY_GRID_COPY } from "@/ui/copy/day-grid.ts";
 import { HOME_COPY } from "@/ui/copy/home.ts";
 
 // The marks a square can be checked or unchecked on: the task had been
@@ -87,7 +86,7 @@ function Square({
   const period = periodName(cadence, date);
   let square = (
     <span className="streak-square" data-mark={mark}>
-      <span className="sr-only">{DAY_GRID_COPY.period(period, mark)}</span>
+      <span className="sr-only">{HOME_COPY.period(period, mark)}</span>
     </span>
   );
   if (CHECKABLE.has(mark)) {

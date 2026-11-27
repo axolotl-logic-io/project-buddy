@@ -69,6 +69,9 @@ describe("use_case_life", () => {
       .element(pin.getByRole("link", { name: LIFE_COPY.openLabel("Life") }))
       .toHaveAttribute("href", `/quests/${LIFE_ID}`);
     await expect
+      .element(pin.getByRole("link", { name: "Life", exact: true }))
+      .toHaveAttribute("href", `/quests/${LIFE_ID}`);
+    await expect
       .element(pin.getByRole("checkbox", { name: STRETCH.text }))
       .not.toBeChecked();
     await expect

@@ -30,4 +30,4 @@ These cases cover the site's versioned API under `/api/v1`, which scripts and ot
 - **Steps:**
   - They start a performance of a rite on one of the quest's lists.
   - They send a message from text, read the performance, then stop it.
-- **Outcome:** a message adds its list item to the list and waits for the rite's reply, and the performance then shows both with their authors. Sending a message requires an active performance. A quest's members can read its performances; anyone else gets not found.
+- **Outcome:** a message adds its list item to the list and waits for the rite's reply, which follows the rite's reply order. A request may propose a reply as `reply`, either `{"kind": "reply", "index": N}` or `{"kind": "final"}`. The site keeps it only when the rite could give it next, and otherwise chooses one itself. A rite that concludes ends the performance with its final reply, and the performance then shows both with their authors. Sending a message requires an active performance. A quest's members can read its performances; anyone else gets not found.

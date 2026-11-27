@@ -1,5 +1,5 @@
-// The check-off history and recurring tasks of a quest, for its streaks and
-// Day grid (src/streaks/streaks.ts).
+// The check-off history and recurring tasks of a quest, for its streaks
+// (src/streaks/streaks.ts).
 import { and, asc, eq, exists, gte, lt, sql } from "drizzle-orm";
 import {
   checkOffInQuestOpenTo,

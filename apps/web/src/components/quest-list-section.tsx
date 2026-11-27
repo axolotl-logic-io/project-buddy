@@ -19,6 +19,7 @@ import {
   useListChanges,
   useTallyCards,
 } from "@/components/list-changes.ts";
+import { holds, shownItems } from "@/components/list-filters.ts";
 import { ListChangeNotices, ListItemRow } from "@/components/list-items.tsx";
 import { RiteDialog } from "@/components/rite-dialog.tsx";
 import { Button } from "@/components/ui/button.tsx";
@@ -36,6 +37,7 @@ import type { List } from "@/lists/list-store.ts";
 import type { Rite } from "@/rites/rite.ts";
 import { streakChains, type TaskHistory } from "@/streaks/streaks.ts";
 import type { TallyQuest } from "@/tallies/tally.ts";
+import { LIST_PAGE_COPY } from "@/ui/copy/list-page.ts";
 import { LISTS_COPY } from "@/ui/copy/lists.ts";
 import { QUEST_OVERVIEW_COPY } from "@/ui/copy/quest-overview.ts";
 
@@ -68,19 +70,7 @@ function withCheck(
   });
 }
 
-// What a list section shows of its list: a task list's open one-off tasks
-// and every recurring task, done in its current period or not, and every
-// item of any other list.
-function shownItems(list: List, contents: readonly ListItem[]): ListItem[] {
-  if (list.type !== "task") {
-    return [...contents];
-  }
-  return contents.filter(
-    ({ checkedOff, recurring }) => recurring || !checkedOff,
-  );
-}
-
-// The editor under a list section's items: a field, Add and Done. It stays
+// The editor above a list section's items: a field, Add and Done. It stays
 // open after each item; Done or Escape closes it.
 function ListAdder({
   list,
@@ -151,12 +141,14 @@ function ListAdder({
 
 // A list on the quest's overview, as a section of the page's folio: its
 // name, linked to the whole list, with its size, a button that opens an
-// editor for new items under them, a candle that opens the rite dialog,
+// editor for new items above them, a candle that opens the rite dialog,
 // and its first few items, editable in place, with a link to the rest. A
 // task list shows its open one-off tasks and its recurring tasks with
 // their streaks; a one-off task checked off leaves at once. target marks
-// the list the add box adds to. rites is undefined while a performance
-// runs, which hides the candle.
+// the list the add box adds to. While the add box holds a search, the
+// section shows every item that holds it, marked, and says so when none
+// does. rites is undefined while a performance runs, which hides the
+// candle.
 function QuestListSection({
   questId,
   list,
@@ -167,6 +159,7 @@ function QuestListSection({
   next,
   rites,
   target,
+  search,
 }: {
   readonly questId: QuestId;
   readonly list: List;
@@ -177,6 +170,8 @@ function QuestListSection({
   readonly next: ListItemId | undefined;
   readonly rites: readonly Rite[] | undefined;
   readonly target: boolean;
+  // The add box's search, or "" when there is none.
+  readonly search: string;
 }): JSX.Element {
   const headingId = useId();
   const sectionRef = useRef<HTMLElement>(null);
@@ -244,10 +239,14 @@ function QuestListSection({
     total: shown.length,
     open,
   });
-  const inView = shown.filter(
+  let inView = shown.filter(
     (item, index) => index < SECTION_ITEMS || !opened.has(item.id),
   );
-  const rest = shown.length - inView.length;
+  let rest = shown.length - inView.length;
+  if (search !== "") {
+    inView = shown.filter((item) => holds(item, search));
+    rest = 0;
+  }
   let layout: "rows" | "cards" = "rows";
   if (list.type === "tally") {
     layout = "cards";
@@ -286,6 +285,9 @@ function QuestListSection({
             <RiteDialog questId={questId} list={list} rites={rites} />
           )}
         </div>
+        {adding === true && (
+          <ListAdder list={list} busy={busy} onAdd={add} onClose={stopAdding} />
+        )}
         {inView.length > 0 && (
           <EditableList label={list.name} layout={layout}>
             {inView.map((item) => {
@@ -305,13 +307,16 @@ function QuestListSection({
                   busy={busy}
                   note={note}
                   next={item.id === next}
+                  match={search}
                 />
               );
             })}
           </EditableList>
         )}
-        {adding === true && (
-          <ListAdder list={list} busy={busy} onAdd={add} onClose={stopAdding} />
+        {inView.length === 0 && search !== "" && (
+          <p className="list-page-empty">
+            {LIST_PAGE_COPY.noMatch(list.type, search)}
+          </p>
         )}
         <ListChangeNotices changes={changes} other={tally.status} />
         {tally.problem !== undefined && <Alert>{tally.problem}</Alert>}

@@ -50,16 +50,11 @@ interface TrackedTask {
 // done, not done yet in the current period, or not yet added.
 type DayMark = "done" | "missed" | "pending" | "untracked";
 
-// The newest periods of one cadence, oldest first, each named by its first
-// date, and the mark on each of every recurring task with that cadence.
-interface DayGrid {
-  readonly cadence: Cadence;
-  readonly dates: readonly LocalDate[];
-  readonly rows: readonly {
-    readonly number: number;
-    readonly text: string;
-    readonly marks: readonly DayMark[];
-  }[];
+// A recurring task's mark in each of a run of periods.
+interface MarkRow {
+  readonly number: number;
+  readonly text: string;
+  readonly marks: readonly DayMark[];
 }
 
 function addDays(date: LocalDate, days: number): LocalDate {
@@ -240,7 +235,7 @@ function markRows(
   history: TaskHistory,
   tasks: readonly TrackedTask[],
   dates: readonly LocalDate[],
-): DayGrid["rows"] {
+): readonly MarkRow[] {
   return tasks.map((task) => {
     const done = donePeriods(history, task);
     return {
@@ -249,30 +244,6 @@ function markRows(
       marks: dates.map((each) => markOn(history, done, task, each)),
     };
   });
-}
-
-// At most count periods of a cadence, up to the current one and from the
-// one the first of its tasks was added in at the earliest, and the mark in
-// each of every recurring task with that cadence.
-function periodGrid(
-  history: TaskHistory,
-  tasks: readonly TrackedTask[],
-  cadence: Cadence,
-  count: number,
-): DayGrid {
-  const repeating = tasks.filter((task) => task.cadence === cadence);
-  const first = periodOf(
-    repeating
-      .map(({ createdAt }) => localDate(createdAt, history.timeZone))
-      .concat(history.today)
-      .toSorted()
-      .at(0) ?? history.today,
-    cadence,
-  );
-  const dates = periodsUpTo(history.today, cadence, count).filter(
-    (date) => date >= first,
-  );
-  return { cadence, dates, rows: markRows(history, repeating, dates) };
 }
 
 // The periods of a cadence several quests' rows share: count of them, up
@@ -365,7 +336,6 @@ export {
   localDate,
   MAX_STREAK_LINKS,
   markRows,
-  periodGrid,
   periodOf,
   STREAK_TABLE_PERIODS,
   sharedDates,

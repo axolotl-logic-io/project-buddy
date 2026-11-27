@@ -648,7 +648,7 @@ describe("the trail band", () => {
       bandedHeader([
         QUESTS,
         { label: "Our quest", href: "/quests/quest" },
-        { label: "Day grid" },
+        { label: "Members" },
       ]),
     );
     await loadFonts();
@@ -657,7 +657,7 @@ describe("the trail band", () => {
       QUESTS_COPY.heading,
       "Our quest",
     ]);
-    await expect.element(pageHeading()).toHaveTextContent("Day grid");
+    await expect.element(pageHeading()).toHaveTextContent("Members");
     expect(
       page.getByRole("heading", { level: 1 }).elements(),
       "one heading",
@@ -740,7 +740,7 @@ describe("the trail band", () => {
         bandedHeader([
           QUESTS,
           { label: LONG_NAME, href: "/quests/quest" },
-          { label: "Day grid" },
+          { label: "Members" },
         ]),
       );
       await loadFonts();
@@ -763,7 +763,7 @@ describe("the trail band", () => {
       const bounds = parent.element().getBoundingClientRect();
       expect(bounds.width).toBeGreaterThanOrEqual(BUTTON_HEIGHT_PX);
       expect(bounds.height).toBeGreaterThanOrEqual(BUTTON_HEIGHT_PX);
-      await expect.element(pageHeading()).toHaveTextContent("Day grid");
+      await expect.element(pageHeading()).toHaveTextContent("Members");
       expect(document.documentElement.scrollWidth).toBeLessThanOrEqual(
         NARROWEST_VIEWPORT.width,
       );
@@ -806,7 +806,7 @@ describe("the trail band", () => {
       bandedHeader([
         QUESTS,
         { label: "Our quest", href: "/quests/quest" },
-        { label: "Day grid" },
+        { label: "Members" },
       ]),
     );
     await expect

@@ -28,6 +28,9 @@ const ACTIVE_PLAN: Rite = {
   source: "own",
   firstMessage: "Plan begins.",
   replies: ["First reply"],
+  order: "random",
+  loop: true,
+  finalReply: "",
 };
 const PLAN: Rite = {
   ...ACTIVE_PLAN,
@@ -39,6 +42,9 @@ const SKETCH: Rite = {
   source: "own",
   firstMessage: "Sketch begins.",
   replies: ["Draw it"],
+  order: "random",
+  loop: true,
+  finalReply: "",
   forgottenAt: new Date("2026-11-18T12:00:00Z"),
 };
 const LONG_NAME =
@@ -230,6 +236,84 @@ describe("use_case_grimoire_page", () => {
     await vi.waitFor(() => {
       expect(lastChange()).toEqual({ id: ACTIVE_PLAN.id, change: "forget" });
     });
+  });
+});
+
+describe("use_case_reply_order", () => {
+  const steps: Rite = {
+    ...ACTIVE_PLAN,
+    replies: ["First step", "Second step"],
+    order: "ordered",
+  };
+
+  test("numbers the replies of a rite in order, and bullets them once it picks at random", async () => {
+    vi.mocked(readRite).mockResolvedValue(steps);
+    await render(
+      await RitePage({
+        params: Promise.resolve({ riteId: steps.id }),
+        searchParams: Promise.resolve({}),
+      }),
+    );
+    const replies = page.getByRole("list", { name: "Replies" });
+    await expect
+      .element(replies.getByText("1.", { exact: true }))
+      .toBeVisible();
+    await expect
+      .element(replies.getByText("2.", { exact: true }))
+      .toBeVisible();
+
+    await page
+      .getByRole("combobox", { name: "Reply order" })
+      .selectOptions("Random, without repeats");
+    await expect
+      .element(replies.getByText("1.", { exact: true }))
+      .not.toBeInTheDocument();
+    expect(replies.getByText("•", { exact: true }).elements()).toHaveLength(
+      steps.replies.length,
+    );
+  });
+
+  test("a read-only rite numbers its replies in order, and shows its ending and final reply", async () => {
+    const concluding: Rite = {
+      ...steps,
+      loop: false,
+      finalReply: "That is the plan.",
+      forgottenAt: new Date("2026-11-20T12:00:00Z"),
+    };
+    vi.mocked(readRite).mockResolvedValue(concluding);
+    await render(
+      await RitePage({
+        params: Promise.resolve({ riteId: concluding.id }),
+        searchParams: Promise.resolve({}),
+      }),
+    );
+    const [first] = concluding.replies;
+    const list = page
+      .getByText(first ?? "", { exact: true })
+      .element()
+      .closest("ol, ul");
+    expect(list?.tagName).toBe("OL");
+    await expect.element(page.getByText("In order")).toBeVisible();
+    await expect.element(page.getByText("Concludes")).toBeVisible();
+    await expect
+      .element(page.getByText(concluding.finalReply, { exact: true }))
+      .toBeVisible();
+  });
+
+  test("asks for a final reply only for a rite that concludes", async () => {
+    vi.mocked(readRite).mockResolvedValue(steps);
+    await render(
+      await RitePage({
+        params: Promise.resolve({ riteId: steps.id }),
+        searchParams: Promise.resolve({}),
+      }),
+    );
+    const finalReply = page.getByRole("textbox", { name: "Final reply" });
+    await expect.element(finalReply).not.toBeInTheDocument();
+    await page
+      .getByRole("combobox", { name: "After the last reply" })
+      .selectOptions("Conclude with a final reply");
+    await expect.element(finalReply).toBeVisible();
   });
 });
 

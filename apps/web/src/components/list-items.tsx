@@ -1,6 +1,13 @@
 "use client";
 
-import { type JSX, type SubmitEvent, useCallback } from "react";
+import {
+  type JSX,
+  type KeyboardEvent,
+  useCallback,
+  useId,
+  useState,
+} from "react";
+import { FolioDivider } from "@/components/folio-divider.tsx";
 import {
   editorFor,
   type ListChanges,
@@ -8,25 +15,27 @@ import {
   useListChanges,
   useTallyCards,
 } from "@/components/list-changes.ts";
+import { holds, sameText } from "@/components/list-filters.ts";
 import { LocalTime } from "@/components/local-time.tsx";
 import { TallyCard } from "@/components/tally-card.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import {
-  AddListItem,
   EditableList,
   EditableListAction,
+  EditableListMenuLabel,
   EditableListRow,
   EditableListScope,
 } from "@/components/ui/editable-list.tsx";
 import type { SplitOptions } from "@/components/ui/editable-list-contract.ts";
-import { SelectField } from "@/components/ui/field.tsx";
 import { Alert, FormStatus } from "@/components/ui/form-message.tsx";
 import { Icon } from "@/components/ui/icon.tsx";
+import { useEntry } from "@/components/use-entry.ts";
 import type { QuestId } from "@/ids.ts";
-import { LIST_ID } from "@/lists/list.ts";
+import type { ListId } from "@/lists/list.ts";
 import {
   LIST_ITEM_CHANGE,
   type ListItemChange,
+  type ListItemId,
   SPLIT_PARTS,
 } from "@/lists/list-item.ts";
 import type { ListItem } from "@/lists/list-item-store.ts";
@@ -40,6 +49,7 @@ import {
 } from "@/streaks/streaks.ts";
 import type { TallyQuest } from "@/tallies/tally.ts";
 import { CADENCE_COPY } from "@/ui/copy/cadence.ts";
+import { LIST_PAGE_COPY } from "@/ui/copy/list-page.ts";
 import { LISTS_COPY } from "@/ui/copy/lists.ts";
 import { QUEST_SIDEBAR_COPY } from "@/ui/copy/quest-sidebar.ts";
 
@@ -52,6 +62,8 @@ interface ListItemsProps {
   readonly history?: TaskHistory | undefined;
   // The quest's tallies, for a tally list's counter cards.
   readonly tallies?: TallyQuest | undefined;
+  // The quest's next task, marked before its text.
+  readonly next?: ListItemId | undefined;
 }
 
 type RunChange = (change: ListItemChange) => Promise<boolean>;
@@ -89,7 +101,11 @@ function ListItemRow({
   card,
   note,
   next = false,
-}: Omit<ListItemsProps, "contents" | "questId" | "history" | "tallies"> & {
+  match = "",
+}: Omit<
+  ListItemsProps,
+  "contents" | "questId" | "history" | "tallies" | "next"
+> & {
   readonly item: ListItem;
   readonly run: RunChange;
   readonly busy: boolean;
@@ -99,6 +115,8 @@ function ListItemRow({
   readonly note?: string | undefined;
   // Whether the item is the quest's next task, marked before its text.
   readonly next?: boolean;
+  // Text being searched for, marked in the item's text.
+  readonly match?: string;
 }): JSX.Element {
   const { id, checkedOff } = item;
   const save = useCallback(
@@ -119,18 +137,6 @@ function ListItemRow({
   const oneOff = useCallback(async (): Promise<void> => {
     await run({ kind: "recurring", id, cadence: null });
   }, [id, run]);
-  const move = useCallback(
-    async (event: SubmitEvent<HTMLFormElement>): Promise<void> => {
-      event.preventDefault();
-      const destination = LIST_ID.safeParse(
-        new FormData(event.currentTarget).get("destination"),
-      ).data;
-      if (destination !== undefined) {
-        await run({ kind: "move", id, destination });
-      }
-    },
-    [id, run],
-  );
   let badge: JSX.Element | undefined;
   if (item.recurring) {
     badge = (
@@ -142,7 +148,6 @@ function ListItemRow({
   let checked: boolean | undefined;
   let toggleLabel = LISTS_COPY.checkOff;
   let menuLabel: string | undefined;
-  let detail: JSX.Element | undefined;
   let leading: JSX.Element | undefined;
   let added: JSX.Element | undefined;
   // A checked-off task's text is fixed, so it can't be split either.
@@ -180,25 +185,6 @@ function ListItemRow({
       />
     );
   }
-  if (destinations.length > 0) {
-    detail = (
-      <details>
-        <summary>{LISTS_COPY.moveTo}</summary>
-        <form onSubmit={move} className="flex flex-wrap items-end gap-2">
-          <SelectField label={LISTS_COPY.destination} name="destination">
-            {destinations.map((destination) => (
-              <option key={destination.id} value={destination.id}>
-                {destination.name}
-              </option>
-            ))}
-          </SelectField>
-          <Button type="submit" variant="quiet" disabled={busy}>
-            {LISTS_COPY.move}
-          </Button>
-        </form>
-      </details>
-    );
-  }
   return (
     <EditableListRow
       id={id}
@@ -218,12 +204,12 @@ function ListItemRow({
           {chain !== undefined && <Streak chain={chain} />}
           {note !== undefined && <span className="streak-note">{note}</span>}
           {card !== undefined && <TallyCard {...card} />}
-          {detail}
         </>
       }
       badge={badge}
       leading={leading}
       split={split}
+      match={match}
     >
       {list.type === "task" &&
         CADENCES.filter(
@@ -236,6 +222,17 @@ function ListItemRow({
           {LISTS_COPY.makeOneOff}
         </EditableListAction>
       )}
+      {destinations.length > 0 && (
+        <EditableListMenuLabel>{LISTS_COPY.moveTo}</EditableListMenuLabel>
+      )}
+      {destinations.map((destination) => (
+        <MoveAction
+          key={destination.id}
+          id={id}
+          destination={destination}
+          run={run}
+        />
+      ))}
       <EditableListAction icon="trash" onSelect={remove}>
         {LISTS_COPY.removeListItem(list.type)}
       </EditableListAction>
@@ -263,6 +260,32 @@ function RepeatAction({
   );
 }
 
+// A list item menu's choice to move the item to another of the quest's
+// lists.
+function MoveAction({
+  id,
+  destination,
+  run,
+}: {
+  readonly id: ListItem["id"];
+  readonly destination: List;
+  readonly run: RunChange;
+}): JSX.Element {
+  const listId: ListId = destination.id;
+  const move = useCallback(async (): Promise<void> => {
+    await run({ kind: "move", id, destination: listId });
+  }, [id, listId, run]);
+  return (
+    <EditableListAction
+      icon="chevron-right"
+      onSelect={move}
+      label={LISTS_COPY.moveInto(destination.name)}
+    >
+      {destination.name}
+    </EditableListAction>
+  );
+}
+
 function Streak({ chain }: { readonly chain: StreakChain }): JSX.Element {
   return (
     <span className="streak-chain">
@@ -284,6 +307,10 @@ function Streak({ chain }: { readonly chain: StreakChain }): JSX.Element {
   );
 }
 
+// A list's items on its page: a box that searches them and adds to them,
+// the open items, which can be reordered, then those checked off, under
+// Done. Typing in the box shows only the items that hold the text; Enter
+// adds it as a new item, unless an item has that text already.
 function ListItems({
   questId,
   list,
@@ -291,18 +318,33 @@ function ListItems({
   destinations,
   history,
   tallies,
+  next,
 }: ListItemsProps): JSX.Element {
+  const hintId = useId();
+  const doneId = useId();
   const changes = useListChanges(questId);
   const { runOn, busy } = changes;
   const tally = useTallyCards(questId, tallies, busy);
+  const [said, setSaid] = useState<string | undefined>();
   const listId = list.id;
+  const listName = list.name;
   const run = useCallback(
-    (change: ListItemChange): Promise<boolean> => runOn(listId, change),
+    (listChange: ListItemChange): Promise<boolean> => runOn(listId, listChange),
     [runOn, listId],
   );
   const add = useCallback(
-    (text: string): Promise<boolean> => run({ kind: "add", text }),
-    [run],
+    async (entry: string): Promise<boolean> => {
+      setSaid(undefined);
+      if (contents.some((item) => sameText(item, entry))) {
+        return false;
+      }
+      const saved = await run({ kind: "add", text: entry });
+      if (saved) {
+        setSaid(LIST_PAGE_COPY.added(entry, listName));
+      }
+      return saved;
+    },
+    [contents, listName, run],
   );
   const place = useCallback(
     (id: string, before: string | undefined): Promise<boolean> => {
@@ -318,21 +360,70 @@ function ListItems({
     },
     [run],
   );
+  const { validate } = editorFor(list.type);
+  const { text, problem, inputRef, change, submit, clear } = useEntry(
+    validate,
+    add,
+  );
+  const clearOnEscape = useCallback(
+    (event: KeyboardEvent<HTMLInputElement>): void => {
+      if (event.key === "Escape" && text !== "") {
+        event.preventDefault();
+        clear();
+      }
+    },
+    [clear, text],
+  );
   let chains: ReturnType<typeof streakChains> = new Map();
   if (history !== undefined) {
     chains = streakChains(
       history,
       contents.flatMap(
-        ({ taskNumber, text, checkedOff, recurring, cadence, createdAt }) => {
+        ({
+          taskNumber,
+          text: task,
+          checkedOff,
+          recurring,
+          cadence,
+          createdAt,
+        }) => {
           if (taskNumber === null || !recurring) {
             return [];
           }
           return [
-            { number: taskNumber, text, cadence, done: checkedOff, createdAt },
+            {
+              number: taskNumber,
+              text: task,
+              cadence,
+              done: checkedOff,
+              createdAt,
+            },
           ];
         },
       ),
     );
+  }
+  const search = text.trim();
+  const found = contents.filter((item) => holds(item, search));
+  const open = found.filter(({ checkedOff }) => !checkedOff);
+  const done = found.filter(({ checkedOff }) => checkedOff);
+  const same = contents.find((item) => sameText(item, search));
+  let hint = LIST_PAGE_COPY.hint(list.type);
+  if (same !== undefined) {
+    hint = LIST_PAGE_COPY.already(same.text, same.checkedOff);
+  } else if (search !== "") {
+    hint = LIST_PAGE_COPY.matches(list.type, found.length, search);
+  }
+  let hintClass = "add-box-hint";
+  if (problem !== undefined) {
+    hint = problem;
+    hintClass = "add-box-hint error-text";
+  }
+  // Moving an item among some of them would leave the hidden ones out of
+  // place, so the open items reorder only while nothing is searched for.
+  let move: typeof place | undefined;
+  if (search === "") {
+    move = place;
   }
   function row(item: ListItem): JSX.Element {
     const chain = chains.get(item.taskNumber ?? 0);
@@ -346,40 +437,72 @@ function ListItems({
         destinations={destinations}
         run={run}
         busy={busy}
+        next={item.id === next}
+        match={search}
       />
     );
   }
-  const done = contents.filter(({ checkedOff }) => checkedOff);
-  const addLabel = LISTS_COPY.addListItem(list.type);
   let layout: "rows" | "cards" = "rows";
   if (list.type === "tally") {
     layout = "cards";
   }
+  const field = LIST_PAGE_COPY.searchIn(list.type, list.name);
   return (
     <EditableListScope blocked={busy}>
-      <div className="grid gap-3">
-        <ListChangeNotices changes={changes} other={tally.status} />
-        {tally.problem !== undefined && <Alert>{tally.problem}</Alert>}
-        <AddListItem
-          label={addLabel}
-          editor={{
-            ...editorFor(list.type),
-            label: addLabel,
-            save: addLabel,
-          }}
-          disabled={busy}
-          onSave={add}
+      <form className="add-box" aria-label={field} onSubmit={submit}>
+        <div className="add-box-row">
+          <Icon name="search" />
+          <input
+            ref={inputRef}
+            type="search"
+            className="add-box-field"
+            aria-label={field}
+            aria-describedby={hintId}
+            aria-invalid={problem !== undefined}
+            placeholder={LIST_PAGE_COPY.search(list.type)}
+            value={text}
+            onChange={change}
+            onKeyDown={clearOnEscape}
+          />
+          <Button type="submit" disabled={busy}>
+            {LIST_PAGE_COPY.add}
+          </Button>
+        </div>
+        <p id={hintId} className={hintClass} aria-live="polite">
+          {hint}
+        </p>
+        <ListChangeNotices
+          changes={{ ...changes, status: said ?? changes.status }}
+          other={tally.status}
         />
-        <EditableList label={list.name} layout={layout} onMove={place}>
-          {contents.filter(({ checkedOff }) => !checkedOff).map(row)}
+        {tally.problem !== undefined && <Alert>{tally.problem}</Alert>}
+      </form>
+      <FolioDivider />
+      {open.length > 0 && (
+        <EditableList label={list.name} layout={layout} onMove={move}>
+          {open.map(row)}
         </EditableList>
-        {done.length > 0 && (
-          <details>
-            <summary>{LISTS_COPY.done}</summary>
+      )}
+      {found.length === 0 && search !== "" && (
+        <p className="list-page-empty">
+          {LIST_PAGE_COPY.noMatch(list.type, search)}
+        </p>
+      )}
+      {done.length > 0 && (
+        <>
+          <FolioDivider />
+          <section aria-labelledby={doneId} className="list-page-done">
+            <h3 id={doneId} className="list-page-done-head">
+              {LISTS_COPY.done}
+              <span className="list-section-size">
+                <span aria-hidden={true} className="list-section-dot" />{" "}
+                {done.length}
+              </span>
+            </h3>
             <EditableList label={LISTS_COPY.done}>{done.map(row)}</EditableList>
-          </details>
-        )}
-      </div>
+          </section>
+        </>
+      )}
     </EditableListScope>
   );
 }

@@ -1,12 +1,15 @@
 "use client";
 
+import type { Route } from "next";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { type JSX, type SubmitEvent, useCallback, useRef } from "react";
+import { type JSX, type SubmitEvent, useCallback, useId, useRef } from "react";
+import { FolioDivider } from "@/components/folio-divider.tsx";
 import { noteLeftQuest } from "@/components/left-quest.ts";
 import { Button } from "@/components/ui/button.tsx";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog.tsx";
-import { TextField } from "@/components/ui/field.tsx";
 import { Alert, FormStatus } from "@/components/ui/form-message.tsx";
+import { Icon } from "@/components/ui/icon.tsx";
 import { useQuestAction } from "@/components/use-quest-action.ts";
 import type { QuestId, UserId } from "@/ids.ts";
 import {
@@ -111,6 +114,13 @@ function RemoveControl({
   );
 }
 
+// The first letter of a person's name, for their seal.
+function initialOf(name: string): string {
+  return Array.from(name.trim()).at(0)?.toLocaleUpperCase() ?? "";
+}
+
+// One person in the quest: a seal with their initial, their name over
+// their role, and the control that takes them out, at the row's end.
 function PersonRow({
   person,
   role,
@@ -129,11 +139,14 @@ function PersonRow({
     name = QUEST_MEMBERS_COPY.you(name);
   }
   return (
-    <li className="divided-row-action">
-      <div className="flex min-w-0 flex-col">
-        <span className="wrap-anywhere">{name}</span>
-        <span className="text-muted text-sm">{ROLE_LABELS[role]}</span>
-      </div>
+    <li className="member-row" data-role={role}>
+      <span aria-hidden={true} className="quest-seal member-seal">
+        {initialOf(person.displayName)}
+      </span>
+      <span className="member-who">
+        <span className="member-name">{name}</span>
+        <span className="member-role">{ROLE_LABELS[role]}</span>
+      </span>
       <RemoveControl
         busy={busy}
         onRemove={onRemove}
@@ -167,34 +180,59 @@ function InviteForm({ questId }: { readonly questId: QuestId }): JSX.Element {
     },
     [questId, run],
   );
+  const hintId = useId();
+  const errorId = useId();
   let label: string = QUEST_MEMBERS_COPY.invite;
   if (busy) {
     label = QUEST_MEMBERS_COPY.inviting;
   }
+  let describedBy = hintId;
+  if (problem !== undefined) {
+    describedBy = `${hintId} ${errorId}`;
+  }
   return (
-    <form className="quest-member-invite" noValidate={true} onSubmit={submit}>
-      <TextField
-        ref={emailRef}
-        label={QUEST_MEMBERS_COPY.emailLabel}
-        hint={QUEST_MEMBERS_COPY.emailHint}
-        name="email"
-        type="email"
-        autoComplete="off"
-        required={true}
-        error={problem}
-      />
-      <Button aria-busy={busy} disabled={busy} type="submit">
-        {label}
-      </Button>
+    <form
+      className="add-box"
+      aria-label={QUEST_MEMBERS_COPY.inviteLabel}
+      noValidate={true}
+      onSubmit={submit}
+    >
+      <div className="add-box-row">
+        <Icon name="people" />
+        <input
+          ref={emailRef}
+          className="add-box-field"
+          aria-label={QUEST_MEMBERS_COPY.emailLabel}
+          aria-describedby={describedBy}
+          aria-invalid={problem !== undefined}
+          placeholder={QUEST_MEMBERS_COPY.emailLabel}
+          name="email"
+          type="email"
+          autoComplete="off"
+          required={true}
+        />
+        <Button aria-busy={busy} disabled={busy} type="submit">
+          {label}
+        </Button>
+      </div>
+      <p id={hintId} className="add-box-hint">
+        {QUEST_MEMBERS_COPY.emailHint}
+      </p>
+      {problem !== undefined && <Alert id={errorId}>{problem}</Alert>}
       <FormStatus>{status}</FormStatus>
     </form>
   );
 }
 
+// A quest's Members page, in the page's frame like a list's page: a link
+// back to the quest, the title with how many are in the quest, what
+// members share, the invite box, then each person under an ornamented
+// rule: the owner first, then members, then invitations not accepted yet.
 function QuestMembers({
   viewer,
   people,
   quest,
+  back,
 }: {
   readonly viewer: UserId;
   readonly people: QuestPeople;
@@ -202,10 +240,13 @@ function QuestMembers({
     readonly id: QuestId;
     readonly name: string;
   };
+  // The quest's overview, which the link back returns to.
+  readonly back: Route;
 }): JSX.Element {
   const { run, busy, status, problem } = useQuestAction(removeFromQuestAction);
   const router = useRouter();
-  const headingRef = useRef<HTMLParagraphElement>(null);
+  const headingRef = useRef<HTMLHeadingElement>(null);
+  const peopleId = useId();
   const removePerson = useCallback(
     (person: QuestPerson): void => {
       run({ questId: quest.id, person: person.id })
@@ -227,27 +268,54 @@ function QuestMembers({
     ...people.invited.map((person) => withRole(person, "invited")),
   ];
   return (
-    <section className="page-slot flex flex-col gap-4">
-      <p className="sr-only" ref={headingRef} tabIndex={-1}>
-        {QUEST_MEMBERS_COPY.heading}
-      </p>
+    <div className="page-workspace quest-folio">
+      <header className="list-page-top">
+        <Link
+          className="list-page-back"
+          href={back}
+          aria-label={QUEST_MEMBERS_COPY.back(quest.name)}
+        >
+          <Icon name="chevron-left" />
+          <span className="list-page-back-name">{quest.name}</span>
+        </Link>
+        <div className="list-page-name">
+          <h2 ref={headingRef} tabIndex={-1} className="quest-focus-title">
+            {QUEST_MEMBERS_COPY.heading}
+          </h2>
+          <span className="list-section-size">
+            <span aria-hidden={true} className="list-section-dot" />{" "}
+            {QUEST_MEMBERS_COPY.peopleCount(rows.length)}
+          </span>
+        </div>
+        <p className="quest-overview-summary">{QUEST_MEMBERS_COPY.intro}</p>
+      </header>
       <FormStatus>{status}</FormStatus>
       {problem !== undefined && <Alert>{problem}</Alert>}
       <InviteForm questId={quest.id} />
-      <ul aria-label={QUEST_MEMBERS_COPY.listLabel} className="divided-rows">
-        {rows.map(({ person, role }) => (
-          <PersonRow
-            busy={busy}
-            key={`${role}-${person.id}`}
-            onRemove={removePerson}
-            person={person}
-            role={role}
-            viewer={viewer}
-          />
-        ))}
-      </ul>
-      <p className="text-muted">{QUEST_MEMBERS_COPY.intro}</p>
-    </section>
+      <FolioDivider />
+      <section aria-labelledby={peopleId} className="list-section">
+        <div className="list-section-head">
+          <h3 className="list-section-title" id={peopleId}>
+            <span className="list-section-label">
+              {QUEST_MEMBERS_COPY.people}
+            </span>
+          </h3>
+          <span aria-hidden={true} className="list-section-rule" />
+        </div>
+        <ul aria-label={QUEST_MEMBERS_COPY.listLabel} className="member-rows">
+          {rows.map(({ person, role }) => (
+            <PersonRow
+              busy={busy}
+              key={`${role}-${person.id}`}
+              onRemove={removePerson}
+              person={person}
+              role={role}
+              viewer={viewer}
+            />
+          ))}
+        </ul>
+      </section>
+    </div>
   );
 }
 

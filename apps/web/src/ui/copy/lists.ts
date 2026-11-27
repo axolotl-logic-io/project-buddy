@@ -71,9 +71,10 @@ const LISTS_COPY = {
       failed: "The split couldn’t be saved. Try again.",
     };
   },
-  moveTo: "Move to another list",
-  destination: "Destination list",
-  move: "Move",
+  // A list item's menu: a heading over the quest's other lists, each a
+  // choice that moves the item there.
+  moveTo: "Move to",
+  moveInto: (list: string): string => `Move to ${list}`,
   done: "Done",
   saveEdit: "Save",
   cancelEdit: "Cancel",
