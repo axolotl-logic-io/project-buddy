@@ -186,12 +186,12 @@ function RiteDialog({
     <Dialog.Root open={open} onOpenChange={changeOpen}>
       <Dialog.Trigger asChild={true}>
         <Button
-          variant="secondary"
+          variant="quiet"
           className="rite-open"
           aria-label={QUEST_OVERVIEW_COPY.performRiteOn(list.name)}
+          title={QUEST_OVERVIEW_COPY.performRiteOn(list.name)}
         >
           <Icon name="candle" />
-          {QUEST_OVERVIEW_COPY.performRite}
         </Button>
       </Dialog.Trigger>
       <Dialog.Portal>

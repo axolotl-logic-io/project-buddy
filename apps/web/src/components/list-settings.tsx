@@ -11,37 +11,32 @@ import { saveListAction } from "@/lists/list-actions.ts";
 import type { List } from "@/lists/list-store.ts";
 import { LISTS_COPY } from "@/ui/copy/lists.ts";
 
+// A list's settings, folded away: its name and type.
 function ListSettings({
   questId,
   list,
 }: {
   readonly questId: QuestId;
-  readonly list?: List;
+  readonly list: List;
 }): JSX.Element {
   const [state, action, pending] = useActionState(saveListAction, {});
   const { name: nameDraft, type: typeDraft } = state.draft ?? {};
-  let title = LISTS_COPY.add;
-  if (list !== undefined) {
-    title = LISTS_COPY.settings;
-  }
   return (
     <details>
-      <summary>{title}</summary>
+      <summary>{LISTS_COPY.settings}</summary>
       <form action={action} className="grid gap-3">
         <input name="questId" type="hidden" value={questId} />
-        {list !== undefined && (
-          <input name="listId" type="hidden" value={list.id} />
-        )}
+        <input name="listId" type="hidden" value={list.id} />
         <TextField
           label={LISTS_COPY.fields.name}
           name="name"
-          defaultValue={nameDraft ?? list?.name ?? ""}
+          defaultValue={nameDraft ?? list.name}
           required={true}
         />
         <SelectField
           label={LISTS_COPY.fields.type}
           name="type"
-          defaultValue={typeDraft ?? list?.type ?? "plain"}
+          defaultValue={typeDraft ?? list.type}
         >
           {LIST_TYPE.options.map((type) => (
             <option key={type} value={type}>

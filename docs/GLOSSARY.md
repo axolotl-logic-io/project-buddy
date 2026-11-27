@@ -74,6 +74,10 @@ A list item in a tally list: a count of something done each day, such as words w
 
 The panel, open from any page, that adds a list item to a list of an Active quest without opening the quest. The item takes the list's type. [Quick Add use case](../apps/web/use-cases/lists.md#use_case_quick_add)
 
+### Add box
+
+The field under a quest's name on its Overview that adds list items to whichever of the quest's lists is chosen under it, one after another, or names a new task list. Unlike Quick Add, it adds only to the quest that is open. [Open quest use case](../apps/web/use-cases/quests.md#use_case_open_quest)
+
 ## Days and streaks
 
 ### Quest day

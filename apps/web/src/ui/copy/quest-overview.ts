@@ -9,13 +9,9 @@ const QUEST_OVERVIEW_COPY = {
   quest: "Quest",
   status: "Quest status",
   private: "Private",
-  today: "Today",
-  // Under Today's heading: how many of its recurring tasks are still to do
-  // in their current day, week or month.
-  todayLeft: (left: number, total: number): string =>
-    `${left} of ${total} left`,
-  // A recurring task's streak beside it under Today, and whether checking
-  // it off in its current day, week or month keeps the streak going.
+  // A recurring task's streak under its text in its list's section, and
+  // whether checking it off in its current day, week or month keeps the
+  // streak going.
   streak: ({ cadence, streak, doneNow }: StreakChain): string => {
     if (streak === 0) {
       return "No streak yet";
@@ -26,13 +22,35 @@ const QUEST_OVERVIEW_COPY = {
     }
     return `${length} · keep it going`;
   },
-  // A list card's link to the list, past the items it shows.
+  // A list section's link to the list, past the items it shows.
   more: (count: number, list: string): string => `${count} more in ${list}`,
-  // A list card's button that opens the editor for a new list item.
+  // A list section's button that opens its editor for new list items, and
+  // the editor's field, named for its list.
   addTo: (type: ListType, list: string): string =>
     `${LISTS_COPY.addListItem(type)} to ${list}`,
+  // The editor under a list section's items.
+  adder: {
+    add: "Add",
+    done: "Done",
+    hint: "Enter adds and keeps this open. Escape closes it.",
+  },
+  // The add box under the quest's name, which adds to any of its lists.
+  addBox: {
+    label: "Add to a list",
+    add: "Add",
+    target: "Add to",
+    newList: "New list",
+    nameList: "Name the new list",
+    nameProblem: "Name the list in 1 to 80 characters on one line.",
+    hint: "Enter adds to the list marked in gold, and the box stays ready for the next one.",
+    namingHint: "Enter makes a task list with this name. Escape goes back.",
+    added: (text: string, list: string): string =>
+      `Added “${text}” to ${list}.`,
+    made: (list: string): string => `Made ${list}. Enter now adds to it.`,
+  },
   performRite: "Perform a rite",
-  // A list card's button, named for its list, that opens the rite dialog.
+  // A list section's candle button, named for its list, that opens the
+  // rite dialog.
   performRiteOn: (list: string): string => `Perform a rite on ${list}`,
   rite: {
     // Under the dialog's title, the list the rite will be performed on.
