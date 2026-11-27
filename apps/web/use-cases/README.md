@@ -4,7 +4,7 @@ How users use Project Buddy, described from the user's side of the screen. Tests
 
 Playwright e2e tests in `test/system/` cover only the auth workflows: sign-up, sign-in, sign-out, the sign-in limits, and the signed-out access gate. Every other case is tested in Vitest, as `docs/project-practices.md` describes: a server test for a case that needs a real server or database, and a browser-mode component integration or feature-entrypoint test (`*.browser.test.tsx`) for a case that needs only the UI.
 
-`test/component-integration/use-cases/use-cases.test.ts` guards this rule and the use cases themselves: slugs are unique and known, each titles a test, only the auth cases listed in `auth-cases.ts` have e2e tests, every area file is in the Areas index, and every relative link in the cases leads to an existing file and heading.
+`test/component-integration/use-cases/use-cases.test.ts` guards the use cases themselves: slugs are unique and known, each titles a test, every area file is in the Areas index, and every relative link in the cases leads to an existing file and heading.
 
 A case written before its test is listed in `test/component-integration/use-cases/pending-cases.ts` with the lane that will write the test. Once a real test names the case, that lane removes the entry.
 

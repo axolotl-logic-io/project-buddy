@@ -26,10 +26,14 @@
 //   stores, and adds manual sections through the manual index, in the test
 //   database (testData in data-test-kit.ts). The sections are removed when
 //   the test ends.
+// - Every test fails if a page of its browser logs an error to the console
+//   or throws one it doesn't catch (pageProblems).
 
 import {
   type BrowserContext,
   test as base,
+  expect,
+  type Page,
   type TestInfo,
 } from "@playwright/test";
 import { eq } from "drizzle-orm";
@@ -67,6 +71,11 @@ interface Fixtures {
   readonly otherClientAddress: string;
   // An email address no account has yet, for signing up through the site.
   readonly newAddress: string;
+}
+
+interface AutoFixtures {
+  // The errors the test's pages logged or threw, which must be none.
+  readonly pageProblems: readonly string[];
 }
 
 interface WorkerFixtures {
@@ -146,7 +155,35 @@ async function useNewAddress(
   await endRateLimitWindowsFor({ address });
 }
 
-const test = base.extend<Fixtures, WorkerFixtures>({
+// Records each error page logs to its console or throws uncaught.
+function watchForProblems(page: Page, problems: string[]): void {
+  page.on("pageerror", (error) => {
+    problems.push(`${page.url()} threw: ${error.message}`);
+  });
+  page.on("console", (message) => {
+    if (message.type() === "error") {
+      problems.push(`${page.url()} logged: ${message.text()}`);
+    }
+  });
+}
+
+// Records the errors of every page of the test's browser, and fails the
+// test if there were any.
+async function usePageProblems(
+  { context }: { context: BrowserContext },
+  use: (problems: readonly string[]) => Promise<void>,
+): Promise<void> {
+  const problems: string[] = [];
+  for (const page of context.pages()) {
+    watchForProblems(page, problems);
+  }
+  context.on("page", (page) => watchForProblems(page, problems));
+  await use(problems);
+  expect(problems, "errors the pages logged or threw").toStrictEqual([]);
+}
+
+const test = base.extend<Fixtures & AutoFixtures, WorkerFixtures>({
+  pageProblems: [usePageProblems, { auto: true }],
   database: [getDb(), { scope: "worker" }],
   clientAddress: useClientAddress,
   otherClientAddress: useClientAddress,
