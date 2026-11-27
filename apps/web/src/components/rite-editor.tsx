@@ -19,12 +19,21 @@ import {
 } from "@/components/local-draft.ts";
 import { PlaceholderLegend } from "@/components/rite-text.tsx";
 import { Button } from "@/components/ui/button.tsx";
-import { TextAreaField, TextField } from "@/components/ui/field.tsx";
+import {
+  SelectField,
+  TextAreaField,
+  TextField,
+} from "@/components/ui/field.tsx";
 import { Alert, FormStatus } from "@/components/ui/form-message.tsx";
 import { TextListField } from "@/components/ui/text-list-field.tsx";
 import { parseTextList } from "@/components/ui/text-list-value.ts";
 import type { UserId } from "@/ids.ts";
-import { MAX_REPLIES, MAX_REPLY, type Rite } from "@/rites/rite.ts";
+import {
+  MAX_REPLIES,
+  MAX_REPLY,
+  REPLY_ORDER,
+  type Rite,
+} from "@/rites/rite.ts";
 import { saveRiteAction } from "@/rites/rite-actions.ts";
 import { GRIMOIRE_COPY } from "@/ui/copy/grimoire.ts";
 
@@ -32,8 +41,12 @@ const EDITOR_DRAFT = z.object({
   name: z.string(),
   firstMessage: z.string(),
   replies: z.string(),
+  order: REPLY_ORDER,
+  loop: z.boolean(),
+  finalReply: z.string(),
 });
 type Draft = z.infer<typeof EDITOR_DRAFT>;
+type Field = "name" | "firstMessage" | "replies" | "finalReply";
 
 function serverSnapshot(): null {
   return null;
@@ -54,12 +67,15 @@ function RiteEditor({
       name: rite?.name ?? "",
       firstMessage: rite?.firstMessage ?? "",
       replies: JSON.stringify(rite?.replies ?? []),
+      order: rite?.order ?? "random",
+      loop: rite?.loop ?? true,
+      finalReply: rite?.finalReply ?? "",
     }),
     [rite],
   );
   const [draft, setDraft] = useState<Draft | null>(null);
   const [error, setError] = useState<{
-    readonly field?: "name" | "firstMessage" | "replies";
+    readonly field?: Field;
     readonly message: string;
   } | null>(null);
   const [pending, setPending] = useState(false);
@@ -94,6 +110,27 @@ function RiteEditor({
     },
     [current, update],
   );
+  const updateOrder = useCallback(
+    (event: ChangeEvent<HTMLSelectElement>): void => {
+      const order = REPLY_ORDER.safeParse(event.currentTarget.value).data;
+      if (order !== undefined) {
+        update({ ...current, order });
+      }
+    },
+    [current, update],
+  );
+  const updateEnding = useCallback(
+    (event: ChangeEvent<HTMLSelectElement>): void => {
+      update({ ...current, loop: event.currentTarget.value === "loop" });
+    },
+    [current, update],
+  );
+  const updateFinalReply = useCallback(
+    (event: ChangeEvent<HTMLTextAreaElement>): void => {
+      update({ ...current, finalReply: event.currentTarget.value });
+    },
+    [current, update],
+  );
   const updateReplies = useCallback(
     (_field: string, replies: string): void => {
       update({ ...current, replies });
@@ -119,6 +156,9 @@ function RiteEditor({
           name: current.name,
           firstMessage: current.firstMessage,
           replies: parseTextList(current.replies),
+          order: current.order,
+          loop: current.loop,
+          finalReply: current.finalReply,
         });
         if (result.kind === "saved") {
           keepLocalDraft(key, undefined);
@@ -144,17 +184,19 @@ function RiteEditor({
     [current, id, key, router],
   );
 
-  let nameError: string | undefined;
-  let firstMessageError: string | undefined;
-  let repliesError: string | undefined;
-  if (error?.field === "name") {
-    nameError = error.message;
+  function errorAt(field: Field): string | undefined {
+    if (error?.field === field) {
+      return error.message;
+    }
+    return undefined;
   }
-  if (error?.field === "firstMessage") {
-    firstMessageError = error.message;
+  let marker: "number" | "bullet" = "bullet";
+  if (current.order === "ordered") {
+    marker = "number";
   }
-  if (error?.field === "replies") {
-    repliesError = error.message;
+  let ending: "loop" | "conclude" = "conclude";
+  if (current.loop) {
+    ending = "loop";
   }
   return (
     <form onSubmit={save} className="rite-editor">
@@ -163,7 +205,7 @@ function RiteEditor({
         name="name"
         value={current.name}
         onChange={updateName}
-        error={nameError}
+        error={errorAt("name")}
       />
       <TextAreaField
         label={GRIMOIRE_COPY.firstMessage}
@@ -172,18 +214,51 @@ function RiteEditor({
         value={current.firstMessage}
         maxLength={MAX_REPLY}
         onChange={updateFirstMessage}
-        error={firstMessageError}
+        error={errorAt("firstMessage")}
       />
+      <SelectField
+        label={GRIMOIRE_COPY.order}
+        name="order"
+        value={current.order}
+        onChange={updateOrder}
+      >
+        {REPLY_ORDER.options.map((order) => (
+          <option key={order} value={order}>
+            {GRIMOIRE_COPY.orders[order]}
+          </option>
+        ))}
+      </SelectField>
       <TextListField
         name="replies"
         label={GRIMOIRE_COPY.replies}
-        hint={GRIMOIRE_COPY.hint}
+        hint={GRIMOIRE_COPY.repliesHint[current.order]}
+        marker={marker}
         value={current.replies}
         maxLength={MAX_REPLY}
         maxItems={MAX_REPLIES}
         onChange={updateReplies}
-        error={repliesError}
+        error={errorAt("replies")}
       />
+      <SelectField
+        label={GRIMOIRE_COPY.ending}
+        name="ending"
+        value={ending}
+        onChange={updateEnding}
+      >
+        <option value="loop">{GRIMOIRE_COPY.endings.loop}</option>
+        <option value="conclude">{GRIMOIRE_COPY.endings.conclude}</option>
+      </SelectField>
+      {!current.loop && (
+        <TextAreaField
+          label={GRIMOIRE_COPY.finalReply}
+          hint={GRIMOIRE_COPY.finalReplyHint}
+          name="finalReply"
+          value={current.finalReply}
+          maxLength={MAX_REPLY}
+          onChange={updateFinalReply}
+          error={errorAt("finalReply")}
+        />
+      )}
       <PlaceholderLegend />
       <div className="rite-savebar">
         <Button type="submit" disabled={pending}>

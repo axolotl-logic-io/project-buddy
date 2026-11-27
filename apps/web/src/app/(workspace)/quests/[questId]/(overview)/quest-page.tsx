@@ -177,11 +177,12 @@ async function questPage(
         <MessageComposer
           key={running.id}
           questId={quest.id}
-          performanceId={running.id}
+          performance={running}
           viewer={user}
           author={viewer.name ?? PERFORMANCE_COPY.unnamed}
           construct={construct}
           answered={entries.map(({ id }) => id)}
+          given={entries.flatMap(({ replyIndex }) => replyIndex ?? [])}
         >
           <PerformanceTranscript
             performance={running}

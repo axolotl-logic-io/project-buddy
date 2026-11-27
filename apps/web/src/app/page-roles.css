@@ -1552,6 +1552,20 @@
     @apply min-w-5 shrink-0 font-heading font-bold text-muted tabular-nums;
   }
 
+  /* A rite that picks its replies at random bullets them instead. */
+  .rite-replies-bulleted li::before {
+    content: "•";
+  }
+
+  /* A reply's number or bullet in the rite editor's reply list. */
+  .text-list-marker {
+    @apply min-w-5 py-2.5 font-heading font-bold text-muted tabular-nums;
+  }
+
+  .editable-row:has(> .editable-leading > .text-list-marker) {
+    @apply grid-cols-[auto_minmax(0,1fr)_auto] gap-x-2;
+  }
+
   /* What each placeholder stands for, beside the messages that use them. */
   .rite-legend {
     @apply flex min-w-0 flex-col gap-2 rounded-control border border-dashed border-line px-3.5 py-3;

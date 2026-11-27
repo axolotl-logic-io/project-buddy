@@ -1,4 +1,4 @@
-import { and, desc, eq, isNull, sql } from "drizzle-orm";
+import { and, desc, eq, isNotNull, isNull, sql } from "drizzle-orm";
 import { z } from "zod";
 import {
   listOpenTo,
@@ -23,13 +23,19 @@ import {
   LIST_SETTINGS,
   LIST_TYPE,
   type ListId,
-  listItemLimit,
+  type ListType,
 } from "@/lists/list.ts";
 import { changeWithin } from "@/lists/list-item-store.ts";
-import { RITE_DEFINITION, riteReply } from "@/rites/rite.ts";
+import {
+  nextReply,
+  REPLY_CHOICE,
+  RITE_DEFINITION,
+  riteReply,
+} from "@/rites/rite.ts";
 import { readRite } from "@/rites/rite-store.ts";
 import { LISTS_COPY } from "@/ui/copy/lists.ts";
 import { PERFORMANCE_COPY } from "@/ui/copy/performances.ts";
+import { refusedNote } from "./performance-turn.ts";
 
 const PERFORMANCE_ID = z.guid().toLowerCase().brand<"PerformanceId">();
 type PerformanceId = z.infer<typeof PERFORMANCE_ID>;
@@ -43,6 +49,7 @@ const PERFORMANCE_COLUMNS: {
   readonly added: typeof performances.added;
   readonly closing: typeof performances.closing;
   readonly listName: typeof lists.name;
+  readonly listType: typeof lists.type;
 } = {
   id: performances.id,
   listId: performances.listId,
@@ -52,6 +59,7 @@ const PERFORMANCE_COLUMNS: {
   added: performances.added,
   closing: performances.closing,
   listName: lists.name,
+  listType: lists.type,
 };
 
 function asPerformance(row: {
@@ -59,6 +67,7 @@ function asPerformance(row: {
   readonly rite: unknown;
   readonly listId: string;
   readonly listName: string;
+  readonly listType: string;
   readonly startedAt: Date;
   readonly endedAt: Date | null;
   readonly added: number;
@@ -68,6 +77,7 @@ function asPerformance(row: {
   rite: z.infer<typeof RITE_DEFINITION>;
   listId: ListId;
   listName: string;
+  listType: ListType;
   startedAt: Date;
   endedAt: Date | null;
   added: number;
@@ -77,6 +87,7 @@ function asPerformance(row: {
     ...row,
     id: PERFORMANCE_ID.parse(row.id),
     listId: LIST_ID.parse(row.listId),
+    listType: LIST_TYPE.parse(row.listType),
     rite: RITE_DEFINITION.parse(row.rite),
   };
 }
@@ -185,7 +196,7 @@ function startPerformance(
         return;
       }
       const [list] = await tx
-        .select({ name: lists.name })
+        .select({ name: lists.name, type: lists.type })
         .from(lists)
         .where(
           and(
@@ -216,6 +227,7 @@ function startPerformance(
         ...row,
         rite: row.riteSnapshot,
         listName: list.name,
+        listType: list.type,
       });
     });
   });
@@ -241,10 +253,14 @@ function stopPerformance(
   );
 }
 
+// A message to send, with the rite's reply the sender's browser chose for
+// it, if any; the rite chooses when that reply is absent or one it could
+// not have given.
 const PERFORMANCE_MESSAGE = z.object({
   id: z.guid(),
   performanceId: PERFORMANCE_ID,
   text: z.string().refine((text) => text.trim() !== ""),
+  reply: REPLY_CHOICE.optional(),
 });
 type PerformanceMessageRequest = z.infer<typeof PERFORMANCE_MESSAGE>;
 const PERFORMANCE_MESSAGE_COLUMNS: {
@@ -252,6 +268,7 @@ const PERFORMANCE_MESSAGE_COLUMNS: {
   readonly author: typeof performanceMessages.author;
   readonly text: typeof performanceMessages.text;
   readonly reply: typeof performanceMessages.reply;
+  readonly replyIndex: typeof performanceMessages.replyIndex;
   readonly added: typeof performanceMessages.added;
   readonly createdAt: typeof performanceMessages.createdAt;
 } = {
@@ -259,6 +276,7 @@ const PERFORMANCE_MESSAGE_COLUMNS: {
   author: performanceMessages.author,
   text: performanceMessages.text,
   reply: performanceMessages.reply,
+  replyIndex: performanceMessages.replyIndex,
   added: performanceMessages.added,
   createdAt: performanceMessages.createdAt,
 };
@@ -368,13 +386,33 @@ async function addPerformanceMessage(
     { kind: "add", text: input.text },
   );
   let added = 0;
-  let reply = PERFORMANCE_COPY.refused(
-    listItemLimit(list.type),
-    LISTS_COPY.nouns(list.type).one,
-  );
+  let reply = refusedNote(list.type);
+  let replyIndex: number | null = null;
+  let concluded = false;
   if (result === "saved") {
+    const given = await tx
+      .select({ index: performanceMessages.replyIndex })
+      .from(performanceMessages)
+      .where(
+        and(
+          eq(performanceMessages.performanceId, performance.id),
+          isNotNull(performanceMessages.replyIndex),
+          performanceMessageOpenTo(user),
+        ),
+      )
+      .orderBy(performanceMessages.position);
+    const choice = nextReply(
+      rite,
+      given.flatMap(({ index }) => index ?? []),
+      Math.random,
+      input.reply,
+    );
     added = 1;
-    reply = riteReply(rite, list, { text: input.text, author });
+    reply = riteReply(rite, choice, list, { text: input.text, author });
+    if (choice.kind === "reply") {
+      replyIndex = choice.index;
+    }
+    concluded = choice.kind === "final";
     await tx
       .update(performances)
       .set({ added: sql`${performances.added} + 1` })
@@ -389,12 +427,19 @@ async function addPerformanceMessage(
       author,
       text: input.text,
       reply,
+      replyIndex,
       added,
       position: sql<number>`coalesce((${latestMessagePosition}), -1) + 1`,
     })
     .returning(PERFORMANCE_MESSAGE_COLUMNS);
   if (entry === undefined) {
     throw new Error("Inserting a performance message returned none");
+  }
+  if (concluded) {
+    await stopWithin(tx, user, {
+      ...performance,
+      added: performance.added + added,
+    });
   }
   return entry;
 }

@@ -131,6 +131,9 @@ const OWN_RITE: Rite = {
   source: "own",
   firstMessage: "Write three pages for {list} before anything else.",
   replies: ["Keep going, {user}.", "Added “{text}” to {list}."],
+  order: "random",
+  loop: true,
+  finalReply: "",
   updatedAt: new Date("2026-11-20T12:00:00Z"),
 };
 

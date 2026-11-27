@@ -32,14 +32,38 @@ function rowsFor(value: string, prefix: string): TextRow[] {
   }));
 }
 
+// The mark before a row: its place in the list, or a bullet.
+function RowMarker({
+  marker,
+  place,
+}: {
+  readonly marker: "number" | "bullet";
+  readonly place: number;
+}): JSX.Element {
+  if (marker === "number") {
+    return (
+      <span className="text-list-marker">{TEXT_LIST_COPY.number(place)}</span>
+    );
+  }
+  return (
+    <span aria-hidden="true" className="text-list-marker">
+      {TEXT_LIST_COPY.bullet}
+    </span>
+  );
+}
+
 function TextRowEditor({
   row,
+  marker,
+  place,
   editor,
   removeAllowed,
   edit,
   remove,
 }: {
   readonly row: TextRow;
+  readonly marker: "number" | "bullet";
+  readonly place: number;
   readonly editor: EditorOptions;
   readonly removeAllowed: boolean;
   readonly edit: (id: string, text: string) => Promise<boolean>;
@@ -62,6 +86,7 @@ function TextRowEditor({
       actionsLabel={TEXT_LIST_COPY.actions(row.text)}
       onSave={save}
       disabled={false}
+      leading={<RowMarker marker={marker} place={place} />}
     >
       <EditableListAction
         icon="trash"
@@ -74,11 +99,14 @@ function TextRowEditor({
   );
 }
 
-// An editable list stored with the surrounding form. Row edits change its draft only.
+// An editable list stored with the surrounding form. Row edits change its
+// draft only. marker numbers the rows, for a list whose order matters, or
+// bullets them.
 function TextListField({
   name,
   label,
   hint,
+  marker = "bullet",
   value,
   maxLength,
   maxItems,
@@ -88,6 +116,7 @@ function TextListField({
   readonly name: string;
   readonly label: string;
   readonly hint: string;
+  readonly marker?: "number" | "bullet";
   readonly value: string;
   readonly maxLength: number;
   readonly maxItems: number;
@@ -206,10 +235,12 @@ function TextListField({
           onSave={add}
         />
         <EditableList label={label} onMove={move}>
-          {rows.map((row) => (
+          {rows.map((row, index) => (
             <TextRowEditor
               key={row.id}
               row={row}
+              marker={marker}
+              place={index + 1}
               editor={editor}
               removeAllowed={rows.length > 1}
               edit={edit}

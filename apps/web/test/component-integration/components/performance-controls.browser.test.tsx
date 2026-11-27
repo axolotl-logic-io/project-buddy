@@ -217,7 +217,7 @@ describe("use_case_construct_presence", () => {
 });
 
 describe("the message composer", () => {
-  test("shows the message while its reply comes, with MessageComposer and Stop off, then clears", async () => {
+  test("shows the message and the rite's reply at once, with Send and Stop off while it saves, then clears", async () => {
     await render(view(getConstruct("lumen"), []));
     await expect.element(send).toBeDisabled();
     const reply = await sendAndWait(ASKED);
@@ -226,8 +226,13 @@ describe("the message composer", () => {
       performanceId: PERFORMANCE.id,
       text: ASKED,
       id: expect.any(String),
+      reply: { kind: "reply", index: 0 },
     });
     await expect.element(page.getByText(ASKED, { exact: true })).toBeVisible();
+    const [rule] = PERFORMANCE.rite.replies;
+    await expect
+      .element(page.getByText(rule ?? "", { exact: true }))
+      .toBeVisible();
     await expect.element(page.getByText(AUTHOR, { exact: true })).toBeVisible();
     await expect.element(composer).toHaveValue("");
     // Typing the next message while waiting can't send it yet.

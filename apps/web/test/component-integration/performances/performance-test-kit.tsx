@@ -22,10 +22,14 @@ const PERFORMANCE: Performance = {
   id: PERFORMANCE_ID.parse("0b6c1d55-2f0e-4b8a-9c3d-6e7f8a9b0c1d"),
   listId: LIST_ID.parse("a0c7c952-9f82-4640-9584-45e01b0c2513"),
   listName: "Bench",
+  listType: "plain",
   rite: {
     name: "Brainstorm",
     firstMessage: "Let’s brainstorm for {list}. What comes to mind first?",
     replies: ["What else comes to mind?"],
+    order: "random",
+    loop: true,
+    finalReply: "",
   },
   startedAt: new Date("2026-11-20T09:00:00Z"),
   endedAt: null,
@@ -57,6 +61,7 @@ function sentMessage(
     author,
     text,
     reply,
+    replyIndex: 0,
     added: 1,
     createdAt: new Date("2026-11-20T09:05:00Z"),
   };
@@ -82,11 +87,12 @@ function performanceView({
   return (
     <MessageComposer
       questId={questId}
-      performanceId={performance.id}
+      performance={performance}
       viewer={viewer}
       author={author}
       construct={construct}
       answered={entries.map((entry) => entry.id)}
+      given={entries.flatMap((entry) => entry.replyIndex ?? [])}
     >
       <PerformanceTranscript
         performance={performance}

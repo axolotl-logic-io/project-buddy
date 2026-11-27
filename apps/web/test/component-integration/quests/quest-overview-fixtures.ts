@@ -111,6 +111,9 @@ const OWN_RITE: Rite = {
   name: "Weekly review",
   firstMessage: "What did {list} teach you this week?",
   replies: ["What else?"],
+  order: "random",
+  loop: true,
+  finalReply: "",
 };
 
 const RITES: readonly Rite[] = [...BUILT_IN_RITES, OWN_RITE];

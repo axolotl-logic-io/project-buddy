@@ -17,6 +17,33 @@ import { changeRiteAction, copyRiteAction } from "@/rites/rite-actions.ts";
 import { readRite } from "@/rites/rite-store.ts";
 import { GRIMOIRE_COPY } from "@/ui/copy/grimoire.ts";
 
+function endingOf(rite: Rite): "loop" | "conclude" {
+  if (rite.loop) {
+    return "loop";
+  }
+  return "conclude";
+}
+
+// The rite's replies, numbered when it gives them in order and bulleted
+// when it picks them at random.
+function ReplyList({ rite }: { readonly rite: Rite }): JSX.Element {
+  // A reply can appear more than once, so each key counts its copies.
+  const copies = new Map<string, number>();
+  const items = rite.replies.map((reply) => {
+    const copy = (copies.get(reply) ?? 0) + 1;
+    copies.set(reply, copy);
+    return (
+      <li key={`${copy}:${reply}`}>
+        <RiteText text={reply} />
+      </li>
+    );
+  });
+  if (rite.order === "ordered") {
+    return <ol className="rite-replies">{items}</ol>;
+  }
+  return <ul className="rite-replies rite-replies-bulleted">{items}</ul>;
+}
+
 // What the rite is to the user, and what the header says beside it.
 function RiteFacts({ rite }: { readonly rite: Rite }): JSX.Element {
   let label: string = GRIMOIRE_COPY.sources[rite.source];
@@ -44,6 +71,8 @@ function RiteFacts({ rite }: { readonly rite: Rite }): JSX.Element {
       <p className="quests-label">{label}</p>
       <p className="quest-finder-meta rite-head-meta">
         <span>{GRIMOIRE_COPY.replyCount(rite.replies.length)}</span>
+        <span>{GRIMOIRE_COPY.orders[rite.order]}</span>
+        <span>{GRIMOIRE_COPY.endingFacts[endingOf(rite)]}</span>
         <span>{detail}</span>
       </p>
     </div>
@@ -101,14 +130,16 @@ function ReadOnlyRite({ rite }: { readonly rite: Rite }): JSX.Element {
       </section>
       <section className="rite-section">
         <h2 className="quests-label">{GRIMOIRE_COPY.replies}</h2>
-        <ol className="rite-replies">
-          {Array.from(new Set(rite.replies)).map((reply) => (
-            <li key={reply}>
-              <RiteText text={reply} />
-            </li>
-          ))}
-        </ol>
+        <ReplyList rite={rite} />
       </section>
+      {!rite.loop && (
+        <section className="rite-section">
+          <h2 className="quests-label">{GRIMOIRE_COPY.finalReply}</h2>
+          <p className="rite-readonly">
+            <RiteText text={rite.finalReply} />
+          </p>
+        </section>
+      )}
       <PlaceholderLegend />
     </>
   );

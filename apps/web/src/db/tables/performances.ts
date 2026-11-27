@@ -1,5 +1,6 @@
 import { sql } from "drizzle-orm";
 import {
+  boolean,
   foreignKey,
   index,
   integer,
@@ -23,6 +24,9 @@ const rites = pgTable(
     name: text("name").notNull(),
     firstMessage: text("first_message").notNull(),
     replies: jsonb("replies").notNull(),
+    order: text("reply_order").notNull().default("random"),
+    loop: boolean("loop").notNull().default(true),
+    finalReply: text("final_reply").notNull().default(""),
     forgottenAt: timestamp("forgotten_at", { withTimezone: true }),
     updatedAt: timestamp("updated_at", { withTimezone: true })
       .notNull()
@@ -70,6 +74,9 @@ const performanceMessages = pgTable(
     author: text("author").notNull(),
     text: text("text").notNull(),
     reply: text("reply").notNull(),
+    // Which of the rite's replies answered the message, by place; null for
+    // its final reply and for a message the list couldn't hold.
+    replyIndex: integer("reply_index"),
     added: integer("added").notNull(),
     position: integer("position").notNull(),
     createdAt: timestamp("created_at", { withTimezone: true })

@@ -6,6 +6,7 @@ import {
 } from "@/performances/performance-store.ts";
 import { QUEST_NAME } from "@/quests/quest-name.ts";
 import { createQuest } from "@/quests/store.ts";
+import type { RiteDefinition } from "@/rites/rite.ts";
 import { changeRiteAction, saveRiteAction } from "@/rites/rite-actions.ts";
 import {
   changeRiteAvailability,
@@ -34,10 +35,13 @@ test("use_case_customize_rite", async () => {
   }
 
   await signIn(author);
-  const original = {
+  const original: RiteDefinition = {
     name: "Plan",
     firstMessage: "Plan begins on {list}.",
     replies: ["First reply", "Second reply"],
+    order: "ordered",
+    loop: false,
+    finalReply: "That is the plan for {list}.",
   };
   const created = await saveRiteAction(original);
   expect(created.kind).toBe("saved");
@@ -67,6 +71,9 @@ test("use_case_customize_rite", async () => {
   expect(
     await saveRiteAction({ ...original, id, firstMessage: " " }),
   ).toMatchObject({ kind: "invalid", field: "firstMessage" });
+  expect(
+    await saveRiteAction({ ...original, id, finalReply: " " }),
+  ).toMatchObject({ kind: "invalid", field: "finalReply" });
   expect(
     await saveRiteAction({
       id,
@@ -300,6 +307,9 @@ async function ownRite(
     name,
     firstMessage: `${name} begins.`,
     replies: ["First reply"],
+    order: "random",
+    loop: true,
+    finalReply: "",
   });
   if (saved === undefined) {
     throw new Error("The rite was not saved");

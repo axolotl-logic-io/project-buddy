@@ -5,7 +5,7 @@ const PERFORMANCE_COPY = {
   signIn: "Sign in again",
   failed: "The reply could not be saved. Try again.",
   retry: "Retry reply",
-  working: "Replying…",
+  working: "Saving…",
   start: "Perform",
   stop: "Stop",
   unavailable: "This performance is unavailable.",

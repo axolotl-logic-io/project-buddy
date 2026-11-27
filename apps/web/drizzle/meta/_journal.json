@@ -659,6 +659,13 @@
       "when": 1795636271744,
       "tag": "0093_quest_life",
       "breakpoints": true
+    },
+    {
+      "idx": 94,
+      "version": "7",
+      "when": 1795781814693,
+      "tag": "0094_rite_reply_order",
+      "breakpoints": true
     }
   ]
 }
