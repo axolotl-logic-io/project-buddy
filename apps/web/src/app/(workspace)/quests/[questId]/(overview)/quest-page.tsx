@@ -84,22 +84,24 @@ async function overviewOf({
   return (
     <div className="page-workspace quest-folio">
       <header className="quest-focus-head">
-        <p className="quest-overview-meta">
-          <span className="quest-status-mark">
-            {QUEST_STATUS_COPY.labels[quest.status]}
-          </span>
-          {quest.sharing.kind === "private" && (
-            <span>{QUEST_OVERVIEW_COPY.private}</span>
-          )}
-          <QuestSharingMark sharing={quest.sharing} />
-        </p>
-        <h2
-          data-quest-overview-heading=""
-          className="quest-focus-title"
-          tabIndex={-1}
-        >
-          {quest.name}
-        </h2>
+        <div className="quest-focus-line">
+          <h2
+            data-quest-overview-heading=""
+            className="quest-focus-title"
+            tabIndex={-1}
+          >
+            {quest.name}
+          </h2>
+          <p className="quest-overview-meta">
+            <span className="quest-status-mark">
+              {QUEST_STATUS_COPY.labels[quest.status]}
+            </span>
+            {quest.sharing.kind === "private" && (
+              <span>{QUEST_OVERVIEW_COPY.private}</span>
+            )}
+            <QuestSharingMark sharing={quest.sharing} />
+          </p>
+        </div>
         {quest.startingContext !== undefined &&
           quest.startingContext !== "" && (
             <p className="quest-overview-summary">{quest.startingContext}</p>
