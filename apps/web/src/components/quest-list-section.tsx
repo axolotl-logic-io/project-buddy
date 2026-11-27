@@ -80,7 +80,7 @@ function shownItems(list: List, contents: readonly ListItem[]): ListItem[] {
   );
 }
 
-// The editor under a list section's items: a field, Add and Done. It stays
+// The editor above a list section's items: a field, Add and Done. It stays
 // open after each item; Done or Escape closes it.
 function ListAdder({
   list,
@@ -151,7 +151,7 @@ function ListAdder({
 
 // A list on the quest's overview, as a section of the page's folio: its
 // name, linked to the whole list, with its size, a button that opens an
-// editor for new items under them, a candle that opens the rite dialog,
+// editor for new items above them, a candle that opens the rite dialog,
 // and its first few items, editable in place, with a link to the rest. A
 // task list shows its open one-off tasks and its recurring tasks with
 // their streaks; a one-off task checked off leaves at once. target marks
@@ -286,6 +286,9 @@ function QuestListSection({
             <RiteDialog questId={questId} list={list} rites={rites} />
           )}
         </div>
+        {adding === true && (
+          <ListAdder list={list} busy={busy} onAdd={add} onClose={stopAdding} />
+        )}
         {inView.length > 0 && (
           <EditableList label={list.name} layout={layout}>
             {inView.map((item) => {
@@ -309,9 +312,6 @@ function QuestListSection({
               );
             })}
           </EditableList>
-        )}
-        {adding === true && (
-          <ListAdder list={list} busy={busy} onAdd={add} onClose={stopAdding} />
         )}
         <ListChangeNotices changes={changes} other={tally.status} />
         {tally.problem !== undefined && <Alert>{tally.problem}</Alert>}

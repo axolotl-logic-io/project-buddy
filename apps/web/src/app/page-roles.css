@@ -2783,7 +2783,7 @@
 
   /* A list's section on the overview: a small-capital heading with its
      size, linked to the whole list, a rule, Add and the rite candle, then
-     its first items, its editor and a link to the rest. */
+     its editor, its first items and a link to the rest. */
   .list-section {
     @apply flex min-w-0 flex-col;
   }
@@ -2933,10 +2933,14 @@
     @apply flex items-baseline gap-2 px-2.5 pb-1 font-heading text-lg font-semibold;
   }
 
-  /* The editor under a section's items: a field, Add and Done, with its
+  /* The editor above a section's items: a field, Add and Done, with its
      hint under them. On a phone the field takes its own row. */
   .list-adder {
-    @apply grid grid-cols-2 items-center gap-2 border-line/30 border-t pt-2 pb-1 sm:grid-cols-[minmax(0,1fr)_auto_auto];
+    @apply grid grid-cols-2 items-center gap-2 pt-1 pb-2 sm:grid-cols-[minmax(0,1fr)_auto_auto];
+  }
+
+  .list-adder + .editable-list {
+    @apply border-line/30 border-t;
   }
 
   .list-adder > .input-field {

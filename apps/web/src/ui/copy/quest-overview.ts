@@ -28,7 +28,7 @@ const QUEST_OVERVIEW_COPY = {
   // the editor's field, named for its list.
   addTo: (type: ListType, list: string): string =>
     `${LISTS_COPY.addListItem(type)} to ${list}`,
-  // The editor under a list section's items.
+  // The editor above a list section's items.
   adder: {
     add: "Add",
     done: "Done",
