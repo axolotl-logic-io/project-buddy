@@ -5,6 +5,7 @@ import { render } from "vitest-browser-react";
 import { ExperienceFeedback } from "@/components/experience/circle-progress.tsx";
 import { SignedInHeader } from "@/components/signed-in-header.tsx";
 import { type Experience, experienceOf } from "@/experience/experience.ts";
+import { EXPERIENCE_COPY } from "@/ui/copy/experience.ts";
 import {
   SIGNED_IN_USER,
   signInAs,
@@ -49,7 +50,7 @@ test("celebrates a gain after the header refreshes and updates the circle", asyn
   signInAs(SIGNED_IN_USER);
   await setViewport(NARROWEST_VIEWPORT);
   const screen = await render(await frame(BEFORE));
-  const status = page.getByRole("status");
+  const status = page.getByRole("status", { name: EXPERIENCE_COPY.heading });
   expect(status.element()).toBeEmptyDOMElement();
 
   await screen.rerender(await frame(AFTER, "Quest overview"));
@@ -71,7 +72,7 @@ test("shows a still gain with reduced motion and starts fresh after sign-out", a
   signInAs(SIGNED_IN_USER);
   const screen = await render(await frame(BEFORE));
   await screen.rerender(await frame(AFTER));
-  const status = page.getByRole("status");
+  const status = page.getByRole("status", { name: EXPERIENCE_COPY.heading });
   await expect.element(status.getByText("+3 experience")).toBeVisible();
   const notice = status.element().firstElementChild;
   expect(notice && getComputedStyle(notice).animationName).toBe("none");
