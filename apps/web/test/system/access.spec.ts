@@ -77,10 +77,17 @@ test("use_case_return_signed_in", async ({
       later.getByRole("textbox", { name: LOGIN_COPY.emailLabel }),
     ).toHaveCount(0);
 
-    await later.goto("/no-such-page");
-    await expect(
-      later.getByRole("heading", { name: PROBLEMS_COPY.notFoundHeading }),
-    ).toBeVisible();
-    await expect(later.getByRole("banner")).toBeVisible();
+    const missing = await later.request.get("/no-such-page");
+    expect(missing.status()).toBe(HTTP_STATUS.notFound);
+    const missingHtml = await missing.text();
+    const missingPage = await later.evaluate((documentHtml) => {
+      const doc = new DOMParser().parseFromString(documentHtml, "text/html");
+      return {
+        header: doc.querySelector("header")?.textContent,
+        heading: doc.querySelector("main h1")?.textContent,
+      };
+    }, missingHtml);
+    expect(missingPage.heading).toBe(PROBLEMS_COPY.notFoundHeading);
+    expect(missingPage.header).toContain(SITE_COPY.name);
   });
 });
