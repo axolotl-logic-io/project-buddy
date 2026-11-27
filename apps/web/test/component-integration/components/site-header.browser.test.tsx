@@ -1,21 +1,4 @@
-// "use_case_use_on_phone" in use-cases, the header and its site panel in
-// Chromium and WebKit, in every theme: the header's bar takes one row at
-// every width, so the page starts high on the screen. On a phone the brand
-// is its medallion alone, still named for the site. The site panel's button
-// sits at the breadcrumb row's left end; the close button lines up with
-// it inside the open panel. The button stays a touch target's height (44 px), the
-// brand at least WCAG 2.5.8's minimum (24 px), and nothing scrolls
-// sideways. The open panel, on the left under the header, fits the
-// narrowest phone, with every link a target's height. On a wide screen the
-// panel docks over the page, which keeps its size and flow.
-// The header is laid out by width alone (no pointer media query in src/),
-// so the test's viewport stands in for the phone. The theme fonts are
-// loaded, since the site's name's width depends on them. The trail band
-// under the bar: parent links leading into the page's one heading, which
-// keeps its words while the parents shorten, and stays pinned while the bar
-// scrolls away.
-// test/component-integration/app/phone-pages.touch.browser.test.tsx checks every page's reflow
-// and targets.
+// The pinned page header and its site panel in Chromium and WebKit.
 
 import type { JSX } from "react";
 import {
@@ -30,16 +13,15 @@ import {
 import { commands, type Locator, page, userEvent } from "vitest/browser";
 import { render } from "vitest-browser-react";
 import type { Breadcrumb } from "@/components/breadcrumb.ts";
-import { SignedInHeader } from "@/components/signed-in-header.tsx";
 import {
   AccountLinks,
-  SiteHeader,
+  PageHeader,
   TrailBand,
-} from "@/components/site-header.tsx";
+} from "@/components/page-header.tsx";
+import { SignedInHeader } from "@/components/signed-in-header.tsx";
 import { SitePanel } from "@/components/site-panel.tsx";
 import { THEME_IDS } from "@/themes/themes.ts";
 import { CREDITS_COPY } from "@/ui/copy/credits.ts";
-import { EXPERIENCE_COPY } from "@/ui/copy/experience.ts";
 import { GRIMOIRE_COPY } from "@/ui/copy/grimoire.ts";
 import { HOME_COPY } from "@/ui/copy/home.ts";
 import { PROFILE_COPY } from "@/ui/copy/profile.ts";
@@ -50,12 +32,7 @@ import { SITE_COPY, SITE_PANEL_COPY } from "@/ui/copy/site.ts";
 import { THEME_COPY } from "@/ui/copy/theme.ts";
 import { TIMER_COPY } from "@/ui/copy/timer.ts";
 import { animationsSettled } from "../../support/animations-test-kit.ts";
-import {
-  filledFraction,
-  progressArc,
-} from "../../support/progress-arc-test-kit.ts";
 import { SIGNED_IN_USER, signInAs } from "../auth/current-user-test-kit.ts";
-import { MABEL_EXPERIENCE } from "../experience/experience-store-test-kit.ts";
 import {
   installThemeFonts,
   loadFonts,
@@ -64,7 +41,6 @@ import { applyTheme } from "../themes/theme-test-kit.ts";
 import {
   IPHONE_15_VIEWPORT,
   LAPTOP_VIEWPORT,
-  MINIMUM_TARGET_PX,
   NARROWEST_VIEWPORT,
   PHONE_VIEWPORT,
   setViewport,
@@ -79,8 +55,7 @@ import {
   sitePanel,
 } from "./site-panel-test-kit.ts";
 
-// SignedInHeader reads the session, and the ring of the user's circle reads
-// their experience: server code.
+// SignedInHeader reads the session and reports experience gains.
 vi.mock(
   "@/experience/experience-store.ts",
   () => import("../experience/experience-store-test-kit.ts"),
@@ -93,9 +68,7 @@ vi.mock(
 // The height of a button, as --target-size sets it in
 // src/app/page-roles.css.
 const BUTTON_HEIGHT_PX = 44;
-// Narrower than this (32rem), the brand is its medallion alone and a deeper
-// trail leaves out its Quests link.
-const PHONE_LAYOUT_BELOW_PX = 512;
+const MAX_SINGLE_ROW_HEIGHT_PX = 56;
 
 // The site panel's links, in their groups and order, by their names.
 const PLACES = [
@@ -115,42 +88,8 @@ const SCREENS: readonly { name: string; viewport: ViewportSize }[] = [
   { name: "a laptop", viewport: LAPTOP_VIEWPORT },
 ];
 
-// How many lines the text inside element takes.
-function textLines(element: Element): number {
-  const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT);
-  const range = document.createRange();
-  let lines = 0;
-  for (let node = walker.nextNode(); node !== null; node = walker.nextNode()) {
-    if (node.textContent?.trim() !== "") {
-      range.selectNodeContents(node);
-      lines += range.getClientRects().length;
-    }
-  }
-  return lines;
-}
-
 function heightOf(target: Locator): number {
   return target.element().getBoundingClientRect().height;
-}
-
-// The width of the brand's medallion, the disc that leads the brand.
-function medallionWidth(): number {
-  return (
-    page
-      .getByRole("link", { name: SITE_COPY.name })
-      .element()
-      .firstElementChild?.getBoundingClientRect().width ?? 0
-  );
-}
-
-// The width of the ring inside `within`, out to its stroke's outer edge: the
-// arc's own box leaves out the stroke, so add the stroke, scaled from the
-// arc's units to the page's.
-function drawnRingWidth(within: Element): number {
-  const arc = progressArc(within, "The header's ring");
-  const { width } = arc.getBoundingClientRect();
-  const stroke = Number.parseFloat(getComputedStyle(arc).strokeWidth);
-  return width * (1 + stroke / arc.getBBox().width);
 }
 
 // The names of the links in the panel's list labelled label, in order.
@@ -170,7 +109,7 @@ function stayOnThisPage(event: MouseEvent): void {
 const SIGNED_IN_PANEL: JSX.Element = <SitePanel links={<AccountLinks />} />;
 
 function renderSignedIn(): ReturnType<typeof render> {
-  return render(<SiteHeader panel={SIGNED_IN_PANEL} />);
+  return render(<PageHeader panel={SIGNED_IN_PANEL} />);
 }
 
 // The page under the header, in signedInFrame.
@@ -180,7 +119,7 @@ const PAGE_TEXT = "The page";
 function signedInFrame(): JSX.Element {
   return (
     <>
-      <SiteHeader panel={<SitePanel links={<AccountLinks />} />} />
+      <PageHeader panel={<SitePanel links={<AccountLinks />} />} />
       <main>
         <p>{PAGE_TEXT}</p>
       </main>
@@ -221,37 +160,17 @@ describe("use_case_use_on_phone", () => {
               }),
             )
             .not.toBeInTheDocument();
-          await loadFonts();
-
-          const title = page
-            .getByRole("banner")
-            .getByRole("link", { name: SITE_COPY.name });
-          expect(
-            getComputedStyle(title.element()).fontFamily,
-            "the site's name is in a loaded theme font",
-          ).toContain("test kit");
-          const titleBox = title.element().getBoundingClientRect();
           const buttonBox = panelButton().element().getBoundingClientRect();
           const headerBox = page
             .getByRole("banner")
             .element()
             .getBoundingClientRect();
-          expect(
-            titleBox.width === BUTTON_HEIGHT_PX,
-            "on a phone the brand is its medallion alone, a target wide",
-          ).toBe(screen.viewport.width < PHONE_LAYOUT_BELOW_PX);
-          expect(
-            textLines(title.element()),
-            "the brand's name is on one line",
-          ).toBe(1);
-          expect(titleBox.height).toBeGreaterThanOrEqual(MINIMUM_TARGET_PX);
           expect(buttonBox.height).toBeGreaterThanOrEqual(BUTTON_HEIGHT_PX);
           expect(
             buttonBox.top,
             "the panel's button is inside the header",
           ).toBeGreaterThanOrEqual(headerBox.top);
           expect(buttonBox.bottom).toBeLessThanOrEqual(headerBox.bottom);
-          expect(buttonBox.top).toBeGreaterThanOrEqual(titleBox.bottom);
           expect(
             buttonBox.right,
             "the panel's button is on the left, where the panel opens",
@@ -304,81 +223,6 @@ test.each(SCREENS)(
     await closePanel();
   },
 );
-
-describe("use_case_experience_ring", () => {
-  test.each(SCREENS)(
-    "the ring of the user's circle fills toward the next one, at the bar's right end, on $name",
-    async (screen) => {
-      applyTheme("parchment");
-      signInAs(SIGNED_IN_USER);
-      await setViewport(screen.viewport);
-      await render(await SignedInHeader());
-      const { circle, title, experience, circleStart, nextCircleStart } =
-        MABEL_EXPERIENCE;
-      const ring = page.getByRole("banner").getByRole("link", {
-        name: EXPERIENCE_COPY.progress(
-          circle,
-          title,
-          nextCircleStart - experience,
-          circle + 1,
-        ),
-      });
-      await expect.element(ring).toHaveAttribute("href", "/profile#experience");
-      const number = ring.getByText(String(circle), { exact: true });
-      const displayedTitle = ring.getByText(title, { exact: true });
-      await expect.element(number).toBeVisible();
-      await expect.element(displayedTitle).toBeVisible();
-      expect(
-        1 - filledFraction(ring.element(), "The header's ring"),
-      ).toBeCloseTo(
-        (nextCircleStart - experience) / (nextCircleStart - circleStart),
-      );
-      const ringBox = ring.element().getBoundingClientRect();
-      const graphic = ring.element().querySelector("svg");
-      expect(graphic).not.toBeNull();
-      expect(
-        displayedTitle.element().getBoundingClientRect().top,
-      ).toBeGreaterThanOrEqual(
-        graphic?.getBoundingClientRect().bottom ?? Number.POSITIVE_INFINITY,
-      );
-      expect(
-        Number.parseFloat(
-          getComputedStyle(progressArc(ring.element(), "The header's ring"))
-            .strokeWidth,
-        ),
-      ).toBeGreaterThan(1);
-      const titleBox = page
-        .getByRole("link", { name: SITE_COPY.name })
-        .element()
-        .getBoundingClientRect();
-      expect(ringBox.height).toBeGreaterThanOrEqual(MINIMUM_TARGET_PX);
-      expect(
-        medallionWidth(),
-        "the brand's medallion is the ring's size",
-      ).toBeCloseTo(drawnRingWidth(ring.element()), 0);
-      expect(titleBox.right <= ringBox.left, "the brand, then the ring").toBe(
-        true,
-      );
-      expect(
-        ringBox.bottom > titleBox.top && titleBox.bottom > ringBox.top,
-        "the ring and the brand share one row",
-      ).toBe(true);
-      const bar = page.getByRole("banner").element().getBoundingClientRect();
-      expect(
-        bar.right - ringBox.right,
-        "the ring ends the bar, on its right",
-      ).toBeLessThanOrEqual(
-        Number.parseFloat(
-          getComputedStyle(page.getByRole("banner").element()).paddingRight,
-        ) + 1,
-      );
-      expect(
-        document.documentElement.scrollWidth,
-        "no sideways scroll",
-      ).toBeLessThanOrEqual(screen.viewport.width);
-    },
-  );
-});
 
 describe("the site panel", () => {
   test("groups Home, Quests and Grimoire apart from Profile and Settings, above the appearance choices and Credits", async () => {
@@ -537,7 +381,7 @@ describe("the site panel", () => {
   });
 
   test("offers a visitor the appearance choices and Credits", async () => {
-    await render(<SiteHeader />);
+    await render(<PageHeader />);
     await openPanel();
 
     await expect
@@ -555,7 +399,7 @@ describe("the site panel", () => {
 
 const LONG_NAME_REPEATS = 20;
 const LONG_NAME = "Long quest and performance name ".repeat(LONG_NAME_REPEATS);
-// Enough lines of page to scroll the header away, on any screen.
+// Enough lines to scroll the page on any screen.
 const SCROLL_LINES = Array.from({ length: 200 }, (_, line) => `Line ${line}`);
 const QUESTS: Breadcrumb = { label: QUESTS_COPY.heading, href: "/quests" };
 
@@ -563,7 +407,7 @@ const QUESTS: Breadcrumb = { label: QUESTS_COPY.heading, href: "/quests" };
 // renders it.
 function bandedHeader(items: readonly Breadcrumb[]): JSX.Element {
   return (
-    <SiteHeader panel={SIGNED_IN_PANEL} trail={<TrailBand items={items} />} />
+    <PageHeader panel={SIGNED_IN_PANEL} trail={<TrailBand items={items} />} />
   );
 }
 
@@ -615,6 +459,11 @@ describe("the trail band", () => {
         .toJSON();
       const main = page.getByRole("main").element();
       const origin = main.getBoundingClientRect().y;
+      expect(before.top).toBe(0);
+      expect(origin).toBeLessThanOrEqual(MAX_SINGLE_ROW_HEIGHT_PX);
+      await expect
+        .element(page.getByRole("link", { name: SITE_COPY.name }))
+        .not.toBeInTheDocument();
       await screen.rerender(await location(false));
       await expect
         .element(pageHeading())
@@ -641,7 +490,7 @@ describe("the trail band", () => {
     },
   );
 
-  test("leads the parent links into the page's one heading, on the bar's row below", async () => {
+  test("leads the parent links into the page's one heading", async () => {
     applyTheme("parchment");
     await setViewport(LAPTOP_VIEWPORT);
     await render(
@@ -663,13 +512,6 @@ describe("the trail band", () => {
       "one heading",
     ).toHaveLength(1);
     const heading = pageHeading().element().getBoundingClientRect();
-    const brand = page
-      .getByRole("link", { name: SITE_COPY.name })
-      .element()
-      .getBoundingClientRect();
-    expect(heading.top, "the band is under the bar").toBeGreaterThanOrEqual(
-      brand.bottom,
-    );
     expect(
       panelButton().element().getBoundingClientRect().top,
       "the panel's button is alongside the breadcrumb heading",
@@ -689,7 +531,7 @@ describe("the trail band", () => {
     }
   });
 
-  test("stays pinned while the bar scrolls away", async () => {
+  test("stays pinned while the page scrolls", async () => {
     applyTheme("parchment");
     await setViewport(IPHONE_15_VIEWPORT);
     await render(
@@ -713,9 +555,6 @@ describe("the trail band", () => {
         trailNavigation().getByRole("link", { name: QUESTS_COPY.heading }),
       )
       .toBeInViewport({ ratio: 1 });
-    await expect
-      .element(page.getByRole("link", { name: SITE_COPY.name }))
-      .not.toBeInViewport();
     // The panel's expand button stays pinned with the breadcrumbs.
     await expect.element(panelButton()).toBeInViewport({ ratio: 1 });
     const expandBounds = panelButton().element().getBoundingClientRect();
@@ -794,7 +633,7 @@ describe("the trail band", () => {
         NARROWEST_VIEWPORT.width,
       );
 
-      await screen.rerender(<SiteHeader />);
+      await screen.rerender(<PageHeader />);
       await expect.element(trailNavigation()).not.toBeInTheDocument();
       await expect.element(pageHeading()).not.toBeInTheDocument();
     });

@@ -100,8 +100,8 @@ The user is deep in a long performance and wants to go back to their quests, wit
 - **Prerequisites:** [`use_case_open_quest`](quests.md#use_case_open_quest), for a quest whose active performance is longer than the screen.
 - **Steps:**
   - The user scrolls down to the newest message, on a laptop or a phone.
-  - The user follows the Quests link in the site header's trail band.
-- **Outcome:** wherever the user has scrolled, the trail band, with the link back to their quests and the quest's name as the page's heading, and the box they write in stay on screen, and nothing covers them. The trail band stays within 112 CSS pixels on a phone and 140 on a wide screen, even when the quest's name takes two lines. The composer stays above the on-screen keyboard, and the page has no horizontal overflow at 320 CSS pixels. The site header contains one accessible breadcrumb trail, leading into the quest's name, the page's one heading. Client navigation and browser back/forward replace the trail with the destination's trail. Jumping to a message shows it below the trail band.
+  - The user follows the Quests link in the page header's trail band.
+- **Outcome:** wherever the user has scrolled, the trail band, with the link back to their quests and the quest's name as the page's heading, and the box they write in stay on screen, and nothing covers them. The trail band stays within 112 CSS pixels on a phone and 140 on a wide screen, even when the quest's name takes two lines. The composer stays above the on-screen keyboard, and the page has no horizontal overflow at 320 CSS pixels. The page header contains one accessible breadcrumb trail, leading into the quest's name, the page's one heading. Client navigation and browser back/forward replace the trail with the destination's trail. Jumping to a message shows it below the trail band.
 - **Next:**
   - [`use_case_open_quest`](quests.md#use_case_open_quest): back on the quest.
 

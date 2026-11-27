@@ -5,7 +5,7 @@ import { beforeEach, describe, expect, test, vi } from "vitest";
 import { page, userEvent } from "vitest/browser";
 import { render } from "vitest-browser-react";
 
-import { AccountLinks, SiteHeader } from "@/components/site-header.tsx";
+import { AccountLinks, PageHeader } from "@/components/page-header.tsx";
 import { SitePanel } from "@/components/site-panel.tsx";
 
 import {
@@ -54,7 +54,7 @@ vi.mock("next/navigation", () => ({
 }));
 
 async function openQuickAdd(): Promise<void> {
-  await render(<SiteHeader panel={<SitePanel links={<AccountLinks />} />} />);
+  await render(<PageHeader panel={<SitePanel links={<AccountLinks />} />} />);
   await panelButton().click();
   await page
     .getByRole("button", { name: QUICK_ADD_COPY.panelItem, exact: true })
@@ -128,7 +128,7 @@ describe("use_case_quick_add", () => {
     await setViewport(LAPTOP_VIEWPORT);
     try {
       await render(
-        <SiteHeader panel={<SitePanel links={<AccountLinks />} />} />,
+        <PageHeader panel={<SitePanel links={<AccountLinks />} />} />,
       );
       await openPanel();
       const item = sitePanel().getByRole("button", {

@@ -91,7 +91,7 @@
 // Title sizes, one value for all three appearances, each in rem, for titles that
 // aren't a page's headings (theme-tokens.browser.test.tsx checks each sits below the
 // heading named). page-roles.css's title roles use them.
-//   --header-title-size     the site's name in the    text-header-title
+//   --header-title-size     the site panel's title    text-header-title
 //                           header, below a page's
 //                           heading and above body
 //                           text
@@ -132,10 +132,9 @@
 //   --panel-label-tracking their letter-spacing
 //   --panel-separator      a background for the rule between its groups
 //   --panel-separator-size that rule's height
-//   --header-ink      the shared HUD's permanent dark ground
-//   --header-paper    light text and medallion on the HUD
-//   --header-line     HUD separators and button shadow
-//   --header-gold     HUD accent, controls and focus rings
+//   --header-ink      the dark ground for experience feedback and badges
+//   --header-paper    light text for experience feedback
+//   --header-gold     accent for feedback, badges and page loading
 // The built-in constructs' drawings (components/constructs/artwork/), set
 // per mode and read by construct-art.css. Ink stays dark in every mode,
 // because it only draws over metal, paper and light:

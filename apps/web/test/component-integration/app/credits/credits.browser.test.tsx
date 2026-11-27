@@ -19,7 +19,7 @@ import { inSiteFrame } from "../site-frame-test-kit.tsx";
 // The signed-in header records visible visits and refreshes through the router.
 vi.mock("next/navigation", () => import("../../components/router-test-kit.ts"));
 
-// The header's ring of the user's circle reads their experience, server code.
+// The header reads the experience total for feedback after saves.
 vi.mock(
   "@/experience/experience-store.ts",
   () => import("../../experience/experience-store-test-kit.ts"),

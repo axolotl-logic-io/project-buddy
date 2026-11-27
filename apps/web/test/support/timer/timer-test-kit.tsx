@@ -5,7 +5,7 @@
 // the presence action.
 import { page } from "vitest/browser";
 import { render } from "vitest-browser-react";
-import { SiteHeader, TrailBand } from "@/components/site-header.tsx";
+import { PageHeader, TrailBand } from "@/components/page-header.tsx";
 import { TimerDisplay } from "@/components/timer/timer-display.tsx";
 import { TimerSetup } from "@/components/timer/timer-setup.tsx";
 import { TimerTrailTools } from "@/components/timer/timer-trail-tools.tsx";
@@ -45,7 +45,7 @@ async function renderTimer(
   clock.now = nowMs;
   const screen = await render(
     <>
-      <SiteHeader
+      <PageHeader
         trail={
           <TrailBand
             items={[

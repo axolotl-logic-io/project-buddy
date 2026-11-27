@@ -1,6 +1,6 @@
 import type { JSX } from "react";
-import { SiteHeader } from "@/components/site-header.tsx";
+import { PageHeader } from "@/components/page-header.tsx";
 
 export default function VisitorHeader(): JSX.Element {
-  return <SiteHeader />;
+  return <PageHeader />;
 }

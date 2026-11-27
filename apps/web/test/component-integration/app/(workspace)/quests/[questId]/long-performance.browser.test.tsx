@@ -45,7 +45,7 @@ vi.mock(
   () => import("../../../../auth/current-user-test-kit.ts"),
 );
 vi.mock("@/quests/store.ts", () => ({ getQuest: vi.fn() }));
-// The header's ring of the user's circle reads their experience, server code.
+// The header reads the experience total for feedback after saves.
 vi.mock(
   "@/experience/experience-store.ts",
   () => import("../../../../experience/experience-store-test-kit.ts"),
@@ -72,7 +72,7 @@ const ENTRIES = Array.from({ length: EXCHANGES }, () =>
   sentMessage("Show the saved example", MARKDOWN_REPLY),
 );
 
-// The quest page with its site header, as the root layout renders them.
+// The quest page with its page header, as the root layout renders them.
 async function questPage(): Promise<React.JSX.Element> {
   const params = Promise.resolve({ questId: FOX_QUEST.id });
   const content = await QuestPage({
