@@ -14,7 +14,7 @@ test("use_case_change_auth_page", async ({ page }) => {
     // Hold the navigation response. A speculative response can be canceled
     // by the router as soon as the navigation finishes.
     if ((await route.request().headerValue("next-router-prefetch")) !== null) {
-      await route.abort();
+      await route.fulfill({ status: 204 });
       return;
     }
     const response = await route.fetch();
