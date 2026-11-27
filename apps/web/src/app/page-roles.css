@@ -2777,17 +2777,19 @@
     @apply flex min-w-0 flex-col;
   }
 
+  /* A list section's heading row. On a phone the name and size wrap
+     before Add and the candle do, so they stay on the row's end. */
   .list-section-head {
-    @apply -me-2 mb-1 flex flex-wrap items-center gap-x-3;
+    @apply -me-2 mb-1 flex items-center gap-x-3;
   }
 
   .list-section-title {
-    @apply flex min-w-0 shrink items-center gap-2 font-heading text-sm font-semibold tracking-wider text-muted uppercase;
+    @apply flex min-w-0 flex-1 items-center gap-2 font-heading text-sm font-semibold tracking-wider text-muted uppercase sm:flex-initial sm:shrink;
   }
 
   .list-section-name {
     min-block-size: var(--target-size);
-    @apply flex min-w-0 items-baseline gap-1.5 self-center text-foreground no-underline hover:underline;
+    @apply flex min-w-0 flex-wrap items-baseline gap-x-1.5 self-center text-foreground no-underline hover:underline;
     padding-block: 0.75rem;
   }
 
@@ -2826,7 +2828,7 @@
   }
 
   .list-section-head .list-section-add {
-    @apply ms-auto shrink-0 gap-1.5 px-2.5 text-primary sm:ms-0;
+    @apply shrink-0 gap-1.5 px-2.5 text-primary underline decoration-1 underline-offset-4;
   }
 
   .list-section-add .icon {
@@ -2838,7 +2840,7 @@
   }
 
   .list-section .editable-list {
-    @apply -ms-2.5 -me-2 text-base;
+    @apply text-base;
   }
 
   .list-section .editable-row + .editable-row {

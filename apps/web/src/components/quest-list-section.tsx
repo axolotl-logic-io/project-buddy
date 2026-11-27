@@ -265,8 +265,9 @@ function QuestListSection({
             <span aria-hidden={true} className="list-section-mark" />
             <Link className="list-section-name" href={href}>
               <span className="wrap-anywhere">{list.name}</span>
-              <span aria-hidden={true} className="list-section-dot" />{" "}
-              <span className="list-section-size">{size}</span>
+              <span className="list-section-size">
+                <span aria-hidden={true} className="list-section-dot" /> {size}
+              </span>
             </Link>
           </h3>
           <span aria-hidden={true} className="list-section-rule" />
