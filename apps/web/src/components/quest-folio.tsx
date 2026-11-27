@@ -10,6 +10,7 @@ import {
   useId,
   useState,
 } from "react";
+import { FolioDivider } from "@/components/folio-divider.tsx";
 import { editorFor, useListChanges } from "@/components/list-changes.ts";
 import { ListChangeNotices } from "@/components/list-items.tsx";
 import { QuestListSection } from "@/components/quest-list-section.tsx";
@@ -48,15 +49,6 @@ function validateName(text: string): ReturnType<EditorOptions["validate"]> {
     return { problem: COPY.nameProblem };
   }
   return { text: name };
-}
-
-// An ornamented rule between the parts of the folio.
-function FolioDivider(): JSX.Element {
-  return (
-    <div className="ornamented-divider" aria-hidden="true">
-      <span className="ornament" data-ornament="divider" />
-    </div>
-  );
 }
 
 // The add box under the quest's name: a field that adds to the list

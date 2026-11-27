@@ -459,10 +459,12 @@ test("use_case_tasks_panel", async () => {
     .element(page.getByRole("heading", { name: "Bench" }))
     .toBeVisible();
   await expect
-    .element(page.getByRole("button", { name: "Add task" }))
+    .element(
+      page.getByRole("searchbox", { name: "Search or add a task to Bench" }),
+    )
     .toBeVisible();
   await expect
-    .element(page.getByRole("link", { name: "Back to overview" }))
+    .element(page.getByRole("link", { name: `Back to ${FOX_QUEST.name}` }))
     .toHaveAttribute("href", `/quests/${FOX_QUEST.id}`);
 });
 

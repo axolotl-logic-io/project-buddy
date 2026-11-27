@@ -11,7 +11,7 @@ import { saveListAction } from "@/lists/list-actions.ts";
 import type { List } from "@/lists/list-store.ts";
 import { LISTS_COPY } from "@/ui/copy/lists.ts";
 
-// A list's settings, folded away: its name and type.
+// A list's settings: its name and type.
 function ListSettings({
   questId,
   list,
@@ -22,37 +22,38 @@ function ListSettings({
   const [state, action, pending] = useActionState(saveListAction, {});
   const { name: nameDraft, type: typeDraft } = state.draft ?? {};
   return (
-    <details>
-      <summary>{LISTS_COPY.settings}</summary>
-      <form action={action} className="grid gap-3">
-        <input name="questId" type="hidden" value={questId} />
-        <input name="listId" type="hidden" value={list.id} />
-        <TextField
-          label={LISTS_COPY.fields.name}
-          name="name"
-          defaultValue={nameDraft ?? list.name}
-          required={true}
-        />
-        <SelectField
-          label={LISTS_COPY.fields.type}
-          name="type"
-          defaultValue={typeDraft ?? list.type}
-        >
-          {LIST_TYPE.options.map((type) => (
-            <option key={type} value={type}>
-              {LISTS_COPY.types[type]}
-            </option>
-          ))}
-        </SelectField>
-        <Button type="submit" disabled={pending}>
-          {LISTS_COPY.save}
-        </Button>
-        <FormStatus>
-          {state.error}
-          {state.saved === true && LISTS_COPY.saved}
-        </FormStatus>
-      </form>
-    </details>
+    <form
+      action={action}
+      className="list-settings-form"
+      aria-label={LISTS_COPY.settings}
+    >
+      <input name="questId" type="hidden" value={questId} />
+      <input name="listId" type="hidden" value={list.id} />
+      <TextField
+        label={LISTS_COPY.fields.name}
+        name="name"
+        defaultValue={nameDraft ?? list.name}
+        required={true}
+      />
+      <SelectField
+        label={LISTS_COPY.fields.type}
+        name="type"
+        defaultValue={typeDraft ?? list.type}
+      >
+        {LIST_TYPE.options.map((type) => (
+          <option key={type} value={type}>
+            {LISTS_COPY.types[type]}
+          </option>
+        ))}
+      </SelectField>
+      <Button type="submit" disabled={pending}>
+        {LISTS_COPY.save}
+      </Button>
+      <FormStatus>
+        {state.error}
+        {state.saved === true && LISTS_COPY.saved}
+      </FormStatus>
+    </form>
   );
 }
 

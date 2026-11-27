@@ -9,8 +9,8 @@ The user keeps a list's list items by hand.
 - **Prerequisites:** [`use_case_open_quest`](quests.md#use_case_open_quest).
 - **Steps:**
   - The user opens one of the quest's lists from Overview.
-  - They add a list item, edit one, reorder them, move one to another list of the quest, or remove one.
-- **Outcome:** the list lists its list items in their saved order, named for the list's type, such as "Add item" and "Remove task". Clicking a list item's text opens the shared inline editor. Enter, Save or clicking outside saves and closes it; clicking another list item saves the previous edit and opens that editor. Escape or Cancel discards the draft. Failed saves retain the draft and feedback. Drag a handle to reorder list items, or focus it and use the arrow keys. The action menu offers Split, Move to another list and Remove; a checked-off task's menu has no Split. A moved list item keeps its text and takes the destination list's type, as `use_case_list_types` describes. A refused change keeps the list as it was and shows the reason. Everyone in the quest shares its lists; other users cannot read or change them. These controls make no model request.
+  - They search the list, add a list item, edit one, reorder them, move one to another list of the quest, or remove one.
+- **Outcome:** the list's page, in the same frame as Overview, starts with a link back to the quest, the list's name and size, a candle for a rite and a gear for the list's settings. Under them, a search box named for the list, such as "Search or add a task to Tasks", narrows the list to the list items that contain its text and marks the match in each. Enter adds the text as a new list item, unless a list item with the same text is already there; then the box says so and adds nothing. Escape empties the box. The list lists its list items in their saved order, named for the list's type, such as "Remove task". Clicking a list item's text opens the shared inline editor. Enter, Save or clicking outside saves and closes it; clicking another list item saves the previous edit and opens that editor. Escape or Cancel discards the draft. Failed saves retain the draft and feedback. Drag a handle to reorder list items, or focus it and use the arrow keys; the handles stay in view, and go while a search narrows the list. The action menu offers Split, then each of the quest's other lists under Move to, then Remove; a checked-off task's menu has no Split. A moved list item keeps its text and takes the destination list's type, as `use_case_list_types` describes. A refused change keeps the list as it was and shows the reason. Everyone in the quest shares its lists; other users cannot read or change them. These controls make no model request.
 - **Next:**
   - `use_case_split_list_item`: break a list item into smaller ones.
   - `use_case_list_types`: change a list's type.
@@ -24,7 +24,7 @@ The user adds a list to a quest and sets it up.
 - **Prerequisites:** [`use_case_open_quest`](quests.md#use_case_open_quest).
 - **Steps:**
   - The user chooses New list in Overview's add box and names the list. It is a task list.
-  - Later, they open the list's settings and change its name or type.
+  - Later, they open the list's settings with the gear on its page and change its name or type.
 - **Outcome:** the new list appears on Overview after the quest's other lists, and can be chosen for a performance. Its pages, menus, feedback and the site's messages during a performance name its items for its type. A name that is empty, longer than one line or too long is refused with the reason, and the draft stays. Everyone in the quest sees the same list.
 
 ## use_case_split_list_item

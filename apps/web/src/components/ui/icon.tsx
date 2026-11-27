@@ -29,6 +29,8 @@ const ICON_PATHS = {
   // A downward chevron, for a list or a section that opens.
   "chevron-down": { stroke: "m4 6 4 4 4-4" },
   "chevron-right": { stroke: "m6 4 4 4-4 4" },
+  // A left-pointing chevron, back to the page above.
+  "chevron-left": { stroke: "m10 4-4 4 4 4" },
   // A cross, for closing a panel.
   close: { stroke: "M4 4l8 8M12 4l-8 8" },
   // A flag on its pole, for completed quests.
