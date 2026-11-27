@@ -6,7 +6,7 @@ import type { User } from "@/accounts/users-store.ts";
 import {
   type StartQuestState,
   startQuestAction,
-} from "@/app/(workspace)/quests/actions.ts";
+} from "@/app/(site)/(workspace)/quests/actions.ts";
 import { readLists } from "@/lists/list-store.ts";
 import { listPerformances } from "@/performances/performance-store.ts";
 import { QUEST_NAME_MAX_LENGTH } from "@/quests/quest-name.ts";

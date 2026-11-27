@@ -7,8 +7,8 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { page } from "vitest/browser";
 import { render } from "vitest-browser-react";
-import QuestLayout from "@/app/(workspace)/quests/[questId]/(overview)/layout.tsx";
-import QuestPage from "@/app/(workspace)/quests/[questId]/(overview)/page.tsx";
+import QuestLayout from "@/app/(site)/(workspace)/quests/[questId]/(overview)/layout.tsx";
+import QuestPage from "@/app/(site)/(workspace)/quests/[questId]/(overview)/page.tsx";
 import { readLists } from "@/lists/list-store.ts";
 import {
   listPerformances,

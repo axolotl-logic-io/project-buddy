@@ -4,7 +4,7 @@ import { refresh } from "next/cache";
 import { headers } from "next/headers";
 import { z } from "zod";
 import { linkOrigin } from "@/accounts/emailed-link.ts";
-import { EMAIL_FIELD } from "@/app/login/link-request.ts";
+import { EMAIL_FIELD } from "@/app/(site)/login/link-request.ts";
 import { requireUser } from "@/auth/current-user.ts";
 import type { QuestActionResult } from "@/components/use-quest-action.ts";
 import { QUEST_ID, USER_ID } from "@/ids.ts";

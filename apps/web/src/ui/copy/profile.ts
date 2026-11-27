@@ -19,5 +19,4 @@ export const PROFILE_COPY = {
     }
     return `Tracked since ${since} · Days use UTC. Earlier days are not included.`;
   },
-  loading: "Loading Profile…",
 } as const;

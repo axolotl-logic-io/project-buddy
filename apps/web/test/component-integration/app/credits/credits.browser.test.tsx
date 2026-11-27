@@ -2,9 +2,9 @@ import type { JSX } from "react";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { page } from "vitest/browser";
 import { render } from "vitest-browser-react";
-import CreditsPage from "@/app/credits/page.tsx";
-import LoginPage from "@/app/login/page.tsx";
-import NotFound from "@/app/not-found.tsx";
+import CreditsPage from "@/app/(site)/credits/page.tsx";
+import LoginPage from "@/app/(site)/login/page.tsx";
+import NotFound from "@/app/(site)/not-found.tsx";
 import { CREDITS_COPY } from "@/ui/copy/credits.ts";
 import { tabForward } from "../../../support/keyboard-test-kit.ts";
 import {
@@ -30,7 +30,9 @@ vi.mock(
   () => import("../../auth/current-user-test-kit.ts"),
 );
 // The rendered controls do not submit Server Actions in this case.
-vi.mock("@/app/login/actions.ts", () => ({ requestSignInLinkAction: vi.fn() }));
+vi.mock("@/app/(site)/login/actions.ts", () => ({
+  requestSignInLinkAction: vi.fn(),
+}));
 
 // Pages whose site panel offers Credits: public pages for a visitor, and a
 // signed-in page.

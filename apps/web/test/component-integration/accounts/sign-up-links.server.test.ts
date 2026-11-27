@@ -12,7 +12,7 @@ import {
 } from "@/accounts/sign-up-links.ts";
 import { USER_NAME_MAX_LENGTH } from "@/accounts/user-name.ts";
 import { endEverySession, findUserByEmail } from "@/accounts/users-store.ts";
-import { continueSignInAction } from "@/app/login/link/actions.ts";
+import { continueSignInAction } from "@/app/(site)/login/link/actions.ts";
 import { getDb } from "@/db/client.ts";
 import { signUpLinks } from "@/db/tables/sign-up-links.ts";
 import { users } from "@/db/tables/users.ts";

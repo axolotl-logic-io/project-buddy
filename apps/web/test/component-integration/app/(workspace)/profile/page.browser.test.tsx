@@ -1,9 +1,9 @@
 import { beforeEach, expect, test, vi } from "vitest";
 import { page } from "vitest/browser";
 import { render } from "vitest-browser-react";
-import type { setNameAction } from "@/app/(workspace)/profile/actions.ts";
-import ProfileLayout from "@/app/(workspace)/profile/layout.tsx";
-import ProfilePage from "@/app/(workspace)/profile/page.tsx";
+import type { setNameAction } from "@/app/(site)/(workspace)/profile/actions.ts";
+import ProfileLayout from "@/app/(site)/(workspace)/profile/layout.tsx";
+import ProfilePage from "@/app/(site)/(workspace)/profile/page.tsx";
 import {
   EVENT_KIND_WEIGHTS,
   experienceOf,
@@ -21,7 +21,7 @@ import { readSignedInDays } from "../../../visits/signed-in-days-store-test-kit.
 const actions = vi.hoisted(() => ({
   setNameAction: vi.fn<typeof setNameAction>(),
 }));
-vi.mock("@/app/(workspace)/profile/actions.ts", () => actions);
+vi.mock("@/app/(site)/(workspace)/profile/actions.ts", () => actions);
 vi.mock("@/auth/current-user.ts", () => ({
   requireUser: vi
     .fn()

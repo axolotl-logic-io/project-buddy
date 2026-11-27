@@ -11,26 +11,26 @@ import type { JSX } from "react";
 import { vi } from "vitest";
 import { page } from "vitest/browser";
 import { readSignInLinkUser } from "@/accounts/sign-in-links.ts";
-import ConstructPage from "@/app/(workspace)/constructs/[constructId]/page.tsx";
-import RitePage from "@/app/(workspace)/grimoire/[riteId]/page.tsx";
-import GrimoirePage from "@/app/(workspace)/grimoire/page.tsx";
-import HomePage from "@/app/(workspace)/page.tsx";
-import ProfileLayout from "@/app/(workspace)/profile/layout.tsx";
-import ProfilePage from "@/app/(workspace)/profile/page.tsx";
-import QuestListLayout from "@/app/(workspace)/quests/(list)/layout.tsx";
-import QuestsPage from "@/app/(workspace)/quests/(list)/page.tsx";
-import QuestLayout from "@/app/(workspace)/quests/[questId]/(overview)/layout.tsx";
-import QuestPage from "@/app/(workspace)/quests/[questId]/(overview)/page.tsx";
-import SettingsLayout from "@/app/(workspace)/settings/layout.tsx";
-import SettingsPage from "@/app/(workspace)/settings/page.tsx";
+import ConstructPage from "@/app/(site)/(workspace)/constructs/[constructId]/page.tsx";
+import RitePage from "@/app/(site)/(workspace)/grimoire/[riteId]/page.tsx";
+import GrimoirePage from "@/app/(site)/(workspace)/grimoire/page.tsx";
+import HomePage from "@/app/(site)/(workspace)/page.tsx";
+import ProfileLayout from "@/app/(site)/(workspace)/profile/layout.tsx";
+import ProfilePage from "@/app/(site)/(workspace)/profile/page.tsx";
+import QuestListLayout from "@/app/(site)/(workspace)/quests/(list)/layout.tsx";
+import QuestsPage from "@/app/(site)/(workspace)/quests/(list)/page.tsx";
+import QuestLayout from "@/app/(site)/(workspace)/quests/[questId]/(overview)/layout.tsx";
+import QuestPage from "@/app/(site)/(workspace)/quests/[questId]/(overview)/page.tsx";
+import SettingsLayout from "@/app/(site)/(workspace)/settings/layout.tsx";
+import SettingsPage from "@/app/(site)/(workspace)/settings/page.tsx";
 
-import TimerPage from "@/app/(workspace)/timer/[work]/[break]/[start]/page.tsx";
-import TimerLayout from "@/app/(workspace)/timer/layout.tsx";
-import TimerSetupPage from "@/app/(workspace)/timer/page.tsx";
-import CreditsPage from "@/app/credits/page.tsx";
-import SignInLinkPage from "@/app/login/link/page.tsx";
-import LoginPage from "@/app/login/page.tsx";
-import SignUpPage from "@/app/signup/page.tsx";
+import TimerPage from "@/app/(site)/(workspace)/timer/[work]/[break]/[start]/page.tsx";
+import TimerLayout from "@/app/(site)/(workspace)/timer/layout.tsx";
+import TimerSetupPage from "@/app/(site)/(workspace)/timer/page.tsx";
+import CreditsPage from "@/app/(site)/credits/page.tsx";
+import SignInLinkPage from "@/app/(site)/login/link/page.tsx";
+import LoginPage from "@/app/(site)/login/page.tsx";
+import SignUpPage from "@/app/(site)/signup/page.tsx";
 import {
   listQuestPeople,
   type QuestPeople,

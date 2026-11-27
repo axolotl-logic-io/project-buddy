@@ -2,7 +2,7 @@ import type { JSX } from "react";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { commands, page } from "vitest/browser";
 import { render } from "vitest-browser-react";
-import SegmentError from "@/app/(workspace)/constructs/[constructId]/error.tsx";
+import SegmentError from "@/app/(site)/(workspace)/constructs/[constructId]/error.tsx";
 import { EditorLoading } from "@/components/ui/editor-loading.tsx";
 import { EditorFrame } from "@/components/ui/page-frame.tsx";
 import { PROBLEMS_COPY } from "@/ui/copy/problems.ts";

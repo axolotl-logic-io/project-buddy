@@ -1,6 +1,7 @@
 import { expect } from "@playwright/test";
 import { HTTP_STATUS } from "@/http-status.ts";
 import { LOGIN_COPY } from "@/ui/copy/login.ts";
+import { PROBLEMS_COPY } from "@/ui/copy/problems.ts";
 import { SITE_COPY } from "@/ui/copy/site.ts";
 import { test } from "./fixtures.ts";
 import { signInByLink } from "./sign-in-pages.ts";
@@ -40,14 +41,46 @@ test("use_case_return_signed_in", async ({
 
   await test.step("a bookmarked quest opens without signing in again", async () => {
     const later = await context.newPage();
-    await later.goto(`/quests/${quest.id}`);
+    const response = await later.goto(`/quests/${quest.id}`);
+    const html = await response?.text();
+    expect(html).toBeDefined();
+    const shell = await later.evaluate((documentHtml) => {
+      const initial = new DOMParser().parseFromString(
+        documentHtml ?? "",
+        "text/html",
+      );
+      const main = initial.querySelector("main");
+      const header = initial.querySelector("header");
+      const busyBand = header?.querySelector('[aria-busy="true"]');
+      const status = Array.from(
+        busyBand?.querySelectorAll("[role]") ?? [],
+      ).find((element) => element.getAttribute("role") === "status");
+      return {
+        header: header?.textContent,
+        status: status?.textContent,
+        main: main?.textContent,
+      };
+    }, html);
+    expect(shell.header).toContain(SITE_COPY.name);
+    expect(shell.status).toBe(SITE_COPY.loading);
+    expect(shell.main).toBe("");
 
     await expect(later).toHaveURL(`/quests/${quest.id}`);
+    await expect(later.getByRole("main")).not.toBeEmpty();
+    await expect(
+      later.getByRole("region", { name: SITE_COPY.breadcrumbs }),
+    ).not.toHaveAttribute("aria-busy");
     await expect(
       later.getByRole("heading", { level: 1, name: quest.name }),
     ).toBeVisible();
     await expect(
       later.getByRole("textbox", { name: LOGIN_COPY.emailLabel }),
     ).toHaveCount(0);
+
+    await later.goto("/no-such-page");
+    await expect(
+      later.getByRole("heading", { name: PROBLEMS_COPY.notFoundHeading }),
+    ).toBeVisible();
+    await expect(later.getByRole("banner")).toBeVisible();
   });
 });

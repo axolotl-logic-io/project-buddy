@@ -10,7 +10,7 @@ import {
 } from "vitest";
 import { commands, page, userEvent } from "vitest/browser";
 import { render } from "vitest-browser-react";
-import { SignInPanel } from "@/app/login/sign-in-panel.tsx";
+import { SignInPanel } from "@/app/(site)/login/sign-in-panel.tsx";
 import { AppearanceChoices } from "@/components/appearance-choices.tsx";
 import { SitePanel } from "@/components/site-panel.tsx";
 import {

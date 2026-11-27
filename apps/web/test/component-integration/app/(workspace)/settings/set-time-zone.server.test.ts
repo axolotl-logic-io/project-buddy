@@ -4,7 +4,7 @@
 
 import { describe, expect, test, vi } from "vitest";
 import { findUserByEmail } from "@/accounts/users-store.ts";
-import { setTimeZoneAction } from "@/app/(workspace)/settings/actions.ts";
+import { setTimeZoneAction } from "@/app/(site)/(workspace)/settings/actions.ts";
 import { ACCOUNT_COPY } from "@/ui/copy/account.ts";
 import { testUser } from "../../../../support/test-database/user-test-kit.ts";
 import { formOf } from "../../../test-database/form-test-kit.ts";

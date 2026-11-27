@@ -10,6 +10,7 @@ const AUTH_CASES: readonly `use_case_${string}`[] = [
   "use_case_sign_in_link_expired",
   "use_case_too_many_sign_in_requests",
   "use_case_visit_signed_out",
+  "use_case_change_auth_page",
   "use_case_return_signed_in",
   "use_case_session_expired",
   "use_case_sign_out",

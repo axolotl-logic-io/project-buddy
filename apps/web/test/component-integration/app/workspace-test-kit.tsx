@@ -1,6 +1,6 @@
 import type { JSX } from "react";
 
-import WorkspaceLayout from "@/app/(workspace)/layout.tsx";
+import WorkspaceLayout from "@/app/(site)/(workspace)/layout.tsx";
 
 function inWorkspace(content: JSX.Element): JSX.Element {
   return (

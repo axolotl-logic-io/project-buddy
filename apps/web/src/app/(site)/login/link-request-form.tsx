@@ -9,7 +9,10 @@ import {
   useRef,
   useState,
 } from "react";
-import { IDLE, type LinkRequestState } from "@/app/login/link-request-state.ts";
+import {
+  IDLE,
+  type LinkRequestState,
+} from "@/app/(site)/login/link-request-state.ts";
 import { Button } from "@/components/ui/button.tsx";
 import { TextField } from "@/components/ui/field.tsx";
 import { Alert, FormStatus } from "@/components/ui/form-message.tsx";

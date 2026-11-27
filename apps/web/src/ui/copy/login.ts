@@ -19,7 +19,6 @@ export const LOGIN_COPY = {
 
 export const LINK_PAGE_COPY = {
   title: pageTitle("Continue signing in"),
-  loading: "Checking your sign-in link…",
   intro:
     "Continue to verify your email and log in or create your Project Buddy account in this browser.",
   continue: "Continue",

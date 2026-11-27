@@ -7,7 +7,7 @@ import "./src/app/globals.css";
 // Server Actions are RPC boundaries in the site. Keep their server imports
 // out of browser component tests; tests exercising these actions supply
 // their own result-specific mocks. Unexpected mutations fail loudly.
-vi.mock("@/app/(workspace)/quests/status-actions.ts", () => ({
+vi.mock("@/app/(site)/(workspace)/quests/status-actions.ts", () => ({
   changeQuestStatusAction: vi.fn(() => {
     throw new Error("Mock the quest status action in this test");
   }),
@@ -15,7 +15,7 @@ vi.mock("@/app/(workspace)/quests/status-actions.ts", () => ({
 
 // New quest (src/components/new-quest.tsx) reaches this action from the
 // trail band on Quests; actions run on the server.
-vi.mock("@/app/(workspace)/quests/actions.ts", () => ({
+vi.mock("@/app/(site)/(workspace)/quests/actions.ts", () => ({
   startQuestAction: vi.fn(() => {
     throw new Error("Mock the quest start action in this test");
   }),

@@ -11,9 +11,9 @@ import {
   findUserByEmail,
   saveUserName,
 } from "@/accounts/users-store.ts";
-import QuestPage from "@/app/(workspace)/quests/[questId]/(overview)/page.tsx";
-import { continueSignInAction } from "@/app/login/link/actions.ts";
-import SignInLinkPage from "@/app/login/link/page.tsx";
+import QuestPage from "@/app/(site)/(workspace)/quests/[questId]/(overview)/page.tsx";
+import { continueSignInAction } from "@/app/(site)/login/link/actions.ts";
+import SignInLinkPage from "@/app/(site)/login/link/page.tsx";
 import { currentUser } from "@/auth/current-user.ts";
 import { readLists } from "@/lists/list-store.ts";
 import {

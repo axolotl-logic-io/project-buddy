@@ -1,7 +1,6 @@
 // The name form in Profile, the time zone field at sign-up and in Settings,
 // and the security forms in Settings.
 export const ACCOUNT_COPY = {
-  loading: "Loading Settings…",
   nameLabel: "Name",
   nameHint:
     "Used by {user} in rite replies. People in quests you share see it beside your messages and in Members.",
