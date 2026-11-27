@@ -1,6 +1,6 @@
 // The streaks of a quest's recurring tasks: the date of a moment in the
 // owner's time zone, the day, week or month that holds it, each task's
-// streak and its chain, the missed periods that end them, and the Day grid.
+// streak and its chain, the missed periods that end them, and Home's table.
 
 import { describe, expect, test } from "vitest";
 import {
@@ -9,7 +9,6 @@ import {
   localDate,
   MAX_STREAK_LINKS,
   markRows,
-  periodGrid,
   periodOf,
   sharedDates,
   sharedPeriods,
@@ -23,7 +22,7 @@ const TODAY = "2026-11-20";
 const STRETCH = 1;
 const SKETCH = 2;
 const DAY_MS = 86_400_000;
-// The Day grid's dates: a week, ending today.
+// Home's table's dates: a week, ending today.
 const WEEK = 7;
 // More days than a chain shows links for.
 const LONG_STREAK = 44;
@@ -182,115 +181,6 @@ describe("periods", () => {
   });
 });
 
-describe("periodGrid", () => {
-  test("marks each date done, missed, pending today, or before the task was added", () => {
-    const [d1, d2, d3] = ["2026-11-17", "2026-11-18", "2026-11-19"];
-    const grid = periodGrid(
-      history({ [STRETCH]: [d1, d3], [SKETCH]: [d3] }),
-      [
-        tracked(STRETCH, false, new Date(`${d1}T09:00:00Z`)),
-        tracked(SKETCH, true, new Date(`${d3}T09:00:00Z`)),
-      ],
-      "daily",
-      WEEK,
-    );
-    expect(grid.dates).toEqual([d1, d2, d3, TODAY]);
-    expect(grid.rows).toEqual([
-      {
-        number: STRETCH,
-        text: "Task 1",
-        marks: ["done", "missed", "done", "pending"],
-      },
-      {
-        number: SKETCH,
-        text: "Task 2",
-        marks: ["untracked", "untracked", "done", "done"],
-      },
-    ]);
-  });
-
-  test("shows at most the count of dates, ending today", () => {
-    const grid = periodGrid(
-      history({}),
-      [tracked(STRETCH, false)],
-      "daily",
-      WEEK,
-    );
-    expect(grid.dates).toEqual([...daysBefore(WEEK - 1), TODAY]);
-  });
-
-  test("with no recurring tasks, shows only today and no rows", () => {
-    expect(periodGrid(history({}), [], "daily", WEEK)).toEqual({
-      cadence: "daily",
-      dates: [TODAY],
-      rows: [],
-    });
-  });
-
-  test("a task added late in the evening is added on its owner's date", () => {
-    const grid = periodGrid(
-      { ...history({}), timeZone: "America/Los_Angeles" },
-      [tracked(STRETCH, false, new Date(`${TODAY}T03:00:00Z`))],
-      "daily",
-      WEEK,
-    );
-    expect(grid.dates.at(0)).toBe("2026-11-19");
-    expect(grid.rows[0]?.marks).toEqual(["missed", "pending"]);
-  });
-
-  test("shows only the tasks of its cadence, over weeks from the one each was added in", () => {
-    const grid = periodGrid(
-      history({ [STRETCH]: ["2026-11-03", "2026-11-14"] }),
-      [
-        tracked(STRETCH, false, new Date("2026-10-28T09:00:00Z"), "weekly"),
-        tracked(SKETCH, false),
-      ],
-      "weekly",
-      WEEK,
-    );
-    expect(grid.dates).toEqual([
-      "2026-10-26",
-      "2026-11-02",
-      "2026-11-09",
-      "2026-11-16",
-    ]);
-    expect(grid.rows).toEqual([
-      {
-        number: STRETCH,
-        text: "Task 1",
-        marks: ["missed", "done", "done", "pending"],
-      },
-    ]);
-  });
-
-  test("a monthly grid names each month by its 1st", () => {
-    const grid = periodGrid(
-      history({ [STRETCH]: ["2026-10-09"] }),
-      [tracked(STRETCH, true, ADDED, "monthly")],
-      "monthly",
-      WEEK,
-    );
-    expect(grid.dates).toEqual([
-      "2026-05-01",
-      "2026-06-01",
-      "2026-07-01",
-      "2026-08-01",
-      "2026-09-01",
-      "2026-10-01",
-      "2026-11-01",
-    ]);
-    expect(grid.rows[0]?.marks.slice(-WEEK)).toEqual([
-      "missed",
-      "missed",
-      "missed",
-      "missed",
-      "missed",
-      "done",
-      "done",
-    ]);
-  });
-});
-
 describe("Home's table", () => {
   test("several quests share the dates up to the newest of their todays", () => {
     expect(sharedDates([], WEEK)).toEqual([]);
@@ -309,6 +199,39 @@ describe("Home's table", () => {
       "2026-10-01",
       "2026-11-01",
     ]);
+  });
+
+  test("marks each date done, missed, pending today, or before the task was added", () => {
+    const [d1, d2, d3] = ["2026-11-17", "2026-11-18", "2026-11-19"];
+    const rows = markRows(
+      history({ [STRETCH]: [d1, d3], [SKETCH]: [d3] }),
+      [
+        tracked(STRETCH, false, new Date(`${d1}T09:00:00Z`)),
+        tracked(SKETCH, true, new Date(`${d3}T09:00:00Z`)),
+      ],
+      [d1, d2, d3, TODAY],
+    );
+    expect(rows).toEqual([
+      {
+        number: STRETCH,
+        text: "Task 1",
+        marks: ["done", "missed", "done", "pending"],
+      },
+      {
+        number: SKETCH,
+        text: "Task 2",
+        marks: ["untracked", "untracked", "done", "done"],
+      },
+    ]);
+  });
+
+  test("a task added late in the evening is added on its owner's date", () => {
+    const rows = markRows(
+      { ...history({}), timeZone: "America/Los_Angeles" },
+      [tracked(STRETCH, false, new Date(`${TODAY}T03:00:00Z`))],
+      ["2026-11-18", "2026-11-19", TODAY],
+    );
+    expect(rows[0]?.marks).toEqual(["untracked", "missed", "pending"]);
   });
 
   test("a date after a quest's today is untracked", () => {

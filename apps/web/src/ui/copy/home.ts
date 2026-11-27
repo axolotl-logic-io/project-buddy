@@ -1,4 +1,4 @@
-import type { Cadence } from "@/streaks/streaks.ts";
+import type { Cadence, DayMark } from "@/streaks/streaks.ts";
 import { CADENCE_COPY } from "@/ui/copy/cadence.ts";
 import { pageTitle } from "@/ui/copy/site.ts";
 
@@ -7,6 +7,13 @@ import { pageTitle } from "@/ui/copy/site.ts";
 // cadence (src/ui/copy/cadence.ts), then their tallies
 // (src/ui/copy/tallies.ts), then their one-off tasks, and the site panel's
 // link to it.
+const MARK_TEXT: Readonly<Record<DayMark, string>> = {
+  done: "done",
+  missed: "not done",
+  pending: "not done yet",
+  untracked: "not added yet",
+};
+
 export const HOME_COPY = {
   title: pageTitle("Home"),
   heading: "Home",
@@ -34,6 +41,9 @@ export const HOME_COPY = {
   // A square, by its accessible name; whether it is checked says whether
   // the task was done.
   square: (task: string, period: string): string => `${task}, ${period}`,
+  // A square's period and mark, for screen readers.
+  period: (period: string, mark: DayMark): string =>
+    `${period}: ${MARK_TEXT[mark]}`,
   noStreaks:
     "No streaks yet. To count a task here, open its menu in a quest’s list and choose Repeat daily, weekly or monthly.",
   legend:

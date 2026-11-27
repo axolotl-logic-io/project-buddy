@@ -6,7 +6,6 @@ import QuestPage from "@/app/(workspace)/quests/[questId]/(overview)/page.tsx";
 import type { QuestActionResult } from "@/components/use-quest-action.ts";
 import { LIST_ID } from "@/lists/list.ts";
 import { saveListAction } from "@/lists/list-actions.ts";
-import { LIST_ITEM_ID } from "@/lists/list-item.ts";
 import { changeListItemAction } from "@/lists/list-item-actions.ts";
 import { readNextTasks } from "@/lists/list-item-store.ts";
 import { type List, readLists } from "@/lists/list-store.ts";
@@ -16,11 +15,12 @@ import { listQuestPeople } from "@/quests/membership-store.ts";
 import { getQuest, type Quest } from "@/quests/store.ts";
 import { BUILT_IN_RITES } from "@/rites/rite.ts";
 import { listRites } from "@/rites/rite-store.ts";
-import { readRecurringTasks, readTaskHistory } from "@/streaks/streak-store.ts";
+import { readTaskHistory } from "@/streaks/streak-store.ts";
 import type { TaskHistory } from "@/streaks/streaks.ts";
-import { DAY_GRID_COPY } from "@/ui/copy/day-grid.ts";
+import { LIST_PAGE_COPY } from "@/ui/copy/list-page.ts";
 import { LISTS_COPY } from "@/ui/copy/lists.ts";
 import { PERFORMANCE_COPY } from "@/ui/copy/performances.ts";
+import { QUEST_MEMBERS_COPY } from "@/ui/copy/quest-members.ts";
 import { QUEST_OVERVIEW_COPY } from "@/ui/copy/quest-overview.ts";
 import { QUEST_SIDEBAR_COPY } from "@/ui/copy/quest-sidebar.ts";
 import { QUEST_STATUS_COPY } from "@/ui/copy/quest-status.ts";
@@ -77,7 +77,6 @@ beforeEach(async () => {
   vi.mocked(listQuestPeople).mockResolvedValue(undefined);
   vi.mocked(listPerformances).mockResolvedValue([]);
   vi.mocked(readTaskHistory).mockResolvedValue(HISTORY);
-  vi.mocked(readRecurringTasks).mockResolvedValue([]);
   vi.mocked(readNextTasks).mockResolvedValue([]);
   vi.mocked(listRites).mockResolvedValue([]);
 });
@@ -88,7 +87,6 @@ afterEach(async () => {
 
 // A quest's check-offs of its stretch: a day missed on 2026-11-14 and
 // 2026-11-16, and today, 2026-11-18, with the stretch not done yet.
-const STRETCH = "Stretch";
 const HISTORY: TaskHistory = {
   today: "2026-11-18",
   timeZone: "UTC",
@@ -125,8 +123,8 @@ async function open(quest: Quest, section?: string): Promise<void> {
   );
 }
 
-// The quest panel's link to the quest's settings, named and then hinted.
-const SETTINGS_LINK = new RegExp(`^${QUEST_OVERVIEW_COPY.settings}`, "u");
+// The quest panel's link to the quest's Members, named and then hinted.
+const MEMBERS_LINK = new RegExp(`^${QUEST_MEMBERS_COPY.heading}`, "u");
 // The section for the list Tasks, named and then sized.
 const TASKS_SECTION = new RegExp(`^${TASKS.name} `, "u");
 
@@ -144,11 +142,8 @@ test("use_case_open_quest", async () => {
     )
     .toBeVisible();
   await expect
-    .element(page.getByRole("link", { name: SETTINGS_LINK }))
-    .toHaveAttribute("href", `/quests/${FOX_QUEST.id}?section=settings`);
-  await expect
-    .element(page.getByRole("link", { name: QUEST_SIDEBAR_COPY.dayGrid }))
-    .not.toBeInTheDocument();
+    .element(page.getByRole("link", { name: MEMBERS_LINK }))
+    .toHaveAttribute("href", `/quests/${FOX_QUEST.id}?section=members`);
   await expect
     .element(page.getByRole("textbox", { name: "Message" }))
     .not.toBeInTheDocument();
@@ -259,8 +254,8 @@ describe("use_case_open_quest: the add box", () => {
 
   test("adds to the first task list and stays ready for the next", async () => {
     await open(FOX_QUEST);
-    const field = addBox().getByRole("textbox", {
-      name: QUEST_OVERVIEW_COPY.addTo("task", TASKS.name),
+    const field = addBox().getByRole("searchbox", {
+      name: LIST_PAGE_COPY.searchIn("task", TASKS.name),
     });
     await expect
       .element(addBox().getByRole("radio", { name: TASKS.name }))
@@ -284,8 +279,8 @@ describe("use_case_open_quest: the add box", () => {
   test("adds to the list chosen under it", async () => {
     await open(FOX_QUEST);
     await addBox().getByRole("radio", { name: PHRASES.name }).click();
-    const field = addBox().getByRole("textbox", {
-      name: QUEST_OVERVIEW_COPY.addTo("quick-note", PHRASES.name),
+    const field = addBox().getByRole("searchbox", {
+      name: LIST_PAGE_COPY.searchIn("quick-note", PHRASES.name),
     });
     await expect.element(field).toHaveFocus();
     await expect
@@ -304,6 +299,69 @@ describe("use_case_open_quest: the add box", () => {
     });
   });
 
+  test("searches every list's section as it is typed in, and Escape clears it", async () => {
+    await open(FOX_QUEST);
+    const field = addBox().getByRole("searchbox", {
+      name: LIST_PAGE_COPY.searchIn("task", TASKS.name),
+    });
+    await expect
+      .element(addBox().getByText(LIST_PAGE_COPY.hint("task")))
+      .toBeVisible();
+    const tasks = page.getByRole("region", { name: TASKS_SECTION });
+    const phrases = page.getByRole("region", {
+      name: new RegExp(`^${PHRASES.name} `, "u"),
+    });
+    await field.fill("SUBTITLES");
+    await expect
+      .element(
+        tasks.getByRole("listitem").filter({ hasText: FOURTH_TASK.text }),
+      )
+      .toBeVisible();
+    await expect
+      .element(tasks.getByText("subtitles", { exact: true }))
+      .toHaveClass("editable-match");
+    await expect
+      .element(tasks.getByText(NEXT_TASK.text))
+      .not.toBeInTheDocument();
+    await expect
+      .element(
+        tasks.getByRole("link", {
+          name: QUEST_OVERVIEW_COPY.more(1, TASKS.name),
+        }),
+      )
+      .not.toBeInTheDocument();
+    await expect
+      .element(
+        phrases.getByText(LIST_PAGE_COPY.noMatch("quick-note", "SUBTITLES")),
+      )
+      .toBeVisible();
+    await expect
+      .element(
+        addBox().getByText(LIST_PAGE_COPY.matches("task", 1, "SUBTITLES")),
+      )
+      .toBeVisible();
+    await userEvent.keyboard("{Escape}");
+    await expect.element(field).toHaveValue("");
+    await expect.element(tasks.getByText(NEXT_TASK.text)).toBeVisible();
+    await expect
+      .element(tasks.getByText(FOURTH_TASK.text))
+      .not.toBeInTheDocument();
+  });
+
+  test("won't add a task its list already has", async () => {
+    await open(FOX_QUEST);
+    const field = addBox().getByRole("searchbox", {
+      name: LIST_PAGE_COPY.searchIn("task", TASKS.name),
+    });
+    await field.fill(DONE_TASK.text.toUpperCase());
+    await expect
+      .element(addBox().getByText(LIST_PAGE_COPY.already(DONE_TASK.text, true)))
+      .toBeVisible();
+    await userEvent.keyboard("{Enter}");
+    expect(changeListItemAction).not.toHaveBeenCalled();
+    await expect.element(field).toHaveValue(DONE_TASK.text.toUpperCase());
+  });
+
   test("names a new task list with New list, and Escape goes back", async () => {
     vi.mocked(saveListAction).mockReset().mockResolvedValue({ saved: true });
     await open(FOX_QUEST);
@@ -313,8 +371,8 @@ describe("use_case_open_quest: the add box", () => {
     await userEvent.keyboard("{Escape}");
     await expect
       .element(
-        addBox().getByRole("textbox", {
-          name: QUEST_OVERVIEW_COPY.addTo("task", TASKS.name),
+        addBox().getByRole("searchbox", {
+          name: LIST_PAGE_COPY.searchIn("task", TASKS.name),
         }),
       )
       .toBeVisible();
@@ -423,20 +481,30 @@ describe("use_case_perform_rite", () => {
   });
 });
 
-test("use_case_quest_settings", async () => {
-  await open(FOX_QUEST, "settings");
-  const settings = page.getByRole("region", {
-    name: QUEST_OVERVIEW_COPY.settings,
-  });
+test("use_case_quest_panel", async () => {
+  await open(FOX_QUEST);
   await expect
-    .element(settings.getByRole("link", { name: QUEST_SIDEBAR_COPY.dayGrid }))
-    .toHaveAttribute("href", `/quests/${FOX_QUEST.id}?section=days`);
+    .element(page.getByRole("link", { name: MEMBERS_LINK }))
+    .toHaveTextContent(
+      `${QUEST_MEMBERS_COPY.heading} ${QUEST_OVERVIEW_COPY.membersHint(1)}`,
+    );
+  const status = page.getByRole("region", { name: QUEST_OVERVIEW_COPY.status });
   await expect
-    .element(settings.getByRole("button", { name: QUEST_STATUS_COPY.complete }))
+    .element(status.getByRole("button", { name: QUEST_STATUS_COPY.complete }))
     .toBeVisible();
   await expect
-    .element(page.getByRole("link", { name: QUEST_OVERVIEW_COPY.back }))
-    .toHaveAttribute("href", `/quests/${FOX_QUEST.id}`);
+    .element(status.getByRole("button", { name: QUEST_STATUS_COPY.abandon }))
+    .toBeVisible();
+});
+
+test("use_case_quest_panel on Life has no status controls", async () => {
+  await open({ ...FOX_QUEST, life: true });
+  await expect
+    .element(page.getByRole("link", { name: MEMBERS_LINK }))
+    .toBeVisible();
+  await expect
+    .element(page.getByRole("region", { name: QUEST_OVERVIEW_COPY.status }))
+    .not.toBeInTheDocument();
 });
 
 test("use_case_tailored_quest_overviews", async () => {
@@ -444,10 +512,6 @@ test("use_case_tailored_quest_overviews", async () => {
   await expect
     .element(page.getByRole("button", { name: "Start Day" }))
     .not.toBeInTheDocument();
-  await open(
-    { ...FOX_QUEST, name: "Morning", status: "completed" },
-    "settings",
-  );
   await expect
     .element(page.getByRole("button", { name: QUEST_STATUS_COPY.restore }))
     .toBeVisible();
@@ -466,45 +530,6 @@ test("use_case_tasks_panel", async () => {
   await expect
     .element(page.getByRole("link", { name: `Back to ${FOX_QUEST.name}` }))
     .toHaveAttribute("href", `/quests/${FOX_QUEST.id}`);
-});
-
-describe("use_case_daily_streaks", () => {
-  test("Day grid shows each daily task's last seven days, named for screen readers", async () => {
-    vi.mocked(readRecurringTasks).mockResolvedValue([
-      {
-        id: LIST_ITEM_ID.parse("5d0f43d4-4b0c-4cb5-9d5c-3a8f3e1c0b21"),
-        listId: LIST_ID.parse("a0c7c952-9f82-4640-9584-45e01b0c2513"),
-        number: 1,
-        text: STRETCH,
-        cadence: "daily",
-        done: false,
-        createdAt: new Date("2026-11-01T09:00:00Z"),
-      },
-    ]);
-    await open(FOX_QUEST, "days");
-    const grid = page.getByRole("listitem").filter({ hasText: STRETCH });
-    await expect
-      .element(page.getByRole("heading", { name: DAY_GRID_COPY.heading }))
-      .toBeVisible();
-    const days = grid.getByRole("listitem");
-    expect(days.elements().map((day) => day.textContent)).toEqual([
-      expect.stringContaining("Thu 12 Nov: done"),
-      expect.stringContaining("Fri 13 Nov: done"),
-      expect.stringContaining("Sat 14 Nov: not done"),
-      expect.stringContaining("Sun 15 Nov: done"),
-      expect.stringContaining("Mon 16 Nov: not done"),
-      expect.stringContaining("Tue 17 Nov: done"),
-      expect.stringContaining("Wed 18 Nov: not done yet"),
-    ]);
-    await expect.element(page.getByText(DAY_GRID_COPY.legend)).toBeVisible();
-  });
-
-  test("with no recurring tasks, Day grid says how to make one", async () => {
-    await open(FOX_QUEST, "days");
-    await expect
-      .element(page.getByText(DAY_GRID_COPY.noRecurring))
-      .toBeVisible();
-  });
 });
 
 describe("use_case_timer_quest_panel", () => {

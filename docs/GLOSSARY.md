@@ -10,7 +10,7 @@ A workspace for something the user wants to learn, make or do, or for their dail
 
 ### Quest panel
 
-The panel beside a quest's pages: **Quest settings**, with the quest's members, Day grid and status, above the Timer. It docks on wide screens and opens as a drawer on phones. [Open quest use case](../apps/web/use-cases/quests.md#use_case_open_quest), [Quest settings use case](../apps/web/use-cases/quests.md#use_case_quest_settings)
+The panel beside a quest's pages: a link to the quest's **Members**, the quest's status controls, and the Timer. It docks on wide screens and opens as a drawer on phones. [Open quest use case](../apps/web/use-cases/quests.md#use_case_open_quest), [Quest panel use case](../apps/web/use-cases/quests.md#use_case_quest_panel)
 
 ### Life
 
@@ -76,7 +76,7 @@ The panel, open from any page, that adds a list item to a list of an Active ques
 
 ### Add box
 
-The field under a quest's name on its Overview that adds list items to whichever of the quest's lists is chosen under it, one after another, or names a new task list. Unlike Quick Add, it adds only to the quest that is open. [Open quest use case](../apps/web/use-cases/quests.md#use_case_open_quest)
+The field under a quest's name on its Overview that searches the quest's lists and adds list items to whichever of them is chosen under it, one after another, or names a new task list. It works as the search box on a List page does. Unlike Quick Add, it adds only to the quest that is open. [Open quest use case](../apps/web/use-cases/quests.md#use_case_open_quest)
 
 ### List page
 
@@ -98,7 +98,7 @@ A task marked to do again in every period of its **cadence**: daily, weekly or m
 
 ### Streak
 
-A run of consecutive periods of a recurring task's cadence (days, weeks or months) in each of which someone checked it off. A period without a check-off breaks the run. **Day grid** shows each recurring task's marks for up to seven recent periods, grouped by cadence. [Daily streak use case](../apps/web/use-cases/tasks.md#use_case_daily_streaks)
+A run of consecutive periods of a recurring task's cadence (days, weeks or months) in each of which someone checked it off. A period without a check-off breaks the run. [Daily streak use case](../apps/web/use-cases/tasks.md#use_case_daily_streaks)
 
 ### Home
 

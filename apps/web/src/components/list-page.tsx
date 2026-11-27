@@ -66,7 +66,7 @@ function ListPage({
           aria-label={LIST_PAGE_COPY.back(quest)}
         >
           <Icon name="chevron-left" />
-          {quest}
+          <span className="list-page-back-name">{quest}</span>
         </Link>
         <div className="list-page-head">
           <div className="list-page-name">

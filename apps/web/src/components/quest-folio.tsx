@@ -7,11 +7,13 @@ import {
   type KeyboardEvent,
   type MouseEvent,
   useCallback,
+  useEffect,
   useId,
   useState,
 } from "react";
 import { FolioDivider } from "@/components/folio-divider.tsx";
 import { editorFor, useListChanges } from "@/components/list-changes.ts";
+import { holds, sameText, shownItems } from "@/components/list-filters.ts";
 import { ListChangeNotices } from "@/components/list-items.tsx";
 import { QuestListSection } from "@/components/quest-list-section.tsx";
 import { Button } from "@/components/ui/button.tsx";
@@ -27,6 +29,7 @@ import type { List } from "@/lists/list-store.ts";
 import type { Rite } from "@/rites/rite.ts";
 import type { TaskHistory } from "@/streaks/streaks.ts";
 import type { TallyQuest } from "@/tallies/tally.ts";
+import { LIST_PAGE_COPY } from "@/ui/copy/list-page.ts";
 import { QUEST_OVERVIEW_COPY } from "@/ui/copy/quest-overview.ts";
 
 const COPY: typeof QUEST_OVERVIEW_COPY.addBox = QUEST_OVERVIEW_COPY.addBox;
@@ -51,23 +54,36 @@ function validateName(text: string): ReturnType<EditorOptions["validate"]> {
   return { text: name };
 }
 
-// The add box under the quest's name: a field that adds to the list
-// marked in gold, chosen from the quest's lists below it, and New list,
-// which turns the field to naming a new task list. Each add empties the
-// field and keeps focus in it.
+type IconName = Parameters<typeof Icon>[0]["name"];
+
+// The add box under the quest's name, as on a list's page: a field that
+// searches the quest's lists as it is typed in and adds its text to the
+// list marked in gold, unless that list has the text already. The lists
+// to add to are chips below it, with New list, which turns the field to
+// naming a new task list. Each add empties the field and keeps focus in
+// it.
 function AddBox({
   questId,
   lists,
   target,
+  taken,
+  matches,
   onTarget,
   onMade,
+  onSearch,
 }: {
   readonly questId: QuestId;
   readonly lists: readonly List[];
   readonly target: List | undefined;
+  // The items of the list the box adds to.
+  readonly taken: readonly ListItem[];
+  // How many of the items the lists' sections show hold the search.
+  readonly matches: number;
   readonly onTarget: (list: ListId) => void;
   // Called when a new list is made, with the lists there were before it.
   readonly onMade: (known: readonly ListId[]) => void;
+  // Called with the field's search, or "" while it names a new list.
+  readonly onSearch: (search: string) => void;
 }): JSX.Element {
   const groupLabelId = useId();
   const hintId = useId();
@@ -82,7 +98,7 @@ function AddBox({
     async (entry: string): Promise<boolean> => {
       setSaid(undefined);
       setRefused(undefined);
-      if (target === undefined) {
+      if (target === undefined || taken.some((item) => sameText(item, entry))) {
         return false;
       }
       const saved = await runOn(target.id, { kind: "add", text: entry });
@@ -91,7 +107,7 @@ function AddBox({
       }
       return saved;
     },
-    [runOn, target],
+    [runOn, target, taken],
   );
   // Makes a task list with this name, then moves the add box to it.
   async function makeList(name: string): Promise<boolean> {
@@ -119,16 +135,43 @@ function AddBox({
   }
   let { validate } = editorFor(target?.type ?? "task");
   let add = addItem;
-  let label = COPY.nameList;
-  let hint = COPY.namingHint;
   if (naming) {
     validate = validateName;
     add = makeList;
-  } else if (target !== undefined) {
-    label = QUEST_OVERVIEW_COPY.addTo(target.type, target.name);
-    ({ hint } = COPY);
   }
-  const { text, problem, inputRef, change, submit } = useEntry(validate, add);
+  const { text, problem, inputRef, change, submit, clear } = useEntry(
+    validate,
+    add,
+  );
+  let search = text.trim();
+  let label = COPY.nameList;
+  let placeholder = COPY.nameList;
+  let icon: IconName = "plus";
+  let fieldType = "text";
+  let hint = COPY.namingHint;
+  if (naming) {
+    search = "";
+  } else if (target !== undefined) {
+    label = LIST_PAGE_COPY.searchIn(target.type, target.name);
+    placeholder = LIST_PAGE_COPY.search(target.type);
+    icon = "search";
+    fieldType = "search";
+    const same = taken.find((item) => sameText(item, search));
+    hint = LIST_PAGE_COPY.hint(target.type);
+    if (same !== undefined) {
+      hint = LIST_PAGE_COPY.already(same.text, same.checkedOff);
+    } else if (search !== "") {
+      hint = LIST_PAGE_COPY.matches(target.type, matches, search);
+    }
+  }
+  let hintClass = "add-box-hint";
+  if (problem !== undefined) {
+    hint = problem;
+    hintClass = "add-box-hint error-text";
+  }
+  useEffect(() => {
+    onSearch(search);
+  }, [onSearch, search]);
   const choose = useCallback(
     (event: ChangeEvent<HTMLInputElement>): void => {
       const id = LIST_ID.safeParse(event.currentTarget.value).data;
@@ -153,41 +196,37 @@ function AddBox({
     setNaming(true);
     inputRef.current?.focus();
   }, [inputRef]);
-  const stopNaming = useCallback(
+  // Escape goes back from naming a new list, else clears the search.
+  const backOnEscape = useCallback(
     (event: KeyboardEvent<HTMLInputElement>): void => {
-      if (event.key === "Escape" && namingChosen) {
+      if (event.key !== "Escape") {
+        return;
+      }
+      if (namingChosen) {
         event.preventDefault();
         setNaming(false);
+      } else if (text !== "") {
+        event.preventDefault();
+        clear();
       }
     },
-    [namingChosen],
+    [clear, namingChosen, text],
   );
-  let shownHint = (
-    <p id={hintId} className="add-box-hint">
-      {hint}
-    </p>
-  );
-  if (problem !== undefined) {
-    shownHint = (
-      <p id={hintId} className="add-box-hint error-text">
-        {problem}
-      </p>
-    );
-  }
   return (
     <form className="add-box" aria-label={COPY.label} onSubmit={submit}>
       <div className="add-box-row">
-        <Icon name="plus" />
+        <Icon name={icon} />
         <input
           ref={inputRef}
+          type={fieldType}
           className="add-box-field"
           aria-label={label}
           aria-describedby={hintId}
           aria-invalid={problem !== undefined}
-          placeholder={label}
+          placeholder={placeholder}
           value={text}
           onChange={change}
-          onKeyDown={stopNaming}
+          onKeyDown={backOnEscape}
         />
         <Button type="submit" disabled={changes.busy || making}>
           {COPY.add}
@@ -226,7 +265,9 @@ function AddBox({
           {COPY.newList}
         </Button>
       </div>
-      {shownHint}
+      <p id={hintId} className={hintClass} aria-live="polite">
+        {hint}
+      </p>
       <ListChangeNotices
         changes={{
           ...changes,
@@ -240,7 +281,8 @@ function AddBox({
 
 // The quest's lists on its overview, under its name: the add box, then
 // each list's section, in the lists' order, between ornamented rules.
-// The add box's list is marked in gold in its section too.
+// The add box's list is marked in gold in its section too, and its search
+// filters every section.
 function QuestFolio({
   questId,
   lists,
@@ -257,6 +299,7 @@ function QuestFolio({
   readonly rites: readonly Rite[] | undefined;
 }): JSX.Element {
   const [chosen, setChosen] = useState<ListId | undefined>();
+  const [search, setSearch] = useState("");
   // The quest's lists when a new list was asked for; the first list not
   // among them is the new one, which the add box moves to.
   const [awaited, setAwaited] = useState<readonly ListId[] | undefined>();
@@ -269,14 +312,24 @@ function QuestFolio({
     }
   }
   const target = plain.find(({ id }) => id === chosen) ?? startingTarget(plain);
+  const taken = lists.find(({ list }) => list.id === target?.id)?.contents;
+  let matches = 0;
+  if (search !== "") {
+    matches = lists
+      .flatMap(({ list, contents }) => shownItems(list, contents))
+      .filter((item) => holds(item, search)).length;
+  }
   return (
     <>
       <AddBox
         questId={questId}
         lists={plain}
         target={target}
+        taken={taken ?? []}
+        matches={matches}
         onTarget={setChosen}
         onMade={setAwaited}
+        onSearch={setSearch}
       />
       {lists.flatMap(({ list, contents, href }) => [
         <FolioDivider key={`${list.id}-rule`} />,
@@ -291,6 +344,7 @@ function QuestFolio({
           next={next}
           rites={rites}
           target={list.id === target?.id}
+          search={search}
         />,
       ])}
     </>

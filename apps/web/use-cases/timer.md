@@ -86,4 +86,4 @@ The conventions for these cases are in [the index](README.md#conventions). The T
 ## use_case_timer_quest_panel
 
 - **Steps:** Open the quest panel on a quest. Under Timer, set Work for and Break for, then choose Start.
-- **Outcome:** The phase and countdown run in the quest panel, below Quest settings, using the site's selected appearance and the Timer page's schedule rules. On a phone the panel opens as a drawer. The Timer works with or without an active performance.
+- **Outcome:** The phase and countdown run in the quest panel, below Members and the status controls, using the site's selected appearance and the Timer page's schedule rules. On a phone the panel opens as a drawer. The Timer works with or without an active performance.

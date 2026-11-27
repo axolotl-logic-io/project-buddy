@@ -1,6 +1,6 @@
 // The browser's own date, for marking Today in Home's tables. Only client
 // components can use it, so it stays apart from calendar-days.ts, which the
-// server's Day grid uses too.
+// server uses too.
 import { useSyncExternalStore } from "react";
 import { type LocalDate, localDate } from "@/streaks/streaks.ts";
 

@@ -15,6 +15,7 @@ import {
   useListChanges,
   useTallyCards,
 } from "@/components/list-changes.ts";
+import { holds, sameText } from "@/components/list-filters.ts";
 import { LocalTime } from "@/components/local-time.tsx";
 import { TallyCard } from "@/components/tally-card.tsx";
 import { Button } from "@/components/ui/button.tsx";
@@ -306,11 +307,6 @@ function Streak({ chain }: { readonly chain: StreakChain }): JSX.Element {
   );
 }
 
-// Whether an item's text holds the search, ignoring case.
-function holds({ text }: ListItem, search: string): boolean {
-  return text.toLocaleLowerCase().includes(search.toLocaleLowerCase());
-}
-
 // A list's items on its page: a box that searches them and adds to them,
 // the open items, which can be reordered, then those checked off, under
 // Done. Typing in the box shows only the items that hold the text; Enter
@@ -339,8 +335,7 @@ function ListItems({
   const add = useCallback(
     async (entry: string): Promise<boolean> => {
       setSaid(undefined);
-      const lower = entry.toLocaleLowerCase();
-      if (contents.some((item) => item.text.toLocaleLowerCase() === lower)) {
+      if (contents.some((item) => sameText(item, entry))) {
         return false;
       }
       const saved = await run({ kind: "add", text: entry });
@@ -412,9 +407,7 @@ function ListItems({
   const found = contents.filter((item) => holds(item, search));
   const open = found.filter(({ checkedOff }) => !checkedOff);
   const done = found.filter(({ checkedOff }) => checkedOff);
-  const same = contents.find(
-    (item) => item.text.toLocaleLowerCase() === search.toLocaleLowerCase(),
-  );
+  const same = contents.find((item) => sameText(item, search));
   let hint = LIST_PAGE_COPY.hint(list.type);
   if (same !== undefined) {
     hint = LIST_PAGE_COPY.already(same.text, same.checkedOff);

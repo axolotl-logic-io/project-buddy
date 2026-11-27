@@ -1,4 +1,4 @@
-// The text of multi-user quests: a quest's Members disclosure, the Quests page's
+// The text of multi-user quests: a quest's Members page, the Quests page's
 // invitation notices, the page an invitation's acceptance link opens, and the
 // invitation email.
 
@@ -11,6 +11,16 @@ import { EMAIL_SENDER_COPY, SITE_COPY } from "@/ui/copy/site.ts";
 
 export const QUEST_MEMBERS_COPY = {
   heading: "Members",
+  // The link back to the quest, named for it.
+  back: (quest: string): string => `Back to ${quest}`,
+  // The people section's heading, and how many are in the quest.
+  people: "People",
+  peopleCount: (count: number): string => {
+    if (count === 1) {
+      return "1 person";
+    }
+    return `${count} people`;
+  },
   listLabel: "People in this quest",
   owner: "Owner",
   member: "Member",
@@ -24,6 +34,7 @@ export const QUEST_MEMBERS_COPY = {
   you: (name: string): string => `${name} (you)`,
   intro:
     "Everyone here shares this quest's lists and performances. Members can do everything the owner can, except remove the owner.",
+  inviteLabel: "Invite someone",
   emailLabel: "Invite by email",
   emailHint:
     "They'll get an email with a link to join. People without an account get one when you invite them.",

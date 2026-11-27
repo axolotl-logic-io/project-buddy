@@ -13,7 +13,8 @@ function oneOf(type: ListType): string {
 }
 
 // The page for one of a quest's lists: its name, the box that searches
-// and adds its items, its open items and those done.
+// and adds its items, its open items and those done. The quest overview's
+// add box shares the box's field and hints.
 const LIST_PAGE_COPY = {
   // The link back to the quest, named for it.
   back: (quest: string): string => `Back to ${quest}`,
