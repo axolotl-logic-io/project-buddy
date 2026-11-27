@@ -6,9 +6,9 @@
 // sign-in form's part is test/component-integration/app/login/storage-unavailable.server.test.ts's.
 
 import { afterAll, beforeAll, describe, expect, test } from "vitest";
-import QuestsPage from "@/app/(workspace)/quests/(list)/page.tsx";
-import QuestPage from "@/app/(workspace)/quests/[questId]/(overview)/page.tsx";
-import { startQuestAction } from "@/app/(workspace)/quests/actions.ts";
+import QuestsPage from "@/app/(stream)/(site)/(workspace)/quests/(list)/page.tsx";
+import QuestPage from "@/app/(stream)/(site)/(workspace)/quests/[questId]/(overview)/page.tsx";
+import { startQuestAction } from "@/app/(stream)/(site)/(workspace)/quests/actions.ts";
 import { spyOnErrorLog } from "../../../errors/error-log-spy.ts";
 import { formOf } from "../../../test-database/form-test-kit.ts";
 import { signIn } from "../../../test-database/session-test-kit.ts";

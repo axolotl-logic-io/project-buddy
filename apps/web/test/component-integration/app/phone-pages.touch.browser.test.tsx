@@ -74,17 +74,19 @@ vi.mock("next/server", () => ({
 vi.mock("next/navigation", () => import("../components/router-test-kit.ts"));
 
 // The pages' forms post to Server Actions, which these tests never run.
-vi.mock("@/app/login/actions.ts", () => ({ requestSignInLinkAction: vi.fn() }));
-vi.mock("@/app/login/link/actions.ts", () => ({
+vi.mock("@/app/(stream)/(site)/login/actions.ts", () => ({
+  requestSignInLinkAction: vi.fn(),
+}));
+vi.mock("@/app/(stream)/(site)/login/link/actions.ts", () => ({
   continueSignInAction: vi.fn(),
 }));
-vi.mock("@/app/(workspace)/quests/actions.ts", () => ({
+vi.mock("@/app/(stream)/(site)/(workspace)/quests/actions.ts", () => ({
   startQuestAction: vi.fn(),
 }));
-vi.mock("@/app/(workspace)/profile/actions.ts", () => ({
+vi.mock("@/app/(stream)/(site)/(workspace)/profile/actions.ts", () => ({
   setNameAction: vi.fn(),
 }));
-vi.mock("@/app/(workspace)/settings/actions.ts", () => ({
+vi.mock("@/app/(stream)/(site)/(workspace)/settings/actions.ts", () => ({
   setTimeZoneAction: vi.fn(),
   signOutAction: vi.fn(),
   signOutEverywhereAction: vi.fn(),

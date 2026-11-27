@@ -4,6 +4,6 @@ import type { JSX } from "react";
 // The root layout supplies the main landmark around it.
 export default function WorkspaceLayout({
   children,
-}: LayoutProps<"/">): JSX.Element {
+}: Pick<LayoutProps<"/">, "children">): JSX.Element {
   return <div className="workspace-frame">{children}</div>;
 }

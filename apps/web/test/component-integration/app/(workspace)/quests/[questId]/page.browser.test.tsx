@@ -1,8 +1,8 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { page, userEvent } from "vitest/browser";
 import { render } from "vitest-browser-react";
-import QuestLayout from "@/app/(workspace)/quests/[questId]/(overview)/layout.tsx";
-import QuestPage from "@/app/(workspace)/quests/[questId]/(overview)/page.tsx";
+import QuestLayout from "@/app/(stream)/(site)/(workspace)/quests/[questId]/(overview)/layout.tsx";
+import QuestPage from "@/app/(stream)/(site)/(workspace)/quests/[questId]/(overview)/page.tsx";
 import type { QuestActionResult } from "@/components/use-quest-action.ts";
 import { LIST_ID } from "@/lists/list.ts";
 import { saveListAction } from "@/lists/list-actions.ts";

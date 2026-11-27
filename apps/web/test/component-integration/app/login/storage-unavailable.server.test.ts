@@ -5,7 +5,7 @@
 // test/component-integration/app/(workspace)/quests/storage-unavailable.server.test.ts's.
 
 import { afterAll, beforeAll, describe, expect, test, vi } from "vitest";
-import { requestSignInLinkAction } from "@/app/login/actions.ts";
+import { requestSignInLinkAction } from "@/app/(stream)/(site)/login/actions.ts";
 import { userMessage } from "@/errors/app-error.ts";
 import { spyOnErrorLog } from "../../errors/error-log-spy.ts";
 import {

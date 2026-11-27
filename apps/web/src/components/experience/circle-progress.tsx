@@ -33,7 +33,7 @@ const ExperienceContext = createContext<
   ((snapshot: ExperienceSnapshot | undefined) => void) | undefined
 >(undefined);
 
-// Keep the previous total in the root layout so replacing a route's header
+// Keep the previous total in the shared site layout so replacing a route's header
 // preserves the baseline. The first total for each account sets that baseline.
 function ExperienceFeedback({
   children,
@@ -71,7 +71,11 @@ function ExperienceFeedback({
   return (
     <ExperienceContext value={report}>
       {children}
-      <div className="experience-feedback" role="status">
+      <div
+        aria-label={EXPERIENCE_COPY.heading}
+        className="experience-feedback"
+        role="status"
+      >
         {gain !== undefined && (
           <Notice key={gain.total}>
             <span className="icon-line">

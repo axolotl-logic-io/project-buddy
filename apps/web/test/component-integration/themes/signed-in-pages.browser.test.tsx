@@ -1,8 +1,8 @@
 import { beforeAll, beforeEach, describe, expect, test, vi } from "vitest";
 import { page } from "vitest/browser";
 import { render } from "vitest-browser-react";
-import QuestLayout from "@/app/(workspace)/quests/[questId]/(overview)/layout.tsx";
-import QuestPage from "@/app/(workspace)/quests/[questId]/(overview)/page.tsx";
+import QuestLayout from "@/app/(stream)/(site)/(workspace)/quests/[questId]/(overview)/layout.tsx";
+import QuestPage from "@/app/(stream)/(site)/(workspace)/quests/[questId]/(overview)/page.tsx";
 import { Markdown } from "@/components/markdown.tsx";
 import { getConstruct } from "@/constructs/index.ts";
 import type { getQuest, listQuests } from "@/quests/store.ts";

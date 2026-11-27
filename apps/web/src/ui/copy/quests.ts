@@ -5,7 +5,6 @@ export const QUESTS_COPY = {
   title: pageTitle("Quests"),
   headerLink: "Quests",
   heading: "Quests",
-  loading: "Loading quests…",
   none: "No quests with this status.",
   needsName: "A quest needs a name.",
   nameTooLong: (maxLength: number): string =>
@@ -21,7 +20,6 @@ export const QUEST_COPY = {
   saveTitle: "Save title",
   cancelTitle: "Cancel title edit",
   titleSaved: "Quest title saved.",
-  loading: "Loading quest…",
 } as const;
 
 // Starting a new quest (src/components/new-quest.tsx).

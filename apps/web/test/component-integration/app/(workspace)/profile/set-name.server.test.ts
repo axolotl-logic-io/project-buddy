@@ -1,6 +1,6 @@
 import { expect, test, vi } from "vitest";
 import { readUserName } from "@/accounts/users-store.ts";
-import { setNameAction } from "@/app/(workspace)/profile/actions.ts";
+import { setNameAction } from "@/app/(stream)/(site)/(workspace)/profile/actions.ts";
 import { readLists } from "@/lists/list-store.ts";
 import {
   PERFORMANCE_MESSAGE,
