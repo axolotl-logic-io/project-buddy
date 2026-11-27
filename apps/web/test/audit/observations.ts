@@ -130,9 +130,10 @@ interface ActionObserver {
 async function observePageChange(
   target: Locator,
   label: string,
+  loading: string,
 ): Promise<ActionObserver> {
   const observer = await target.evaluateHandle(
-    (link, { trailLabel, duration }) => {
+    (link, { trailLabel, loadingCopy, duration }) => {
       function main(): string {
         return document.querySelector("main")?.innerText ?? "";
       }
@@ -165,7 +166,7 @@ async function observePageChange(
       let frameId = 0;
       let feedbackMs: number | undefined;
       let feedbackFrame = false;
-      const initialText = main();
+      let initialText = "";
 
       function frame(): void {
         const time = performance.now();
@@ -177,7 +178,8 @@ async function observePageChange(
           }
           feedbackFrame =
             busy &&
-            Boolean(trail?.querySelector("[role=status]")?.textContent?.trim());
+            trail?.querySelector("[role=status]")?.textContent?.trim() ===
+              loadingCopy;
         }
         const text = main();
         const url = location.href;
@@ -190,6 +192,7 @@ async function observePageChange(
       }
 
       function click(event: Event): void {
+        initialText = main();
         start = event.timeStamp;
         frameId = requestAnimationFrame(frame);
       }
@@ -264,7 +267,7 @@ async function observePageChange(
         },
       };
     },
-    { trailLabel: label, duration: WINDOW_MS },
+    { trailLabel: label, loadingCopy: loading, duration: WINDOW_MS },
   );
 
   return {

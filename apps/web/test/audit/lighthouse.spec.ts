@@ -29,6 +29,7 @@ import {
 import { auditRun } from "./run-options.ts";
 
 const PAGE_CHANGE_TIMEOUT_MS = 10_000;
+const LIGHTHOUSE_QUIET_MS = 1000;
 type Flags = NonNullable<Parameters<typeof lighthouse>[1]>;
 
 const run = auditRun();
@@ -92,6 +93,12 @@ async function measure(
     emulatedUserAgent: false,
     formFactor,
     throttlingMethod: "provided",
+    // Keep the browser unthrottled. Use Lighthouse's ordinary quiet periods
+    // instead of stacking its longer unthrottled waits on the audit window.
+    pauseAfterFcpMs: LIGHTHOUSE_QUIET_MS,
+    pauseAfterLoadMs: LIGHTHOUSE_QUIET_MS,
+    networkQuietThresholdMs: LIGHTHOUSE_QUIET_MS,
+    cpuQuietThresholdMs: LIGHTHOUSE_QUIET_MS,
   };
   if (target.signedOut === true) {
     flags.onlyCategories?.push("seo");
@@ -135,6 +142,8 @@ async function measure(
   }
 
   await runCase("cold", url, async (result) => {
+    // End requests from sign-in before clearing the cache for the cold load.
+    await page.goto("about:blank");
     await network.send("Network.clearBrowserCache");
     await keepReport(
       sample,
@@ -166,7 +175,11 @@ async function measure(
       .getByRole("link", { name: target.change.link, exact: true })
       .first();
     await waitForHydrated(link);
-    const observer = await observePageChange(link, SITE_COPY.breadcrumbs);
+    const observer = await observePageChange(
+      link,
+      SITE_COPY.breadcrumbs,
+      SITE_COPY.loading,
+    );
     try {
       // Lighthouse exposes accessibility and SEO on navigation and snapshot.
       const onlyCategories =
