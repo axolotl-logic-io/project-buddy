@@ -46,6 +46,8 @@ test("use_case_change_auth_page", async ({ page }) => {
     await expect(status).toBeVisible();
   } finally {
     release.resolve();
+    // Next can prefetch another response alongside the navigation.
+    await page.unrouteAll({ behavior: "wait" });
   }
 
   await expect(signUpIntro).toBeVisible();
