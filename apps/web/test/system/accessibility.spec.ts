@@ -1,6 +1,7 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, type Locator, type Page } from "@playwright/test";
 import { saveUserName } from "@/accounts/users-store.ts";
+import { changeRiteAvailability, OWN_RITE_ID } from "@/rites/rite-store.ts";
 import { MODE_ATTRIBUTE, themeChoiceCookie } from "@/themes/theme-choice.ts";
 import { DEFAULT_THEME_CHOICE, THEME_MODES } from "@/themes/themes.ts";
 import { ACCOUNT_COPY } from "@/ui/copy/account.ts";
@@ -126,7 +127,7 @@ test.describe("use_case_accessible_pages", () => {
           ).toBeVisible();
           await audit(page, "Quick Add");
           await quickAdd
-            .getByRole("button", { name: QUICK_ADD_COPY.save })
+            .getByRole("button", { name: QUICK_ADD_COPY.save, exact: true })
             .click();
           await expect(
             quickAdd.getByText(QUICK_ADD_COPY.problem("empty")),
@@ -311,19 +312,25 @@ test.describe("use_case_accessible_pages", () => {
           await expect(page.getByText(GRIMOIRE_COPY.invalidName)).toBeVisible();
           await audit(page, "Rite name error");
 
-          await page
-            .getByRole("button", { name: GRIMOIRE_COPY.forget })
-            .click();
+          const forgotten = await testData.rite("Evening pages");
+          expect(
+            await changeRiteAvailability(
+              account.id,
+              OWN_RITE_ID.parse(forgotten.id),
+              "forget",
+            ),
+          ).toBe(true);
+          await page.goto(`/grimoire/${forgotten.id}`);
           await expect(
-            page.getByRole("link", { name: rite.name }),
+            page.getByText(GRIMOIRE_COPY.sources.forgotten, { exact: true }),
           ).toBeVisible();
-          await page.getByRole("link", { name: rite.name }).click();
+          await audit(page, "Forgotten rite");
           await clickReady(
             page.getByRole("button", { name: GRIMOIRE_COPY.delete }),
           );
           await expect(
             page.getByRole("alertdialog", {
-              name: GRIMOIRE_COPY.confirmDelete(rite.name),
+              name: GRIMOIRE_COPY.confirmDelete(forgotten.name),
             }),
           ).toBeVisible();
           await audit(page, "Delete forgotten rite confirmation");
@@ -363,8 +370,8 @@ test.describe("use_case_accessible_pages", () => {
         });
 
         test("Profile and its name editor", async ({ account, page }) => {
-          await logIn(page, account);
           await saveUserName(account.id, "River");
+          await logIn(page, account);
           await page.goto("/profile");
           const rename = page.getByRole("button", {
             name: ACCOUNT_COPY.rename,
