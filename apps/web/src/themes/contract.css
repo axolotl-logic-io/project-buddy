@@ -35,7 +35,6 @@
   --color-secondary-surface: var(--secondary-surface);
   --color-header-ink: var(--header-ink);
   --color-header-paper: var(--header-paper);
-  --color-header-line: var(--header-line);
   --color-header-gold: var(--header-gold);
 
   --color-action-fill: var(--action-fill);
@@ -167,7 +166,6 @@
     --secondary-surface: var(--light-secondary-surface);
     --header-ink: var(--light-header-ink);
     --header-paper: var(--light-header-paper);
-    --header-line: var(--light-header-line);
     --header-gold: var(--light-header-gold);
     --page-decoration: var(--light-page-decoration);
     --construct-ground: var(--light-construct-ground);
@@ -214,7 +212,6 @@
     --secondary-surface: var(--soot-brass-secondary-surface);
     --header-ink: var(--soot-brass-header-ink);
     --header-paper: var(--soot-brass-header-paper);
-    --header-line: var(--soot-brass-header-line);
     --header-gold: var(--soot-brass-header-gold);
     --page-decoration: var(--soot-brass-page-decoration);
     --construct-ground: var(--soot-brass-construct-ground);
@@ -261,7 +258,6 @@
     --secondary-surface: var(--dark-secondary-surface);
     --header-ink: var(--dark-header-ink);
     --header-paper: var(--dark-header-paper);
-    --header-line: var(--dark-header-line);
     --header-gold: var(--dark-header-gold);
     --page-decoration: var(--dark-page-decoration);
     --construct-ground: var(--dark-construct-ground);
@@ -280,13 +276,6 @@
 @layer ornament-roles {
   :root,
   [data-mode] {
-    /* ---- New: site header focus ------------------------------------------
-       The colour of the keyboard focus outline inside the site header. The
-       header has its own dark or light band (header-ink), where the page's
-       focus colour may not show; this one must reach 3:1 against
-       header-ink. */
-    --header-focus: var(--header-gold);
-
     /* ---- New: type roles ------------------------------------------------ */
 
     /* The face for the site's title, a page's heading and the sign-in
@@ -361,9 +350,7 @@
     --frame-inset: 0px;
     --frame-keyline: 1px;
 
-    /* Layers painted over an opaque band's surface (the trail band, the
-       site header, the dialog panel). Decoration only; text sits above. */
-    --header-decoration: none;
+    /* Decoration for the trail band and the dialog panel. */
     --trail-decoration: none;
     --frame-decoration: none;
 
@@ -404,9 +391,7 @@
     --orn-heading-accent: var(--orn-blank);
     --orn-heading-width: 0px;
 
-    /* A repeating border band along the trail band's foot, just under the
-       site header. A band of fine lines needs a height of 0.5rem or more
-       to show. */
+    /* A repeating border band along the page header's foot. */
     --orn-band: var(--orn-blank);
     --orn-band-accent: var(--orn-blank);
     --orn-band-height: 0px;
@@ -462,8 +447,8 @@
     --orn-bullet-size: 0px;
 
     /* ---- New: progress ring -------------------------------------------- */
-    /* One ring for the header's medallion and the Profile's experience
-       card. The track and arc are inks; the disc is the ring's centre. */
+    /* The experience ring on Home and Profile. The track and arc are
+       inks; the disc is the ring's centre. */
     --ring-track: color-mix(in oklab, var(--line) 35%, transparent);
     --ring-arc: var(--primary);
     --ring-disc: var(--surface);
@@ -510,7 +495,6 @@
   :root {
     --hud-ink: var(--header-ink);
     --hud-paper: var(--header-paper);
-    --hud-line: var(--header-line);
     --hud-gold: var(--header-gold);
     --focus-outline: 2px solid var(--focus);
     --focus-offset: 2px;

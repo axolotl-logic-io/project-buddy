@@ -65,8 +65,6 @@ describe("use_case_choose_theme", () => {
 
 async function pageHtml(): Promise<string> {
   const layout = await RootLayout({
-    params: Promise.resolve({}),
-    header: createElement("header"),
     children: createElement("p"),
   });
   return renderToStaticMarkup(layout);

@@ -6,7 +6,6 @@ import { type Experience, nextTitleOf } from "@/experience/experience.ts";
 import { EXPERIENCE_COPY } from "@/ui/copy/experience.ts";
 import { HOME_COPY } from "@/ui/copy/home.ts";
 
-// A link to Profile, such as the header's ring, can open this card by its id.
 const EXPERIENCE_ID = "experience";
 
 // The user's circle: its number in a ring that fills as they near the next

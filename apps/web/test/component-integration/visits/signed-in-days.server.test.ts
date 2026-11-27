@@ -1,3 +1,4 @@
+import { revalidatePath } from "next/cache";
 import { afterEach, describe, expect, test, vi } from "vitest";
 import { endEverySession, readSessionUser } from "@/accounts/users-store.ts";
 import { currentUser } from "@/auth/current-user.ts";
@@ -22,6 +23,7 @@ const DISTINCT_BOUNDARY_DATES = 8;
 
 const sent = vi.hoisted(() => ({ sendEmail: vi.fn<SendEmail>() }));
 vi.mock("@/email/send-email.ts", () => sent);
+vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
 
 afterEach(() => vi.useRealTimers());
 
@@ -47,8 +49,11 @@ describe("use_case_days_signed_in", () => {
     vi.setSystemTime(new Date("2026-11-01T23:59:59.999Z"));
     const user = await testUser();
     await signIn(user);
+    vi.mocked(revalidatePath).mockClear();
     expect(await recordVisitAction()).toBe("added");
+    expect(revalidatePath).toHaveBeenCalledExactlyOnceWith("/profile");
     expect(await recordVisitAction()).toBe("known");
+    expect(revalidatePath).toHaveBeenCalledTimes(1);
     vi.setSystemTime(new Date("2026-11-02T00:00:00.000Z"));
     expect(await recordVisitAction()).toBe("added");
     expect(await readSignedInDays(user.id)).toEqual({
@@ -102,12 +107,14 @@ describe("use_case_days_signed_in", () => {
 
   test("signed-out, lapsed and revoked sessions create no date", async () => {
     const user = await testUser();
+    vi.mocked(revalidatePath).mockClear();
     expect(await recordVisitAction()).toBe("unavailable");
     await lapsed(user);
     expect(await recordVisitAction()).toBe("unavailable");
     await signIn(user);
     await endEverySession(user.id);
     expect(await recordVisitAction()).toBe("unavailable");
+    expect(revalidatePath).not.toHaveBeenCalled();
     expect(await readSignedInDays(user.id)).toEqual({
       total: 0,
       trackedSince: null,

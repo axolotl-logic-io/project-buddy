@@ -9,7 +9,7 @@ import {
   useRef,
   useState,
 } from "react";
-import { changeQuestStatusAction } from "@/app/(workspace)/quests/status-actions.ts";
+import { changeQuestStatusAction } from "@/app/(stream)/(site)/(workspace)/quests/status-actions.ts";
 import { StatusFeedbackContext } from "@/components/quest-status-feedback-context.ts";
 import { Button } from "@/components/ui/button.tsx";
 import { Notice } from "@/components/ui/form-message.tsx";

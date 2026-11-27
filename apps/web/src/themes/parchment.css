@@ -110,7 +110,6 @@
     --light-secondary-surface: rgb(243 224 184);
     --light-header-ink: rgb(49 30 16);
     --light-header-paper: rgb(250 232 192);
-    --light-header-line: rgb(171 126 47);
     --light-header-gold: rgb(201 160 72);
     --light-page-decoration: url("/textures/ivory-vellum.webp");
     --light-construct-ground: rgb(251 239 213);
@@ -130,7 +129,6 @@
     --dark-secondary-surface: rgb(62 45 30);
     --dark-header-ink: rgb(30 20 13);
     --dark-header-paper: rgb(246 228 192);
-    --dark-header-line: rgb(178 140 88);
     --dark-header-gold: rgb(234 190 112);
     --dark-page-decoration: url("/textures/espresso-leather.webp");
     --dark-construct-ground: rgb(40 27 18);
@@ -170,7 +168,6 @@
     --soot-brass-secondary-surface: rgb(58 42 46);
     --soot-brass-header-ink: rgb(27 22 24);
     --soot-brass-header-paper: rgb(238 228 210);
-    --soot-brass-header-line: rgb(150 128 90);
     --soot-brass-header-gold: rgb(190 162 104);
     --soot-brass-page-decoration: url("/textures/soot-brass.webp");
     --soot-brass-construct-ground: rgb(60 29 36);
@@ -335,11 +332,6 @@
     --frame-style: solid;
     --frame-radius: 3px;
     --frame-inset: 3px;
-    --header-decoration: linear-gradient(
-      to bottom,
-      color-mix(in oklab, var(--header-gold) 6%, transparent),
-      transparent
-    );
     --trail-decoration: linear-gradient(
       to bottom,
       color-mix(in oklab, var(--primary) 6%, transparent),
@@ -407,7 +399,6 @@
     --frame-style: solid;
     --frame-radius: 0.25rem;
     --frame-inset: 0.25rem;
-    --header-decoration: none;
     --trail-decoration: linear-gradient(
       to bottom,
       color-mix(in oklab, var(--primary) 5%, transparent),
@@ -462,12 +453,6 @@
     --frame-style: solid;
     --frame-radius: 2px;
     --frame-inset: 3px;
-    --header-decoration: linear-gradient(
-      to top,
-      transparent 0 4px,
-      color-mix(in srgb, var(--header-gold) 60%, transparent) 4px 5px,
-      transparent 5px
-    );
     --trail-decoration: none;
     --frame-decoration: none;
     --ring-track: color-mix(in oklab, var(--line) 35%, transparent);

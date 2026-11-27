@@ -6,12 +6,12 @@ import {
   localTimeZone,
   timeZoneChoices,
 } from "@/accounts/time-zone.ts";
-import { ContinueForm } from "@/app/login/link/continue-form.tsx";
+import { ContinueForm } from "@/app/(stream)/(site)/login/link/continue-form.tsx";
 import { ACCOUNT_COPY } from "@/ui/copy/account.ts";
 import { LINK_PAGE_COPY } from "@/ui/copy/login.ts";
 
 const actions = vi.hoisted(() => ({ continueSignInAction: vi.fn() }));
-vi.mock("@/app/login/link/actions.ts", () => actions);
+vi.mock("@/app/(stream)/(site)/login/link/actions.ts", () => actions);
 
 const TIME_ZONES = timeZoneChoices();
 

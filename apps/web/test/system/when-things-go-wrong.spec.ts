@@ -1,7 +1,7 @@
 // "use_case_session_expired" in use-cases/access.md: the signed-out access
-// gate for a session that lapsed, an auth workflow, so it stays in
-// Playwright (e2e-auth-only). The other failure cases are
-// Vitest's: test/component-integration/errors/missing-page.server.test.ts,
+// gate for a session that lapsed, which only the built site's proxy shows.
+// The other failure cases are Vitest's:
+// test/component-integration/errors/missing-page.server.test.ts,
 // test/component-integration/performances/messages.server.test.ts and
 // the storage-unavailable.server.test.ts files.
 
@@ -12,8 +12,11 @@ import {
   type SessionUser,
 } from "@/auth/session-token.ts";
 import { readSessionSecret } from "@/env.ts";
+import { QUESTS_COPY } from "@/ui/copy/quests.ts";
+import { SITE_COPY } from "@/ui/copy/site.ts";
 import { test } from "./fixtures.ts";
 import { logIn } from "./log-in.ts";
+import { waitForHydrated } from "./page-helpers.ts";
 import { expectSignedInFor30Days, signInByLink } from "./sign-in-pages.ts";
 
 const MS_PER_DAY = 86_400_000;
@@ -45,8 +48,16 @@ test("use_case_session_expired", async ({ account, context, page }) => {
   await expireSession(context, page, account);
 
   await test.step("every page shows the sign-in page", async () => {
-    await page.goto("/quests");
+    const quests = page.getByRole("main").getByRole("link", {
+      name: QUESTS_COPY.headerLink,
+      exact: true,
+    });
+    await waitForHydrated(quests);
+    await quests.click();
     await expect(page).toHaveURL("/login");
+    await expect(
+      page.getByRole("region", { name: SITE_COPY.breadcrumbs }),
+    ).not.toHaveAttribute("aria-busy");
 
     await page.goto(`/missing/${crypto.randomUUID()}`);
     await expect(page).toHaveURL("/login");

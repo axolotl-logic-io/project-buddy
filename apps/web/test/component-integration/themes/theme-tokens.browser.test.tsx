@@ -75,7 +75,6 @@ const PAIRS: readonly Pair[] = [
   ...pairs("line", TEXT_SURFACES, BOUNDARY_CONTRAST),
   ...pairs("focus", TEXT_SURFACES, BOUNDARY_CONTRAST),
   ...pairs("label-ink", ["background", "field", "surface"], TEXT_CONTRAST),
-  ...pairs("header-focus", ["header-ink"], BOUNDARY_CONTRAST),
   ...pairs("ring-ink", ["ring-disc"], TEXT_CONTRAST),
   ...pairs("ring-arc", ["ring-disc"], BOUNDARY_CONTRAST),
   ...pairs("header-paper", ["header-ink"], TEXT_CONTRAST),
@@ -92,7 +91,7 @@ const WIDE_SITE_TITLE = "site-title-wide-size";
 const PAGE_HEADING = "page-heading-size";
 const PHONE_PAGE_HEADING = "page-heading-phone-size";
 const SECTION_HEADING = "section-heading-size";
-// The titles that aren't a page's headings: the site's name in the header,
+// The titles that aren't a page's headings: the site panel's heading,
 // smaller than a page's heading, and a card's title, such as a quest's name
 // in the list, smaller than a section's heading.
 const HEADER_TITLE = "header-title-size";
@@ -109,7 +108,6 @@ const COLOR_TOKENS: readonly string[] = [
   ...colorTokens(),
   "shadow",
   "label-ink",
-  "header-focus",
   "ring-ink",
   "ring-arc",
   "ring-disc",

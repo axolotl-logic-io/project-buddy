@@ -2,9 +2,10 @@ import type { JSX } from "react";
 import { expect, test, vi } from "vitest";
 import { commands, page } from "vitest/browser";
 import { render } from "vitest-browser-react";
-import { ExperienceFeedback } from "@/components/experience/circle-progress.tsx";
+import { ExperienceFeedback } from "@/components/experience/experience-feedback.tsx";
 import { SignedInHeader } from "@/components/signed-in-header.tsx";
 import { type Experience, experienceOf } from "@/experience/experience.ts";
+import { EXPERIENCE_COPY } from "@/ui/copy/experience.ts";
 import {
   SIGNED_IN_USER,
   signInAs,
@@ -29,7 +30,6 @@ const BEFORE = experienceOf({
   "completing-quests": 0,
 });
 const AFTER = experienceOf({ ...BEFORE.counts, "checking-off": 1 });
-const NEXT_CIRCLE = /Circle 2 · Initiate/u;
 
 async function frame(
   experience: Experience,
@@ -44,12 +44,12 @@ async function frame(
   );
 }
 
-test("celebrates a gain after the header refreshes and updates the circle", async () => {
+test("use_case_experience_feedback", async () => {
   await commands.reduceMotion(false);
   signInAs(SIGNED_IN_USER);
   await setViewport(NARROWEST_VIEWPORT);
   const screen = await render(await frame(BEFORE));
-  const status = page.getByRole("status");
+  const status = page.getByRole("status", { name: EXPERIENCE_COPY.heading });
   expect(status.element()).toBeEmptyDOMElement();
 
   await screen.rerender(await frame(AFTER, "Quest overview"));
@@ -58,9 +58,10 @@ test("celebrates a gain after the header refreshes and updates the circle", asyn
   const notice = status.element().firstElementChild;
   expect(notice).toBeInstanceOf(HTMLElement);
   expect(notice && getComputedStyle(notice).animationName).not.toBe("none");
-  await expect
-    .element(page.getByRole("link", { name: NEXT_CIRCLE }))
-    .toHaveAttribute("href", "/profile#experience");
+  const header = page.getByRole("banner").element();
+  expect(message.element().getBoundingClientRect().top).toBeGreaterThan(
+    header.getBoundingClientRect().bottom,
+  );
 
   await screen.rerender(await frame(BEFORE));
   expect(status.element()).toBeEmptyDOMElement();
@@ -71,7 +72,7 @@ test("shows a still gain with reduced motion and starts fresh after sign-out", a
   signInAs(SIGNED_IN_USER);
   const screen = await render(await frame(BEFORE));
   await screen.rerender(await frame(AFTER));
-  const status = page.getByRole("status");
+  const status = page.getByRole("status", { name: EXPERIENCE_COPY.heading });
   await expect.element(status.getByText("+3 experience")).toBeVisible();
   const notice = status.element().firstElementChild;
   expect(notice && getComputedStyle(notice).animationName).toBe("none");

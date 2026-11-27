@@ -90,16 +90,15 @@
     // The site frame uses Tailwind
     // utilities like every other file. These rules follow imports, so they
     // check only the root layout, the frame it renders (header, the site
-    // panel, its appearance choices, the ring of the user's circle and the
-    // Quick Note dialog, with the form fields and notices it shows) and the global CSS files whose classes
-    // pages use.
+    // panel, its appearance choices, experience feedback and Quick Add) and
+    // the global CSS files whose classes pages use.
     {
       "includes": [
         "src/app/layout.tsx",
-        "src/components/site-header.tsx",
+        "src/components/page-header.tsx",
         "src/components/site-panel.tsx",
         "src/components/close-panel-around.ts",
-        "src/components/experience/circle-progress.tsx",
+        "src/components/experience/experience-feedback.tsx",
         "src/components/experience/progress-ring.tsx",
         "src/components/ui/progress-arc.tsx",
         "src/components/appearance-choices.tsx",
@@ -124,7 +123,7 @@
     // Playwright names its `baseURL` option; the config defines no other
     // name outside the convention.
     {
-      "includes": ["playwright.config.ts"],
+      "includes": ["playwright.config.ts", "test/audit/browser.ts"],
       "linter": {
         "rules": {
           "style": {
@@ -134,7 +133,87 @@
                 "conventions": [
                   {
                     "selector": { "kind": "objectLiteralProperty" },
-                    "match": "baseURL|(.+)"
+                    "match": "baseURL|browserURL|extraHTTPHeaders|(.+)"
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+
+    // The audit's Node entry point, reporter and browser use local files and
+    // the command's process environment. Playwright loads the reporter by
+    // its default export.
+    {
+      "includes": [
+        "test/audit/browser.ts",
+        "test/audit/command.ts",
+        "test/audit/results.ts",
+        "test/audit/reporter.ts",
+        "test/audit/run-options.ts"
+      ],
+      "linter": {
+        "rules": {
+          "correctness": { "noNodejsModules": "off" }
+        }
+      }
+    },
+    {
+      "includes": ["test/audit/command.ts", "test/audit/run-options.ts"],
+      "linter": {
+        "rules": {
+          "style": { "noProcessEnv": "off" }
+        }
+      }
+    },
+    {
+      "includes": ["test/audit/reporter.ts"],
+      "linter": {
+        "rules": {
+          "style": { "noDefaultExport": "off" }
+        }
+      }
+    },
+
+    // Chromium's active debugging port filename triggers the entropy
+    // heuristic. This boundary reads the browser-generated filename.
+    {
+      "includes": ["test/audit/browser.ts"],
+      "linter": {
+        "rules": {
+          "security": {
+            "noSecrets": {
+              "level": "error",
+              "options": { "entropyThreshold": 50 }
+            }
+          }
+        }
+      }
+    },
+    // Swap measurements use rendered text and exclude hidden DOM content.
+    {
+      "includes": ["test/audit/observations.ts"],
+      "linter": {
+        "rules": {
+          "nursery": { "useDomNodeTextContent": "off" }
+        }
+      }
+    },
+    // The CLI passes validated options to the Playwright worker environment.
+    {
+      "includes": ["test/audit/command.ts"],
+      "linter": {
+        "rules": {
+          "style": {
+            "useNamingConvention": {
+              "level": "error",
+              "options": {
+                "conventions": [
+                  {
+                    "selector": { "kind": "objectLiteralProperty" },
+                    "match": "BUDDY_AUDIT|(.+)"
                   }
                 ]
               }

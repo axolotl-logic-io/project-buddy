@@ -1,6 +1,6 @@
 "use client";
 
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useEffect, useRef } from "react";
 import { recordVisitAction } from "@/visits/record-visit-action.ts";
 
@@ -11,7 +11,6 @@ import { recordVisitAction } from "@/visits/record-visit-action.ts";
 // deduplicates every report. Failed reports can retry on the next event.
 function SignedInVisits(): null {
   const pathname = usePathname();
-  const { refresh } = useRouter();
   const reportedRef = useRef<string | undefined>(undefined);
   const pendingRef = useRef(false);
 
@@ -38,9 +37,6 @@ function SignedInVisits(): null {
         if (result !== "unavailable") {
           reportedRef.current = date;
         }
-        if (result === "added") {
-          refresh();
-        }
       } finally {
         pendingRef.current = false;
       }
@@ -61,7 +57,7 @@ function SignedInVisits(): null {
       window.removeEventListener("focus", visit);
       window.removeEventListener("pageshow", visit);
     };
-  }, [pathname, refresh]);
+  }, [pathname]);
 
   return null;
 }

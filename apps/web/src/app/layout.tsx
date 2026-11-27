@@ -1,8 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { cookies } from "next/headers";
 import type { JSX } from "react";
-import { ExperienceFeedback } from "@/components/experience/circle-progress.tsx";
-import { SignedInHeader } from "@/components/signed-in-header.tsx";
 import {
   parseThemeChoiceCookie,
   THEME_COOKIE_NAME,
@@ -38,18 +36,13 @@ export const viewport: Viewport = {
   ],
 };
 
-// The header reads the session outside any Suspense boundary, so that it
-// arrives whole, links and all, with the page's first HTML (decision
-// header-links-slot). Cache Components fails the build on such a read
-// unless the root opts out of its static-shell check, which this does: every
-// page renders per request, and waits for the session lookup.
+// Appearance is request-specific. The site's shared loading boundary
+// streams the shell while the header and page resolve together.
 export const instant = false;
 
-// The first HTML includes the browser's appearance and the session header.
 export default async function RootLayout({
   children,
-  header,
-}: LayoutProps<"/">): Promise<JSX.Element> {
+}: Pick<LayoutProps<"/">, "children">): Promise<JSX.Element> {
   const saved = (await cookies()).get(THEME_COOKIE_NAME)?.value;
   const appearance = themeAttributes(parseThemeChoiceCookie(saved));
   return (
@@ -58,10 +51,7 @@ export default async function RootLayout({
       className={`${THEME_FONT_VARIABLES} h-full antialiased`}
       lang="en"
     >
-      <body className="flex min-h-full flex-col">
-        <ExperienceFeedback>{header ?? <SignedInHeader />}</ExperienceFeedback>
-        <main className="flex flex-1 flex-col">{children}</main>
-      </body>
+      <body className="flex min-h-full flex-col">{children}</body>
     </html>
   );
 }

@@ -1,14 +1,13 @@
 import { beforeAll, beforeEach, describe, expect, test, vi } from "vitest";
 import { page } from "vitest/browser";
 import { render } from "vitest-browser-react";
-import QuestLayout from "@/app/(workspace)/quests/[questId]/(overview)/layout.tsx";
-import QuestPage from "@/app/(workspace)/quests/[questId]/(overview)/page.tsx";
+import QuestLayout from "@/app/(stream)/(site)/(workspace)/quests/[questId]/(overview)/layout.tsx";
+import QuestPage from "@/app/(stream)/(site)/(workspace)/quests/[questId]/(overview)/page.tsx";
 import { Markdown } from "@/components/markdown.tsx";
 import { getConstruct } from "@/constructs/index.ts";
 import type { getQuest, listQuests } from "@/quests/store.ts";
 import { THEME_IDS } from "@/themes/themes.ts";
 import { QUEST_OVERVIEW_COPY } from "@/ui/copy/quest-overview.ts";
-import { SITE_COPY } from "@/ui/copy/site.ts";
 import { FOX_QUEST } from "../app/(workspace)/page-fixtures.ts";
 import { siteHeaderAt } from "../app/site-header-test-kit.tsx";
 import { inWorkspace } from "../app/workspace-test-kit.tsx";
@@ -19,7 +18,7 @@ import { fontSize } from "./signed-in-pages-test-kit.ts";
 import { installThemeFonts, loadFonts } from "./theme-fonts-test-kit.ts";
 import { applyTheme } from "./theme-test-kit.ts";
 
-// The header's ring of the user's circle reads their experience, server code.
+// The header reads the experience total for feedback after saves.
 vi.mock(
   "@/experience/experience-store.ts",
   () => import("../experience/experience-store-test-kit.ts"),
@@ -81,7 +80,7 @@ async function renderMarkdownReply(): Promise<void> {
 }
 
 // Opens the page of a quest with a long name and returns whether its
-// section controls share the breadcrumb row, below the brand bar.
+// section controls share the breadcrumb row.
 async function sectionsAlongsideLongName(): Promise<boolean> {
   await renderQuest(LONG_NAME);
   await loadFonts();
@@ -91,10 +90,10 @@ async function sectionsAlongsideLongName(): Promise<boolean> {
   const link = page
     .getByRole("complementary", { name: QUEST_OVERVIEW_COPY.panel.label })
     .getByRole("heading", { level: 2 });
-  const brand = page.getByRole("link", { name: SITE_COPY.name });
+  const header = page.getByRole("banner");
   const sectionBounds = link.element().getBoundingClientRect();
   return (
-    sectionBounds.top >= brand.element().getBoundingClientRect().bottom &&
+    sectionBounds.top >= header.element().getBoundingClientRect().top &&
     sectionBounds.top <= heading.element().getBoundingClientRect().bottom
   );
 }
@@ -137,7 +136,7 @@ describe("use_case_choose_theme", () => {
         applyTheme(id);
       });
 
-      test("a long quest title keeps the quest panel on its row below the brand at 1280 px", async () => {
+      test("a long quest title keeps the quest panel on the breadcrumb row at 1280 px", async () => {
         expect(await sectionsAlongsideLongName()).toBe(true);
       });
 

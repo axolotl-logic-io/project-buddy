@@ -156,7 +156,7 @@ The weighted sum of a user's events. Adding a list item earns 1 experience. Chec
 
 ### Circle
 
-The user's level determined by experience. Progress starts at Circle 1, titled Initiate. The **experience ring** shows progress from the current circle's threshold toward the next one. [Experience ring use case](../apps/web/use-cases/experience.md#use_case_experience_ring)
+The user's level determined by experience. Progress starts at Circle 1, titled Initiate. The **experience ring** shows progress from the current circle's threshold toward the next one. [Experience use case](../apps/web/use-cases/experience.md#use_case_experience)
 
 ### Days signed in
 

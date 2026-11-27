@@ -1,13 +1,13 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { page, userEvent } from "vitest/browser";
 import { render } from "vitest-browser-react";
+import { PageHeader, TrailBand } from "@/components/page-header.tsx";
 import { QuestTitle } from "@/components/quest-title.tsx";
-import { SiteHeader, TrailBand } from "@/components/site-header.tsx";
 import { renameQuestAction } from "@/quests/rename-quest-action.ts";
 import { QUEST_COPY } from "@/ui/copy/quests.ts";
 import { FOX_QUEST } from "../app/(workspace)/page-fixtures.ts";
 
-// The header's ring of the user's circle reads their experience, server code.
+// The header reads the experience total for feedback after saves.
 vi.mock(
   "@/experience/experience-store.ts",
   () => import("../experience/experience-store-test-kit.ts"),
@@ -113,7 +113,7 @@ describe("use_case_rename_quest", () => {
 
 test("the title band offers an accessible pencil and keeps the name visible while editing", async () => {
   await render(
-    <SiteHeader
+    <PageHeader
       trail={
         <TrailBand
           items={[

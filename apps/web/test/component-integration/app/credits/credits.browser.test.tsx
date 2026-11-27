@@ -2,9 +2,9 @@ import type { JSX } from "react";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { page } from "vitest/browser";
 import { render } from "vitest-browser-react";
-import CreditsPage from "@/app/credits/page.tsx";
-import LoginPage from "@/app/login/page.tsx";
-import NotFound from "@/app/not-found.tsx";
+import CreditsPage from "@/app/(stream)/(site)/credits/page.tsx";
+import LoginPage from "@/app/(stream)/(site)/login/page.tsx";
+import NotFound from "@/app/(stream)/(site)/not-found.tsx";
 import { CREDITS_COPY } from "@/ui/copy/credits.ts";
 import { tabForward } from "../../../support/keyboard-test-kit.ts";
 import {
@@ -19,7 +19,7 @@ import { inSiteFrame } from "../site-frame-test-kit.tsx";
 // The signed-in header records visible visits and refreshes through the router.
 vi.mock("next/navigation", () => import("../../components/router-test-kit.ts"));
 
-// The header's ring of the user's circle reads their experience, server code.
+// The header reads the experience total for feedback after saves.
 vi.mock(
   "@/experience/experience-store.ts",
   () => import("../../experience/experience-store-test-kit.ts"),
@@ -30,7 +30,9 @@ vi.mock(
   () => import("../../auth/current-user-test-kit.ts"),
 );
 // The rendered controls do not submit Server Actions in this case.
-vi.mock("@/app/login/actions.ts", () => ({ requestSignInLinkAction: vi.fn() }));
+vi.mock("@/app/(stream)/(site)/login/actions.ts", () => ({
+  requestSignInLinkAction: vi.fn(),
+}));
 
 // Pages whose site panel offers Credits: public pages for a visitor, and a
 // signed-in page.

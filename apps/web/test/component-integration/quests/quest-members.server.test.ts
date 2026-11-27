@@ -3,7 +3,7 @@
 // from Quests, one quest at a time; what accepted members may do; and
 // removing or leaving.
 
-import { refresh } from "next/cache";
+import { revalidatePath } from "next/cache";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, test, vi } from "vitest";
 import {
@@ -11,9 +11,9 @@ import {
   findUserByEmail,
   saveUserName,
 } from "@/accounts/users-store.ts";
-import QuestPage from "@/app/(workspace)/quests/[questId]/(overview)/page.tsx";
-import { continueSignInAction } from "@/app/login/link/actions.ts";
-import SignInLinkPage from "@/app/login/link/page.tsx";
+import QuestPage from "@/app/(stream)/(site)/(workspace)/quests/[questId]/(overview)/page.tsx";
+import { continueSignInAction } from "@/app/(stream)/(site)/login/link/actions.ts";
+import SignInLinkPage from "@/app/(stream)/(site)/login/link/page.tsx";
 import { currentUser } from "@/auth/current-user.ts";
 import { readLists } from "@/lists/list-store.ts";
 import {
@@ -70,7 +70,7 @@ import {
 
 const sent = vi.hoisted(() => ({ sendEmail: vi.fn<SendEmail>() }));
 vi.mock("@/email/send-email.ts", () => sent);
-vi.mock("next/cache", () => ({ refresh: vi.fn() }));
+vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
 vi.mock("next/headers", async () => {
   const { sessionCookies } = await import(
     "../test-database/session-test-kit.ts"
@@ -504,12 +504,12 @@ describe("use_case_accept_pending_quest", () => {
       await removeFromQuest(owner.id, { questId: first.id, person: user.id }),
     ).toBe(true);
     await signIn(user);
-    vi.mocked(refresh).mockClear();
+    vi.mocked(revalidatePath).mockClear();
 
     expect(
       await answerInvitationAction({ questId: first.id, accept: true }),
     ).toEqual({ kind: "failed" });
-    expect(refresh).toHaveBeenCalled();
+    expect(revalidatePath).toHaveBeenCalledWith("/", "layout");
     expect(await listPendingQuests(user.id)).toEqual([]);
     expect(await getQuest(user.id, first.id)).toBeUndefined();
   });
