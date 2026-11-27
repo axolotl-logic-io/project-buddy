@@ -33,7 +33,6 @@ import {
   type BrowserContext,
   test as base,
   expect,
-  type Page,
   type TestInfo,
 } from "@playwright/test";
 import { eq } from "drizzle-orm";
@@ -42,6 +41,7 @@ import { normalizeEmail, type User } from "@/accounts/users-store.ts";
 import { type Database, getDb } from "@/db/client.ts";
 import { signUpLinks } from "@/db/tables/sign-up-links.ts";
 import { users } from "@/db/tables/users.ts";
+import { watchPageProblems } from "../support/page-problems.ts";
 import {
   type TestData as AccountData,
   testData,
@@ -155,29 +155,13 @@ async function useNewAddress(
   await endRateLimitWindowsFor({ address });
 }
 
-// Records each error page logs to its console or throws uncaught.
-function watchForProblems(page: Page, problems: string[]): void {
-  page.on("pageerror", (error) => {
-    problems.push(`${page.url()} threw: ${error.message}`);
-  });
-  page.on("console", (message) => {
-    if (message.type() === "error") {
-      problems.push(`${page.url()} logged: ${message.text()}`);
-    }
-  });
-}
-
 // Records the errors of every page of the test's browser, and fails the
 // test if there were any.
 async function usePageProblems(
   { context }: { context: BrowserContext },
   use: (problems: readonly string[]) => Promise<void>,
 ): Promise<void> {
-  const problems: string[] = [];
-  for (const page of context.pages()) {
-    watchForProblems(page, problems);
-  }
-  context.on("page", (page) => watchForProblems(page, problems));
+  const problems = watchPageProblems(context);
   await use(problems);
   expect(problems, "errors the pages logged or threw").toStrictEqual([]);
 }

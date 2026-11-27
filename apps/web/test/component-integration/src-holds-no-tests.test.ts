@@ -2,12 +2,12 @@ import { describe, expect, test } from "vitest";
 
 // src/ holds only what the site runs: tests and the code only they use live
 // in test/<level>/, under the path their subject has. So no test file
-// sits in src/, or anywhere else outside the ISTQB level folders.
+// sits in src/. The opt-in Lighthouse audit has its own Playwright folder.
 const TEST_FILES = Object.keys(
   import.meta.glob([
     "/**/*.{test,spec}.{ts,tsx,mts,sh}",
     "!/node_modules/**",
-    "!/test/{component,component-integration,system,system-integration,acceptance}/**",
+    "!/test/{component,component-integration,system,system-integration,acceptance,audit}/**",
     "/src/**/__snapshots__/**",
   ]),
 );

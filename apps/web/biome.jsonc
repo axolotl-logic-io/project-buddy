@@ -124,7 +124,7 @@
     // Playwright names its `baseURL` option; the config defines no other
     // name outside the convention.
     {
-      "includes": ["playwright.config.ts"],
+      "includes": ["playwright.config.ts", "test/audit/browser.ts"],
       "linter": {
         "rules": {
           "style": {
@@ -134,7 +134,87 @@
                 "conventions": [
                   {
                     "selector": { "kind": "objectLiteralProperty" },
-                    "match": "baseURL|(.+)"
+                    "match": "baseURL|browserURL|extraHTTPHeaders|(.+)"
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+
+    // The audit's Node entry point, reporter and browser use local files and
+    // the command's process environment. Playwright loads the reporter by
+    // its default export.
+    {
+      "includes": [
+        "test/audit/browser.ts",
+        "test/audit/command.ts",
+        "test/audit/lighthouse.spec.ts",
+        "test/audit/reporter.ts",
+        "test/audit/run-options.ts"
+      ],
+      "linter": {
+        "rules": {
+          "correctness": { "noNodejsModules": "off" }
+        }
+      }
+    },
+    {
+      "includes": ["test/audit/command.ts", "test/audit/run-options.ts"],
+      "linter": {
+        "rules": {
+          "style": { "noProcessEnv": "off" }
+        }
+      }
+    },
+    {
+      "includes": ["test/audit/reporter.ts"],
+      "linter": {
+        "rules": {
+          "style": { "noDefaultExport": "off" }
+        }
+      }
+    },
+
+    // Chromium's active debugging port filename triggers the entropy
+    // heuristic. This boundary reads the browser-generated filename.
+    {
+      "includes": ["test/audit/browser.ts"],
+      "linter": {
+        "rules": {
+          "security": {
+            "noSecrets": {
+              "level": "error",
+              "options": { "entropyThreshold": 50 }
+            }
+          }
+        }
+      }
+    },
+    // Swap measurements use rendered text and exclude hidden DOM content.
+    {
+      "includes": ["test/audit/observations.ts"],
+      "linter": {
+        "rules": {
+          "nursery": { "useDomNodeTextContent": "off" }
+        }
+      }
+    },
+    // The CLI passes validated options to the Playwright worker environment.
+    {
+      "includes": ["test/audit/command.ts"],
+      "linter": {
+        "rules": {
+          "style": {
+            "useNamingConvention": {
+              "level": "error",
+              "options": {
+                "conventions": [
+                  {
+                    "selector": { "kind": "objectLiteralProperty" },
+                    "match": "BUDDY_AUDIT|(.+)"
                   }
                 ]
               }
