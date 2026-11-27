@@ -779,8 +779,7 @@
     @apply flex min-w-0 flex-1 items-center gap-2;
   }
 
-  .trail-band:has(.header-panel-control > .quest-sidebar-expand)
-    .trail-content {
+  .trail-band:has(.header-panel-control .quest-sidebar-expand) .trail-content {
     margin-inline-end: calc(var(--panel-tab-width) + var(--header-gutter));
   }
 
@@ -3200,6 +3199,12 @@
 
   .header-panel-control:empty {
     display: none;
+  }
+
+  /* The quest panel's own slot in the header
+     (src/components/quest-side-panel.tsx), the tab's full height. */
+  .header-panel-slot {
+    @apply flex items-stretch;
   }
 
   .header-panel-control:has(.quest-sidebar-expand) {
