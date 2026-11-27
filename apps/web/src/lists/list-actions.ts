@@ -1,6 +1,6 @@
 "use server";
 
-import { refresh } from "next/cache";
+import { revalidateWorkspace } from "@/app/revalidate-workspace.ts";
 import { requireUser } from "@/auth/current-user.ts";
 import { AppError } from "@/errors/app-error.ts";
 import { QUEST_ID } from "@/ids.ts";
@@ -44,7 +44,7 @@ async function saveListAction(
     if (list === "invalid-text") {
       return { draft, error: LISTS_COPY.typeTooLong };
     }
-    refresh();
+    revalidateWorkspace();
     return { saved: true };
   } catch (error) {
     if (error instanceof AppError) {

@@ -1,4 +1,4 @@
-import { refresh } from "next/cache";
+import { revalidatePath } from "next/cache";
 import { describe, expect, test, vi } from "vitest";
 import { QUEST_NAME_MAX_LENGTH } from "@/quests/quest-name.ts";
 import { renameQuestAction } from "@/quests/rename-quest-action.ts";
@@ -7,7 +7,7 @@ import { expectNotFound } from "../test-database/navigation-test-kit.ts";
 import { signIn } from "../test-database/session-test-kit.ts";
 import { twoUsers } from "../test-database/two-users-test-kit.ts";
 
-vi.mock("next/cache", () => ({ refresh: vi.fn() }));
+vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
 
 function form(questId: string, name: string): FormData {
   const data = new FormData();
@@ -24,7 +24,7 @@ describe("use_case_rename_quest", () => {
       await renameQuestAction({ kind: "idle" }, form(quest.id, "  Fox den  ")),
     ).toEqual({ kind: "saved", name: "Fox den" });
     expect((await getQuest(her.id, quest.id))?.name).toBe("Fox den");
-    expect(refresh).toHaveBeenCalled();
+    expect(revalidatePath).toHaveBeenCalledWith("/", "layout");
   });
   test.each(["", "   ", "x".repeat(QUEST_NAME_MAX_LENGTH + 1)])(
     "refuses an invalid name %s",

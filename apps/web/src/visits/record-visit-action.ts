@@ -1,5 +1,6 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { currentUser } from "@/auth/current-user.ts";
 import { AppError } from "@/errors/app-error.ts";
 import { recordSignedInDay } from "@/visits/signed-in-days-store.ts";
@@ -14,6 +15,7 @@ async function recordVisitAction(): Promise<"added" | "known" | "unavailable"> {
       return "unavailable";
     }
     if (await recordSignedInDay(user.id, new Date())) {
+      revalidatePath("/profile");
       return "added";
     }
     return "known";

@@ -270,9 +270,6 @@ test.describe("use_case_retire_definitions", () => {
     page,
     testData,
   }) => {
-    // Fails today: Back restores the router's cached copy of the page from
-    // before the change, which the Server Action's refresh() never updated.
-    test.fail();
     const rite = await testData.rite("Morning pages");
     await logIn(page, account);
     await page.goto(`/grimoire/${rite.id}`);
@@ -302,9 +299,6 @@ test.describe("use_case_delete_retired_definition", () => {
     page,
     testData,
   }) => {
-    // Fails today: Back restores the router's cached copy of the page from
-    // before the change, which the Server Action's refresh() never updated.
-    test.fail();
     const rite = await testData.rite("Morning pages");
     await logIn(page, account);
     await page.goto(`/grimoire/${rite.id}`);
@@ -440,9 +434,6 @@ test.describe("use_case_new_quest", () => {
     account,
     page,
   }) => {
-    // Fails today: Back restores the router's cached copy of Quests from
-    // before the quest was started, which lists none.
-    test.fail();
     await logIn(page, account);
     await page.getByRole("link", { name: "Quests", exact: true }).click();
     const open = page.getByRole("button", {

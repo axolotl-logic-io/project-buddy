@@ -14,7 +14,7 @@ import { testUser } from "../../../../support/test-database/user-test-kit.ts";
 
 import { signIn } from "../../../test-database/session-test-kit.ts";
 
-vi.mock("next/cache", () => ({ refresh: vi.fn() }));
+vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
 
 test("use_case_set_name", async () => {
   const user = await testUser();

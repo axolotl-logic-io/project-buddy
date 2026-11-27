@@ -14,7 +14,7 @@ import { testUser } from "../../support/test-database/user-test-kit.ts";
 import { addMember } from "../quests/quest-members-test-kit.ts";
 import { signIn } from "../test-database/session-test-kit.ts";
 
-vi.mock("next/cache", () => ({ refresh: vi.fn() }));
+vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
 
 test("use_case_quick_add", async () => {
   const owner = await testUser();

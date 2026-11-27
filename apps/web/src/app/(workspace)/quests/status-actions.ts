@@ -1,7 +1,7 @@
 "use server";
 
-import { refresh } from "next/cache";
 import { z } from "zod";
+import { revalidateWorkspace } from "@/app/revalidate-workspace.ts";
 import { requireUser } from "@/auth/current-user.ts";
 import { AppError } from "@/errors/app-error.ts";
 import { QUEST_ID } from "@/ids.ts";
@@ -38,7 +38,7 @@ async function changeQuestStatusAction(
     if (change === undefined) {
       return INVALID;
     }
-    refresh();
+    revalidateWorkspace();
     return {
       kind: "saved",
       change,
