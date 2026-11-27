@@ -2,7 +2,7 @@ import { expect } from "@playwright/test";
 import { HTTP_STATUS } from "@/http-status.ts";
 import { LOGIN_COPY } from "@/ui/copy/login.ts";
 import { PROBLEMS_COPY } from "@/ui/copy/problems.ts";
-import { SITE_COPY } from "@/ui/copy/site.ts";
+import { SITE_COPY, SITE_PANEL_COPY } from "@/ui/copy/site.ts";
 import { test } from "./fixtures.ts";
 import { signInByLink } from "./sign-in-pages.ts";
 
@@ -61,7 +61,7 @@ test("use_case_return_signed_in", async ({
         main: main?.textContent,
       };
     }, html);
-    expect(shell.header).toContain(SITE_COPY.name);
+    expect(shell.header).toBe(SITE_COPY.loading);
     expect(shell.status).toBe(SITE_COPY.loading);
     expect(shell.main).toBe("");
 
@@ -88,6 +88,6 @@ test("use_case_return_signed_in", async ({
       };
     }, missingHtml);
     expect(missingPage.heading).toBe(PROBLEMS_COPY.notFoundHeading);
-    expect(missingPage.header).toContain(SITE_COPY.name);
+    expect(missingPage.header).toContain(SITE_PANEL_COPY.title);
   });
 });

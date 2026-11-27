@@ -69,7 +69,7 @@
     --target-size: 2.75rem;
   }
 
-  /* The column a page's content sits in, below the site header. */
+  /* The column a page's content sits in, below the page header. */
   .page-column {
     @apply mx-auto flex w-full max-w-3xl flex-1 flex-col gap-8 px-4 py-8 sm:px-6 sm:py-10;
   }
@@ -488,37 +488,31 @@
     @apply rounded-control border border-line/50 bg-surface motion-safe:animate-pulse;
   }
 
-  /* What stays pinned of the site's header: nothing, or the trail band
-     under its bar. Jumps leave room for it. HeaderSize
-     (src/components/header-size.tsx) measures the band; this is its
-     one-line height, for the first paint. */
-  /* The header's sizes. The trail band's room above the heading leaves the
-     parents' targets whole on screen while the band is pinned. On a phone
-     the room below is less, and the band at least a target's height, so a
-     two-line heading stays within the pinned budget. */
+  /* The page header stays pinned. These sizes apply until the browser
+     measures the breadcrumb row. */
   html {
     --header-gutter: --spacing(4);
-    --header-rim: 4px;
-    --trail-rim: 2px;
     --trail-band-padding: --spacing(1);
     --panel-tab-width: var(--target-size);
-    --panel-tab-height: calc(
+    --trail-row-min-height: calc(
       var(--target-size) +
       2 *
       var(--trail-band-padding)
     );
-    --trail-band-min-height: calc(var(--panel-tab-height) + var(--line-width));
+    --panel-tab-height: var(--trail-row-min-height);
+    --trail-band-min-height: calc(
+      var(--trail-row-min-height) +
+      var(--line-width)
+    );
     --trail-heading-leading: 1.15;
-    --site-header-height: 0px;
-    /* The breadcrumb row's top, until HeaderSize measures it. */
-    --panel-top: calc(var(--target-size) + --spacing(4) + var(--trail-rim));
+    --page-header-height: 0px;
     --site-panel-width: 18rem;
     --quest-panel-width: 22rem;
-    scroll-padding-top: var(--site-header-height);
+    scroll-padding-top: var(--page-header-height);
   }
 
   html:has(.trail-band) {
-    --site-header-height: var(--trail-band-min-height);
+    --page-header-height: var(--trail-band-min-height);
   }
 
   @media (width >= 40rem) {
@@ -530,92 +524,16 @@
 
   /* Leave room under the pinned trail band when jumping to a message. */
   html:has(.quest-workspace) {
-    scroll-padding-top: calc(var(--site-header-height) + --spacing(4));
+    scroll-padding-top: calc(var(--page-header-height) + --spacing(4));
   }
 
-  /* The header is a game's HUD in every theme, with an independent ink and
-     gold palette: one row, an ink tile with a gold rim, holding the brand,
-     an hourglass inside a gear and the site's name, and, for a signed-in user,
-     the ring of their progress at its right end. The site panel and its
-     contents keep the theme's own look. The expand buttons sit in the
-     breadcrumb row; the panels open from the same row. The bar's two
-     discs, the brand's medallion and the ring, are one size: a target's. */
-  .site-header {
-    --hud-disc-size: var(--target-size);
-    @apply relative z-20 flex flex-wrap items-center gap-2 py-2 shadow-raised;
-    padding-inline: var(--header-gutter);
-    background-color: var(--hud-ink);
-    background-image: var(--header-decoration);
-    color: var(--hud-paper);
-    border-block-end: var(--header-rim) solid var(--hud-gold);
+  .page-header {
+    @apply sticky top-0 z-20 shadow-raised;
   }
 
-  .site-header > :not(.site-panel, .trail-band) {
-    --focus-outline: 3px solid var(--header-focus);
-  }
-
-  /* The brand takes the row up to the ring, if there is one. */
-  .hud-title {
-    @apply mr-auto inline-flex min-h-(--target-size) min-w-0 shrink items-center gap-2 whitespace-nowrap;
-  }
-
-  .hud-medallion {
-    @apply flex shrink-0 items-center justify-center rounded-full border-2;
-    inline-size: var(--hud-disc-size);
-    block-size: var(--hud-disc-size);
-    background: var(--hud-paper);
-    color: var(--hud-ink);
-    border-color: var(--hud-gold);
-  }
-
-  .hud-medallion > .icon > svg {
-    @apply size-5;
-  }
-
-  /* On a phone the brand is its medallion alone, a whole target, and the
-     site's name stays its accessible name. */
-  @media (width < 32rem) {
-    .hud-title {
-      @apply min-w-(--target-size) justify-center;
-    }
-
-    .hud-name {
-      @apply sr-only;
-    }
-  }
-
-  /* The ring of the user's progress toward their next circle, the
-     medallion's size, at the bar's right end: gold filling an ink track,
-     with the circle's number inside. */
-  .circle-progress {
-    --ring-disc: var(--hud-ink);
-    --ring-track: var(--hud-line);
-    --ring-arc: var(--hud-gold);
-    @apply grid shrink-0 justify-items-center rounded-control;
-  }
-
-  .circle-progress-ring {
-    @apply relative grid place-items-center;
-    inline-size: var(--hud-disc-size);
-    block-size: var(--hud-disc-size);
-  }
-
-  .circle-progress-number {
-    font-family: var(--numeral-font);
-    @apply relative font-semibold text-sm leading-none;
-  }
-
-  .circle-progress-title {
-    @apply text-xs leading-none;
-  }
-
-  /* Keep the gain below the trail even when the ring has scrolled away. */
+  /* Keep the gain below the pinned page header. */
   .experience-feedback {
-    inset-block-start: calc(
-      max(0px, var(--panel-top)) +
-      var(--panel-tab-height) +
-      --spacing(3)
-    );
+    inset-block-start: calc(var(--page-header-height) + --spacing(3));
     inset-inline: var(--header-gutter);
     @apply pointer-events-none fixed z-30 flex justify-end;
   }
@@ -651,13 +569,6 @@
     }
   }
 
-  :is(.circle-progress-number, .profile-ring-number) {
-    font-variant-numeric: lining-nums tabular-nums;
-    @supports (text-box: trim-both cap alphabetic) {
-      text-box: trim-both cap alphabetic;
-    }
-  }
-
   /* Profile's head: a gilded card with the user's circle in a large ring
      beside their name, title and progress. On a phone the ring stands
      above the rest, centred. */
@@ -686,7 +597,12 @@
 
   .profile-ring-number {
     font-family: var(--numeral-font);
+    font-variant-numeric: lining-nums tabular-nums;
     @apply relative font-bold text-5xl leading-none;
+
+    @supports (text-box: trim-both cap alphabetic) {
+      text-box: trim-both cap alphabetic;
+    }
   }
 
   .profile-name {
@@ -705,7 +621,6 @@
     @apply flex w-full flex-col gap-3 text-start;
   }
 
-  /* The title, as a badge in the header's ink and gold. */
   .profile-title {
     @apply rounded-full px-3 py-0.5 font-extrabold text-xs uppercase tracking-[0.2em];
     background: var(--hud-ink);
@@ -816,52 +731,11 @@
     grid-area: hint;
   }
 
-  .site-header > .button-secondary {
-    flex-shrink: 0;
-    @apply rounded-control border-2 shadow-none;
-    background: var(--hud-ink);
-    color: var(--hud-paper);
-    border-color: var(--hud-gold);
-    box-shadow: 0 3px 0 var(--hud-line);
-  }
-
-  .site-header > a.button-secondary {
-    background: var(--hud-gold);
-    color: var(--hud-ink);
-    border-color: var(--hud-paper);
-  }
-
-  /* A page with a trail: the bar and its rim scroll away, and the trail
-     band under them stays pinned. The rim moves to the band's top edge.
-     HeaderSize measures how far the header sticks above the screen; this
-     is the bar's height, for the first paint. */
-  .site-header:has(.trail-band) {
-    --header-controls-height: calc(
-      var(--target-size) +
-      --spacing(4) +
-      var(--trail-rim)
-    );
-    position: sticky;
-    inset-block-start: calc(-1 * var(--header-controls-height));
-    padding-block-end: 0;
-    border-block-end: 0;
-    /* Keep the ink behind the site bar and rim, leaving the page header
-       below them free to show the page through its translucent surface. */
-    background:
-      linear-gradient(var(--hud-ink), var(--hud-ink)) top / 100%
-      var(--header-controls-height) no-repeat;
-  }
-
-  /* The trail band: a parchment strip, the header's full width, of the
-     parent pages' links leading into the page's heading. */
+  /* The parent pages' links lead into the page heading. */
   .trail-band {
     position: relative;
-    flex: none;
-    inline-size: calc(100% + 2 * var(--header-gutter));
-    margin-inline: calc(-1 * var(--header-gutter));
-    min-block-size: calc(var(--trail-rim) + var(--trail-band-min-height));
+    min-block-size: var(--trail-band-min-height);
     padding-block: var(--trail-band-padding);
-    border-block-start: var(--trail-rim) solid var(--hud-gold);
     background-image: var(--trail-decoration);
     @apply flex min-w-0 items-center border-line border-b bg-trail-surface text-foreground;
   }
@@ -871,7 +745,7 @@
     z-index: 1;
     inset-inline: 0;
     inset-block-end: 0;
-    block-size: var(--trail-rim);
+    block-size: calc(2 * var(--line-width));
     overflow: hidden;
     pointer-events: none;
   }
@@ -966,8 +840,7 @@
     @apply shrink-0;
   }
 
-  /* On a phone the medallion leads to Quests, so a deeper trail leaves
-     out its Quests link. */
+  /* On a phone a deeper trail prioritizes the nearest parent. */
   @media (width < 32rem) {
     .trail-parents li:first-child:not(:last-child) {
       display: none;
@@ -976,7 +849,7 @@
 
   /* Under a trail band, a page starts close to it: the band is its
      heading. */
-  .site-header:has(.trail-band) + main .page-column {
+  .page-header + main .page-column {
     @apply pt-4 sm:pt-6;
   }
 
@@ -988,7 +861,6 @@
     @apply line-clamp-2 font-heading font-semibold text-section-heading leading-(--trail-heading-leading) tracking-tight sm:text-page-heading-phone;
   }
 
-  .hud-name,
   .site-title,
   .trail-heading {
     font-family: var(--display-font);
@@ -1009,8 +881,8 @@
      beneath it. Each theme dresses it through the panel tokens
      (src/themes/themes.ts). */
   .site-panel {
-    inset-block-start: var(--panel-top);
-    block-size: calc(100dvh - var(--panel-top));
+    inset-block-start: 0;
+    block-size: 100dvh;
     inline-size: min(var(--site-panel-width), calc(100% - 3rem));
     max-block-size: none;
     @apply fixed inset-s-0 inset-e-auto m-0 max-w-none flex-col gap-1 overflow-y-auto border-0 border-line bg-navigation-surface/85 p-3 text-foreground shadow-raised backdrop-blur-md open:flex;
@@ -3262,8 +3134,8 @@
   }
 
   .quest-sidebar-frame {
-    inset-block-start: var(--panel-top);
-    block-size: calc(100dvh - var(--panel-top));
+    inset-block-start: 0;
+    block-size: 100dvh;
     inline-size: min(var(--quest-panel-width), 100%);
     max-block-size: none;
     @apply fixed inset-e-0 inset-s-auto m-0 max-w-none overflow-y-auto border-0 border-s border-line/40 bg-sidebar-surface p-0 text-foreground;
@@ -3378,7 +3250,7 @@
 
 /* A running timer opened with ?mode=focus: only the timer shows. */
 @layer components {
-  html:has(.timer-only) .site-header {
+  html:has(.timer-only) .page-header {
     display: none;
   }
 }

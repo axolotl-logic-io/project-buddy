@@ -1,5 +1,5 @@
 import type { JSX } from "react";
-import { ExperienceFeedback } from "@/components/experience/circle-progress.tsx";
+import { ExperienceFeedback } from "@/components/experience/experience-feedback.tsx";
 import { SignedInHeader } from "@/components/signed-in-header.tsx";
 
 // Keep both slots under the same segment across page changes. The shared

@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import {
   createContext,
   type JSX,
@@ -11,10 +10,8 @@ import {
   useRef,
   useState,
 } from "react";
-import { ProgressRing } from "@/components/experience/progress-ring.tsx";
 import { Notice } from "@/components/ui/form-message.tsx";
 import { Icon } from "@/components/ui/icon.tsx";
-import type { Experience } from "@/experience/experience.ts";
 import type { UserId } from "@/ids.ts";
 import { EXPERIENCE_COPY } from "@/ui/copy/experience.ts";
 
@@ -102,36 +99,4 @@ function ReportExperienceTotal({
   return null;
 }
 
-// The user's circle in the site header: its number inside a ring that fills
-// as they near the next circle, linking to Profile's Experience section.
-// The ring is decoration: the link's name says the circle, its title and the
-// experience still needed.
-function CircleProgress({
-  experience,
-}: {
-  readonly experience: Experience;
-}): JSX.Element {
-  const { circle, title, nextCircleStart } = experience;
-  return (
-    <Link
-      aria-label={EXPERIENCE_COPY.progress(
-        circle,
-        title,
-        nextCircleStart - experience.experience,
-        circle + 1,
-      )}
-      className="circle-progress"
-      href="/profile#experience"
-    >
-      <span aria-hidden="true" className="circle-progress-ring">
-        <ProgressRing experience={experience} />
-        <span className="circle-progress-number">{circle}</span>
-      </span>
-      <span aria-hidden="true" className="circle-progress-title">
-        {title}
-      </span>
-    </Link>
-  );
-}
-
-export { CircleProgress, ExperienceFeedback, ReportExperienceTotal };
+export { ExperienceFeedback, ReportExperienceTotal };

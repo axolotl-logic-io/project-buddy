@@ -1,6 +1,6 @@
 import { pageTitle } from "@/ui/copy/site.ts";
 
-// The Settings page, and the site header's link to it.
+// The Settings page, and its link in the site panel.
 export const SETTINGS_COPY = {
   title: pageTitle("Settings"),
   headerLink: "Settings",

@@ -23,7 +23,7 @@ The user comes back to the site later on the same browser.
 - **Steps:**
   - The user opens the site at any page, such as a bookmarked quest.
   - It goes straight to the page the user asked for, without asking them to sign in.
-- **Outcome:** the site header and trail band can appear while the page loads. The trail band shows “Loading page…” and the main area stays empty until the page content arrives. The user does not have to sign in again.
+- **Outcome:** the page header can appear while the page loads. The trail band shows “Loading page…” and the main area stays empty until the page content arrives. The user does not have to sign in again.
 - **Next:**
   - [`use_case_open_quest`](quests.md#use_case_open_quest): continue a quest's performance.
   - [`use_case_view_quests`](quests.md#use_case_view_quests): look over their quests.

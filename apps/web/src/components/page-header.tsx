@@ -2,12 +2,9 @@ import type { Route } from "next";
 import Link from "next/link";
 import type { JSX, ReactNode } from "react";
 import type { Breadcrumb } from "@/components/breadcrumb.ts";
-import { HeaderSize } from "@/components/header-size.tsx";
 import { PageChangeBand } from "@/components/page-change-band.tsx";
 import { QuickAdd } from "@/components/quick-add.tsx";
 import { PanelLink, SitePanel } from "@/components/site-panel.tsx";
-import { Icon } from "@/components/ui/icon.tsx";
-import { HOME_PATH } from "@/routes.ts";
 import { GRIMOIRE_COPY } from "@/ui/copy/grimoire.ts";
 import { HOME_COPY } from "@/ui/copy/home.ts";
 import { PROFILE_COPY } from "@/ui/copy/profile.ts";
@@ -16,19 +13,14 @@ import { SETTINGS_COPY } from "@/ui/copy/settings.ts";
 import { SITE_COPY, SITE_PANEL_COPY } from "@/ui/copy/site.ts";
 import { TIMER_COPY } from "@/ui/copy/timer.ts";
 
-// The header's parts, free of server code, so a client component such as the
-// header slot's error boundary can draw the header too. The signed-in header,
-// which reads the session, is signed-in-header.tsx.
-
 // A breadcrumb that leads somewhere: every one but the current page.
 function isLink(item: Breadcrumb): item is Breadcrumb & { href: Route } {
   return item.href !== undefined;
 }
 
-// The page's place, as a band under the header's bar: the links to the
-// pages above it, small and muted, leading into the current page's name,
-// which is the page's one heading. Each parent stays a full-size target and
-// keeps its whole name as its accessible name, however much of it shows.
+// The links to the pages above the current page, small and muted, lead
+// into the current page's name. Each parent is a full-size target with
+// its whole name available to assistive technology.
 // The last item is the current page; an empty trail draws no content.
 function TrailBand({
   items,
@@ -116,34 +108,17 @@ function AccountLinks(): JSX.Element {
 // page.
 const VISITOR_PANEL: JSX.Element = <SitePanel links={null} />;
 
-// The site's header, set as a game's HUD: an ink bar with a gold rim. The
-// brand, an hourglass inside a gear and the site's name, leads back to
-// Quests. On a phone the medallion alone shows, and the name stays its
-// accessible name.
-// A signed-in user's progress ring ends the bar. The site and quest panel
-// expand buttons bookend the breadcrumb row below it. The bar scrolls
-// away while the breadcrumb row and its panel controls stay pinned.
-function SiteHeader({
+function PageHeader({
   panel = VISITOR_PANEL,
-  ring,
   trail,
   loading,
 }: {
   readonly panel?: ReactNode;
-  readonly ring?: ReactNode;
   readonly trail?: ReactNode;
   readonly loading?: boolean;
 }): JSX.Element {
   return (
-    <header className="site-header">
-      <HeaderSize />
-      <Link className="header-title hud-title" href={HOME_PATH}>
-        <span className="hud-medallion">
-          <Icon name="brand" />
-        </span>
-        <span className="hud-name">{SITE_COPY.name}</span>
-      </Link>
-      {ring}
+    <header className="page-header">
       <PageChangeBand loading={loading}>
         {panel}
         {trail}
@@ -153,4 +128,4 @@ function SiteHeader({
   );
 }
 
-export { AccountLinks, SiteHeader, TrailBand };
+export { AccountLinks, PageHeader, TrailBand };

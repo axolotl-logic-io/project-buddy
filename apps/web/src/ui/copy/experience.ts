@@ -1,21 +1,12 @@
 import type { Event } from "@/experience/experience.ts";
 
-// Profile's experience card and Events, and the ring in the site header:
+// Home's experience strip and Profile's experience card and Events:
 // the user's circle and its title, their experience, and their event counts.
 export const EXPERIENCE_COPY = {
   // The experience card's accessible name.
   heading: "Experience",
   circle: (circle: number, title: string): string =>
     `Circle ${circle} · ${title}`,
-  // The header's ring, which fills toward the next circle and links to
-  // Profile's Experience section, by its accessible name.
-  progress: (
-    circle: number,
-    title: string,
-    needed: number,
-    next: number,
-  ): string =>
-    `Circle ${circle} · ${title}: ${needed} more experience to reach circle ${next}. Open your experience.`,
   // The card's ring says "Circle" above the circle's number.
   circleLabel: "Circle",
   experience: (experience: number): string => `${experience} experience`,

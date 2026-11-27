@@ -5,7 +5,7 @@
 import { afterEach, describe, expect, test, vi } from "vitest";
 import { page } from "vitest/browser";
 import { render } from "vitest-browser-react";
-import { SiteHeader, TrailBand } from "@/components/site-header.tsx";
+import { PageHeader, TrailBand } from "@/components/page-header.tsx";
 import { PageError } from "@/components/ui/page-error.tsx";
 import { userMessage } from "@/errors/app-error.ts";
 import {
@@ -55,7 +55,7 @@ describe("the error page's message", () => {
   test("under a trail band, which names the page, its heading is a section's", async () => {
     await render(
       <>
-        <SiteHeader trail={<TrailBand items={[{ label: "Settings" }]} />} />
+        <PageHeader trail={<TrailBand items={[{ label: "Settings" }]} />} />
         <main>
           <PageError error={FAILURE} retry={noRetry} />
         </main>
