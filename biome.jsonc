@@ -240,6 +240,23 @@
           }
         }
       }
+    },
+
+    // `mise deploy` is a standalone Node command that drives git and gh, so it
+    // needs Node modules. It waits on GitHub one step at a time, so its
+    // polling loops await in turn on purpose.
+    {
+      "includes": ["scripts/ops/deploy.ts"],
+      "linter": {
+        "rules": {
+          "correctness": {
+            "noNodejsModules": "off"
+          },
+          "performance": {
+            "noAwaitInLoops": "off"
+          }
+        }
+      }
     }
   ]
 }
