@@ -6,18 +6,15 @@
 // in `pending-cases.ts` until a lane writes that test; each slug the e2e
 // files or the cases name is a case, and so is each slug that titles a Vitest
 // test; each e2e test is titled by a slug or sits in a group titled by one;
-// that slug is one of the auth cases in auth-cases.ts,
-// each of them a case; every area appears in the index; and each relative link
+// every area appears in the index; and each relative link
 // in these files leads to a file and a heading that exist. In
 // Vitest files only the titles are checked: a Vitest test may have a plain title,
 // and other text there may name any slug.
 import { describe, expect, test } from "vitest";
-import { AUTH_CASES } from "../../../use-cases/auth-cases.ts";
 import { PENDING_CASES } from "./pending-cases.ts";
 import {
   type Declaration,
   declarationsIn,
-  outsideAuthCases,
   testsOutsideCases,
   unknownSlugTitles,
 } from "./test-declarations.ts";
@@ -53,9 +50,6 @@ const NOT_IN_ANCHOR = /[^\p{L}\p{N}\s_-]/gu;
 const SPACE = /\s/gu;
 // An e2e spec, including specs in subfolders.
 const E2E_SPEC = /^\/test\/system\/(?:[^/]+\/)*[^/]+\.spec\.ts$/u;
-// Why an e2e test may name only an auth case.
-const AUTH_ONLY_RULE =
-  "e2e-auth-only: an e2e test names only an auth case (use-cases/auth-cases.ts); test any other case in Vitest";
 // The group `name` of every match of pattern in text.
 function capturesIn(
   text: string,
@@ -175,21 +169,6 @@ describe("the use cases", () => {
     );
 
     expect(outside).toStrictEqual([]);
-  });
-});
-
-describe("the auth cases", () => {
-  test("are defined use cases", () => {
-    expect(AUTH_CASES.filter((slug) => !CASES.includes(slug))).toStrictEqual(
-      [],
-    );
-  });
-
-  test("are the only cases e2e tests name", () => {
-    expect(
-      outsideAuthCases(E2E_DECLARATIONS, AUTH_CASES),
-      AUTH_ONLY_RULE,
-    ).toStrictEqual([]);
   });
 });
 

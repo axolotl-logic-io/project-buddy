@@ -1,7 +1,7 @@
 "use server";
 
-import { refresh } from "next/cache";
 import { z } from "zod";
+import { revalidateWorkspace } from "@/app/revalidate-workspace.ts";
 import { requireUser } from "@/auth/current-user.ts";
 import type { QuestActionResult } from "@/components/use-quest-action.ts";
 import { QUEST_ID } from "@/ids.ts";
@@ -26,7 +26,7 @@ async function markTaskPeriodAction(
     return { kind: "problem", text: HOME_COPY.markUnavailable };
   }
   const marked = await markTaskPeriod(user.id, change.questId, change);
-  refresh();
+  revalidateWorkspace();
   if (!marked) {
     return { kind: "problem", text: HOME_COPY.markUnavailable };
   }

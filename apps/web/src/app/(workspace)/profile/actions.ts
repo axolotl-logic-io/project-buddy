@@ -1,6 +1,5 @@
 "use server";
 
-import { refresh } from "next/cache";
 import { notFound } from "next/navigation";
 import { z } from "zod";
 import {
@@ -9,6 +8,7 @@ import {
   type UserNameProblem,
 } from "@/accounts/user-name.ts";
 import { saveUserName } from "@/accounts/users-store.ts";
+import { revalidateWorkspace } from "@/app/revalidate-workspace.ts";
 import { requireUser } from "@/auth/current-user.ts";
 import { ACCOUNT_COPY } from "@/ui/copy/account.ts";
 
@@ -61,6 +61,6 @@ export async function setNameAction(
     return { kind: "invalid", message };
   }
   await saveUserName(user.id, check.name);
-  refresh();
+  revalidateWorkspace();
   return { kind: "saved" };
 }

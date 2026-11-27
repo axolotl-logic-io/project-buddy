@@ -1,7 +1,7 @@
 "use server";
 
-import { refresh } from "next/cache";
 import { z } from "zod";
+import { revalidateWorkspace } from "@/app/revalidate-workspace.ts";
 import { requireUser } from "@/auth/current-user.ts";
 import type { QuestActionResult } from "@/components/use-quest-action.ts";
 import { AppError } from "@/errors/app-error.ts";
@@ -34,7 +34,7 @@ async function changeListItemAction(
       change,
     );
     if (result === "saved") {
-      refresh();
+      revalidateWorkspace();
       let message = LISTS_COPY.savedChange;
       if (change.kind === "check" && change.checkedOff) {
         message = LISTS_COPY.checkedOff;
