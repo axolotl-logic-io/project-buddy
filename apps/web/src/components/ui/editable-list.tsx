@@ -688,7 +688,7 @@ function EditableListRow({
             <Icon name="grip" />
           </Button>
         )}
-        <DropdownMenu.Root>
+        <DropdownMenu.Root modal={false}>
           <DropdownMenu.Trigger asChild={true}>
             <Button
               ref={moreRef}

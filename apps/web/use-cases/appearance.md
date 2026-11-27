@@ -26,3 +26,16 @@ The user uses the site on their phone, in any theme, as the user does on their c
 - **Outcome:** every page is usable at 320 px with touch, in every theme. No page scrolls sideways. Every link, button and field the user can touch is at least 24 px each way, except a link inside a sentence. The header's bar, a HUD with its independent ink and gold palette on every page including Quests, takes one row at every width: the brand, then the ring of their progress toward the next circle. The site panel's expand tab is built into the left edge of the breadcrumb row. On quest pages, the quest panel's expand tab is built into the right edge. The tabs are at least 44 px wide, span the row's full height, and use larger icons on their panel's surface with thin dividers. Both buttons stay pinned with the breadcrumbs. Each panel opens from that row, with its close button at the same position as its expand button. On their phone the brand is its compass medallion alone, still named for the site. Under the bar, the trail band updates with navigation from the site panel and browser history. Home is the root of the trail. Quests, the Grimoire and the Timer sit under Home, and Profile and Settings are top-level destinations with no parent breadcrumb. Detail trails start at Home, then their own collection. A signed-out visitor's timer trail starts at Timer. The trail band leads into the page's heading, and long names leave nothing scrolling sideways. Quests remains in the site panel, without a header shortcut. On a phone the site panel slides in from the left edge, starting at the breadcrumb row, and fits the screen at 320 px, with every link 44 px tall. The signed-in site panel's links come with the page's first HTML, not after it.
 - **Next:**
   - [`use_case_choose_theme`](#use_case_choose_theme): pick a look that reads well on their phone.
+
+## use_case_accessible_pages
+
+The user reads pages and operates controls in their chosen appearance.
+
+- **Prerequisites:** none.
+- **Steps:**
+  - The user opens the sign-in, sign-up and Credits pages, and reads the sign-in page while sign-up loads.
+  - After signing in, they visit Home, Quests, a quest's Overview, the Grimoire, a rite, a construct, the Timer, Profile and Settings.
+  - They open the available dialogs, menus and editors, and read any errors those forms show.
+- **Outcome:** page content, controls and feedback remain accessible in all three appearances, on a desktop and at 320 px.
+- **Next:**
+  - [`use_case_choose_theme`](#use_case_choose_theme): choose another appearance.
