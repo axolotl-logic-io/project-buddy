@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { page, userEvent } from "vitest/browser";
 import { render } from "vitest-browser-react";
-import { changeQuestStatusAction } from "@/app/(workspace)/quests/status-actions.ts";
+import { changeQuestStatusAction } from "@/app/(stream)/(site)/(workspace)/quests/status-actions.ts";
 
 import { QuestStatusControls } from "@/components/quest-status-controls.tsx";
 import type { StatusActionState } from "@/quests/quest-status.ts";

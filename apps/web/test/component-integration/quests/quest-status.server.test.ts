@@ -1,6 +1,6 @@
 import { expect, test, vi } from "vitest";
 import type { User } from "@/accounts/users-store.ts";
-import { changeQuestStatusAction } from "@/app/(workspace)/quests/status-actions.ts";
+import { changeQuestStatusAction } from "@/app/(stream)/(site)/(workspace)/quests/status-actions.ts";
 import { readExperience } from "@/experience/experience-store.ts";
 import { readLists } from "@/lists/list-store.ts";
 import {

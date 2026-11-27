@@ -3,6 +3,7 @@ import Link from "next/link";
 import type { JSX, ReactNode } from "react";
 import type { Breadcrumb } from "@/components/breadcrumb.ts";
 import { HeaderSize } from "@/components/header-size.tsx";
+import { PageChangeBand } from "@/components/page-change-band.tsx";
 import { QuickAdd } from "@/components/quick-add.tsx";
 import { PanelLink, SitePanel } from "@/components/site-panel.tsx";
 import { Icon } from "@/components/ui/icon.tsx";
@@ -126,10 +127,12 @@ function SiteHeader({
   panel = VISITOR_PANEL,
   ring,
   trail,
+  loading,
 }: {
   readonly panel?: ReactNode;
   readonly ring?: ReactNode;
   readonly trail?: ReactNode;
+  readonly loading?: boolean;
 }): JSX.Element {
   return (
     <header className="site-header">
@@ -141,11 +144,11 @@ function SiteHeader({
         <span className="hud-name">{SITE_COPY.name}</span>
       </Link>
       {ring}
-      <section aria-label={SITE_COPY.breadcrumbs} className="trail-band">
+      <PageChangeBand loading={loading}>
         {panel}
         {trail}
         <div className="header-panel-control" />
-      </section>
+      </PageChangeBand>
     </header>
   );
 }

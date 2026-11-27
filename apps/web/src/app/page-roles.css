@@ -866,6 +866,39 @@
     @apply flex min-w-0 items-center border-line border-b bg-trail-surface text-foreground;
   }
 
+  .trail-loading {
+    position: absolute;
+    z-index: 1;
+    inset-inline: 0;
+    inset-block-end: 0;
+    block-size: var(--trail-rim);
+    overflow: hidden;
+    pointer-events: none;
+  }
+
+  .trail-band[aria-busy="true"] > .trail-loading::after {
+    content: "";
+    display: block;
+    inline-size: 35%;
+    block-size: 100%;
+    background: var(--hud-gold);
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .trail-band[aria-busy="true"] > .trail-loading::after {
+      animation: trail-loading 1.2s linear infinite;
+    }
+  }
+
+  @keyframes trail-loading {
+    from {
+      transform: translateX(-100%);
+    }
+    to {
+      transform: translateX(286%);
+    }
+  }
+
   .trail-content {
     margin-inline-start: calc(var(--panel-tab-width) + var(--header-gutter));
     margin-inline-end: var(--header-gutter);

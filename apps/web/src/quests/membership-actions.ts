@@ -3,7 +3,7 @@
 import { headers } from "next/headers";
 import { z } from "zod";
 import { linkOrigin } from "@/accounts/emailed-link.ts";
-import { EMAIL_FIELD } from "@/app/login/link-request.ts";
+import { EMAIL_FIELD } from "@/app/(stream)/(site)/login/link-request.ts";
 import { revalidateWorkspace } from "@/app/revalidate-workspace.ts";
 import { requireUser } from "@/auth/current-user.ts";
 import type { QuestActionResult } from "@/components/use-quest-action.ts";

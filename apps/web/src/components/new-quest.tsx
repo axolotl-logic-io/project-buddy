@@ -9,7 +9,7 @@ import {
 import {
   type StartQuestState,
   startQuestAction,
-} from "@/app/(workspace)/quests/actions.ts";
+} from "@/app/(stream)/(site)/(workspace)/quests/actions.ts";
 import { FormDialog } from "@/components/form-dialog.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { TextAreaField, TextField } from "@/components/ui/field.tsx";

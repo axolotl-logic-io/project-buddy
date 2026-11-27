@@ -2,7 +2,7 @@ import { expect, test } from "vitest";
 import {
   signOutAction,
   signOutEverywhereAction,
-} from "@/app/(workspace)/settings/actions.ts";
+} from "@/app/(stream)/(site)/(workspace)/settings/actions.ts";
 import { currentUser } from "@/auth/current-user.ts";
 import { SESSION_COOKIE_NAME } from "@/auth/session-token.ts";
 import { SIGN_IN_PATH } from "@/routes.ts";
