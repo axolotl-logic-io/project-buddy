@@ -2599,16 +2599,14 @@
     @apply flex min-w-0 flex-wrap items-start;
   }
 
+  /* The editor takes the text's place, so the actions stay at the row's
+     end while the user edits. */
   .editable-row > .editable-form {
-    @apply col-start-1 -col-end-1;
+    @apply col-start-1;
   }
 
   .editable-row:has(.task-check) > .editable-form {
     @apply col-start-2;
-  }
-
-  .editable-row:has(.editable-form) > .editable-actions {
-    @apply col-start-1 -col-end-1 justify-start;
   }
 
   .editable-form .error-text {
