@@ -1224,6 +1224,11 @@
     @apply flex min-w-0 items-center gap-3;
   }
 
+  /* Life's name, which opens it like Open does. */
+  .life-pin-name {
+    @apply hover:text-primary;
+  }
+
   /* The suggested task, under Life's name. */
   .life-pin-suggestion {
     @apply flex min-w-0 flex-wrap items-center gap-x-2.5 rounded-control border border-line/45 bg-field/85 py-0 ps-2.5 pe-3 text-sm sm:ms-11.5;

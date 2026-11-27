@@ -110,7 +110,9 @@ function LifePin({ life }: { readonly life: LifeSummary }): JSX.Element {
         </span>
         <div className="min-w-0 flex-1">
           <h2 className="quest-finder-name" id={nameId}>
-            {life.quest.name}
+            <Link className="life-pin-name" href={href}>
+              {life.quest.name}
+            </Link>
           </h2>
           <p className="quest-finder-meta">
             {LIFE_COPY.progress(doneNow, life.recurring)}
