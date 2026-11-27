@@ -29,7 +29,6 @@ import {
 import { auditRun } from "./run-options.ts";
 
 const PAGE_CHANGE_TIMEOUT_MS = 10_000;
-const LIGHTHOUSE_QUIET_MS = 1000;
 type Flags = NonNullable<Parameters<typeof lighthouse>[1]>;
 
 const run = auditRun();
@@ -76,12 +75,11 @@ async function measure(
   const { page, lighthousePage, network, problems } = browser;
   const target = auditPages(seed)[sample.page];
   const url = new URL(target.path, origin).href;
-  const { defaultConfig, navigation, snapshot, startTimespan } = await import(
-    "lighthouse"
-  );
-  let formFactor: Flags["formFactor"] = "desktop";
+  const { defaultConfig, desktopConfig, navigation, snapshot, startTimespan } =
+    await import("lighthouse");
+  let config = desktopConfig;
   if (sample.profile === "phone") {
-    formFactor = "mobile";
+    config = defaultConfig;
   }
   const flags: Flags = {
     onlyCategories: ["performance", "accessibility", "best-practices"],
@@ -91,14 +89,9 @@ async function measure(
     disableFullPageScreenshot: true,
     screenEmulation: { disabled: true },
     emulatedUserAgent: false,
-    formFactor,
-    throttlingMethod: "provided",
-    // Keep the browser unthrottled. Use Lighthouse's ordinary quiet periods
-    // instead of stacking its longer unthrottled waits on the audit window.
-    pauseAfterFcpMs: LIGHTHOUSE_QUIET_MS,
-    pauseAfterLoadMs: LIGHTHOUSE_QUIET_MS,
-    networkQuietThresholdMs: LIGHTHOUSE_QUIET_MS,
-    cpuQuietThresholdMs: LIGHTHOUSE_QUIET_MS,
+    // Navigation uses Lighthouse's standard simulation. The real browser's
+    // transfers and input timings are measured separately.
+    throttlingMethod: "simulate",
   };
   if (target.signedOut === true) {
     flags.onlyCategories?.push("seo");
@@ -148,7 +141,7 @@ async function measure(
     await keepReport(
       sample,
       result,
-      await navigation(lighthousePage, url, { flags }),
+      await navigation(lighthousePage, url, { config, flags }),
       url,
     );
     Object.assign(result.numbers, traffic.bytes(await loadWindow(page)));
@@ -157,7 +150,7 @@ async function measure(
     await keepReport(
       sample,
       result,
-      await navigation(lighthousePage, url, { flags }),
+      await navigation(lighthousePage, url, { config, flags }),
       url,
     );
     Object.assign(result.numbers, traffic.bytes(await loadWindow(page)));
@@ -188,7 +181,7 @@ async function measure(
           return category?.supportedModes?.includes("timespan") === true;
         }) ?? [];
       const timespan = await startTimespan(lighthousePage, {
-        flags: { ...flags, onlyCategories },
+        flags: { ...flags, onlyCategories, throttlingMethod: "provided" },
       });
       try {
         await link.click();
@@ -226,7 +219,10 @@ async function measure(
       await keepReport(
         sample,
         result,
-        await snapshot(lighthousePage, { flags }),
+        await snapshot(lighthousePage, {
+          config,
+          flags: { ...flags, throttlingMethod: "provided" },
+        }),
         url,
       );
       return;
@@ -239,7 +235,10 @@ async function measure(
     await keepReport(
       sample,
       result,
-      await snapshot(lighthousePage, { flags }),
+      await snapshot(lighthousePage, {
+        config,
+        flags: { ...flags, throttlingMethod: "provided" },
+      }),
       url,
     );
     await page.keyboard.press("Escape");
