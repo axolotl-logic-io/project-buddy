@@ -146,9 +146,7 @@ jobs:
       - name: Smoke test
         id: smoke
         timeout-minutes: 5
-        run: >-
-          node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON
-          scripts/release/smoke.ts "https://$PRODUCTION_HOST"
+        run: node scripts/release/smoke.ts "https://$PRODUCTION_HOST"
 
       # Open an issue for this commit, or comment on the one already open.
       - name: Report the failure

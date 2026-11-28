@@ -83,9 +83,9 @@ import { TALLIES_COPY } from "@/ui/copy/tallies.ts";
 import { questIdFixture } from "../../support/id-fixtures.ts";
 import { testData } from "../../support/test-database/data-test-kit.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
+import { expectQuestNotFound } from "../quests/missing-quest-test-kit.tsx";
 import { addInvitee, addMember } from "../quests/quest-members-test-kit.ts";
 import { formOf } from "../test-database/form-test-kit.ts";
-import { expectNotFound } from "../test-database/navigation-test-kit.ts";
 import { signIn } from "../test-database/session-test-kit.ts";
 import { twoUsers } from "../test-database/two-users-test-kit.ts";
 
@@ -104,15 +104,13 @@ interface PageArgs<Params> {
   readonly searchParams: Promise<Record<string, never>>;
 }
 
-// A page that shows the row with this id.
-type IdPage = (id: string) => Promise<unknown>;
-
 function pageArgs<Params>(params: Params): PageArgs<Params> {
   return { params: Promise.resolve(params), searchParams: Promise.resolve({}) };
 }
 
-function questPage(questId: string): Promise<unknown> {
-  return QuestPage(pageArgs({ questId }));
+// The signed-in user's page of the quest, as HTML.
+async function questPageHtml(questId: string): Promise<string> {
+  return renderToStaticMarkup(await QuestPage(pageArgs({ questId })));
 }
 
 // The signed-in user's Quests page, as HTML.
@@ -123,16 +121,6 @@ async function questsHtml(): Promise<string> {
       searchParams: Promise.resolve({}),
     }),
   );
-}
-
-// The page is not found for the unknown id, and then for the id.
-async function expectNotFoundAsUnknown(
-  page: IdPage,
-  id: string,
-  unknownId: string,
-): Promise<void> {
-  await expectNotFound(() => page(unknownId));
-  await expectNotFound(() => page(id));
 }
 
 // The names of the quests that the HTML holds.
@@ -148,13 +136,14 @@ function questsIn(html: string, list: readonly Quest[]): string[] {
 describe("use_case_private_data", () => {
   test("another user's quest page can't be found", async () => {
     const { her, herData, other } = await twoUsers();
-    const hers = await herData.quest();
+    const hers = await herData.quest("Her den");
     await signIn(other);
 
-    await expectNotFoundAsUnknown(questPage, hers.id, questIdFixture());
+    await expectQuestNotFound(questIdFixture());
+    await expectQuestNotFound(hers.id);
 
     await signIn(her);
-    await expect(questPage(hers.id)).resolves.toBeDefined();
+    expect(await questPageHtml(hers.id)).toContain(hers.name);
   });
 
   test("each sees only their own quests", async () => {
