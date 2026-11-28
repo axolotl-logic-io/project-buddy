@@ -342,6 +342,13 @@
     @apply absolute border-0 p-0;
   }
 
+  /* Feedback after load with the content it replaces (NoticeSlot in
+     src/components/ui/notice-slot.tsx), spaced as the column around it. */
+  .notice-slot {
+    @apply flex min-w-0 flex-col;
+    gap: inherit;
+  }
+
   .notice a {
     @apply inline-flex min-h-(--target-size) max-w-full items-center underline underline-offset-4;
   }
@@ -1893,7 +1900,7 @@
     }
   }
 
-  .page-column:has(.workspace-content > .timer-stage) {
+  .page-column.page-frame-timer {
     max-inline-size: 49rem;
   }
 
@@ -2820,7 +2827,7 @@
   }
 
   .add-box > .notice,
-  .list-section > .notice {
+  .list-section > :where(.notice-slot) > .notice {
     @apply mt-2 rounded-none border-0 bg-transparent p-0 text-muted;
   }
 
@@ -2895,6 +2902,10 @@
 
   .list-section-head .rite-open {
     @apply shrink-0 px-0;
+  }
+
+  .list-section-head .rite-open-room {
+    @apply w-(--target-size) shrink-0;
   }
 
   .list-section .editable-list {

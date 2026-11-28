@@ -5,10 +5,11 @@
 // the presence action.
 import { page } from "vitest/browser";
 import { render } from "vitest-browser-react";
-import { PageHeader, TrailBand } from "@/components/page-header.tsx";
+import { PageHeader } from "@/components/page-header.tsx";
 import { TimerDisplay } from "@/components/timer/timer-display.tsx";
 import { TimerSetup } from "@/components/timer/timer-setup.tsx";
 import { TimerTrailTools } from "@/components/timer/timer-trail-tools.tsx";
+import { TrailBand } from "@/components/trail-band.tsx";
 import type { TimerSchedule } from "@/timer/schedule.ts";
 import { TIMER_COPY } from "@/ui/copy/timer.ts";
 import { animationsSettled } from "../animations-test-kit.ts";

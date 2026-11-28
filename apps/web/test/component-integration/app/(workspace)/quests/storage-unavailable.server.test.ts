@@ -10,7 +10,6 @@ import QuestsPage from "@/app/(stream)/(site)/(workspace)/quests/(list)/page.tsx
 import QuestPage from "@/app/(stream)/(site)/(workspace)/quests/[questId]/(overview)/page.tsx";
 import { startQuestAction } from "@/app/(stream)/(site)/(workspace)/quests/actions.ts";
 import { spyOnErrorLog } from "../../../errors/error-log-spy.ts";
-import { formOf } from "../../../test-database/form-test-kit.ts";
 import { signIn } from "../../../test-database/session-test-kit.ts";
 import {
   restoreStorage,
@@ -60,13 +59,11 @@ describe("use_case_storage_unavailable", () => {
   test("starting a quest fails with the storage case", async () => {
     await signIn(user);
     await expect(
-      startQuestAction(
-        { kind: "idle" },
-        formOf({
-          name: `Unsaved quest ${crypto.randomUUID()}`,
-          motivation: "To see it fail.",
-        }),
-      ),
+      startQuestAction({
+        id: crypto.randomUUID(),
+        name: `Unsaved quest ${crypto.randomUUID()}`,
+        motivation: "To see it fail.",
+      }),
     ).rejects.toMatchObject(UNREACHABLE);
   });
 });

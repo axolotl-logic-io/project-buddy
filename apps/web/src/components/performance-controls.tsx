@@ -20,7 +20,10 @@ import {
   readLocalDraftSnapshot,
   subscribeToLocalDraft,
 } from "@/components/local-draft.ts";
-import { Markdown } from "@/components/markdown.tsx";
+import {
+  ReplyHead,
+  TranscriptEntry,
+} from "@/components/performance-transcript.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { TextAreaField } from "@/components/ui/field.tsx";
 import { Alert, FormStatus } from "@/components/ui/form-message.tsx";
@@ -83,6 +86,9 @@ function MessageComposer({
   const [error, setError] = useState("");
   const [signedOut, setSignedOut] = useState(false);
   const [busy, setBusy] = useState(false);
+  // The message the server saved last, shown as sent until the transcript
+  // holds it.
+  const [sentId, setSentId] = useState<string>();
   const [draft, setDraft] = useState<Draft | null>(null);
   const subscribe = useCallback(
     (changed: () => void): (() => void) => subscribeToLocalDraft(key, changed),
@@ -99,8 +105,9 @@ function MessageComposer({
     latestRef.current = saved;
   }, [saved]);
   const answeredId = saved.request?.id;
-  const request =
-    answeredId !== undefined && !answered.includes(answeredId) && saved.request;
+  const inTranscript =
+    answeredId !== undefined && answered.includes(answeredId);
+  const request = answeredId !== undefined && !inTranscript && saved.request;
 
   const update = useCallback(
     (value: Draft): void => {
@@ -110,6 +117,13 @@ function MessageComposer({
     },
     [key],
   );
+
+  // The transcript holds the message now, so the draft forgets it.
+  useLayoutEffect(() => {
+    if (inTranscript) {
+      update({ text: latestRef.current.text });
+    }
+  }, [inTranscript, update]);
 
   const enter = useCallback(
     (event: ChangeEvent<HTMLTextAreaElement>): void => {
@@ -134,7 +148,7 @@ function MessageComposer({
           reply: next.reply,
         });
         if (result === undefined) {
-          update({ text: latestRef.current.text });
+          setSentId(next.id);
         } else {
           setError(result);
           setSignedOut(result === PERFORMANCE_COPY.signedOut);
@@ -200,11 +214,13 @@ function MessageComposer({
     <div ref={root} className="performance-thread gap-3">
       {children}
       {request !== false && request !== undefined && (
-        <div className="grid min-w-0 gap-2">
-          <p className="font-semibold">{author}</p>
-          <p className="wrap-anywhere whitespace-pre-wrap">{request.text}</p>
-          <PendingReplyHead construct={construct} saving={busy} />
-          <Markdown text={request.answer} running={false} topHeadingLevel={3} />
+        <div className="performance-entry">
+          <TranscriptEntry
+            author={author}
+            text={request.text}
+            head={<PendingReplyHead construct={construct} saving={busy} />}
+            reply={request.answer}
+          />
         </div>
       )}
       <form className="performance-composer grid gap-2" onSubmit={act}>
@@ -232,11 +248,14 @@ function MessageComposer({
           >
             {PERFORMANCE_COPY.stop}
           </Button>
-          {request !== false && request !== undefined && busy === false && (
-            <Button type="button" variant="quiet" onClick={retry}>
-              {PERFORMANCE_COPY.retry}
-            </Button>
-          )}
+          {request !== false &&
+            request !== undefined &&
+            busy === false &&
+            request.id !== sentId && (
+              <Button type="button" variant="quiet" onClick={retry}>
+                {PERFORMANCE_COPY.retry}
+              </Button>
+            )}
         </div>
         {error !== "" && (
           <Alert>
@@ -266,12 +285,7 @@ function PendingReplyHead({
   readonly saving: boolean;
 }): JSX.Element {
   if (!saving) {
-    return (
-      <div className="flex items-center gap-2">
-        <ConstructAvatar construct={construct} />
-        <p className="font-semibold">{construct.name}</p>
-      </div>
-    );
+    return <ReplyHead construct={construct} />;
   }
   return (
     <div

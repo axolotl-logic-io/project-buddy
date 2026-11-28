@@ -18,7 +18,13 @@ import { lists } from "@/db/tables/lists.ts";
 import { performanceMessages, performances } from "@/db/tables/performances.ts";
 import { quests } from "@/db/tables/quests.ts";
 import { withAppErrors } from "@/errors/to-app-error.ts";
-import { parseQuestId, type QuestId, type UserId } from "@/ids.ts";
+import {
+  parseQuestId,
+  PERFORMANCE_ID,
+  type PerformanceId,
+  type QuestId,
+  type UserId,
+} from "@/ids.ts";
 import {
   LIST_ID,
   LIST_SETTINGS,
@@ -38,9 +44,6 @@ import { readRite } from "@/rites/rite-store.ts";
 import { LISTS_COPY } from "@/ui/copy/lists.ts";
 import { PERFORMANCE_COPY } from "@/ui/copy/performances.ts";
 import { refusedNote } from "./performance-turn.ts";
-
-const PERFORMANCE_ID = z.guid().toLowerCase().brand<"PerformanceId">();
-type PerformanceId = z.infer<typeof PERFORMANCE_ID>;
 
 const PERFORMANCE_COLUMNS: {
   readonly id: typeof performances.id;
@@ -185,10 +188,16 @@ async function stopWithin(
     .where(and(eq(performances.id, performance.id), performanceOpenTo(user)));
 }
 
+// Starts a performance with the id the browser made for it, or none when
+// the rite or list is not the user's or a performance has that id already.
 async function startPerformance(
   user: UserId,
   questId: QuestId,
-  input: { readonly listId: ListId; readonly riteId: string },
+  input: {
+    readonly id: PerformanceId;
+    readonly listId: ListId;
+    readonly riteId: string;
+  },
 ): Promise<Performance | undefined> {
   const started = await withAppErrors("startPerformance", async () => {
     const rite = await readRite(user, input.riteId);
@@ -220,13 +229,15 @@ async function startPerformance(
       const [row] = await tx
         .insert(performances)
         .values({
+          id: input.id,
           questId,
           listId: input.listId,
           riteSnapshot: RITE_DEFINITION.parse(rite),
         })
+        .onConflictDoNothing({ target: performances.id })
         .returning();
       if (row === undefined) {
-        throw new Error("Inserting a performance returned no performance");
+        return;
       }
       return asPerformance({
         ...row,
@@ -461,10 +472,9 @@ async function addPerformanceMessage(
   return entry;
 }
 
-export type { Performance, PerformanceId, PerformanceMessage };
+export type { Performance, PerformanceMessage };
 export {
   listPerformances,
-  PERFORMANCE_ID,
   PERFORMANCE_MESSAGE,
   readPerformanceMessages,
   sendMessage,

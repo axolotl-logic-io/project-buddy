@@ -7,6 +7,7 @@
 import { expect, test, vi } from "vitest";
 import type { User } from "@/accounts/users-store.ts";
 import { AppError } from "@/errors/app-error.ts";
+import { newPerformanceId, type PerformanceId } from "@/ids.ts";
 import { listItemLimit } from "@/lists/list.ts";
 import { readListItems } from "@/lists/list-item-store.ts";
 import { type List, readLists } from "@/lists/list-store.ts";
@@ -17,7 +18,6 @@ import {
 import {
   listPerformances,
   type Performance,
-  type PerformanceId,
   readPerformanceMessages,
 } from "@/performances/performance-store.ts";
 import { QUEST_NAME } from "@/quests/quest-name.ts";
@@ -65,6 +65,7 @@ async function performing(
     throw new Error("The quest has no starting lists");
   }
   await startPerformanceAction({
+    id: newPerformanceId(),
     questId: quest.id,
     listId: list.id,
     riteId: "brainstorm",
@@ -286,6 +287,7 @@ async function performingOwn(
     throw new Error("The performance could not be prepared");
   }
   await startPerformanceAction({
+    id: newPerformanceId(),
     questId: quest.id,
     listId: list.id,
     riteId: rite.id,

@@ -5,6 +5,7 @@ import {
   DELETE as stop,
 } from "@/app/api/v1/quests/[questId]/performances/[performanceId]/route.ts";
 import { POST as start } from "@/app/api/v1/quests/[questId]/performances/route.ts";
+import { newPerformanceId } from "@/ids.ts";
 import { readListItems } from "@/lists/list-item-store.ts";
 import { readLists } from "@/lists/list-store.ts";
 import {
@@ -47,6 +48,7 @@ test("use_case_perform_rite", async () => {
   }
   expect(
     await startPerformanceAction({
+      id: newPerformanceId(),
       questId,
       listId: ideas.id,
       riteId: "capture",
@@ -78,6 +80,7 @@ test("use_case_perform_rite", async () => {
 
   expect(
     await startPerformanceAction({
+      id: newPerformanceId(),
       questId,
       listId: tasks.id,
       riteId: "brainstorm",
@@ -116,6 +119,7 @@ test("a stopped performance keeps its messages, and a stranger reads none", asyn
     throw new Error("The quest has no starting lists");
   }
   await startPerformanceAction({
+    id: newPerformanceId(),
     questId,
     listId: list.id,
     riteId: "capture",

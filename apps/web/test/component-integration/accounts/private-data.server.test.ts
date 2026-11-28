@@ -40,6 +40,7 @@ import { quests } from "@/db/tables/quests.ts";
 import { tallyDays } from "@/db/tables/tallies.ts";
 import { readExperience } from "@/experience/experience-store.ts";
 import type { UserId } from "@/ids.ts";
+import { newPerformanceId } from "@/ids.ts";
 import { saveListAction } from "@/lists/list-actions.ts";
 import type { ListItemChange } from "@/lists/list-item.ts";
 import { changeListItemAction } from "@/lists/list-item-actions.ts";
@@ -228,6 +229,7 @@ async function sharedQuest(): Promise<{
     throw new Error("The tasks were not saved");
   }
   const performance = await startPerformance(owner.id, quest.id, {
+    id: newPerformanceId(),
     listId: ideas.id,
     riteId: "capture",
   });
@@ -579,6 +581,7 @@ describe("use_case_quest_member_access", () => {
 
       expect(
         await startPerformanceAction({
+          id: newPerformanceId(),
           questId: quest.id,
           listId: tasks.id,
           riteId: "capture",
@@ -657,6 +660,7 @@ describe("use_case_quest_member_access", () => {
       );
       expect(
         await startPerformanceAction({
+          id: newPerformanceId(),
           questId: quest.id,
           listId: ideas.id,
           riteId: "capture",

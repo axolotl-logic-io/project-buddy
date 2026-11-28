@@ -1,6 +1,7 @@
 import { expect, test } from "vitest";
 import { NO_EVENTS } from "@/experience/experience.ts";
 import { readExperience } from "@/experience/experience-store.ts";
+import { newPerformanceId } from "@/ids.ts";
 import { writeListContents } from "@/lists/list-item-store.ts";
 import { readLists } from "@/lists/list-store.ts";
 import { saveQuickAdd } from "@/lists/quick-add-actions.ts";
@@ -128,6 +129,7 @@ test("use_case_experience: Quick Add and a message each earn Adding", async () =
   expect((await readExperience(owner.id)).counts.adding).toBe(1);
 
   const performance = await startPerformance(owner.id, quest.id, {
+    id: newPerformanceId(),
     listId: ideas.id,
     riteId: "capture",
   });

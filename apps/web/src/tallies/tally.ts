@@ -29,6 +29,10 @@ const TALLY_AMOUNT = z
   .regex(DECIMAL)
   .transform((value) => value.replace(LEADING_PLUS, ""));
 
+// The places a stored amount keeps after its point.
+const AMOUNT_PLACES = 6;
+const SIGN = /^[-+]/u;
+
 // A tally's total on a date.
 interface TallyDay {
   readonly date: LocalDate;
@@ -53,11 +57,18 @@ interface TallyQuest {
   readonly tallies: readonly Tally[];
 }
 
-// Changes to a tally, as its list runs them.
+// Changes to a tally, as its list runs them. Each shows at once, and
+// refused runs when the server refuses it.
 interface TallyChanges {
-  readonly increment: (amount: string) => Promise<boolean>;
-  readonly setToday: (total: string) => Promise<boolean>;
+  readonly increment: (amount: string, refused: () => void) => void;
+  readonly setToday: (total: string, refused: () => void) => void;
 }
+
+// A change to a tally: an amount added to its total on its quest's today,
+// or a new total on one of its dates.
+type TallyChange =
+  | { readonly kind: "increment"; readonly amount: string }
+  | { readonly kind: "set"; readonly date: LocalDate; readonly total: string };
 
 // An amount's decimal text, or undefined when it isn't one a tally can hold.
 function parseAmount(value: string): string | undefined {
@@ -90,6 +101,80 @@ function plainAmount(amount: string): string {
   return amount.replace(TRAILING_ZEROS, "");
 }
 
+// An amount in millionths, so sums keep every digit.
+function millionths(amount: string): bigint {
+  const [whole = "", fraction = ""] = amount.replace(SIGN, "").split(".");
+  const size = BigInt(
+    `${whole || "0"}${fraction.padEnd(AMOUNT_PLACES, "0").slice(0, AMOUNT_PLACES)}`,
+  );
+  if (amount.startsWith("-")) {
+    return -size;
+  }
+  return size;
+}
+
+function fromMillionths(value: bigint): string {
+  let sign = "";
+  let size = value;
+  if (value < 0n) {
+    sign = "-";
+    size = -value;
+  }
+  const digits = size.toString().padStart(AMOUNT_PLACES + 1, "0");
+  const whole = digits.slice(0, -AMOUNT_PLACES);
+  const fraction = digits.slice(-AMOUNT_PLACES).replace(TRAILING_ZEROS, "");
+  if (fraction === "") {
+    return `${sign}${whole}`;
+  }
+  return `${sign}${whole}.${fraction}`;
+}
+
+// A tally as a change leaves it, worked out in the browser before the
+// server saves it: the date's new total, and the sum moved by as much.
+function changedTally(
+  tally: Tally,
+  today: LocalDate,
+  change: TallyChange,
+): Tally {
+  let date = today;
+  if (change.kind === "set") {
+    ({ date } = change);
+  }
+  const before = millionths(
+    tally.days.find((each) => each.date === date)?.total ?? "0",
+  );
+  let after: bigint;
+  if (change.kind === "set") {
+    after = millionths(change.total);
+  } else {
+    after = before + millionths(change.amount);
+  }
+  const total = fromMillionths(after);
+  const moved: bigint = after - before;
+  return {
+    ...tally,
+    days: [...tally.days.filter((each) => each.date !== date), { date, total }],
+    sum: fromMillionths(millionths(tally.sum) + moved),
+  };
+}
+
+// A quest's tallies with one tally changed.
+function withTallyChange(
+  entry: TallyQuest,
+  id: ListItemId,
+  change: TallyChange,
+): TallyQuest {
+  return {
+    ...entry,
+    tallies: entry.tallies.map((tally) => {
+      if (tally.id !== id) {
+        return tally;
+      }
+      return changedTally(tally, entry.today, change);
+    }),
+  };
+}
+
 // The tally's total on each of the count dates up to today, oldest first,
 // 0 where it has none.
 function tallyDays(
@@ -103,7 +188,7 @@ function tallyDays(
   }));
 }
 
-export type { Tally, TallyChanges, TallyDay, TallyQuest };
+export type { Tally, TallyChange, TallyChanges, TallyDay, TallyQuest };
 export {
   formatAmount,
   parseAmount,
@@ -111,4 +196,5 @@ export {
   TALLY_AMOUNT,
   TALLY_DAYS,
   tallyDays,
+  withTallyChange,
 };

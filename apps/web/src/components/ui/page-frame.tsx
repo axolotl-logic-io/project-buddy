@@ -19,4 +19,10 @@ function QuestFrame({ children }: FrameProps): JSX.Element {
   return <div className="page-column page-frame-quest">{children}</div>;
 }
 
-export { EditorFrame, PageFrame, QuestFrame };
+// The Timer's frame is as wide set up as running, so starting it moves
+// nothing.
+function TimerFrame({ children }: FrameProps): JSX.Element {
+  return <div className="page-column page-frame-timer">{children}</div>;
+}
+
+export { EditorFrame, PageFrame, QuestFrame, TimerFrame };

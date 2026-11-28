@@ -6,7 +6,6 @@ import { Tabs } from "radix-ui";
 import {
   type ChangeEvent,
   type JSX,
-  startTransition,
   useCallback,
   useContext,
   useEffect,
@@ -37,6 +36,7 @@ import {
 } from "@/quests/quest-status.ts";
 import type { FoundTask } from "@/tasks/task-search-store.ts";
 import { CADENCE_COPY } from "@/ui/copy/cadence.ts";
+import { LISTS_COPY } from "@/ui/copy/lists.ts";
 import {
   QUEST_MEMBERS_COPY,
   QUEST_SHARING_COPY,
@@ -427,23 +427,27 @@ function TaskHits({
   const headingId = useId();
   const [shown, showCheck] = useOptimistic(found, checked);
   const [earlierShown, setEarlierShown] = useState<boolean>(false);
-  const { run, status, problem } = useQuestAction(changeListItemAction);
+  const { start, status, problem } = useQuestAction(changeListItemAction);
   const onCheck = useCallback(
     (change: Check): void => {
       const task = found.find(({ id }) => id === change.id);
       if (task === undefined) {
         return;
       }
-      startTransition(async () => {
-        showCheck(change);
-        await run({
-          questId: task.quest.id,
-          listId: task.listId,
-          change: { kind: "check", id: task.id, checkedOff: change.done },
-        });
-      });
+      const check = {
+        kind: "check",
+        id: task.id,
+        checkedOff: change.done,
+      } as const;
+      start(
+        { questId: task.quest.id, listId: task.listId, change: check },
+        {
+          status: LISTS_COPY.changed(check, "task"),
+          show: (): void => showCheck(change),
+        },
+      );
     },
-    [found, run, showCheck],
+    [found, start, showCheck],
   );
   const toggleEarlier = useCallback((): void => {
     setEarlierShown((before) => !before);

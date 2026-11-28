@@ -33,20 +33,10 @@ async function changeListItemAction(
       change,
     );
     if (result === "saved") {
-      let message = LISTS_COPY.savedChange;
-      if (change.kind === "check" && change.checkedOff) {
-        message = LISTS_COPY.checkedOff;
-      }
-      if (change.kind === "check" && !change.checkedOff) {
-        message = LISTS_COPY.unchecked;
-      }
-      if (change.kind === "split" && list !== undefined) {
-        message = LISTS_COPY.splitDone(list.type, change.texts.length);
-      }
       if (change.kind === "undo" || list === undefined) {
-        return { kind: "saved", message };
+        return { kind: "saved" };
       }
-      return { kind: "saved", message, undoVersion: list.version };
+      return { kind: "saved", undoVersion: list.version };
     }
     return { kind: "problem", text: LISTS_COPY.changeProblems[result] };
   } catch (error) {
