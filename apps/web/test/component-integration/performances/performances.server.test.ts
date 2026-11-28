@@ -19,6 +19,7 @@ import {
 } from "@/performances/performance-store.ts";
 import { QUEST_NAME } from "@/quests/quest-name.ts";
 import { createQuest } from "@/quests/store.ts";
+import { PERFORMANCE_COPY } from "@/ui/copy/performances.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
 import { callApi, dataOf } from "../api/api-test-kit.ts";
 import { signIn } from "../test-database/session-test-kit.ts";
@@ -109,6 +110,27 @@ test("use_case_perform_rite", async () => {
       ({ endedAt }) => endedAt !== null,
     ),
   ).toBe(true);
+});
+
+test("a start with an existing id leaves the active performance in place", async () => {
+  const {
+    user,
+    questId,
+    lists: [list],
+  } = await setup();
+  if (list === undefined) {
+    throw new Error("The quest has no starting lists");
+  }
+  const id = newPerformanceId();
+  const request = { id, questId, listId: list.id, riteId: "capture" };
+  expect(await startPerformanceAction(request)).toBeUndefined();
+
+  expect(
+    await startPerformanceAction({ ...request, riteId: "brainstorm" }),
+  ).toBe(PERFORMANCE_COPY.unavailable);
+  expect(await listPerformances(user.id, questId)).toMatchObject([
+    { id, endedAt: null, rite: { name: "Capture" } },
+  ]);
 });
 
 test("a stopped performance keeps its messages, and a stranger reads none", async () => {
