@@ -97,8 +97,12 @@ test.describe("use_case_create_zotero_collection_list", () => {
       await setup
         .getByRole("checkbox", { name: ZOTERO_COPY.setup.checkable })
         .check();
-      await setup.getByLabel(ZOTERO_COPY.setup.tag, { exact: true }).fill("read");
-      const create = setup.getByRole("button", { name: ZOTERO_COPY.setup.create });
+      await setup
+        .getByLabel(ZOTERO_COPY.setup.tag, { exact: true })
+        .fill("read");
+      const create = setup.getByRole("button", {
+        name: ZOTERO_COPY.setup.create,
+      });
       await expect(create).toBeInViewport();
       await create.click();
       await expect(
