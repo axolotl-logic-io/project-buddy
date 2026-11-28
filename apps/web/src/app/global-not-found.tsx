@@ -9,6 +9,10 @@ import { SITE_METADATA, SITE_VIEWPORT } from "./site-metadata.ts";
 export const metadata: Metadata = SITE_METADATA;
 export const viewport: Viewport = SITE_VIEWPORT;
 
+// An address no route has is answered for its request, as a whole, under
+// the header its session gets: nothing navigates to it from the App Shell.
+export const instant = false;
+
 // Unmatched addresses, which no root layout renders.
 export default function GlobalNotFound(): JSX.Element {
   return (

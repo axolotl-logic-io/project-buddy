@@ -7,6 +7,7 @@
 // do. The caller is the signed-in user of the request's session cookie, so a
 // request without one answers 401 and never a redirect.
 
+import { connection } from "next/server";
 import type { z } from "zod";
 import type { User } from "@/accounts/users-store.ts";
 import { currentUser } from "@/auth/current-user.ts";
@@ -181,8 +182,10 @@ async function readApiBody<Schema extends z.ZodType>(
   return parseApiInput(schema, body);
 }
 
-// A route handler for the signed-in user. Any failure is logged once and
-// answers with its problem, never an HTML page.
+// A route handler for the signed-in user. It waits for the request, so a
+// GET is never prerendered at build, when there is no session to check.
+// Any failure is logged once and answers with its problem, never an HTML
+// page.
 function apiRoute<Params>(
   handle: (call: ApiCall<Params>) => Promise<Response>,
 ): RouteHandler<Params> {
@@ -190,6 +193,7 @@ function apiRoute<Params>(
     request: Request,
     context: RouteContextOf<Params>,
   ): Promise<Response> => {
+    await connection();
     try {
       const user = await currentUser();
       if (user === undefined) {
