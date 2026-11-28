@@ -5,7 +5,14 @@
 // setup file (vitest.server-setup.ts) serves them as next/cache. Nothing is
 // kept: every read in a server test reads the database.
 
-type CacheLifeProfile = Parameters<typeof import("next/cache").cacheLife>[0];
+// What cacheLife takes: a named profile or its own lifetimes, in seconds.
+type CacheLifeProfile =
+  | string
+  | {
+      readonly stale?: number;
+      readonly revalidate?: number;
+      readonly expire?: number;
+    };
 
 const kept: string[] = [];
 const expired: string[] = [];
