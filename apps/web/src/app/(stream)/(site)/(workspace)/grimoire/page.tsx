@@ -92,5 +92,8 @@ async function GrimoirePage({
   );
 }
 
+// A navigation here shows the page at once, from its App Shell.
+export const instant = true;
+
 export { metadata };
 export default GrimoirePage;

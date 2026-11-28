@@ -10,7 +10,7 @@ These cases cover the site's versioned API under `/api/v1`, which scripts and ot
   - They ask `/api/v1/me` who they are, then list their quests.
   - They start a quest with a name and a Why, read a quest and rename it.
   - They complete the quest with the status revision they last read.
-- **Outcome:** `/api/v1/me` names the signed-in user. The list shows only quests open to them, their Life among them, made on the first list if they have none. Each start opens a new quest. A status change with a stale revision is refused as a conflict. Another user's quest is not found, whatever the request. A request with no session or an expired session gets an authorization problem, never a sign-in page.
+- **Outcome:** `/api/v1/me` names the signed-in user. The list shows only quests open to them, their Life among them. Each start opens a new quest. A status change with a stale revision is refused as a conflict. Another user's quest is not found, whatever the request. A request with no session or an expired session gets an authorization problem, never a sign-in page.
 
 ## use_case_api_quest_records
 

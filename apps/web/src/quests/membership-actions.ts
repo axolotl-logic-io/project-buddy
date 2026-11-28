@@ -4,7 +4,6 @@ import { headers } from "next/headers";
 import { z } from "zod";
 import { linkOrigin } from "@/accounts/emailed-link.ts";
 import { EMAIL_FIELD } from "@/app/(stream)/(site)/login/link-request.ts";
-import { revalidateWorkspace } from "@/app/revalidate-workspace.ts";
 import { requireUser } from "@/auth/current-user.ts";
 import type { QuestActionResult } from "@/components/use-quest-action.ts";
 import { QUEST_ID, USER_ID } from "@/ids.ts";
@@ -33,9 +32,6 @@ async function answerInvitationAction(
     parsed.data.questId,
     parsed.data.accept,
   );
-  // Either way Pending is out of date: refreshing drops an invitation
-  // that was withdrawn or answered elsewhere, and updates its count.
-  revalidateWorkspace();
   if (!answered) {
     return { kind: "failed" };
   }
@@ -64,7 +60,6 @@ async function inviteToQuestAction(
   switch (result.kind) {
     case "invited":
     case "unsent":
-      revalidateWorkspace();
       return {
         kind: "saved",
         message: QUEST_MEMBERS_COPY.invitationResult[result.kind](invite.email),
@@ -91,7 +86,6 @@ async function removeFromQuestAction(
   if (remove === undefined || !(await removeFromQuest(user.id, remove))) {
     return { kind: "problem", text: QUEST_MEMBERS_COPY.failed };
   }
-  revalidateWorkspace();
   return { kind: "saved", message: QUEST_MEMBERS_COPY.removed };
 }
 

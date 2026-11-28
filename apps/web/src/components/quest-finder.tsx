@@ -171,7 +171,8 @@ function SharingTag({
 }
 
 // One quest as a row: the whole row opens it. A Completed or Abandoned
-// one offers Restore beneath its name.
+// one offers Restore beneath its name. Its link is prefetched with the
+// quest's address, so the quest opens at once.
 function QuestRow({ entry }: { readonly entry: FinderQuest }): JSX.Element {
   const { quest } = entry;
   return (
@@ -182,6 +183,7 @@ function QuestRow({ entry }: { readonly entry: FinderQuest }): JSX.Element {
           <Link
             className="quest-finder-name quest-finder-link"
             href={`/quests/${quest.id}`}
+            prefetch={true}
           >
             {quest.name}
           </Link>
@@ -351,6 +353,7 @@ function QuestHit({
         <Link
           className="quest-finder-name quest-finder-link"
           href={`/quests/${quest.id}`}
+          prefetch={true}
         >
           <Highlighted search={search} text={quest.name} />
         </Link>

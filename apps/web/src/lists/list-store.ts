@@ -11,11 +11,13 @@ import {
   inTransaction,
   type Transaction,
 } from "@/db/client.ts";
+import { expireReads } from "@/db/read-cache.ts";
 import { listChanges } from "@/db/tables/list-changes.ts";
 import { listItems, lists } from "@/db/tables/lists.ts";
 import { quests } from "@/db/tables/quests.ts";
 import { withAppErrors } from "@/errors/to-app-error.ts";
 import type { QuestId, UserId } from "@/ids.ts";
+import { keepQuestRead } from "@/quests/quest-reads.ts";
 import {
   ITEM_LIST_TYPE,
   LIST_ID,
@@ -56,8 +58,10 @@ async function seedLists(tx: Transaction, questId: QuestId): Promise<void> {
   );
 }
 
-function readLists(user: UserId, questId: QuestId): Promise<List[]> {
-  return withAppErrors("readLists", async () => {
+async function readLists(user: UserId, questId: QuestId): Promise<List[]> {
+  "use cache";
+  keepQuestRead(user, questId);
+  return await withAppErrors("readLists", async () => {
     const rows = await getDb()
       .select()
       .from(lists)
@@ -85,13 +89,13 @@ async function readList(
   return toList(row);
 }
 
-function saveList(
+async function saveList(
   user: UserId,
   questId: QuestId,
   settings: ListSettings,
   listId?: ListId,
 ): Promise<List | "invalid-text" | undefined> {
-  return withAppErrors("saveList", () =>
+  const saved = await withAppErrors("saveList", () =>
     inTransaction(async (tx) => {
       const [quest] = await tx
         .select({ id: quests.id })
@@ -159,6 +163,8 @@ function saveList(
       return toList(added);
     }),
   );
+  expireReads({ accounts: [user], quests: [questId] });
+  return saved;
 }
 
 export type { List };

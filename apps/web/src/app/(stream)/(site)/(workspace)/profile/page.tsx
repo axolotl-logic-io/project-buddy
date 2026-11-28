@@ -11,6 +11,9 @@ import { NameForm } from "./name-form.tsx";
 
 export const metadata: Metadata = { title: PROFILE_COPY.title };
 
+// A navigation here shows the page at once, from its App Shell.
+export const instant = true;
+
 // The user's name, which constructs and members see, on a card with their
 // circle and experience, followed by their visiting-day total and events.
 export default async function ProfilePage(): Promise<JSX.Element> {

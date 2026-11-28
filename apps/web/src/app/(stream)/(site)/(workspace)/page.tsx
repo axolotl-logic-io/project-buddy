@@ -16,6 +16,9 @@ import { HOME_COPY } from "@/ui/copy/home.ts";
 
 export const metadata: Metadata = { title: HOME_COPY.title };
 
+// A navigation here shows the page at once, from its App Shell.
+export const instant = true;
+
 // Home, where a signed-in user lands: a ribbon of links to Quests, the
 // Grimoire and the Timer, then their experience, then the streaks of their
 // recurring tasks, the day ledger of their tallies and their one-off

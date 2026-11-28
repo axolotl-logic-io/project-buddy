@@ -1,7 +1,7 @@
 // Starting quests, in the test database: what New quest makes from a name
 // and an optional Why, as the stores give it to the pages.
 
-import { describe, expect, test, vi } from "vitest";
+import { describe, expect, test } from "vitest";
 import type { User } from "@/accounts/users-store.ts";
 import { startQuestAction } from "@/app/(stream)/(site)/(workspace)/quests/actions.ts";
 import { readLists } from "@/lists/list-store.ts";
@@ -13,8 +13,6 @@ import { testData } from "../../../../support/test-database/data-test-kit.ts";
 import { testUser } from "../../../../support/test-database/user-test-kit.ts";
 import { expectRedirect } from "../../../test-database/navigation-test-kit.ts";
 import { signIn } from "../../../test-database/session-test-kit.ts";
-
-vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
 
 // What New quest sends: the id the browser made, the name and any other
 // field.

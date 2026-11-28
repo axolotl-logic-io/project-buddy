@@ -51,7 +51,8 @@ function ReplyCount({ rite }: { readonly rite: Rite }): JSX.Element {
 }
 
 // A rite as a row: the whole row opens it. Its first message shows what it
-// says, and its reply count how much it can say.
+// says, and its reply count how much it can say. Its link is prefetched
+// with the rite's address, so the rite opens at once.
 function RiteRow({ rite }: { readonly rite: Rite }): JSX.Element {
   return (
     <li className="quest-finder-row">
@@ -61,6 +62,7 @@ function RiteRow({ rite }: { readonly rite: Rite }): JSX.Element {
           <Link
             className="quest-finder-name quest-finder-link rite-finder-link"
             href={`/grimoire/${rite.id}`}
+            prefetch={true}
           >
             {rite.name}
           </Link>

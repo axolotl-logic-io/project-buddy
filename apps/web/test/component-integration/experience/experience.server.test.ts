@@ -1,4 +1,4 @@
-import { expect, test, vi } from "vitest";
+import { expect, test } from "vitest";
 import { NO_EVENTS } from "@/experience/experience.ts";
 import { readExperience } from "@/experience/experience-store.ts";
 import { newPerformanceId } from "@/ids.ts";
@@ -15,8 +15,6 @@ import { testData } from "../../support/test-database/data-test-kit.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
 import { addMember } from "../quests/quest-members-test-kit.ts";
 import { signIn } from "../test-database/session-test-kit.ts";
-
-vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
 
 // The experience the first circle ends at, where the second starts.
 const SECOND_CIRCLE_START = 5;

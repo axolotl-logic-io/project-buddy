@@ -99,8 +99,10 @@ function PanelLink({
     },
     [here],
   );
+  // Prefetched with the page's address, which Quests and the Grimoire
+  // read, so each opens at once from the session's App Shell.
   return (
-    <Link className="panel-link" href={href} onClick={close}>
+    <Link className="panel-link" href={href} onClick={close} prefetch={true}>
       {children}
     </Link>
   );

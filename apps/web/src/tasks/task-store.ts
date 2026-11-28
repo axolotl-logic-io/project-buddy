@@ -12,6 +12,7 @@ import { withAppErrors } from "@/errors/to-app-error.ts";
 import { parseQuestId, type QuestId, type UserId } from "@/ids.ts";
 import { LIST_ID, type ListId } from "@/lists/list.ts";
 import { LIST_ITEM_ID, type ListItemId } from "@/lists/list-item.ts";
+import { keepQuestsReadToday } from "@/quests/quest-reads.ts";
 
 // An open one-off task with the list that holds it, so it can be checked
 // off where it is shown.
@@ -29,8 +30,10 @@ interface TaskQuest {
 
 // Every Active quest open to the user that has an open one-off task,
 // oldest first, with those tasks. A checked-off task stays in its list.
-function readTaskQuests(user: UserId): Promise<readonly TaskQuest[]> {
-  return withAppErrors("readTaskQuests", async () => {
+async function readTaskQuests(user: UserId): Promise<readonly TaskQuest[]> {
+  "use cache";
+  await keepQuestsReadToday(user);
+  return await withAppErrors("readTaskQuests", async () => {
     const rows = await getDb()
       .select({
         questId: quests.id,

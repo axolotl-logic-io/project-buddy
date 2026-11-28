@@ -1,4 +1,4 @@
-import { expect, test, vi } from "vitest";
+import { expect, test } from "vitest";
 import {
   GET as read,
   POST as send,
@@ -23,8 +23,6 @@ import { PERFORMANCE_COPY } from "@/ui/copy/performances.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
 import { callApi, dataOf } from "../api/api-test-kit.ts";
 import { signIn } from "../test-database/session-test-kit.ts";
-
-vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
 
 async function setup(): Promise<{
   user: Awaited<ReturnType<typeof testUser>>;

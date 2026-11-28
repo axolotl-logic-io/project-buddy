@@ -7,6 +7,9 @@ import { questPage } from "./quest-page.tsx";
 // The keyboard shrinks the viewport so the performance composer stays reachable.
 export const viewport: Viewport = { interactiveWidget: "resizes-content" };
 
+// A navigation here shows the page at once, from its App Shell.
+export const instant = true;
+
 export default async function QuestPage({
   params,
   searchParams,

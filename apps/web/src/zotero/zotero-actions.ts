@@ -4,8 +4,8 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { linkOrigin } from "@/accounts/emailed-link.ts";
-import { revalidateWorkspace } from "@/app/revalidate-workspace.ts";
 import { requireUser } from "@/auth/current-user.ts";
+import { expireReads } from "@/db/read-cache.ts";
 import { AppError } from "@/errors/app-error.ts";
 import { QUEST_ID, type QuestId, type UserId } from "@/ids.ts";
 import { LIST_ID, LIST_WORD, type ListId } from "@/lists/list.ts";
@@ -196,7 +196,7 @@ async function createZoteroListAction(
   if (problem !== undefined) {
     return { draft, error: ZOTERO_COPY.problems[problem] };
   }
-  revalidateWorkspace();
+  expireReads({ quests: [questId] });
   redirect(listPath(questId, outcome));
 }
 
@@ -216,7 +216,7 @@ async function syncZoteroListAction(
       input.data.questId,
       input.data.listId,
     );
-    revalidateWorkspace();
+    expireReads({ quests: [input.data.questId] });
     if (outcome === "synced") {
       return { ok: true };
     }
@@ -253,7 +253,7 @@ async function markZoteroReferenceAction(
   try {
     const { checked: mark, ...where } = input.data;
     const outcome = await markZoteroReference(user.id, where, mark);
-    revalidateWorkspace();
+    expireReads({ quests: [where.questId] });
     if (outcome === "saved") {
       return { ok: true };
     }
@@ -288,7 +288,7 @@ async function saveZoteroNoteAction(
   try {
     const { text: note, noteId, ...place } = input.data;
     const outcome = await saveZoteroNote(user.id, { ...place, noteId }, note);
-    revalidateWorkspace();
+    expireReads({ quests: [place.questId] });
     if (outcome === "saved") {
       return { ok: true };
     }
@@ -342,7 +342,7 @@ async function saveZoteroListSettingsAction(
   if (outcome === "needs-write") {
     return { draft, error: ZOTERO_COPY.setup.needsWrite };
   }
-  revalidateWorkspace();
+  expireReads({ quests: [questId] });
   return { saved: ZOTERO_COPY.settings.saved };
 }
 
@@ -365,7 +365,7 @@ async function discardZoteroChangesAction(
   ) {
     return { ok: false, message: ZOTERO_COPY.settings.unavailable };
   }
-  revalidateWorkspace();
+  expireReads({ quests: [input.data.questId] });
   return { ok: true, message: ZOTERO_COPY.settings.discarded };
 }
 
@@ -384,7 +384,7 @@ async function removeZoteroListAction(
   ) {
     return { ok: false, message: ZOTERO_COPY.settings.unavailable };
   }
-  revalidateWorkspace();
+  expireReads({ quests: [input.data.questId] });
   redirect(`/quests/${input.data.questId}`);
 }
 
@@ -392,7 +392,7 @@ async function removeZoteroListAction(
 async function disconnectZoteroAction(): Promise<ZoteroResult> {
   const user = await requireUser();
   await disconnectZotero(user.id);
-  revalidateWorkspace();
+  expireReads({ accounts: [user.id] });
   return { ok: true };
 }
 

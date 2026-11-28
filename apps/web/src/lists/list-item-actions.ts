@@ -1,7 +1,6 @@
 "use server";
 
 import { z } from "zod";
-import { revalidateWorkspace } from "@/app/revalidate-workspace.ts";
 import { requireUser } from "@/auth/current-user.ts";
 import type { QuestActionResult } from "@/components/use-quest-action.ts";
 import { AppError } from "@/errors/app-error.ts";
@@ -34,7 +33,6 @@ async function changeListItemAction(
       change,
     );
     if (result === "saved") {
-      revalidateWorkspace();
       if (change.kind === "undo" || list === undefined) {
         return { kind: "saved" };
       }

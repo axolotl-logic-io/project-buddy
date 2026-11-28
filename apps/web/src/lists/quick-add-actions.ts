@@ -1,15 +1,13 @@
 "use server";
 
 import { z } from "zod";
-import { revalidateWorkspace } from "@/app/revalidate-workspace.ts";
 import { requireUser } from "@/auth/current-user.ts";
-import { inTransaction } from "@/db/client.ts";
 import { QUEST_ID } from "@/ids.ts";
 import { checkQuickAddText, type QuickAddTarget } from "@/lists/quick-add.ts";
 import { listQuests } from "@/quests/store.ts";
 import { QUICK_ADD_COPY } from "@/ui/copy/quick-add.ts";
 import { LIST_ID } from "./list.ts";
-import { changeWithin } from "./list-item-store.ts";
+import { quickAdd } from "./list-item-store.ts";
 import { readLists } from "./list-store.ts";
 
 interface QuickAddQuest extends QuickAddTarget {
@@ -68,21 +66,13 @@ async function saveQuickAdd(request: unknown): Promise<QuickAddResult> {
     return { kind: "problem", text: QUICK_ADD_COPY.problem(checked.problem) };
   }
   const { questId, listId } = input;
-  const result = await inTransaction((tx) =>
-    changeWithin(
-      tx,
-      user.id,
-      { questId, listId, activeOnly: true, atTop: true },
-      { kind: "add", text: checked.text },
-    ),
-  );
+  const result = await quickAdd(user.id, { questId, listId }, checked.text);
   if (result === "invalid-text") {
     return { kind: "problem", text: QUICK_ADD_COPY.tooLongForList };
   }
   if (result !== "saved") {
     return { kind: "problem", text: QUICK_ADD_COPY.listUnavailable };
   }
-  revalidateWorkspace();
   return { kind: "saved" };
 }
 

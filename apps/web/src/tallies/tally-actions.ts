@@ -1,7 +1,6 @@
 "use server";
 
 import { z } from "zod";
-import { revalidateWorkspace } from "@/app/revalidate-workspace.ts";
 import { requireUser } from "@/auth/current-user.ts";
 import type { QuestActionResult } from "@/components/use-quest-action.ts";
 import { QUEST_ID } from "@/ids.ts";
@@ -49,7 +48,6 @@ async function incrementTallyAction(
     return INVALID;
   }
   const result = await incrementTally(user.id, change.questId, change);
-  revalidateWorkspace();
   return answer(result);
 }
 
@@ -61,7 +59,6 @@ async function setTallyDayAction(request: unknown): Promise<QuestActionResult> {
     return INVALID;
   }
   const result = await setTallyDay(user.id, change.questId, change);
-  revalidateWorkspace();
   return answer(result);
 }
 

@@ -183,10 +183,12 @@ vi.mock("@/tasks/task-store.ts", () => ({
 }));
 
 // Quests reads these. Tests of the page supply their own answers; by
-// default the user has no quests, no Life yet and no task matches.
+// default the user has no quests, no Life yet and no task matches, and
+// the page counts its words to the test's own time.
 vi.mock("@/quests/quest-index-store.ts", () => ({
   readQuestEntries: vi.fn(() => Promise.resolve([])),
   readLife: vi.fn(() => Promise.resolve(undefined)),
+  readFinderTime: vi.fn(() => Promise.resolve(new Date())),
 }));
 vi.mock("@/tasks/task-search-store.ts", () => ({
   searchTasks: vi.fn(() => Promise.resolve([])),

@@ -19,6 +19,9 @@ async function generateMetadata({
   return { title: pageTitle(name) };
 }
 
+// A navigation here shows the page at once, from its App Shell.
+export const instant = true;
+
 export default async function ConstructPage({
   params,
 }: PageProps<"/constructs/[constructId]">): Promise<JSX.Element> {

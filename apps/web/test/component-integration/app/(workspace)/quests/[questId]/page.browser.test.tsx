@@ -758,6 +758,7 @@ describe("use_case_timer_quest_panel", () => {
         await panel
           .getByRole("button", { name: QUEST_OVERVIEW_COPY.panel.collapse })
           .click();
+        await expect.element(panel).not.toBeInTheDocument();
         await expect
           .element(page.getByRole("heading", { name: FOX_QUEST.name }))
           .toBeVisible();

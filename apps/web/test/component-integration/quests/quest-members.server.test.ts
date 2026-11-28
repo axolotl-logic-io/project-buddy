@@ -3,7 +3,6 @@
 // from Quests, one quest at a time; what accepted members may do; and
 // removing or leaving.
 
-import { revalidatePath } from "next/cache";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, test, vi } from "vitest";
 import {
@@ -52,6 +51,7 @@ import {
 import { spyOnErrorLog } from "../errors/error-log-spy.ts";
 
 import { expectRedirect } from "../test-database/navigation-test-kit.ts";
+import { writeExpiresRead } from "../test-database/read-cache-test-kit.ts";
 import { signIn, signOut } from "../test-database/session-test-kit.ts";
 import {
   emailedLoginToken,
@@ -68,7 +68,6 @@ import {
 
 const sent = vi.hoisted(() => ({ sendEmail: vi.fn<SendEmail>() }));
 vi.mock("@/email/send-email.ts", () => sent);
-vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
 vi.mock("next/headers", async () => {
   const { sessionCookies } = await import(
     "../test-database/session-test-kit.ts"
@@ -502,12 +501,16 @@ describe("use_case_accept_pending_quest", () => {
       await removeFromQuest(owner.id, { questId: first.id, person: user.id }),
     ).toBe(true);
     await signIn(user);
-    vi.mocked(revalidatePath).mockClear();
 
     expect(
-      await answerInvitationAction({ questId: first.id, accept: true }),
-    ).toEqual({ kind: "failed" });
-    expect(revalidatePath).toHaveBeenCalledWith("/", "layout");
+      await writeExpiresRead(
+        () => listPendingQuests(user.id),
+        async () =>
+          expect(
+            await answerInvitationAction({ questId: first.id, accept: true }),
+          ).toEqual({ kind: "failed" }),
+      ),
+    ).toBe(true);
     expect(await listPendingQuests(user.id)).toEqual([]);
     expect(await getQuest(user.id, first.id)).toBeUndefined();
   });

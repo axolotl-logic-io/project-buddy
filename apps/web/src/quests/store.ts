@@ -12,6 +12,7 @@ import {
   isConstructId,
 } from "@/constructs/index.ts";
 import { getDb, inTransaction } from "@/db/client.ts";
+import { expireReads, keepRead } from "@/db/read-cache.ts";
 import { quests } from "@/db/tables/quests.ts";
 import { withAppErrors } from "@/errors/to-app-error.ts";
 import { parseQuestId, type QuestId, type UserId } from "@/ids.ts";
@@ -104,8 +105,9 @@ function toQuests(
 
 // The quests open to the user, their own and those they are a member of,
 // newest first.
-function listQuests(user: UserId): Promise<Quest[]> {
-  return withAppErrors("listQuests", async () =>
+async function listQuests(user: UserId): Promise<Quest[]> {
+  "use cache";
+  const found = await withAppErrors("listQuests", async () =>
     toQuests(
       user,
       await getDb()
@@ -115,6 +117,11 @@ function listQuests(user: UserId): Promise<Quest[]> {
         .orderBy(desc(quests.createdAt)),
     ),
   );
+  keepRead(
+    user,
+    found.map(({ id }) => id),
+  );
+  return found;
 }
 
 // The quest with this id, or undefined if the id is malformed, unknown or
@@ -124,6 +131,15 @@ async function getQuest(user: UserId, id: string): Promise<Quest | undefined> {
   if (questId === undefined) {
     return undefined;
   }
+  return await readQuest(user, questId);
+}
+
+async function readQuest(
+  user: UserId,
+  questId: QuestId,
+): Promise<Quest | undefined> {
+  "use cache";
+  keepRead(user, [questId]);
   const [quest] = await withAppErrors("getQuest", async () =>
     toQuests(
       user,
@@ -143,12 +159,12 @@ interface QuestStartOptions {
 
 // A new quest with its starting lists, under id when one is given. A
 // quest that already has that id is left alone, and none is made.
-function insertQuest(
+async function insertQuest(
   owner: UserId,
   name: QuestName,
   options: QuestStartOptions & { readonly id?: QuestId },
 ): Promise<Quest | undefined> {
-  return withAppErrors("createQuest", () =>
+  const created = await withAppErrors("createQuest", () =>
     inTransaction(async (tx) => {
       const inserted = await tx
         .insert(quests)
@@ -171,6 +187,10 @@ function insertQuest(
       return quest;
     }),
   );
+  if (created !== undefined) {
+    expireReads({ accounts: [owner] });
+  }
+  return created;
 }
 
 // A new quest with its starting lists.
@@ -203,10 +223,10 @@ const LIFE_NAME = "Life";
 
 // Makes the owner's Life, with its starting lists, unless they have one.
 // Two at once make one: the second insert finds the first's row.
-function ensureLife(owner: UserId): Promise<void> {
-  return withAppErrors("ensureLife", () =>
+async function ensureLife(owner: UserId): Promise<void> {
+  const made = await withAppErrors("ensureLife", () =>
     inTransaction(async (tx) => {
-      const [made] = await tx
+      const [life] = await tx
         .insert(quests)
         .values({ userId: owner, name: LIFE_NAME, life: true })
         .onConflictDoNothing({
@@ -214,29 +234,37 @@ function ensureLife(owner: UserId): Promise<void> {
           where: sql`${quests.life}`,
         })
         .returning({ id: quests.id });
-      const id = parseQuestId(made?.id ?? "");
+      const id = parseQuestId(life?.id ?? "");
       if (id !== undefined) {
         await seedLists(tx, id);
       }
+      return id !== undefined;
     }),
   );
+  if (made) {
+    expireReads({ accounts: [owner] });
+  }
 }
 
 // The owner or a member can rename a quest. Unknown or inaccessible ids
 // change nothing.
-function renameQuest(
+async function renameQuest(
   owner: UserId,
   id: QuestId,
   name: QuestName,
 ): Promise<boolean> {
-  return withAppErrors("renameQuest", async () => {
-    const changed = await getDb()
+  const changed = await withAppErrors("renameQuest", async () => {
+    const renamed = await getDb()
       .update(quests)
       .set({ name })
       .where(and(eq(quests.id, id), questOpenTo(owner)))
       .returning({ id: quests.id });
-    return changed.length > 0;
+    return renamed.length > 0;
   });
+  if (changed) {
+    expireReads({ accounts: [owner], quests: [id] });
+  }
+  return changed;
 }
 
 export type { Quest };

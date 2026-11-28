@@ -117,6 +117,17 @@ function isContinuousIntegration(): boolean {
   return readIfSet("CI") !== undefined;
 }
 
+// The variable naming the runtime the Next server runs code in. Next sets it
+// when it starts, and writes its value into the server bundles in place of
+// each read of it.
+const RUNTIME_VARIABLE = "NEXT_RUNTIME";
+
+// Whether this code runs on the Next server, rather than in a test process
+// that imports it.
+function isNextServer(): boolean {
+  return process.env[RUNTIME_VARIABLE] !== undefined;
+}
+
 // The Zotero OAuth client that Project Buddy registered at
 // https://www.zotero.org/oauth/apps, or undefined when either half is unset,
 // which leaves Zotero Collection lists unavailable on the site.
@@ -158,6 +169,7 @@ function readZoteroOrigins(): {
 export {
   emailFromAddressEnvironment,
   isContinuousIntegration,
+  isNextServer,
   readDatabaseUrl,
   readDatabaseUrlForTooling,
   readEmailFromAddress,

@@ -67,7 +67,11 @@
     // export `metadata`, `generateMetadata`, `viewport` or `instant` next to
     // their component.
     {
-      "includes": ["src/app/**/layout.tsx", "src/app/**/page.tsx"],
+      "includes": [
+        "src/app/**/layout.tsx",
+        "src/app/**/page.tsx",
+        "src/app/global-not-found.tsx"
+      ],
       "linter": {
         "rules": {
           "style": {
@@ -89,12 +93,12 @@
 
     // The site frame uses Tailwind
     // utilities like every other file. These rules follow imports, so they
-    // check only the root layout, the frame it renders (header, the site
+    // check only the root layouts' document, the frame it renders (header, the site
     // panel, its appearance choices, experience feedback and Quick Add) and
     // the global CSS files whose classes pages use.
     {
       "includes": [
-        "src/app/layout.tsx",
+        "src/app/site-document.tsx",
         "src/components/page-header.tsx",
         "src/components/site-panel.tsx",
         "src/components/close-panel-around.ts",
@@ -405,9 +409,9 @@
     },
 
     // HTML's `blocking="render"` attribute, which Biome's attribute list
-    // lacks, lets the root layout's expect link hold the first frame.
+    // lacks, lets the root layouts' expect link hold the first frame.
     {
-      "includes": ["src/app/layout.tsx"],
+      "includes": ["src/app/site-document.tsx"],
       "linter": {
         "rules": {
           "suspicious": {

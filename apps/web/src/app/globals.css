@@ -1,4 +1,4 @@
-/* The site's stylesheet, imported once by the root layout. Each imported file
+/* The site's stylesheet, imported once by the root layouts' document. Each imported file
    has one owner:
    - src/themes/themes.css: the token contract and the themes;
    - page-roles.css: the roles that pages share, such as headings, links,

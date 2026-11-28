@@ -77,7 +77,6 @@ import {
 
 const sent = vi.hoisted(() => ({ sendEmail: vi.fn<SendEmail>() }));
 vi.mock("@/email/send-email.ts", () => sent);
-vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
 
 const SITE = "http://localhost:3494";
 const READ = "read";

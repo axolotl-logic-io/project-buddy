@@ -2,7 +2,6 @@
 
 import { RedirectType, redirect } from "next/navigation";
 import { z } from "zod";
-import { revalidateWorkspace } from "@/app/revalidate-workspace.ts";
 import { requireUser } from "@/auth/current-user.ts";
 import { QUEST_ID } from "@/ids.ts";
 import { checkQuestName, QUEST_NAME_MAX_LENGTH } from "@/quests/quest-name.ts";
@@ -38,6 +37,5 @@ export async function startQuestAction(request: unknown): Promise<string> {
   if (quest === undefined) {
     return NEW_QUEST_COPY.failed;
   }
-  revalidateWorkspace();
   redirect(`/quests/${quest.id}`, RedirectType.push);
 }

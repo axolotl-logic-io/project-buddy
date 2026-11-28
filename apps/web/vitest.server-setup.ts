@@ -1,7 +1,8 @@
 // Runs before every server test file (vitest.server.config.mts). It refuses
 // to run any test without the server suite's settings
-// (scripts/test-env/suite-environment.ts); serves the test's session
-// cookies as next/headers' `cookies()`; runs next/server's `after()` tasks at once; and after each
+// (scripts/test-env/suite-environment.ts); serves the test's session cookies
+// as next/headers' `cookies()`; records next/cache's tags and lifetimes
+// instead of keeping anything; runs next/server's `after()` tasks at once; and after each
 // test waits for those tasks, signs out and deletes the test's users and
 // data (the kits in test/component-integration/test-database/ and
 // test/support/test-database/).
@@ -48,6 +49,23 @@ vi.mock("next/server", async (importOriginal) => {
     after,
   };
 });
+
+// Next's tags and lifetimes need its cache scopes and a request.
+vi.mock("next/cache", async (importOriginal) => {
+  const { cacheLife, cacheTag, revalidateTag } = await import(
+    "./test/component-integration/test-database/read-cache-test-kit.ts"
+  );
+  return {
+    ...(await importOriginal<typeof import("next/cache")>()),
+    cacheLife,
+    cacheTag,
+    revalidateTag,
+  };
+});
+
+// The stores expire kept reads only on the Next server, which sets
+// NEXT_RUNTIME; the server tests stand in for its Node runtime.
+vi.stubEnv("NEXT_RUNTIME", "nodejs");
 
 afterEach(async () => {
   await afterTasksDone();
