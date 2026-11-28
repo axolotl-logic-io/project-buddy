@@ -4,6 +4,8 @@
 // recurring tasks are done today and one not done yet, picked at random
 // each time the read is kept again (src/db/read-cache.ts).
 import { and, desc, eq, isNull, not, sql } from "drizzle-orm";
+import { cacheLife } from "next/cache";
+import { z } from "zod";
 import {
   checkOffInQuestOpenTo,
   eventOwnedBy,
@@ -81,6 +83,15 @@ const OUTER_QUEST = sql.raw(`"quests"."id"`);
 const OUTER_QUEST_ZONE = sql.raw(
   `(select "owner"."time_zone" from "users" as "owner" where "owner"."id" = "quests"."user_id")`,
 );
+
+// How long the time Quests' words count to is kept, in seconds: they count
+// whole minutes at the finest.
+const COUNTED_TO_SECONDS = 60;
+
+// The database's answer to what time it is.
+const DATABASE_TIME = z.object({
+  rows: z.tuple([z.object({ now: z.coerce.date() })]),
+});
 
 // Every quest open to the user, newest activity first.
 async function readQuestEntries(user: UserId): Promise<readonly QuestEntry[]> {
@@ -181,6 +192,23 @@ async function readQuestEntries(user: UserId): Promise<readonly QuestEntry[]> {
   });
 }
 
+// The time Quests' words count to, by the database's clock, which its
+// times are written by. It is kept for a minute, so Quests is rendered
+// ahead of the request, as part of the session's App Shell.
+async function readFinderTime(): Promise<Date> {
+  "use cache";
+  cacheLife({
+    stale: COUNTED_TO_SECONDS,
+    revalidate: COUNTED_TO_SECONDS,
+    expire: 2 * COUNTED_TO_SECONDS,
+  });
+  const result = await withAppErrors("readFinderTime", () =>
+    getDb().execute(sql`select now() as "now"`),
+  );
+  const [{ now }] = DATABASE_TIME.parse(result).rows;
+  return now;
+}
+
 // The user's own Life, or undefined before it is made.
 async function readLife(user: UserId): Promise<LifeSummary | undefined> {
   "use cache";
@@ -227,4 +255,4 @@ async function readLife(user: UserId): Promise<LifeSummary | undefined> {
 }
 
 export type { LifeSummary, QuestEntry, SuggestedTask };
-export { readLife, readQuestEntries };
+export { readFinderTime, readLife, readQuestEntries };

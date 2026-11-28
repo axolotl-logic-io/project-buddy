@@ -3,6 +3,7 @@ import { currentUser } from "@/auth/current-user.ts";
 import type { Breadcrumb } from "@/components/breadcrumb.ts";
 import { ConstructHeader } from "@/components/constructs/construct-header.tsx";
 import {
+  type HeaderBreadcrumb,
   headerBreadcrumbs,
   publicBreadcrumbs,
 } from "@/components/header-breadcrumbs.ts";
@@ -38,9 +39,11 @@ async function HeaderLinksAt({
 }): Promise<JSX.Element> {
   const user = await currentUser();
   const signedIn = user !== undefined;
-  let resolved = publicBreadcrumbs(path);
+  let resolved: readonly HeaderBreadcrumb[];
   if (signedIn) {
     resolved = await headerBreadcrumbs(user, path);
+  } else {
+    resolved = await publicBreadcrumbs(path);
   }
   const breadcrumbs: readonly Breadcrumb[] = resolved.map(
     ({ quest, construct, timer, ...item }, place) => {

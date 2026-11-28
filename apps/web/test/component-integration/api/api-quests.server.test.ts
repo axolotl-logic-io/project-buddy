@@ -1,4 +1,5 @@
 import { describe, expect, test } from "vitest";
+import type { User } from "@/accounts/users-store.ts";
 import { GET as getMe } from "@/app/api/v1/me/route.ts";
 import {
   GET as getQuest,
@@ -10,9 +11,16 @@ import {
   POST as startQuest,
 } from "@/app/api/v1/quests/route.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
+import { ensureLife } from "@/quests/store.ts";
 import { signIn, signOut } from "../test-database/session-test-kit.ts";
 import { twoUsers } from "../test-database/two-users-test-kit.ts";
 import { callApi, dataOf, itemsOf } from "./api-test-kit.ts";
+
+// Signs the user in with the Life an emailed link's sign-in makes them.
+async function signInWithLife(user: User): Promise<void> {
+  await ensureLife(user.id);
+  await signIn(user);
+}
 
 describe("use_case_api_quests", () => {
   test("a request without a session answers 401 with a problem, never a redirect", async () => {
@@ -41,7 +49,7 @@ describe("use_case_api_quests", () => {
   test("the owner lists, reads, renames and completes a quest with its revision", async () => {
     const { her, herData } = await twoUsers();
     const quest = await herData.quest("Prototype");
-    await signIn(her);
+    await signInWithLife(her);
 
     const listed = await callApi(listQuests, {
       params: {},
@@ -110,7 +118,7 @@ describe("use_case_api_quests", () => {
   test("another user's quest is not found, whatever the request", async () => {
     const { herData, other } = await twoUsers();
     const quest = await herData.quest("Hers");
-    await signIn(other);
+    await signInWithLife(other);
     const params = { questId: quest.id };
     const answers = await Promise.all([
       callApi(getQuest, { params }),
@@ -132,22 +140,18 @@ describe("use_case_api_quests", () => {
     });
   });
 
-  test("listing makes their one Life, and listing again makes no other", async () => {
+  test("listing shows the one Life signing in made", async () => {
     const { her } = await twoUsers();
-    await signIn(her);
+    await signInWithLife(her);
 
-    const first = await callApi(listQuests, { params: {} });
-    const again = await callApi(listQuests, { params: {} });
-
-    expect(first.body).toEqual({
+    expect((await callApi(listQuests, { params: {} })).body).toEqual({
       items: [expect.objectContaining({ name: "Life", life: true })],
     });
-    expect(again.body).toEqual(first.body);
   });
 
   test("a Life refuses to be completed", async () => {
     const { her } = await twoUsers();
-    await signIn(her);
+    await signInWithLife(her);
     const listed = await callApi(listQuests, { params: {} });
     const [life] = itemsOf(listed);
     const { id: questId } = life ?? {};

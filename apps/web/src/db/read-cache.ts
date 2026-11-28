@@ -43,12 +43,16 @@ function questTag(quest: QuestId): string {
 // Tags the read in progress with its reader's account and the quests it
 // reads through, and keeps it until secondsLeft, when it depends on the
 // date, such as which tasks are checked off today. Called from inside a
-// "use cache" function.
+// "use cache" function. Outside the Next server, as in a system test
+// seeding data, nothing is kept.
 function keepRead(
   user: UserId,
   quests: readonly QuestId[],
   secondsLeft?: number,
 ): void {
+  if (!isNextServer()) {
+    return;
+  }
   const tags = [accountTag(user), ...quests.map(questTag)];
   if (tags.length > MAX_TAGS) {
     // Too many quests to tag: keep the read for the shortest time a
