@@ -238,6 +238,18 @@ test.describe("use_case_content_stays_still", () => {
           await page.goto(from);
           if (panel === true) {
             await openSitePanel(page);
+            // The panel was opened to set up the link click. Wait for its
+            // entrance and the breadcrumbs to reach their starting positions.
+            const trail = page.getByRole("region", { name: "Breadcrumbs" });
+            await expect(trail.getByRole("dialog")).toBeVisible();
+            await trail.evaluate(async (element): Promise<void> => {
+              const transitions = element
+                .getAnimations({ subtree: true })
+                .filter((animation) => animation instanceof CSSTransition);
+              await Promise.allSettled(
+                transitions.map((animation) => animation.finished),
+              );
+            });
           }
           const destination = to ?? target;
 
