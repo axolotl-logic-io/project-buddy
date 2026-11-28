@@ -527,10 +527,7 @@ test.describe("use_case_change_quest_status", () => {
 });
 
 test.describe("use_case_open_missing_page", () => {
-  // Disabled as a known flake: the missing quest page sometimes throws React
-  // error #419 in the built site (about half of local runs, on integration
-  // too). Fix the cause and turn this back into `test`.
-  test.fixme("Back from a missing quest brings Quests back whole", async ({
+  test("Back from a missing quest brings Quests back whole", async ({
     account,
     page,
     testData,
