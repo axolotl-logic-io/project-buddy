@@ -54,6 +54,11 @@ vi.mock(
   "next/navigation",
   () => import("../../../../components/router-test-kit.ts"),
 );
+// A timer link's trail in the header waits for the request, which a
+// browser test has none of.
+vi.mock("next/server", () => ({
+  connection: (): Promise<void> => Promise.resolve(),
+}));
 
 // The screens the case is checked on, and the most the trail band may take
 // of each, in CSS px.

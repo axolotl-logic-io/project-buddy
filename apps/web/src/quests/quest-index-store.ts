@@ -4,7 +4,6 @@
 // recurring tasks are done today and one not done yet, picked at random
 // each time the read is kept again (src/db/read-cache.ts).
 import { and, desc, eq, isNull, not, sql } from "drizzle-orm";
-import { cacheLife } from "next/cache";
 import { z } from "zod";
 import {
   checkOffInQuestOpenTo,
@@ -192,16 +191,13 @@ async function readQuestEntries(user: UserId): Promise<readonly QuestEntry[]> {
   });
 }
 
-// The time Quests' words count to, by the database's clock, which its
-// times are written by. It is kept for a minute, so Quests is rendered
-// ahead of the request, as part of the session's App Shell.
-async function readFinderTime(): Promise<Date> {
+// The time the user's Quests counts its words to, by the database's
+// clock, which its times are written by. It is kept for a minute, or until
+// the user's next change, so Quests is rendered ahead of the request, as
+// part of the session's App Shell.
+async function readFinderTime(user: UserId): Promise<Date> {
   "use cache";
-  cacheLife({
-    stale: COUNTED_TO_SECONDS,
-    revalidate: COUNTED_TO_SECONDS,
-    expire: 2 * COUNTED_TO_SECONDS,
-  });
+  keepRead(user, [], COUNTED_TO_SECONDS);
   const result = await withAppErrors("readFinderTime", () =>
     getDb().execute(sql`select now() as "now"`),
   );

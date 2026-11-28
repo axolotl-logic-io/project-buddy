@@ -39,6 +39,11 @@ const stores = vi.hoisted(() => ({
 vi.mock("@/quests/store.ts", () => stores.quests);
 // The performance refreshes the page through the App Router.
 vi.mock("next/navigation", () => import("../components/router-test-kit.ts"));
+// A timer link's trail in the header waits for the request, which a
+// browser test has none of.
+vi.mock("next/server", () => ({
+  connection: (): Promise<void> => Promise.resolve(),
+}));
 
 // The pages' forms post to Server Actions, which these tests never run.
 

@@ -57,7 +57,7 @@ export default async function QuestsPage({
     readLife(user.id),
     listPendingQuests(user.id),
     tasksFound(user.id, search),
-    readFinderTime(),
+    readFinderTime(user.id),
   ]);
   return (
     <PageWorkspace>
