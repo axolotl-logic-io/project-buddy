@@ -49,10 +49,7 @@ import {
 
 import { spyOnErrorLog } from "../errors/error-log-spy.ts";
 
-import {
-  expectNotFound,
-  expectRedirect,
-} from "../test-database/navigation-test-kit.ts";
+import { expectRedirect } from "../test-database/navigation-test-kit.ts";
 import { writeExpiresRead } from "../test-database/read-cache-test-kit.ts";
 import { signIn, signOut } from "../test-database/session-test-kit.ts";
 import {
