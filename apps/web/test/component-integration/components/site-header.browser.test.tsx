@@ -340,6 +340,29 @@ describe("the site panel", () => {
     });
   }
 
+  test("on a wide screen, following its link to another page keeps it docked until that page shows", async () => {
+    await setViewport(LAPTOP_VIEWPORT);
+    usePathname.mockReturnValue("/grimoire");
+    const screen = await render(signedInFrame());
+    await openPanel();
+    globalThis.addEventListener("click", stayOnThisPage);
+    try {
+      await sitePanel()
+        .getByRole("link", { name: QUESTS_COPY.headerLink })
+        .click();
+    } finally {
+      globalThis.removeEventListener("click", stayOnThisPage);
+    }
+    // The page header stays put until the page changes with it.
+    await expect.element(sitePanel()).toBeVisible();
+
+    usePathname.mockReturnValue("/quests");
+    await screen.rerender(signedInFrame());
+    await expect
+      .element(panelButton())
+      .toHaveAttribute("aria-expanded", "false");
+  });
+
   test("leaves the page beside its drawer undimmed", async () => {
     await setViewport(PHONE_VIEWPORT);
     await renderSignedIn();
@@ -378,6 +401,10 @@ describe("the site panel", () => {
     expect(document.documentElement.scrollWidth).toBeLessThanOrEqual(
       LAPTOP_VIEWPORT.width,
     );
+
+    // A click on the page leaves it open.
+    await page.getByText(PAGE_TEXT).click();
+    await expect.element(sitePanel()).toBeVisible();
   });
 
   test("offers a visitor the appearance choices and Credits", async () => {

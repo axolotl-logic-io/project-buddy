@@ -131,6 +131,7 @@ describe("use_case_quick_add", () => {
         <PageHeader panel={<SitePanel links={<AccountLinks />} />} />,
       );
       await openPanel();
+      const panel = sitePanel().element();
       const item = sitePanel().getByRole("button", {
         name: QUICK_ADD_COPY.panelItem,
         exact: true,
@@ -141,6 +142,15 @@ describe("use_case_quick_add", () => {
         name: QUICK_ADD_COPY.heading,
       });
       await expect.element(dialog).toBeVisible();
+      await dialog
+        .getByRole("textbox", { name: QUICK_ADD_COPY.textLabel })
+        .click();
+      // Quick Add hides the page from assistive technology, so the panel is
+      // held from before it opened.
+      expect(
+        panel.hasAttribute("open"),
+        "a click in Quick Add leaves the panel open",
+      ).toBe(true);
       await userEvent.keyboard("{Escape}");
       await expect.element(dialog).not.toBeInTheDocument();
       await expect.element(sitePanel()).toBeVisible();
