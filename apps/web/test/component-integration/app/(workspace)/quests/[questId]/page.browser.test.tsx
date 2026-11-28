@@ -418,6 +418,8 @@ test("use_case_open_quest: a list section's Add opens an editor under its items"
 // The rite dialog's choices, named for the rite and then its first message.
 const OWN_RITE_CHOICE = new RegExp(`^${OWN_RITE.name}`, "u");
 const BRAINSTORM_CHOICE = /^Brainstorm/u;
+const UUID =
+  /^[\da-f]{8}-[\da-f]{4}-4[\da-f]{3}-[89ab][\da-f]{3}-[\da-f]{12}$/u;
 
 describe("use_case_perform_rite", () => {
   function riteDialog(): ReturnType<typeof page.getByRole> {
@@ -435,8 +437,31 @@ describe("use_case_perform_rite", () => {
     await vi.waitFor(() => riteDialog().element());
   }
 
-  test("performs the chosen rite on the section's list", async () => {
-    vi.mocked(startPerformanceAction).mockReset().mockResolvedValue(undefined);
+  // Holds the next performance's start unanswered until the returned
+  // function answers it, with why the server refused it, if it did.
+  type StartAnswer = Awaited<ReturnType<typeof startPerformanceAction>>;
+  function holdStart(): (problem?: StartAnswer) => void {
+    let answer: (problem: StartAnswer) => void = () => undefined;
+    vi.mocked(startPerformanceAction)
+      .mockReset()
+      .mockImplementationOnce(
+        () =>
+          new Promise<StartAnswer>((resolve) => {
+            answer = resolve;
+          }),
+      );
+    return (problem?: StartAnswer): void => answer(problem);
+  }
+
+  function composer(): ReturnType<typeof page.getByRole> {
+    return page.getByRole("textbox", {
+      name: PERFORMANCE_COPY.message,
+      exact: true,
+    });
+  }
+
+  test("performs the chosen rite on the section's list, showing it before the server replies", async () => {
+    const answer = holdStart();
     await openRiteDialog();
     const dialog = riteDialog();
     await expect
@@ -453,26 +478,42 @@ describe("use_case_perform_rite", () => {
     await dialog
       .getByRole("button", { name: PERFORMANCE_COPY.start, exact: true })
       .click();
+
     expect(startPerformanceAction).toHaveBeenLastCalledWith({
+      id: expect.stringMatching(UUID),
       questId: FOX_QUEST.id,
       riteId: "brainstorm",
       listId: TASKS.id,
     });
     await expect.element(dialog).not.toBeInTheDocument();
+    await expect.element(composer()).toBeVisible();
+    await expect
+      .element(page.getByRole("heading", { name: "Brainstorm", level: 2 }))
+      .toHaveFocus();
+
+    answer();
+    await expect.element(composer()).toBeVisible();
   });
 
-  test("keeps the dialog open and says why when the performance is refused", async () => {
-    vi.mocked(startPerformanceAction)
-      .mockReset()
-      .mockResolvedValue(PERFORMANCE_COPY.unavailable);
+  test("takes the performance away, reopens the dialog with its rite and says why when the server refuses it", async () => {
+    const answer = holdStart();
     await openRiteDialog();
     const dialog = riteDialog();
+    await dialog.getByRole("radio", { name: BRAINSTORM_CHOICE }).click();
     await dialog
       .getByRole("button", { name: PERFORMANCE_COPY.start, exact: true })
       .click();
+    await expect.element(composer()).toBeVisible();
+
+    answer(PERFORMANCE_COPY.unavailable);
+
+    await expect.element(composer()).not.toBeInTheDocument();
     await expect
       .element(dialog.getByRole("alert"))
       .toHaveTextContent(PERFORMANCE_COPY.unavailable);
+    await expect
+      .element(dialog.getByRole("radio", { name: BRAINSTORM_CHOICE }))
+      .toBeChecked();
     await dialog
       .getByRole("button", { name: QUEST_OVERVIEW_COPY.rite.cancel })
       .click();

@@ -101,7 +101,7 @@ function AddBox({
       if (target === undefined || taken.some((item) => sameText(item, entry))) {
         return false;
       }
-      const saved = await runOn(target.id, { kind: "add", text: entry });
+      const saved = await runOn(target, { kind: "add", text: entry });
       if (saved) {
         setSaid(COPY.added(entry, target.name));
       }

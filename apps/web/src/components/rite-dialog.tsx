@@ -9,12 +9,11 @@ import {
   useRef,
   useState,
 } from "react";
+import { usePerformanceStart } from "@/components/performance-start.ts";
 import { Button } from "@/components/ui/button.tsx";
 import { Alert } from "@/components/ui/form-message.tsx";
 import { Icon } from "@/components/ui/icon.tsx";
-import type { QuestId } from "@/ids.ts";
 import type { List } from "@/lists/list-store.ts";
-import { startPerformanceAction } from "@/performances/performance-actions.ts";
 import { type Rite, riteFirstMessage } from "@/rites/rite.ts";
 import { PERFORMANCE_COPY } from "@/ui/copy/performances.ts";
 import { QUEST_OVERVIEW_COPY } from "@/ui/copy/quest-overview.ts";
@@ -64,45 +63,37 @@ function RiteGroup({
   );
 }
 
+// Why the server refused the last performance, and the rite it was of.
+interface Refusal {
+  readonly problem: string;
+  readonly riteId: string;
+}
+
 // The dialog's content. It mounts each time the dialog opens, so each
-// choice starts afresh.
+// choice starts afresh, or from the refused one.
 function RiteForm({
-  questId,
   list,
   rites,
-  onPerformed,
+  refusal,
+  onPerform,
 }: {
-  readonly questId: QuestId;
   readonly list: List;
   readonly rites: readonly Rite[];
-  readonly onPerformed: () => void;
+  readonly refusal: Refusal | undefined;
+  readonly onPerform: (rite: Rite) => void;
 }): JSX.Element {
-  const [problem, setProblem] = useState<string | undefined>(undefined);
-  const [pending, setPending] = useState(false);
   const perform = useCallback(
-    async (event: SubmitEvent<HTMLFormElement>): Promise<void> => {
+    (event: SubmitEvent<HTMLFormElement>): void => {
       event.preventDefault();
-      setPending(true);
-      setProblem(undefined);
-      let refused: string | undefined = PERFORMANCE_COPY.unavailable;
-      try {
-        refused = await startPerformanceAction({
-          questId,
-          riteId: new FormData(event.currentTarget).get("riteId"),
-          listId: list.id,
-        });
-      } catch {
-        refused = PERFORMANCE_COPY.unavailable;
+      const riteId = new FormData(event.currentTarget).get("riteId");
+      const rite = rites.find(({ id }) => id === riteId);
+      if (rite !== undefined) {
+        onPerform(rite);
       }
-      setPending(false);
-      if (refused === undefined) {
-        onPerformed();
-        return;
-      }
-      setProblem(refused);
     },
-    [list.id, onPerformed, questId],
+    [onPerform, rites],
   );
+  const first = refusal?.riteId ?? rites[0]?.id;
   const builtIn = rites.filter(({ source }) => source === "built-in");
   const own = rites.filter(({ source }) => source === "own");
   return (
@@ -125,22 +116,15 @@ function RiteForm({
           legend={COPY.builtIn}
           rites={builtIn}
           list={list}
-          first={rites[0]?.id}
+          first={first}
         />
-        <RiteGroup
-          legend={COPY.own}
-          rites={own}
-          list={list}
-          first={rites[0]?.id}
-        />
-        {problem !== undefined && <Alert>{problem}</Alert>}
+        <RiteGroup legend={COPY.own} rites={own} list={list} first={first} />
+        {refusal !== undefined && <Alert>{refusal.problem}</Alert>}
         <div className="flex flex-wrap justify-end gap-2">
           <Dialog.Close asChild={true}>
             <Button variant="quiet">{COPY.cancel}</Button>
           </Dialog.Close>
-          <Button type="submit" aria-busy={pending} disabled={pending}>
-            {PERFORMANCE_COPY.start}
-          </Button>
+          <Button type="submit">{PERFORMANCE_COPY.start}</Button>
         </div>
       </form>
     </>
@@ -150,28 +134,39 @@ function RiteForm({
 // A list card's Perform a rite button and the modal dialog it opens, where
 // the user chooses one of their rites, built in or their own, each shown
 // with its first message for the list, and performs it on the list. The
-// first rite is chosen when it opens. A refused performance keeps the
-// dialog open and says why. Escape, Cancel, the close button or a click
-// beside it closes it. Once the rite is performed the button is gone, so
-// focus goes to the performance's name, after the list sections, or to the
-// quest's title while the performance is still on its way.
+// first rite is chosen when it opens. Performing it closes the dialog and
+// shows the performance at once, after the list sections, with focus on its
+// name; if the server refuses it, the performance goes and the dialog opens
+// again with that rite chosen and says why. Escape, Cancel, the close
+// button or a click beside it closes it.
 function RiteDialog({
-  questId,
   list,
   rites,
 }: {
-  readonly questId: QuestId;
   readonly list: List;
   readonly rites: readonly Rite[];
 }): JSX.Element {
+  const { start } = usePerformanceStart();
   const [open, setOpen] = useState(false);
+  const [refusal, setRefusal] = useState<Refusal | undefined>();
   const performedRef = useRef<boolean>(false);
-  const performed = useCallback((): void => {
-    performedRef.current = true;
-    setOpen(false);
-  }, []);
+  const perform = useCallback(
+    (rite: Rite): void => {
+      performedRef.current = true;
+      setOpen(false);
+      setRefusal(undefined);
+      start(rite, list, (problem: string): void => {
+        setRefusal({ problem, riteId: rite.id });
+        setOpen(true);
+      });
+    },
+    [list, start],
+  );
   const changeOpen = useCallback((next: boolean): void => {
     performedRef.current = false;
+    if (!next) {
+      setRefusal(undefined);
+    }
     setOpen(next);
   }, []);
   const placeFocus = useCallback((event: Event): void => {
@@ -205,10 +200,10 @@ function RiteDialog({
           onCloseAutoFocus={placeFocus}
         >
           <RiteForm
-            questId={questId}
             list={list}
             rites={rites}
-            onPerformed={performed}
+            refusal={refusal}
+            onPerform={perform}
           />
         </Dialog.Content>
       </Dialog.Portal>

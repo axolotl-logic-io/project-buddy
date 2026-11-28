@@ -15,6 +15,7 @@ import QuestPage from "@/app/(stream)/(site)/(workspace)/quests/[questId]/(overv
 import { continueSignInAction } from "@/app/(stream)/(site)/login/link/actions.ts";
 import SignInLinkPage from "@/app/(stream)/(site)/login/link/page.tsx";
 import { currentUser } from "@/auth/current-user.ts";
+import { newPerformanceId } from "@/ids.ts";
 import { readLists } from "@/lists/list-store.ts";
 import {
   PERFORMANCE_MESSAGE,
@@ -604,6 +605,7 @@ describe("how a quest is shared, wherever quests are listed", () => {
       throw new Error("The member cannot see the quest's starting lists");
     }
     const performance = await startPerformance(member.id, first.id, {
+      id: newPerformanceId(),
       listId: list.id,
       riteId: "capture",
     });

@@ -4,19 +4,15 @@
 // the composer and the quest page.
 
 import type { JSX } from "react";
-import { z } from "zod";
 import { MessageComposer } from "@/components/performance-controls.tsx";
 import { PerformanceTranscript } from "@/components/performance-transcript.tsx";
 import type { Construct } from "@/constructs/index.ts";
-import type { QuestId, UserId } from "@/ids.ts";
+import { PERFORMANCE_ID, type QuestId, type UserId } from "@/ids.ts";
 import { LIST_ID } from "@/lists/list.ts";
 import type {
   Performance,
   PerformanceMessage,
 } from "@/performances/performance-store.ts";
-
-// The store's id schema, since the browser tests mock the store module.
-const PERFORMANCE_ID = z.guid().toLowerCase().brand<"PerformanceId">();
 
 const PERFORMANCE: Performance = {
   id: PERFORMANCE_ID.parse("0b6c1d55-2f0e-4b8a-9c3d-6e7f8a9b0c1d"),
@@ -103,10 +99,4 @@ function performanceView({
   );
 }
 
-export {
-  MARKDOWN_REPLY,
-  PERFORMANCE,
-  PERFORMANCE_ID,
-  performanceView,
-  sentMessage,
-};
+export { MARKDOWN_REPLY, PERFORMANCE, performanceView, sentMessage };

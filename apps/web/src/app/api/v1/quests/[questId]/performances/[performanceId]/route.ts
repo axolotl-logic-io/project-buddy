@@ -7,9 +7,9 @@ import {
   questRoute,
   readApiBody,
 } from "@/api/api-route.ts";
+import { PERFORMANCE_ID } from "@/ids.ts";
 import {
   listPerformances,
-  PERFORMANCE_ID,
   PERFORMANCE_MESSAGE,
   readPerformanceMessages,
   sendMessage,

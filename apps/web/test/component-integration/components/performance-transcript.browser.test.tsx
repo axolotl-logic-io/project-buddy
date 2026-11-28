@@ -17,12 +17,12 @@ import {
 import { page } from "vitest/browser";
 import { render } from "vitest-browser-react";
 import { getConstruct } from "@/constructs/index.ts";
+import { PERFORMANCE_ID } from "@/ids.ts";
 import { PERFORMANCE_COPY } from "@/ui/copy/performances.ts";
 import { questIdFixture, userIdFixture } from "../../support/id-fixtures.ts";
 import {
   MARKDOWN_REPLY,
   PERFORMANCE,
-  PERFORMANCE_ID,
   performanceView,
   sentMessage,
 } from "../performances/performance-test-kit.tsx";

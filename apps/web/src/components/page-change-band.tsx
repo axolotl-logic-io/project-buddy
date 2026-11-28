@@ -8,6 +8,7 @@ import {
   useOptimistic,
   useRef,
 } from "react";
+import { usePagePending } from "@/components/pending-page-context.ts";
 import { subscribeToPageChanges } from "@/instrumentation-client.ts";
 import { SITE_COPY } from "@/ui/copy/site.ts";
 
@@ -52,8 +53,9 @@ function PageChangeBand({
     [setChangingPage],
   );
 
+  const pagePending = usePagePending();
   let busy: true | undefined;
-  if (loading === true || changingPage) {
+  if (loading === true || changingPage || pagePending) {
     busy = true;
   }
 

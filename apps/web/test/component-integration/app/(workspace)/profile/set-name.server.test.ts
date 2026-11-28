@@ -1,6 +1,7 @@
 import { expect, test, vi } from "vitest";
 import { readUserName } from "@/accounts/users-store.ts";
 import { setNameAction } from "@/app/(stream)/(site)/(workspace)/profile/actions.ts";
+import { newPerformanceId } from "@/ids.ts";
 import { readLists } from "@/lists/list-store.ts";
 import {
   PERFORMANCE_MESSAGE,
@@ -34,6 +35,7 @@ test("use_case_set_name", async () => {
     throw new Error("The performance could not be prepared");
   }
   const performance = await startPerformance(user.id, quest.id, {
+    id: newPerformanceId(),
     listId: list.id,
     riteId: rite.id,
   });

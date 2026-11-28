@@ -141,17 +141,19 @@ interface QuestStartOptions {
   readonly startingContext?: string;
 }
 
-// A new quest with its starting lists.
-function createQuest(
+// A new quest with its starting lists, under id when one is given. A
+// quest that already has that id is left alone, and none is made.
+function insertQuest(
   owner: UserId,
   name: QuestName,
-  options: QuestStartOptions = {},
-): Promise<Quest> {
+  options: QuestStartOptions & { readonly id?: QuestId },
+): Promise<Quest | undefined> {
   return withAppErrors("createQuest", () =>
     inTransaction(async (tx) => {
       const inserted = await tx
         .insert(quests)
         .values({ ...options, userId: owner, name })
+        .onConflictDoNothing({ target: quests.id })
         .returning(QUEST_COLUMNS);
       // A new quest is its owner's own, with no members yet.
       const [quest] = toQuests(
@@ -163,13 +165,37 @@ function createQuest(
           hasMembers: false,
         })),
       );
-      if (quest === undefined) {
-        throw new Error("Inserting a quest returned no quest");
+      if (quest !== undefined) {
+        await seedLists(tx, quest.id);
       }
-      await seedLists(tx, quest.id);
       return quest;
     }),
   );
+}
+
+// A new quest with its starting lists.
+async function createQuest(
+  owner: UserId,
+  name: QuestName,
+  options: QuestStartOptions = {},
+): Promise<Quest> {
+  const quest = await insertQuest(owner, name, options);
+  if (quest === undefined) {
+    throw new Error("Inserting a quest returned no quest");
+  }
+  return quest;
+}
+
+// A new quest the browser has named the id of, so it can show the quest
+// before the server replies, with its starting lists. Undefined, making
+// nothing, if a quest already has that id.
+function startQuest(
+  owner: UserId,
+  id: QuestId,
+  name: QuestName,
+  options: QuestStartOptions = {},
+): Promise<Quest | undefined> {
+  return insertQuest(owner, name, { ...options, id });
 }
 
 // The name a new Life starts with.
@@ -222,5 +248,6 @@ export {
   listQuests,
   QUEST_COLUMNS,
   renameQuest,
+  startQuest,
   toQuests,
 };

@@ -80,7 +80,6 @@ describe("use_case_split_list_item", () => {
   test("Split shows the task, takes a part for each new task and saves them", async () => {
     vi.mocked(changeListItemAction).mockResolvedValue({
       kind: "saved",
-      message: LISTS_COPY.splitDone("task", THIRD),
       undoVersion: LIST.version + 1,
     });
     const shop = task(SHOP);

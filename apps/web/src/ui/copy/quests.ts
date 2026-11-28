@@ -29,8 +29,15 @@ export const NEW_QUEST_COPY = {
   close: "Cancel the new quest",
   nameLabel: "Name",
   start: "Start quest",
-  starting: "Starting the quest…",
   invalid: "Check the quest’s name and try again.",
+  failed: "The quest couldn’t be started. Try again.",
+  // Why a name can't be a quest's, as checkQuestName finds it.
+  nameProblem: (problem: "missing" | "tooLong", maxLength: number): string => {
+    if (problem === "tooLong") {
+      return QUESTS_COPY.nameTooLong(maxLength);
+    }
+    return QUESTS_COPY.needsName;
+  },
 } as const;
 
 // Life, pinned at the top of Quests (src/components/life-pin.tsx).

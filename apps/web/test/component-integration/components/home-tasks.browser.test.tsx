@@ -36,6 +36,18 @@ afterEach(() => {
   vi.clearAllMocks();
 });
 
+// Holds the next change unanswered until the returned function answers it.
+function holdChange(): (result: QuestActionResult) => void {
+  let answer: (result: QuestActionResult) => void = () => undefined;
+  vi.mocked(changeListItemAction).mockImplementationOnce(
+    () =>
+      new Promise((resolve) => {
+        answer = resolve;
+      }),
+  );
+  return (result: QuestActionResult): void => answer(result);
+}
+
 describe("use_case_home_tasks", () => {
   test("each quest links to itself above its open tasks, with their count", async () => {
     await render(<HomeTasks quests={[ERRANDS]} />);
@@ -52,16 +64,8 @@ describe("use_case_home_tasks", () => {
       .not.toBeChecked();
   });
 
-  test("a task checked off leaves at once, focus moves on, and Undo unchecks it", async () => {
-    let finish: (result: QuestActionResult) => void = () => undefined;
-    vi.mocked(changeListItemAction)
-      .mockImplementationOnce(
-        () =>
-          new Promise((resolve) => {
-            finish = resolve;
-          }),
-      )
-      .mockResolvedValueOnce({ kind: "saved", message: LISTS_COPY.unchecked });
+  test("a task checked off leaves at once, says so, focus moves on, and Undo brings it back at once", async () => {
+    const [checkOff, undo] = [holdChange(), holdChange()];
     const screen = await render(<HomeTasks quests={[ERRANDS]} />);
 
     // From the keyboard, since WebKit doesn't focus a clicked checkbox.
@@ -74,6 +78,7 @@ describe("use_case_home_tasks", () => {
     await expect
       .element(page.getByRole("checkbox", { name: BANK }))
       .toHaveFocus();
+    await expect.element(page.getByText(LISTS_COPY.checkedOff)).toBeVisible();
     expect(vi.mocked(changeListItemAction)).toHaveBeenCalledWith({
       questId: ERRANDS.quest.id,
       listId: LIST,
@@ -81,7 +86,7 @@ describe("use_case_home_tasks", () => {
     });
 
     // The saved check-off comes back with Home without the task.
-    finish({ kind: "saved", message: LISTS_COPY.checkedOff });
+    checkOff({ kind: "saved", undoVersion: 1 });
     await screen.rerender(
       <HomeTasks quests={[{ ...ERRANDS, tasks: [BANK_TASK] }]} />,
     );
@@ -97,6 +102,9 @@ describe("use_case_home_tasks", () => {
       listId: LIST,
       change: { kind: "check", id: POST_ID, checkedOff: false },
     });
+    await expect
+      .element(page.getByRole("checkbox", { name: POST }))
+      .not.toBeChecked();
     await expect.element(page.getByText(LISTS_COPY.unchecked)).toBeVisible();
     await expect
       .element(page.getByRole("button", { name: LISTS_COPY.undo }))
@@ -104,21 +112,41 @@ describe("use_case_home_tasks", () => {
     await expect
       .element(page.getByRole("heading", { name: HOME_COPY.tasksHeading }))
       .toHaveFocus();
+
+    undo({ kind: "saved" });
+    await screen.rerender(<HomeTasks quests={[ERRANDS]} />);
+    await expect.element(page.getByText(LISTS_COPY.unchecked)).toBeVisible();
+    await expect
+      .element(page.getByRole("checkbox", { name: POST }))
+      .not.toBeChecked();
   });
 
-  test("a check that fails says why and keeps the task", async () => {
-    vi.mocked(changeListItemAction).mockResolvedValue({
-      kind: "problem",
-      text: LISTS_COPY.saveFailed,
-    });
+  test("a check-off the server refuses brings the task back where it was and says why", async () => {
+    const checkOff = holdChange();
     await render(<HomeTasks quests={[ERRANDS]} />);
 
-    await page.getByRole("checkbox", { name: BANK }).click();
+    page.getByRole("checkbox", { name: POST }).element().focus();
+    await userEvent.keyboard(" ");
+    await expect
+      .element(page.getByRole("checkbox", { name: POST }))
+      .not.toBeInTheDocument();
+
+    checkOff({ kind: "problem", text: LISTS_COPY.saveFailed });
 
     await expect.element(page.getByText(LISTS_COPY.saveFailed)).toBeVisible();
     await expect
-      .element(page.getByRole("checkbox", { name: BANK }))
+      .element(page.getByText(LISTS_COPY.checkedOff))
+      .not.toBeInTheDocument();
+    await expect
+      .element(page.getByRole("checkbox", { name: POST }))
       .not.toBeChecked();
+    // Back where it was: first, above the bank.
+    await expect
+      .element(page.getByRole("checkbox").first())
+      .toHaveAccessibleName(POST);
+    await expect
+      .element(page.getByRole("checkbox", { name: BANK }))
+      .toHaveFocus();
     await expect
       .element(page.getByRole("button", { name: LISTS_COPY.undo }))
       .not.toBeInTheDocument();
