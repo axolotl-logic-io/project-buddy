@@ -65,7 +65,7 @@ function useQuestAction<Request>(
 ): QuestAction<Request> {
   const [settled, setSettled] = useState(NO_FEEDBACK);
   const [feedback, showFeedback] = useOptimistic(settled);
-  const [busy, showBusy] = useOptimistic(false);
+  const [busy, setBusy] = useState(false);
   // Runs it, then tells done whether the server saved it.
   const perform = useCallback(
     (
@@ -73,8 +73,8 @@ function useQuestAction<Request>(
       outcome: Outcome,
       done: (saved: boolean) => void,
     ): void => {
+      setBusy(true);
       startTransition(async () => {
-        showBusy(true);
         showFeedback({ status: outcome.status });
         outcome.show?.();
         let next: Feedback = { problem: failed };
@@ -83,6 +83,8 @@ function useQuestAction<Request>(
         } catch {
           // The server didn't answer, so the change is undone.
         }
+        // Let a closing dialog restore focus to its now-enabled control.
+        setBusy(false);
         // The result shows with the page the server sent back with it, so
         // a notice never stands where that page's changes will push it.
         startTransition(() => {
@@ -96,7 +98,7 @@ function useQuestAction<Request>(
         done(next.problem === undefined);
       });
     },
-    [action, failed, showBusy, showFeedback],
+    [action, failed, showFeedback],
   );
   const start = useCallback(
     (request: Request, outcome: Outcome = {}): void =>
