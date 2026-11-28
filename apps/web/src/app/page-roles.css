@@ -510,6 +510,9 @@
     --quest-panel-width: 22rem;
     /* How long a side panel takes to slide in or out. */
     --panel-slide-time: 200ms;
+    /* A side panel slows as it arrives and speeds up as it leaves. */
+    --panel-slide-in: ease-out;
+    --panel-slide-out: ease-in;
     scroll-padding-top: var(--page-header-height);
   }
 
@@ -936,7 +939,7 @@
   @media (prefers-reduced-motion: no-preference) {
     :is(.site-panel, .quest-sidebar-frame)[data-slides] {
       transition:
-        translate var(--panel-slide-time) ease-out,
+        translate var(--panel-slide-time) var(--panel-slide-in),
         overlay var(--panel-slide-time) allow-discrete;
     }
 
@@ -945,7 +948,7 @@
       display: block;
       visibility: hidden;
       transition:
-        translate var(--panel-slide-time) ease-out,
+        translate var(--panel-slide-time) var(--panel-slide-out),
         visibility var(--panel-slide-time),
         overlay var(--panel-slide-time) allow-discrete;
     }
@@ -962,11 +965,32 @@
     html:has(.quest-sidebar-frame[data-slides])
       .trail-band:has(.quest-sidebar-expand)
       .trail-content {
-      transition: margin-inline var(--panel-slide-time) ease-out;
+      transition:
+        margin-inline-start var(--panel-slide-time)
+        var(--trail-start-slide, var(--panel-slide-in)),
+        margin-inline-end var(--panel-slide-time)
+        var(--trail-end-slide, var(--panel-slide-in));
+    }
+
+    /* Each end of the breadcrumbs keeps pace with the panel at that end. */
+    .trail-band:has(
+        .site-panel:where(:not(.timer-panel))[data-slides]:not([open])
+      ) {
+      --trail-start-slide: var(--panel-slide-out);
+    }
+
+    .trail-band:has(.timer-panel[data-slides]:not([open])),
+    html:has(.quest-sidebar-frame[data-slides]:not([open])) .trail-band {
+      --trail-end-slide: var(--panel-slide-out);
     }
 
     .quest-layout:has(> .quest-sidebar-frame[data-slides]) {
-      transition: padding-inline-end var(--panel-slide-time) ease-out;
+      transition: padding-inline-end var(--panel-slide-time)
+        var(--panel-slide-in);
+    }
+
+    .quest-layout:has(> .quest-sidebar-frame[data-slides]:not([open])) {
+      transition-timing-function: var(--panel-slide-out);
     }
   }
 

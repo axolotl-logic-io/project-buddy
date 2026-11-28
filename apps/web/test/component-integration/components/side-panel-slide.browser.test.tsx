@@ -2,7 +2,8 @@ import type { JSX } from "react";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { commands, page } from "vitest/browser";
 import { render } from "vitest-browser-react";
-import { PageHeader } from "@/components/page-header.tsx";
+import type { Breadcrumb } from "@/components/breadcrumb.ts";
+import { PageHeader, TrailBand } from "@/components/page-header.tsx";
 import { QuestSidePanel } from "@/components/quest-side-panel.tsx";
 import { SitePanel } from "@/components/site-panel.tsx";
 import { animationsSettled } from "../../support/animations-test-kit.ts";
@@ -18,11 +19,17 @@ vi.mock("next/navigation", () => import("./router-test-kit.ts"));
 
 const SLIDE_MS = 200;
 const MS_PER_SECOND = 1000;
+// A panel slows as it arrives and speeds up as it leaves.
+const ARRIVING = "ease-out";
+const LEAVING = "ease-in";
 
 const PAGE_TEXT = "The page";
 const QUESTS_LINK = "Quests";
 const PANEL_TEXT = "Members";
 const OVERVIEW_TEXT = "Overview";
+
+const QUEST_TITLE = "Fox quest";
+const QUEST_TRAIL: readonly Breadcrumb[] = [{ label: QUEST_TITLE }];
 
 const QUEST_PANEL_LABELS = {
   label: "Quest panel",
@@ -46,11 +53,11 @@ function siteFrame(): JSX.Element {
 function questFrame(): JSX.Element {
   return (
     <>
-      <PageHeader />
+      <PageHeader trail={<TrailBand items={QUEST_TRAIL} />} />
       <QuestSidePanel
         labels={QUEST_PANEL_LABELS}
         panel={<p>{PANEL_TEXT}</p>}
-        title="Fox quest"
+        title={QUEST_TITLE}
       >
         <p>{OVERVIEW_TEXT}</p>
       </QuestSidePanel>
@@ -108,13 +115,46 @@ function recordSlides(): {
   };
 }
 
-// How long `dialog` takes to slide, in ms.
-function slideMs(dialog: HTMLDialogElement): number {
-  const style = getComputedStyle(dialog);
-  const properties = style.transitionProperty.split(", ");
+// How `element` moves when `property` changes: how long it takes, in ms,
+// and its easing.
+function motionOf(
+  element: Element,
+  property: string,
+): { readonly ms: number; readonly easing: string } {
+  const style = getComputedStyle(element);
+  const at = style.transitionProperty.split(", ").indexOf(property);
   const durations = style.transitionDuration.split(", ");
-  const at = properties.indexOf("translate");
-  return Number.parseFloat(durations[at] ?? "0") * MS_PER_SECOND;
+  const easings = style.transitionTimingFunction.split(", ");
+  return {
+    ms: Number.parseFloat(durations[at] ?? "0") * MS_PER_SECOND,
+    easing: easings[at] ?? "",
+  };
+}
+
+// How `dialog` slides: it slows as it arrives and speeds up as it leaves.
+function slideOf(dialog: HTMLDialogElement): {
+  readonly ms: number;
+  readonly easing: string;
+} {
+  return motionOf(dialog, "translate");
+}
+
+// The breadcrumbs, which give the docked panels room at their ends.
+function breadcrumbs(): Element {
+  const trail = document.querySelector(".trail-content");
+  if (trail === null) {
+    throw new Error("The breadcrumbs are not in the page");
+  }
+  return trail;
+}
+
+// The page beside the quest panel, which gives it room.
+function questLayout(): Element {
+  const layout = document.querySelector(".quest-layout");
+  if (layout === null) {
+    throw new Error("The quest page is not in the page");
+  }
+  return layout;
 }
 
 // After the next rendering update, when a change made now has been styled.
@@ -151,7 +191,7 @@ describe("use_case_use_on_phone: side panels slide", () => {
       const opening = nextSlide(dialog);
       await panelButton().click();
       await opening;
-      expect(slideMs(dialog)).toBe(SLIDE_MS);
+      expect(slideOf(dialog)).toEqual({ ms: SLIDE_MS, easing: ARRIVING });
       await animationsSettled(dialog, "The site panel");
       expect(onScreen(dialog), "it has slid in").toBe(true);
 
@@ -162,6 +202,7 @@ describe("use_case_use_on_phone: side panels slide", () => {
         "it stays on screen while it slides out",
       ).toBe(true);
       expect(dialog.open).toBe(false);
+      expect(slideOf(dialog)).toEqual({ ms: SLIDE_MS, easing: LEAVING });
       await animationsSettled(dialog, "The site panel");
       expect(onScreen(dialog), "it has gone once it slid out").toBe(false);
       expect(
@@ -188,7 +229,15 @@ describe("use_case_use_on_phone: side panels slide", () => {
       .getByRole("button", { name: QUEST_PANEL_LABELS.collapse })
       .click();
     expect((await closing).onScreen, "it slides out").toBe(true);
-    expect(slideMs(dialog)).toBe(SLIDE_MS);
+    expect(slideOf(dialog)).toEqual({ ms: SLIDE_MS, easing: LEAVING });
+    expect(
+      motionOf(questLayout(), "padding-inline-end"),
+      "the page takes the room back at the panel's pace",
+    ).toEqual({ ms: SLIDE_MS, easing: LEAVING });
+    expect(
+      motionOf(breadcrumbs(), "margin-inline-end"),
+      "so do the breadcrumbs",
+    ).toEqual({ ms: SLIDE_MS, easing: LEAVING });
     await animationsSettled(document, "The page");
     expect(onScreen(dialog)).toBe(false);
     expect(document.documentElement.scrollWidth).toBeLessThanOrEqual(
@@ -198,6 +247,15 @@ describe("use_case_use_on_phone: side panels slide", () => {
     const opening = nextSlide(dialog);
     await page.getByRole("button", { name: QUEST_PANEL_LABELS.expand }).click();
     await opening;
+    expect(slideOf(dialog)).toEqual({ ms: SLIDE_MS, easing: ARRIVING });
+    expect(
+      motionOf(questLayout(), "padding-inline-end"),
+      "the page makes room at the panel's pace",
+    ).toEqual({ ms: SLIDE_MS, easing: ARRIVING });
+    expect(
+      motionOf(breadcrumbs(), "margin-inline-end"),
+      "so do the breadcrumbs",
+    ).toEqual({ ms: SLIDE_MS, easing: ARRIVING });
     await animationsSettled(document, "The page");
     expect(onScreen(dialog), "it has slid back in").toBe(true);
   });
