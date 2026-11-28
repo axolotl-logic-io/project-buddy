@@ -11,6 +11,9 @@ export const metadata: Metadata = {
   title: LOGIN_COPY.title,
 };
 
+// A navigation here shows the page at once, from its App Shell.
+export const instant = true;
+
 // The sign-in page, which every page shows to a signed-out visitor: their
 // email address alone, for a sign-in link, and a link to the sign-up page.
 // A page that sends them here to come back to, such as a timer link, names

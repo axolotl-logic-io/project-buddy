@@ -7,6 +7,9 @@ export const metadata: Metadata = {
   title: CREDITS_COPY.title,
 };
 
+// A navigation here shows the page at once, from its App Shell.
+export const instant = true;
+
 // Public attribution for adapted content and place icons, on a panel as the
 // not-found and error pages are.
 export default function CreditsPage(): JSX.Element {

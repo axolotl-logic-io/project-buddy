@@ -39,6 +39,9 @@ function tasksFound(
 
 export const metadata: Metadata = { title: QUESTS_COPY.title };
 
+// A navigation here shows the page at once, from its App Shell.
+export const instant = true;
+
 // Invitations waiting for an answer, then the user's Life, pinned with one
 // of its recurring tasks to check off, then a finder over every quest
 // open to them and the tasks of their Active ones. ?q= is the search;
