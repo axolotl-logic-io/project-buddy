@@ -3,9 +3,10 @@ import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { commands, page } from "vitest/browser";
 import { render } from "vitest-browser-react";
 import type { Breadcrumb } from "@/components/breadcrumb.ts";
-import { PageHeader, TrailBand } from "@/components/page-header.tsx";
+import { PageHeader } from "@/components/page-header.tsx";
 import { QuestSidePanel } from "@/components/quest-side-panel.tsx";
 import { SitePanel } from "@/components/site-panel.tsx";
+import { TrailBand } from "@/components/trail-band.tsx";
 import { animationsSettled } from "../../support/animations-test-kit.ts";
 import { applyTheme } from "../themes/theme-test-kit.ts";
 import {
