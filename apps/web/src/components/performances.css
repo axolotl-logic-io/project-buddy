@@ -207,6 +207,21 @@
     inline-size: min(100%, 14rem);
   }
 
+  /* The transcript's messages, each with its reply. With none yet the list
+     takes no room, so the first message the composer shows as sending
+     (performance-controls.tsx) takes the room its saved entry will. */
+  .performance-entries {
+    @apply grid gap-3;
+  }
+
+  .performance-entries:empty {
+    display: none;
+  }
+
+  .performance-entry {
+    @apply grid min-w-0 gap-2;
+  }
+
   /* The construct while a reply is coming (performance-controls.tsx):
      Lumen's light gently glows and Vellum works, only when motion is
      welcome. With reduced motion the portrait stays still, and the busy
@@ -214,6 +229,12 @@
      the portrait goes, and nothing keeps moving. */
   .performance-working .construct-avatar {
     border-radius: 50%;
+  }
+
+  /* The busy text is no taller than the portrait beside it, so the head
+     takes the same room once the reply has saved. */
+  .performance-working > .notice {
+    padding-block: --spacing(0.5);
   }
 
   @media (prefers-reduced-motion: no-preference) {

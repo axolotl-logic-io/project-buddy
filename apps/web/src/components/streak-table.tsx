@@ -12,6 +12,7 @@ import { periodName } from "@/components/calendar-days.ts";
 import { PeriodHeading } from "@/components/date-heading.tsx";
 import { Alert, FormStatus } from "@/components/ui/form-message.tsx";
 import { Icon } from "@/components/ui/icon.tsx";
+import { NoticeSlot } from "@/components/ui/notice-slot.tsx";
 import { useBrowserToday } from "@/components/use-browser-today.ts";
 import { useQuestAction } from "@/components/use-quest-action.ts";
 import type { QuestId } from "@/ids.ts";
@@ -332,9 +333,11 @@ function StreakTable({
       <h2 className="section-heading" id={headingId}>
         {HOME_COPY.streaksHeading}
       </h2>
-      {body}
-      {problem !== undefined && <Alert>{problem}</Alert>}
-      <FormStatus>{check.status}</FormStatus>
+      <NoticeSlot>
+        {body}
+        {problem !== undefined && <Alert>{problem}</Alert>}
+        <FormStatus>{check.status}</FormStatus>
+      </NoticeSlot>
     </section>
   );
 }

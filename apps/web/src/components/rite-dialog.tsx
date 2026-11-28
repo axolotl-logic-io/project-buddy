@@ -70,12 +70,12 @@ function RiteForm({
   questId,
   list,
   rites,
-  onPerformed,
+  onStarting,
 }: {
   readonly questId: QuestId;
   readonly list: List;
   readonly rites: readonly Rite[];
-  readonly onPerformed: () => void;
+  readonly onStarting: (starting: boolean) => void;
 }): JSX.Element {
   const [problem, setProblem] = useState<string | undefined>(undefined);
   const [pending, setPending] = useState(false);
@@ -84,6 +84,7 @@ function RiteForm({
       event.preventDefault();
       setPending(true);
       setProblem(undefined);
+      onStarting(true);
       let refused: string | undefined = PERFORMANCE_COPY.unavailable;
       try {
         refused = await startPerformanceAction({
@@ -94,14 +95,16 @@ function RiteForm({
       } catch {
         refused = PERFORMANCE_COPY.unavailable;
       }
-      setPending(false);
+      // The refreshed page adds the performance and removes this dialog
+      // in the same commit.
       if (refused === undefined) {
-        onPerformed();
         return;
       }
+      onStarting(false);
+      setPending(false);
       setProblem(refused);
     },
-    [list.id, onPerformed, questId],
+    [list.id, onStarting, questId],
   );
   const builtIn = rites.filter(({ source }) => source === "built-in");
   const own = rites.filter(({ source }) => source === "own");
@@ -153,7 +156,7 @@ function RiteForm({
 // first rite is chosen when it opens. A refused performance keeps the
 // dialog open and says why. Escape, Cancel, the close button or a click
 // beside it closes it. Once the rite is performed the button is gone, so
-// focus goes to the quest's title, just above the performance.
+// focus goes to the performance's name, after the list sections.
 function RiteDialog({
   questId,
   list,
@@ -164,24 +167,30 @@ function RiteDialog({
   readonly rites: readonly Rite[];
 }): JSX.Element {
   const [open, setOpen] = useState(false);
-  const performedRef = useRef<boolean>(false);
-  const performed = useCallback((): void => {
-    performedRef.current = true;
-    setOpen(false);
+  const startingRef = useRef<boolean>(false);
+  const noteStart = useCallback((starting: boolean): void => {
+    startingRef.current = starting;
   }, []);
   const changeOpen = useCallback((next: boolean): void => {
-    performedRef.current = false;
+    startingRef.current = false;
     setOpen(next);
   }, []);
-  const placeFocus = useCallback((event: Event): void => {
-    if (!performedRef.current) {
-      return;
-    }
-    event.preventDefault();
-    document
-      .querySelector<HTMLElement>("[data-quest-overview-heading]")
-      ?.focus();
-  }, []);
+  const placeFocus = useCallback(
+    (event: Event): void => {
+      if (!startingRef.current) {
+        return;
+      }
+      const heading = document.querySelector<HTMLElement>(
+        `[data-performance-heading="${CSS.escape(questId)}"]`,
+      );
+      if (heading !== null) {
+        event.preventDefault();
+        // The page scrolls to the composer.
+        heading.focus({ preventScroll: true });
+      }
+    },
+    [questId],
+  );
   return (
     <Dialog.Root open={open} onOpenChange={changeOpen}>
       <Dialog.Trigger asChild={true}>
@@ -204,7 +213,7 @@ function RiteDialog({
             questId={questId}
             list={list}
             rites={rites}
-            onPerformed={performed}
+            onStarting={noteStart}
           />
         </Dialog.Content>
       </Dialog.Portal>

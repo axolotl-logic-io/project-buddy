@@ -7,6 +7,7 @@ import { DateHeading } from "@/components/date-heading.tsx";
 import { TallyAmountForm } from "@/components/tally-amount-form.tsx";
 import { Alert, FormStatus } from "@/components/ui/form-message.tsx";
 import { Icon } from "@/components/ui/icon.tsx";
+import { NoticeSlot } from "@/components/ui/notice-slot.tsx";
 import { useBrowserToday } from "@/components/use-browser-today.ts";
 import { useQuestAction } from "@/components/use-quest-action.ts";
 import type { QuestId } from "@/ids.ts";
@@ -305,8 +306,6 @@ function TallyLedger({
     TALLY_DAYS,
   );
   const problem = increment.problem ?? set.problem;
-  // Feedback sits under the table, above its legend, so it takes the room of
-  // the amount form that saving closes and the legend barely moves.
   const feedback = (
     <>
       {problem !== undefined && <Alert>{problem}</Alert>}
@@ -318,39 +317,44 @@ function TallyLedger({
     body = (
       <>
         <p className="text-muted text-sm">{TALLIES_COPY.noTallies}</p>
-        {feedback}
+        <NoticeSlot>{feedback}</NoticeSlot>
       </>
     );
   } else {
     body = (
       <>
-        <table
-          aria-labelledby={headingId}
-          className="streak-table tally-ledger"
-        >
-          <thead>
-            <tr className="streak-row streak-head">
-              <th className="streak-task-head" scope="col">
-                <span className="sr-only">{TALLIES_COPY.tallyColumn}</span>
-              </th>
-              {dates.map((date) => (
-                <DateHeading date={date} key={date} today={today} />
-              ))}
-              <th className="streak-count-head" scope="col">
-                <span className="sr-only">{TALLIES_COPY.incrementColumn}</span>
-              </th>
-            </tr>
-          </thead>
-          {quests.map((entry) => (
-            <QuestRows
-              actions={actions}
-              dates={dates}
-              entry={entry}
-              key={entry.quest.id}
-            />
-          ))}
-        </table>
-        {feedback}
+        {/* The notice takes the room of the amount form that saving closes. */}
+        <NoticeSlot>
+          <table
+            aria-labelledby={headingId}
+            className="streak-table tally-ledger"
+          >
+            <thead>
+              <tr className="streak-row streak-head">
+                <th className="streak-task-head" scope="col">
+                  <span className="sr-only">{TALLIES_COPY.tallyColumn}</span>
+                </th>
+                {dates.map((date) => (
+                  <DateHeading date={date} key={date} today={today} />
+                ))}
+                <th className="streak-count-head" scope="col">
+                  <span className="sr-only">
+                    {TALLIES_COPY.incrementColumn}
+                  </span>
+                </th>
+              </tr>
+            </thead>
+            {quests.map((entry) => (
+              <QuestRows
+                actions={actions}
+                dates={dates}
+                entry={entry}
+                key={entry.quest.id}
+              />
+            ))}
+          </table>
+          {feedback}
+        </NoticeSlot>
         <p className="text-muted text-sm">{TALLIES_COPY.legend}</p>
       </>
     );

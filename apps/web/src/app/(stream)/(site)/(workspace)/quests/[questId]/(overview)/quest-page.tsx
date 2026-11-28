@@ -52,7 +52,8 @@ function sectionPath(id: QuestId, section?: Section | ListId): Route {
 
 // The quest's overview, in the page's frame: its title, status and
 // summary, then the add box and each list's section. While a performance
-// runs it comes after the title, and the sections have no rite button.
+// runs it comes after the sections, which have no rite button, so starting
+// one adds it where nothing follows it to move.
 async function overviewOf({
   user,
   quest,
@@ -95,13 +96,7 @@ async function overviewOf({
     <div className="page-workspace quest-folio">
       <header className="quest-focus-head">
         <div className="quest-focus-line">
-          <h2
-            data-quest-overview-heading=""
-            className="quest-focus-title"
-            tabIndex={-1}
-          >
-            {quest.name}
-          </h2>
+          <h2 className="quest-focus-title">{quest.name}</h2>
           <p className="quest-overview-meta">
             <span className="quest-status-mark">
               {QUEST_STATUS_COPY.labels[quest.status]}
@@ -120,7 +115,6 @@ async function overviewOf({
       {quest.status !== "active" && (
         <Notice>{QUEST_STATUS_COPY.effects}</Notice>
       )}
-      {runningContent}
       <QuestFolio
         questId={quest.id}
         lists={lists.map((list, index) => ({
@@ -135,6 +129,7 @@ async function overviewOf({
         rites={sectionRites}
         newListZotero={newListZotero}
       />
+      {runningContent}
     </div>
   );
 }
@@ -222,7 +217,13 @@ async function questPage(
     const entries = await readPerformanceMessages(user, running.id);
     runningContent = (
       <section aria-label={running.rite.name} className="quest-section-body">
-        <h2 className="section-heading">{running.rite.name}</h2>
+        <h2
+          className="section-heading"
+          data-performance-heading={quest.id}
+          tabIndex={-1}
+        >
+          {running.rite.name}
+        </h2>
         <MessageComposer
           key={running.id}
           questId={quest.id}

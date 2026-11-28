@@ -113,16 +113,21 @@ const PERFORMANCE_STATES = [
   { name: "with no active performance", performances: [] },
 ] as const;
 
-async function open(quest: Quest, section?: string): Promise<void> {
+async function questView(
+  quest: Quest,
+  section?: string,
+): Promise<React.JSX.Element> {
   vi.mocked(getQuest).mockResolvedValue(quest);
   const params = Promise.resolve({ questId: quest.id });
   const content = await QuestPage({
     params,
     searchParams: Promise.resolve({ section }),
   });
-  await render(
-    inWorkspace(<QuestLayout params={params}>{content}</QuestLayout>),
-  );
+  return inWorkspace(<QuestLayout params={params}>{content}</QuestLayout>);
+}
+
+async function open(quest: Quest, section?: string): ReturnType<typeof render> {
+  return render(await questView(quest, section));
 }
 
 // The quest panel's link to the quest's Members, named and then hinted.
@@ -558,20 +563,21 @@ describe("use_case_perform_rite", () => {
     return page.getByRole("dialog", { name: QUEST_OVERVIEW_COPY.performRite });
   }
 
-  async function openRiteDialog(): Promise<void> {
+  async function openRiteDialog(): ReturnType<typeof render> {
     mockQuestOverview();
-    await open(FOX_QUEST);
+    const view = await open(FOX_QUEST);
     await page
       .getByRole("button", {
         name: QUEST_OVERVIEW_COPY.performRiteOn(TASKS.name),
       })
       .click();
     await vi.waitFor(() => riteDialog().element());
+    return view;
   }
 
   test("performs the chosen rite on the section's list", async () => {
     vi.mocked(startPerformanceAction).mockReset().mockResolvedValue(undefined);
-    await openRiteDialog();
+    const view = await openRiteDialog();
     const dialog = riteDialog();
     await expect
       .element(dialog.getByText(QUEST_OVERVIEW_COPY.rite.on(TASKS.name)))
@@ -592,7 +598,13 @@ describe("use_case_perform_rite", () => {
       riteId: "brainstorm",
       listId: TASKS.id,
     });
+    await expect.element(dialog).toBeVisible();
+    vi.mocked(listPerformances).mockResolvedValue([PERFORMANCE]);
+    await view.rerender(await questView(FOX_QUEST));
     await expect.element(dialog).not.toBeInTheDocument();
+    await expect
+      .element(page.getByRole("heading", { name: PERFORMANCE.rite.name }))
+      .toHaveFocus();
   });
 
   test("keeps the dialog open and says why when the performance is refused", async () => {

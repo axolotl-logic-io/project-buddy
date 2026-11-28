@@ -42,10 +42,6 @@ const VIEWPORT_JITTER = -0.23;
 const WHEEL_STEP = 120;
 const TOUCH_START_Y = 200;
 const TOUCH_MOVE_Y = 300;
-const SECTION_LINES = Array.from(
-  { length: 50 },
-  (_, index) => `List section ${index}`,
-);
 const HISTORY: readonly PerformanceMessage[] = [
   sentMessage("Tell me everything", LONG_TEXT),
 ];
@@ -79,25 +75,14 @@ async function openPerformance(
 }
 
 // The transcript's list of messages, where late content, such as a
-// reply's laid-out code or images, grows the performance.
+// reply's laid-out code or images, grows the performance. With no messages
+// yet it takes no room, so it isn't in the accessibility tree.
 function transcript(): Element {
-  return page.getByRole("list").first().element();
-}
-
-// A performance with the quest's list sections after it, as on Overview.
-function withSections(
-  entries: readonly PerformanceMessage[],
-): React.JSX.Element {
-  return (
-    <>
-      {view(entries)}
-      <section aria-label="Lists">
-        {SECTION_LINES.map((line) => (
-          <p key={line}>{line}</p>
-        ))}
-      </section>
-    </>
-  );
+  const list = document.querySelector(".performance-entries");
+  if (list === null) {
+    throw new Error("The performance has no transcript");
+  }
+  return list;
 }
 
 function grow(): void {
@@ -219,35 +204,6 @@ describe("use_case_follow_latest_messages", () => {
       grow();
       await layoutSettled();
       expect(bottomGap()).toBeLessThanOrEqual(1);
-    });
-  }
-
-  // On Overview the quest's list sections come after the performance.
-  for (const size of [LAPTOP_VIEWPORT, PHONE_VIEWPORT]) {
-    test(`with the list sections after it, it opens at its own end and a reply comes into view while they stay put at ${size.width}px`, async () => {
-      await setViewport(size);
-      const sent = [sentMessage("Plant tomatoes", "Noted.")];
-      const screen = await render(withSections(sent));
-      await document.fonts.ready;
-      await layoutSettled();
-      await expect.element(composer).toBeInViewport();
-      expect(bottomGap()).toBeGreaterThan(0);
-      const sections = page.getByRole("region", { name: "Lists" });
-      const { top } = sections.element().getBoundingClientRect();
-
-      await screen.rerender(
-        withSections([...sent, sentMessage("Water them", "Watered.")]),
-      );
-      await expect
-        .element(page.getByText("Watered.", { exact: true }))
-        .toBeInViewport();
-      await layoutSettled();
-      // Scrolling moves whole pixels, so a fraction of one may remain.
-      expect(sections.element().getBoundingClientRect().top).toBeCloseTo(
-        top,
-        0,
-      );
-      await expect.element(composer).toBeInViewport();
     });
   }
 

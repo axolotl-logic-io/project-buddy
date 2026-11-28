@@ -29,6 +29,7 @@ import {
 } from "@/components/ui/editable-list.tsx";
 import { Alert } from "@/components/ui/form-message.tsx";
 import { Icon } from "@/components/ui/icon.tsx";
+import { NoticeSlot } from "@/components/ui/notice-slot.tsx";
 import { useEntry } from "@/components/use-entry.ts";
 import type { QuestId } from "@/ids.ts";
 import type { ListItemChange, ListItemId } from "@/lists/list-item.ts";
@@ -168,6 +169,7 @@ function QuestListSection({
   readonly history: TaskHistory | undefined;
   readonly tallies: TallyQuest | undefined;
   readonly next: ListItemId | undefined;
+  // The rites the candle offers, or undefined while a performance runs.
   readonly rites: readonly Rite[] | undefined;
   readonly target: boolean;
   // The add box's search, or "" when there is none.
@@ -284,42 +286,50 @@ function QuestListSection({
           {rites !== undefined && rites.length > 0 && (
             <RiteDialog questId={questId} list={list} rites={rites} />
           )}
+          {/* While a performance runs the candle's place stays, so starting
+              one moves nothing in the heading. */}
+          {rites === undefined && (
+            <span aria-hidden={true} className="rite-open-room" />
+          )}
         </div>
         {adding === true && (
           <ListAdder list={list} busy={busy} onAdd={add} onClose={stopAdding} />
         )}
-        {inView.length > 0 && (
-          <EditableList label={list.name} layout={layout}>
-            {inView.map((item) => {
-              const chain = chains.get(item.taskNumber ?? 0);
-              let note: string | undefined;
-              if (item.recurring && chain !== undefined) {
-                note = QUEST_OVERVIEW_COPY.streak(chain);
-              }
-              return (
-                <ListItemRow
-                  key={item.id}
-                  item={item}
-                  list={list}
-                  destinations={[]}
-                  card={tally.cardOf(item)}
-                  run={run}
-                  busy={busy}
-                  note={note}
-                  next={item.id === next}
-                  match={search}
-                />
-              );
-            })}
-          </EditableList>
-        )}
-        {inView.length === 0 && search !== "" && (
-          <p className="list-page-empty">
-            {LIST_PAGE_COPY.noMatch(list.type, search)}
-          </p>
-        )}
-        <ListChangeNotices changes={changes} other={tally.status} />
-        {tally.problem !== undefined && <Alert>{tally.problem}</Alert>}
+        {/* A list item that leaves gives its room to the notice. */}
+        <NoticeSlot fresh={search}>
+          {inView.length > 0 && (
+            <EditableList label={list.name} layout={layout}>
+              {inView.map((item) => {
+                const chain = chains.get(item.taskNumber ?? 0);
+                let note: string | undefined;
+                if (item.recurring && chain !== undefined) {
+                  note = QUEST_OVERVIEW_COPY.streak(chain);
+                }
+                return (
+                  <ListItemRow
+                    key={item.id}
+                    item={item}
+                    list={list}
+                    destinations={[]}
+                    card={tally.cardOf(item)}
+                    run={run}
+                    busy={busy}
+                    note={note}
+                    next={item.id === next}
+                    match={search}
+                  />
+                );
+              })}
+            </EditableList>
+          )}
+          {inView.length === 0 && search !== "" && (
+            <p className="list-page-empty">
+              {LIST_PAGE_COPY.noMatch(list.type, search)}
+            </p>
+          )}
+          <ListChangeNotices changes={changes} other={tally.status} />
+          {tally.problem !== undefined && <Alert>{tally.problem}</Alert>}
+        </NoticeSlot>
         {rest > 0 && (
           <Link className="list-section-more" href={href}>
             {QUEST_OVERVIEW_COPY.more(rest, list.name)}
