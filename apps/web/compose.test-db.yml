@@ -1,4 +1,5 @@
-# Shared local PostgreSQL test server. Each worktree/lane has its own database.
+# The local PostgreSQL test server. Each branch has its own server and system
+# test databases on it (scripts/db/database-names.ts).
 # Test data is held in memory and disappears when the server stops.
 name: project-buddy-test-db
 services:
@@ -12,7 +13,7 @@ services:
       - /var/lib/postgresql/data
     ports:
       - "127.0.0.1:5433:5432"
-    # Concurrent lane suites share this server. Each application pool is bounded.
+    # Every checkout's suites share this server. Each application pool is bounded.
     command: ["postgres", "-c", "max_connections=300"]
     healthcheck:
       test: ["CMD-SHELL", "pg_isready --username=postgres --dbname=main"]

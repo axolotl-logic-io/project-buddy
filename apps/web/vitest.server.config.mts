@@ -1,9 +1,10 @@
 import { defineConfig } from "vitest/config";
+import { suiteEnvironment } from "./scripts/test-env/suite-environment.ts";
 
-// The server tests (test/**/*.server.test.ts): Vitest in Node against the
-// test database, with real users and sessions from the kit in
-// test/*/test-database/. `npm test` resets and migrates the database configured
-// in .env.test, then runs these tests last.
+// The server tests (test/**/*.server.test.ts): Vitest in Node against this
+// branch's server test database, with real users and sessions from the kit
+// in test/*/test-database/. The global setup empties and migrates the
+// database before the first file runs.
 
 // The longest a server test, or a hook such as the setup file's afterEach
 // cleanup, may take: their database round trips,
@@ -27,9 +28,13 @@ export default defineConfig({
     name: "server",
     environment: "node",
     include: ["test/**/*.server.test.ts"],
+    env: suiteEnvironment("server"),
     setupFiles: ["./vitest.server-setup.ts"],
-    // One fake Zotero for the run (test/support/zotero/fake-zotero.ts).
-    globalSetup: ["./test/support/zotero/fake-zotero-global-setup.ts"],
+    // Reset the database and start one fake Zotero for the run.
+    globalSetup: [
+      "./vitest.server-reset.ts",
+      "./test/support/zotero/fake-zotero-global-setup.ts",
+    ],
     maxWorkers: SERVER_TEST_FILES_AT_ONCE,
     testTimeout: SERVER_TEST_TIMEOUT_MS,
     hookTimeout: SERVER_TEST_TIMEOUT_MS,

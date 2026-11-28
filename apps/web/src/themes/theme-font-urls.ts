@@ -7,14 +7,14 @@
 // import.meta.glob, no filesystem.
 //
 // REGENERATING THE MAP, after changing a font file, a localFont call's
-// options, or Next's version: run `npm run build` (Turbopack), then read each
+// options, or Next's version: run `mise run //apps/web:build` (Turbopack), then read each
 // `@font-face` rule's `src` in the built CSS under `.next/static/`, e.g.
 //   grep -oh "@font-face{[^}]*}" .next/static/chunks/*.css | sort -u
 // The CSS's `../media/<file>.woff2` is `/_next/static/media/<file>.woff2`.
 // Turbopack names a file `<name>-s.<content hash>.woff2`; a preloaded font
 // would get a `.p` segment too, which theme-fonts.test.ts rejects. After a
 // build, scripts/check-build-font-urls.ts fails if this map drifts from the
-// build's `@font-face` URLs, and prints each difference; `npm run test:e2e`
+// build's `@font-face` URLs, and prints each difference; `mise run //apps/web:test:system`
 // runs it on the build it tests.
 //
 import type { ThemeId } from "@/themes/themes.ts";

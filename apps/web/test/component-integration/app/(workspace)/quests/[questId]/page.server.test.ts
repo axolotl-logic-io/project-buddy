@@ -3,7 +3,7 @@ import { describe, expect, test, vi } from "vitest";
 import QuestPage from "@/app/(stream)/(site)/(workspace)/quests/[questId]/(overview)/page.tsx";
 import { listPerformances } from "@/performances/performance-store.ts";
 import { PERFORMANCE_COPY } from "@/ui/copy/performances.ts";
-import { expectNotFound } from "../../../../test-database/navigation-test-kit.ts";
+import { expectQuestNotFound } from "../../../../quests/missing-quest-test-kit.tsx";
 import { twoUsers } from "../../../../test-database/two-users-test-kit.ts";
 
 // The page renders here outside Next's App Router, which New list's dialog
@@ -41,7 +41,7 @@ describe("use_case_open_quest", () => {
     const { her, other, otherData } = await twoUsers();
     const foreign = await otherData.quest("Private den");
 
-    await expectNotFound(() => pageHtml(foreign.id));
+    await expectQuestNotFound(foreign.id);
     expect(await listPerformances(her.id, foreign.id)).toEqual([]);
     expect(await listPerformances(other.id, foreign.id)).toEqual([]);
   });

@@ -1,19 +1,19 @@
 // Runs before every server test file (vitest.server.config.mts). It refuses
-// to run any test unless the run's local test database, mock construct and email
-// outbox are loaded; serves the test's session cookies as next/headers'
-// `cookies()`; runs next/server's `after()` tasks at once; and after each
+// to run any test without the server suite's settings
+// (scripts/test-env/suite-environment.ts); serves the test's session
+// cookies as next/headers' `cookies()`; runs next/server's `after()` tasks at once; and after each
 // test waits for those tasks, signs out and deletes the test's users and
 // data (the kits in test/component-integration/test-database/ and
 // test/support/test-database/).
 import { afterAll, afterEach, inject, vi } from "vitest";
-import { checkTestEnvironment } from "./scripts/test-db/test-database.ts";
+import { checkSuiteEnvironment } from "./scripts/test-env/suite-environment.ts";
 import { closeDb } from "./src/db/client.ts";
 import { afterTasksDone } from "./test/component-integration/test-database/after-test-kit.ts";
 import { clearCookies } from "./test/component-integration/test-database/session-test-kit.ts";
 import { deleteTestUsers } from "./test/support/test-database/user-test-kit.ts";
 import { fakeZoteroClientEnvironment } from "./test/support/zotero/fake-zotero-client.ts";
 
-checkTestEnvironment();
+checkSuiteEnvironment();
 
 // The site's Zotero client talks to the run's fake Zotero
 // (test/support/zotero/fake-zotero.ts), as the client the fake knows.

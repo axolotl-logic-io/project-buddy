@@ -1,9 +1,9 @@
 {
   "resources": { "modelSessions": 1 },
   "commands": {
-    "setup": "npm ci --no-audit --no-fund && bash apps/web/scripts/test-env/setup.sh",
-    "test": "npm run lint && npm test",
-    "prune": "bash apps/web/scripts/test-env/prune.sh"
+    "setup": "npm ci --no-audit --no-fund && mise run //apps/web:db:up",
+    "test": "mise run lint && mise run test",
+    "prune": "mise run db:prune"
   },
   "practices": ["AGENTS.md", "docs/project-practices.md"],
   "lockfiles": [

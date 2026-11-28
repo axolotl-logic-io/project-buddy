@@ -2,12 +2,12 @@
 
 ## Tests
 
-With the [local test database](../../docs/project-practices.md#site-tests) and
-Playwright Chromium available, run the opt-in Lighthouse audit from `apps/web`.
+With the [test database server](../../docs/project-practices.md#site-tests)
+running and Playwright Chromium installed, run the opt-in Lighthouse audit.
 
 ```sh
-npm run audit
-npm run audit -- --page quests --samples 1
+mise run //apps/web:audit
+mise run //apps/web:audit --page quests --samples 1
 ```
 
 Use `--profile phone|desktop` to select one device profile and `--samples N` to
@@ -19,11 +19,11 @@ range are marked as noise.
 
 ## Measure performance
 
-With the same local test database and Chromium available, run this command
-from `apps/web` for a performance summary:
+With the same test database server and Chromium, run this command for a
+performance summary:
 
 ```sh
-npm run audit:performance
+mise run //apps/web:audit:performance
 ```
 
 The command measures each audited page and action once on phone and desktop
@@ -40,10 +40,10 @@ profile. For a baseline, collect more samples and keep the path printed under
 filters.
 
 ```sh
-npm run audit:performance -- --page quests --profile phone
-npm run audit:performance -- --action start-performance --profile phone --samples 3
-npm run audit:performance -- --action start-performance --profile phone --samples 3 --compare BASELINE_DIR
-npm run audit:performance -- --help
+mise run //apps/web:audit:performance --page quests --profile phone
+mise run //apps/web:audit:performance --action start-performance --profile phone --samples 3
+mise run //apps/web:audit:performance --action start-performance --profile phone --samples 3 --compare BASELINE_DIR
+mise run //apps/web:audit:performance --help
 ```
 
 `BASELINE_DIR` is the directory from the earlier run. Each run writes
