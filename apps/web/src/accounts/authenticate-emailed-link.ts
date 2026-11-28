@@ -1,6 +1,7 @@
 import type { SessionUser } from "@/auth/session-token.ts";
 import type { QuestId } from "@/ids.ts";
 import { acceptInvitationLink } from "@/quests/membership-store.ts";
+import { ensureLife } from "@/quests/store.ts";
 import { readSignInLinkUser } from "./sign-in-links.ts";
 import { confirmSignUp, readSignUpEmail } from "./sign-up-links.ts";
 import { checkUserName } from "./user-name.ts";
@@ -14,10 +15,10 @@ type LinkAuthentication =
       readonly questId?: QuestId;
     };
 
-// Authenticates the holder of an unexpired emailed link. A quest invitation
-// also opens its quest, and sign-up completes only with a valid name. A time
-// zone Postgres doesn't know saves as UTC.
-async function authenticateEmailedLink(
+// Who holds an unexpired emailed link. A quest invitation also opens its
+// quest, and sign-up completes only with a valid name. A time zone Postgres
+// doesn't know saves as UTC.
+async function authenticateLink(
   token: string,
   details: SignUpDetails,
   now: Date,
@@ -51,6 +52,21 @@ async function authenticateEmailedLink(
     return { kind: "invalid" };
   }
   return { kind: "authenticated", user: signedUp };
+}
+
+// Authenticates the holder of an unexpired emailed link, as
+// authenticateLink, and makes their Life unless they have one, so every
+// signed-in user has a Life before any page reads it.
+async function authenticateEmailedLink(
+  token: string,
+  details: SignUpDetails,
+  now: Date,
+): Promise<LinkAuthentication> {
+  const authentication = await authenticateLink(token, details, now);
+  if (authentication.kind === "authenticated") {
+    await ensureLife(authentication.user.id);
+  }
+  return authentication;
 }
 
 export { authenticateEmailedLink };

@@ -19,6 +19,10 @@ const stores = vi.hoisted(() => ({
 }));
 vi.mock("@/quests/store.ts", () => ({ getQuest: stores.getQuest }));
 vi.mock("@/rites/rite-store.ts", () => ({ readRite: stores.readRite }));
+// A timer link's trail waits for the request, which a unit test has none of.
+vi.mock("next/server", () => ({
+  connection: (): Promise<void> => Promise.resolve(),
+}));
 
 const USER = parseUserId("00000000-0000-4000-8000-000000000001");
 
@@ -93,22 +97,20 @@ describe("header breadcrumbs", () => {
     ]);
   });
 
-  test("a signed-out visitor gets the Timer's trails and no other", () => {
-    expect(publicBreadcrumbs(["timer"])).toEqual([{ label: "Timer" }]);
-    expect(publicBreadcrumbs(RUNNING)).toEqual(RUNNING_TRAIL);
-    expect(publicBreadcrumbs(["timer", "x", "y", "z"])).toEqual([
+  test("a signed-out visitor gets the Timer's trails and no other", async () => {
+    expect(await publicBreadcrumbs(["timer"])).toEqual([{ label: "Timer" }]);
+    expect(await publicBreadcrumbs(RUNNING)).toEqual(RUNNING_TRAIL);
+    expect(await publicBreadcrumbs(["timer", "x", "y", "z"])).toEqual([
       { label: "Timer", href: "/timer" },
       { label: "Unknown timer" },
     ]);
-    for (const path of [
-      ["quests"],
-      ["quests", "x"],
-      [],
-      ["grimoire"],
-      ["settings"],
-    ]) {
-      expect(publicBreadcrumbs(path)).toEqual([]);
-    }
+    expect(
+      await Promise.all(
+        [["quests"], ["quests", "x"], [], ["grimoire"], ["settings"]].map(
+          (path) => publicBreadcrumbs(path),
+        ),
+      ),
+    ).toEqual([[], [], [], [], []]);
     expect(stores.getQuest).not.toHaveBeenCalled();
     expect(stores.readRite).not.toHaveBeenCalled();
   });

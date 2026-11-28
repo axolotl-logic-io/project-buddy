@@ -9,9 +9,12 @@ import type { UserId } from "@/ids.ts";
 import { answerInvitationAction } from "@/quests/membership-actions.ts";
 import { listPendingQuests } from "@/quests/membership-store.ts";
 import { finderQuests } from "@/quests/quest-finder-entries.ts";
-import { readLife, readQuestEntries } from "@/quests/quest-index-store.ts";
+import {
+  readFinderTime,
+  readLife,
+  readQuestEntries,
+} from "@/quests/quest-index-store.ts";
 import { QUEST_STATUS } from "@/quests/quest-status.ts";
-import { ensureLife } from "@/quests/store.ts";
 import { type FoundTask, searchTasks } from "@/tasks/task-search-store.ts";
 import { QUESTS_COPY } from "@/ui/copy/quests.ts";
 
@@ -36,6 +39,9 @@ function tasksFound(
 
 export const metadata: Metadata = { title: QUESTS_COPY.title };
 
+// A navigation here shows the page at once, from its App Shell.
+export const instant = true;
+
 // Invitations waiting for an answer, then the user's Life, pinned with one
 // of its recurring tasks to check off, then a finder over every quest
 // open to them and the tasks of their Active ones. ?q= is the search;
@@ -49,12 +55,12 @@ export default async function QuestsPage({
   ]);
   const search = single(q).trim();
   const status = QUEST_STATUS.safeParse(single(shown));
-  await ensureLife(user.id);
-  const [entries, life, pending, found] = await Promise.all([
+  const [entries, life, pending, found, now] = await Promise.all([
     readQuestEntries(user.id),
     readLife(user.id),
     listPendingQuests(user.id),
     tasksFound(user.id, search),
+    readFinderTime(user.id),
   ]);
   return (
     <PageWorkspace>
@@ -64,7 +70,7 @@ export default async function QuestsPage({
         <QuestFinder
           found={found}
           initialStatus={status.data ?? "active"}
-          quests={finderQuests(entries, new Date())}
+          quests={finderQuests(entries, now)}
           search={search}
         />
       </div>

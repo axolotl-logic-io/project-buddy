@@ -53,6 +53,20 @@ vi.mock("next/navigation", () => ({
   useSearchParams: (): URLSearchParams => new URLSearchParams(),
 }));
 
+type QuickAddResult = Awaited<ReturnType<typeof saveQuickAdd>>;
+
+// Holds the next save unanswered until the returned function answers it.
+function holdSave(): (result: QuickAddResult) => void {
+  let answer: (result: QuickAddResult) => void = () => undefined;
+  vi.mocked(saveQuickAdd).mockImplementationOnce(
+    () =>
+      new Promise((resolve) => {
+        answer = resolve;
+      }),
+  );
+  return (result: QuickAddResult): void => answer(result);
+}
+
 async function openQuickAdd(): Promise<void> {
   await render(<PageHeader panel={<SitePanel links={<AccountLinks />} />} />);
   await panelButton().click();
@@ -76,9 +90,9 @@ beforeEach(() => {
 });
 
 describe("use_case_quick_add", () => {
-  test("the site panel's Quick Add adds to the open quest and keeps it chosen", async () => {
+  test("the site panel's Quick Add adds to the open quest, says so before the server replies, and keeps it chosen", async () => {
     route.pathname = `/quests/${FOX_QUEST.id}`;
-    vi.mocked(saveQuickAdd).mockResolvedValue({ kind: "saved" });
+    const answer = holdSave();
     await openQuickAdd();
 
     const dialog = page.getByRole("dialog", { name: QUICK_ADD_COPY.heading });
@@ -117,6 +131,14 @@ describe("use_case_quick_add", () => {
         QUICK_ADD_COPY.savedToList(FOX_QUEST.name, "Sketches"),
       );
     await expect.element(text).toHaveValue("");
+
+    answer({ kind: "saved" });
+    await expect
+      .element(dialog.getByRole("status"))
+      .toHaveTextContent(
+        QUICK_ADD_COPY.savedToList(FOX_QUEST.name, "Sketches"),
+      );
+    await expect.element(text).toHaveValue("");
     await expect.element(quest).toHaveValue(FOX_QUEST.id);
 
     await userEvent.keyboard("{Escape}");
@@ -131,6 +153,7 @@ describe("use_case_quick_add", () => {
         <PageHeader panel={<SitePanel links={<AccountLinks />} />} />,
       );
       await openPanel();
+      const panel = sitePanel().element();
       const item = sitePanel().getByRole("button", {
         name: QUICK_ADD_COPY.panelItem,
         exact: true,
@@ -141,6 +164,15 @@ describe("use_case_quick_add", () => {
         name: QUICK_ADD_COPY.heading,
       });
       await expect.element(dialog).toBeVisible();
+      await dialog
+        .getByRole("textbox", { name: QUICK_ADD_COPY.textLabel })
+        .click();
+      // Quick Add hides the page from assistive technology, so the panel is
+      // held from before it opened.
+      expect(
+        panel.hasAttribute("open"),
+        "a click in Quick Add leaves the panel open",
+      ).toBe(true);
       await userEvent.keyboard("{Escape}");
       await expect.element(dialog).not.toBeInTheDocument();
       await expect.element(sitePanel()).toBeVisible();
@@ -150,11 +182,8 @@ describe("use_case_quick_add", () => {
     }
   });
 
-  test("away from a quest the newest Active quest is chosen, and a refusal keeps the text", async () => {
-    vi.mocked(saveQuickAdd).mockResolvedValue({
-      kind: "problem",
-      text: QUICK_ADD_COPY.listUnavailable,
-    });
+  test("away from a quest the newest Active quest is chosen, and a refusal brings the text back and says why", async () => {
+    const answer = holdSave();
     await setViewport(PHONE_VIEWPORT);
     await openQuickAdd();
 
@@ -169,10 +198,15 @@ describe("use_case_quick_add", () => {
     });
     await text.fill("Fire on Friday");
     await dialog.getByRole("button", { name: QUICK_ADD_COPY.save }).click();
+    await expect.element(text).toHaveValue("");
+
+    answer({ kind: "problem", text: QUICK_ADD_COPY.listUnavailable });
+
     await expect
       .element(dialog.getByRole("alert"))
       .toHaveTextContent(QUICK_ADD_COPY.listUnavailable);
     await expect.element(text).toHaveValue("Fire on Friday");
+    await expect.element(dialog.getByRole("status")).toHaveTextContent("");
     expect(document.documentElement.scrollWidth).toBeLessThanOrEqual(
       PHONE_VIEWPORT.width,
     );

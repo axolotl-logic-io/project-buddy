@@ -13,6 +13,16 @@
 // reading a quest reads its owner's time zone too
 // (src/lists/quest-today.ts), which names no one.
 //
+// A Zotero Collection list is reached through its quest like any list:
+// everyone the quest is open to may see its references, checkmarks and
+// sync results, and mark its references, which leaves pending changes that
+// they all share. Only the quest's owner may set it up, change its
+// settings, discard its pending changes, remove it or sync it, which sends
+// those changes to Zotero with the owner's own Zotero connection. A Zotero
+// connection, and an OAuth request that may become one, belong to their
+// user alone, and no page or response shows their keys
+// (src/zotero/zotero-connection-store.ts).
+//
 // A pending quest invitation is not membership: it opens nothing of the
 // quest to its invitee but the quest's name, the inviter's name and the
 // invitation itself, which the invitee alone may accept or decline.
@@ -42,6 +52,13 @@ import { quests } from "@/db/tables/quests.ts";
 import { signedInDays } from "@/db/tables/signed-in-days.ts";
 import { tallyDays } from "@/db/tables/tallies.ts";
 import { timerPresence } from "@/db/tables/timer-presence.ts";
+import {
+  zoteroAuthorizations,
+  zoteroConnections,
+  zoteroLists,
+  zoteroNotes,
+  zoteroReferences,
+} from "@/db/tables/zotero.ts";
 import type { UserId } from "@/ids.ts";
 
 // A `quests` row of owner's: one owner made.
@@ -71,6 +88,14 @@ function openQuestIds(user: UserId): SQL {
     .where(questOpenTo(user))}`;
 }
 
+// The ids of the quests owner owns, as a subquery.
+function ownedQuestIds(owner: UserId): SQL {
+  return sql`${new QueryBuilder()
+    .select({ id: quests.id })
+    .from(quests)
+    .where(questOwnedBy(owner))}`;
+}
+
 // A `quests` row that invitee has a pending invitation to: open to them
 // for its name alone, at the top of Quests, until they accept it.
 function questPendingFor(invitee: UserId): SQL {
@@ -89,6 +114,54 @@ function questPendingFor(invitee: UserId): SQL {
 
 function listOpenTo(user: UserId): SQL {
   return inArray(lists.questId, openQuestIds(user));
+}
+
+// A `lists` row of a quest owner owns, for what only the owner may do to
+// a list, such as removing a Zotero Collection list.
+function listOwnedBy(owner: UserId): SQL {
+  return inArray(lists.questId, ownedQuestIds(owner));
+}
+
+// A `zotero_lists` row of a quest open to user.
+function zoteroListOpenTo(user: UserId): SQL {
+  return inArray(zoteroLists.questId, openQuestIds(user));
+}
+
+// A `zotero_lists` row of a quest owner owns, whose settings and syncs are
+// theirs alone.
+function zoteroListOwnedBy(owner: UserId): SQL {
+  return inArray(zoteroLists.questId, ownedQuestIds(owner));
+}
+
+// A `zotero_references` row of a quest open to user, who may see it and
+// mark it.
+function zoteroReferenceOpenTo(user: UserId): SQL {
+  return inArray(zoteroReferences.questId, openQuestIds(user));
+}
+
+// A `zotero_references` row of a quest owner owns.
+function zoteroReferenceOwnedBy(owner: UserId): SQL {
+  return inArray(zoteroReferences.questId, ownedQuestIds(owner));
+}
+
+// A `zotero_notes` row of a quest open to user.
+function zoteroNoteOpenTo(user: UserId): SQL {
+  return inArray(zoteroNotes.questId, openQuestIds(user));
+}
+
+// A `zotero_notes` row of a quest owner owns.
+function zoteroNoteOwnedBy(owner: UserId): SQL {
+  return inArray(zoteroNotes.questId, ownedQuestIds(owner));
+}
+
+// A `zotero_connections` row of owner's: their own.
+function zoteroConnectionOwnedBy(owner: UserId): SQL {
+  return eq(zoteroConnections.userId, owner);
+}
+
+// A `zotero_authorizations` row of owner's: their own OAuth request.
+function zoteroAuthorizationOwnedBy(owner: UserId): SQL {
+  return eq(zoteroAuthorizations.userId, owner);
 }
 
 function listItemOpenTo(user: UserId): SQL {
@@ -178,6 +251,7 @@ export {
   listChangeOpenTo,
   listItemOpenTo,
   listOpenTo,
+  listOwnedBy,
   performanceMessageOpenTo,
   performanceOpenTo,
   questInvitationOpenTo,
@@ -190,4 +264,12 @@ export {
   signedInDayOwnedBy,
   tallyDayOpenTo,
   timerPresenceOwnedBy,
+  zoteroAuthorizationOwnedBy,
+  zoteroConnectionOwnedBy,
+  zoteroListOpenTo,
+  zoteroListOwnedBy,
+  zoteroNoteOpenTo,
+  zoteroNoteOwnedBy,
+  zoteroReferenceOpenTo,
+  zoteroReferenceOwnedBy,
 };

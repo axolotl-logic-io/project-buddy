@@ -21,6 +21,15 @@ const RITE = "Audit rite";
 const RITE_NAME = /^Audit rite/u;
 const QUEST_PATH = /\/quests\/[^/?]+$/u;
 
+// Playwright's assertions retry 20, 50 and then 100 ms apart, so an outcome
+// that shows between two tries would be timed at the next. Each outcome is
+// polled every few ms instead, so outcomeMs follows the page.
+const OUTCOME_POLL = { intervals: [2] };
+
+async function reached(check: () => Promise<boolean>): Promise<void> {
+  await expect.poll(check, OUTCOME_POLL).toBe(true);
+}
+
 interface Action {
   readonly target: Locator;
   readonly outcome: () => Promise<void>;
@@ -29,7 +38,7 @@ interface Action {
 function visible(target: Locator, marker: Locator): Action {
   return {
     target,
-    outcome: async (): Promise<void> => expect(marker).toBeVisible(),
+    outcome: async (): Promise<void> => reached(() => marker.isVisible()),
   };
 }
 
@@ -50,7 +59,7 @@ function checkOff(page: Page): Action {
   const task = taskBox(page);
   return {
     target: task,
-    outcome: async (): Promise<void> => expect(task).toBeHidden(),
+    outcome: async (): Promise<void> => reached(() => task.isHidden()),
   };
 }
 
@@ -134,10 +143,14 @@ async function startQuest(page: Page): Promise<Action> {
   return {
     target: button(dialog, NEW_QUEST_COPY.start),
     outcome: async (): Promise<void> => {
-      await expect(page).toHaveURL(QUEST_PATH);
-      await expect(
-        page.getByRole("heading", { name: NEW_QUEST, level: 1, exact: true }),
-      ).toBeVisible();
+      const heading = page.getByRole("heading", {
+        name: NEW_QUEST,
+        level: 1,
+        exact: true,
+      });
+      await reached(
+        async () => QUEST_PATH.test(page.url()) && (await heading.isVisible()),
+      );
     },
   };
 }

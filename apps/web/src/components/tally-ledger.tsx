@@ -1,12 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { type JSX, useCallback, useId, useState } from "react";
+import { type JSX, useCallback, useId, useOptimistic, useState } from "react";
 import { dayOfMonth, weekdayOf } from "@/components/calendar-days.ts";
 import { DateHeading } from "@/components/date-heading.tsx";
 import { TallyAmountForm } from "@/components/tally-amount-form.tsx";
 import { Alert, FormStatus } from "@/components/ui/form-message.tsx";
 import { Icon } from "@/components/ui/icon.tsx";
+import { NoticeSlot } from "@/components/ui/notice-slot.tsx";
 import { useBrowserToday } from "@/components/use-browser-today.ts";
 import { useQuestAction } from "@/components/use-quest-action.ts";
 import type { QuestId } from "@/ids.ts";
@@ -17,8 +18,10 @@ import {
   plainAmount,
   TALLY_DAYS,
   type Tally,
+  type TallyChange,
   type TallyQuest,
   tallyDays,
+  withTallyChange,
 } from "@/tallies/tally.ts";
 import {
   incrementTallyAction,
@@ -27,10 +30,25 @@ import {
 import { TALLIES_COPY } from "@/ui/copy/tallies.ts";
 
 // The field open in the ledger: a tally's total on a date, or an amount to
-// add to its today when there is no date.
+// add to its today when there is no date, with the amount a refused save
+// left in it.
 interface Opened {
   readonly id: ListItemId;
   readonly date?: LocalDate | undefined;
+  readonly amount?: string;
+}
+
+// A tally's change, shown before the server saves it.
+interface ShownChange {
+  readonly id: ListItemId;
+  readonly change: TallyChange;
+}
+
+function withChange(
+  quests: readonly TallyQuest[],
+  { id, change }: ShownChange,
+): readonly TallyQuest[] {
+  return quests.map((entry) => withTallyChange(entry, id, change));
 }
 
 interface LedgerActions {
@@ -38,11 +56,7 @@ interface LedgerActions {
   readonly busy: boolean;
   readonly open: (opened: Opened) => void;
   readonly close: () => void;
-  readonly save: (
-    questId: QuestId,
-    opened: Opened,
-    amount: string,
-  ) => Promise<boolean>;
+  readonly save: (questId: QuestId, opened: Opened, amount: string) => void;
 }
 
 // One tally's total on one date: a button that opens a field to change it
@@ -119,13 +133,14 @@ function OpenedField({
 }): JSX.Element {
   const { save } = actions;
   const submit = useCallback(
-    (amount: string): Promise<boolean> => save(questId, opened, amount),
+    (amount: string): void => save(questId, opened, amount),
     [save, questId, opened],
   );
   let field = (
     <TallyAmountForm
       label={TALLIES_COPY.incrementBy(tally.text)}
       submit={TALLIES_COPY.add}
+      initial={opened.amount ?? ""}
       disabled={actions.busy}
       onSave={submit}
       onClose={actions.close}
@@ -140,7 +155,7 @@ function OpenedField({
           dayOfMonth(opened.date),
         )}
         submit={TALLIES_COPY.save}
-        initial={plainAmount(totals.get(opened.date) ?? "0")}
+        initial={opened.amount ?? plainAmount(totals.get(opened.date) ?? "0")}
         disabled={actions.busy}
         onSave={submit}
         onClose={actions.close}
@@ -275,23 +290,39 @@ function TallyLedger({
   const headingId = useId();
   const today = useBrowserToday();
   const [opened, setOpened] = useState<Opened | undefined>();
-  const { run: runIncrement, ...increment } =
+  const [shown, showChange] = useOptimistic(quests, withChange);
+  const { start: startIncrement, ...increment } =
     useQuestAction(incrementTallyAction);
-  const { run: runSet, ...set } = useQuestAction(setTallyDayAction);
+  const { start: startSet, ...set } = useQuestAction(setTallyDayAction);
   const close = useCallback((): void => setOpened(undefined), []);
   const save = useCallback(
-    (questId: QuestId, change: Opened, amount: string): Promise<boolean> => {
-      if (change.date === undefined) {
-        return runIncrement({ questId, id: change.id, amount });
+    (questId: QuestId, field: Opened, amount: string): void => {
+      const { id, date } = field;
+      const outcome = {
+        status: TALLIES_COPY.saved,
+        refused: (): void => setOpened({ ...field, amount }),
+      };
+      if (date === undefined) {
+        startIncrement(
+          { questId, id, amount },
+          {
+            ...outcome,
+            show: (): void =>
+              showChange({ id, change: { kind: "increment", amount } }),
+          },
+        );
+        return;
       }
-      return runSet({
-        questId,
-        id: change.id,
-        date: change.date,
-        total: amount,
-      });
+      startSet(
+        { questId, id, date, total: amount },
+        {
+          ...outcome,
+          show: (): void =>
+            showChange({ id, change: { kind: "set", date, total: amount } }),
+        },
+      );
     },
-    [runIncrement, runSet],
+    [startIncrement, startSet, showChange],
   );
   const actions: LedgerActions = {
     opened,
@@ -301,54 +332,69 @@ function TallyLedger({
     save,
   };
   const dates = sharedDates(
-    quests.map((each) => each.today),
+    shown.map((each) => each.today),
     TALLY_DAYS,
   );
+  const problem = increment.problem ?? set.problem;
+  const feedback = (
+    <>
+      {problem !== undefined && <Alert>{problem}</Alert>}
+      <FormStatus>{increment.status ?? set.status}</FormStatus>
+    </>
+  );
   let body: JSX.Element;
-  if (quests.length === 0) {
-    body = <p className="text-muted text-sm">{TALLIES_COPY.noTallies}</p>;
+  if (shown.length === 0) {
+    body = (
+      <>
+        <p className="text-muted text-sm">{TALLIES_COPY.noTallies}</p>
+        <NoticeSlot>{feedback}</NoticeSlot>
+      </>
+    );
   } else {
     body = (
       <>
-        <table
-          aria-labelledby={headingId}
-          className="streak-table tally-ledger"
-        >
-          <thead>
-            <tr className="streak-row streak-head">
-              <th className="streak-task-head" scope="col">
-                <span className="sr-only">{TALLIES_COPY.tallyColumn}</span>
-              </th>
-              {dates.map((date) => (
-                <DateHeading date={date} key={date} today={today} />
-              ))}
-              <th className="streak-count-head" scope="col">
-                <span className="sr-only">{TALLIES_COPY.incrementColumn}</span>
-              </th>
-            </tr>
-          </thead>
-          {quests.map((entry) => (
-            <QuestRows
-              actions={actions}
-              dates={dates}
-              entry={entry}
-              key={entry.quest.id}
-            />
-          ))}
-        </table>
+        {/* The notice takes the room of the amount form that saving closes. */}
+        <NoticeSlot>
+          <table
+            aria-labelledby={headingId}
+            className="streak-table tally-ledger"
+          >
+            <thead>
+              <tr className="streak-row streak-head">
+                <th className="streak-task-head" scope="col">
+                  <span className="sr-only">{TALLIES_COPY.tallyColumn}</span>
+                </th>
+                {dates.map((date) => (
+                  <DateHeading date={date} key={date} today={today} />
+                ))}
+                <th className="streak-count-head" scope="col">
+                  <span className="sr-only">
+                    {TALLIES_COPY.incrementColumn}
+                  </span>
+                </th>
+              </tr>
+            </thead>
+            {shown.map((entry) => (
+              <QuestRows
+                actions={actions}
+                dates={dates}
+                entry={entry}
+                key={entry.quest.id}
+              />
+            ))}
+          </table>
+          {feedback}
+        </NoticeSlot>
         <p className="text-muted text-sm">{TALLIES_COPY.legend}</p>
       </>
     );
   }
-  const problem = increment.problem ?? set.problem;
   return (
     <section aria-labelledby={headingId} className="streak-panel">
       <h2 className="section-heading" id={headingId}>
         {TALLIES_COPY.heading}
       </h2>
       {body}
-      {problem !== undefined && <Alert>{problem}</Alert>}
-      <FormStatus>{increment.status ?? set.status}</FormStatus>
     </section>
   );
 }

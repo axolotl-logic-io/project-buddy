@@ -1,4 +1,12 @@
-import { and, desc, eq, isNotNull, isNull, sql } from "drizzle-orm";
+import {
+  and,
+  desc,
+  eq,
+  isNotNull,
+  isNull,
+  sql,
+  TransactionRollbackError,
+} from "drizzle-orm";
 import { z } from "zod";
 import {
   listOpenTo,
@@ -13,11 +21,18 @@ import {
   inTransaction,
   type Transaction,
 } from "@/db/client.ts";
+import { expireReads, keepRead } from "@/db/read-cache.ts";
 import { lists } from "@/db/tables/lists.ts";
 import { performanceMessages, performances } from "@/db/tables/performances.ts";
 import { quests } from "@/db/tables/quests.ts";
 import { withAppErrors } from "@/errors/to-app-error.ts";
-import type { QuestId, UserId } from "@/ids.ts";
+import {
+  PERFORMANCE_ID,
+  type PerformanceId,
+  parseQuestId,
+  type QuestId,
+  type UserId,
+} from "@/ids.ts";
 import {
   LIST_ID,
   LIST_SETTINGS,
@@ -26,6 +41,7 @@ import {
   type ListType,
 } from "@/lists/list.ts";
 import { changeWithin } from "@/lists/list-item-store.ts";
+import { keepQuestRead } from "@/quests/quest-reads.ts";
 import {
   nextReply,
   REPLY_CHOICE,
@@ -36,9 +52,6 @@ import { readRite } from "@/rites/rite-store.ts";
 import { LISTS_COPY } from "@/ui/copy/lists.ts";
 import { PERFORMANCE_COPY } from "@/ui/copy/performances.ts";
 import { refusedNote } from "./performance-turn.ts";
-
-const PERFORMANCE_ID = z.guid().toLowerCase().brand<"PerformanceId">();
-type PerformanceId = z.infer<typeof PERFORMANCE_ID>;
 
 const PERFORMANCE_COLUMNS: {
   readonly id: typeof performances.id;
@@ -94,11 +107,13 @@ function asPerformance(row: {
 
 type Performance = ReturnType<typeof asPerformance>;
 
-function listPerformances(
+async function listPerformances(
   user: UserId,
   questId: QuestId,
 ): Promise<Performance[]> {
-  return withAppErrors("listPerformances", async () => {
+  "use cache";
+  keepQuestRead(user, questId);
+  return await withAppErrors("listPerformances", async () => {
     const rows = await getDb()
       .select(PERFORMANCE_COLUMNS)
       .from(performances)
@@ -181,12 +196,18 @@ async function stopWithin(
     .where(and(eq(performances.id, performance.id), performanceOpenTo(user)));
 }
 
-function startPerformance(
+// Starts a performance with the id the browser made for it, or none when
+// the rite or list is not the user's or a performance has that id already.
+async function startPerformance(
   user: UserId,
   questId: QuestId,
-  input: { readonly listId: ListId; readonly riteId: string },
+  input: {
+    readonly id: PerformanceId;
+    readonly listId: ListId;
+    readonly riteId: string;
+  },
 ): Promise<Performance | undefined> {
-  return withAppErrors("startPerformance", async () => {
+  const started = await withAppErrors("startPerformance", async () => {
     const rite = await readRite(user, input.riteId);
     if (rite === undefined) {
       return;
@@ -205,7 +226,8 @@ function startPerformance(
             listOpenTo(user),
           ),
         );
-      if (list === undefined) {
+      // A rite adds list items, which a Zotero Collection list never takes.
+      if (list === undefined || list.type === "zotero-collection") {
         return;
       }
       const previous = await active(tx, user, questId);
@@ -215,13 +237,16 @@ function startPerformance(
       const [row] = await tx
         .insert(performances)
         .values({
+          id: input.id,
           questId,
           listId: input.listId,
           riteSnapshot: RITE_DEFINITION.parse(rite),
         })
+        .onConflictDoNothing({ target: performances.id })
         .returning();
       if (row === undefined) {
-        throw new Error("Inserting a performance returned no performance");
+        // The id is already in use. Keep the previous performance active.
+        return tx.rollback();
       }
       return asPerformance({
         ...row,
@@ -229,16 +254,23 @@ function startPerformance(
         listName: list.name,
         listType: list.type,
       });
+    }).catch((error: unknown): undefined => {
+      if (error instanceof TransactionRollbackError) {
+        return;
+      }
+      throw error;
     });
   });
+  expireReads({ accounts: [user], quests: [questId] });
+  return started;
 }
 
-function stopPerformance(
+async function stopPerformance(
   user: UserId,
   questId: QuestId,
   id: PerformanceId,
 ): Promise<boolean> {
-  return withAppErrors("stopPerformance", () =>
+  const stopped = await withAppErrors("stopPerformance", () =>
     inTransaction(async (tx) => {
       if (!(await lockQuest(tx, user, questId))) {
         return false;
@@ -251,6 +283,8 @@ function stopPerformance(
       return true;
     }),
   );
+  expireReads({ accounts: [user], quests: [questId] });
+  return stopped;
 }
 
 // A message to send, with the rite's reply the sender's browser chose for
@@ -285,12 +319,18 @@ type PerformanceMessage = Pick<
   keyof typeof PERFORMANCE_MESSAGE_COLUMNS
 >;
 
-function readPerformanceMessages(
+async function readPerformanceMessages(
   user: UserId,
   id: PerformanceId,
 ): Promise<PerformanceMessage[]> {
-  return withAppErrors("readPerformanceMessages", async () =>
-    getDb()
+  "use cache";
+  return await withAppErrors("readPerformanceMessages", async () => {
+    const [performance] = await getDb()
+      .select({ questId: performances.questId })
+      .from(performances)
+      .where(and(eq(performances.id, id), performanceOpenTo(user)));
+    keepRead(user, [parseQuestId(performance?.questId ?? "") ?? []].flat());
+    return await getDb()
       .select(PERFORMANCE_MESSAGE_COLUMNS)
       .from(performanceMessages)
       .where(
@@ -299,16 +339,16 @@ function readPerformanceMessages(
           performanceMessageOpenTo(user),
         ),
       )
-      .orderBy(performanceMessages.position),
-  );
+      .orderBy(performanceMessages.position);
+  });
 }
 
-function sendMessage(
+async function sendMessage(
   user: UserId,
   questId: QuestId,
   input: PerformanceMessageRequest,
 ): Promise<PerformanceMessage | undefined> {
-  return withAppErrors("sendMessage", async () => {
+  const sent = await withAppErrors("sendMessage", async () => {
     const author = (await readUserName(user)) ?? PERFORMANCE_COPY.unnamed;
     return inTransaction(async (tx) => {
       if (!(await lockQuest(tx, user, questId))) {
@@ -346,6 +386,8 @@ function sendMessage(
       return entry;
     });
   });
+  expireReads({ accounts: [user], quests: [questId] });
+  return sent;
 }
 
 async function addPerformanceMessage(
@@ -444,10 +486,9 @@ async function addPerformanceMessage(
   return entry;
 }
 
-export type { Performance, PerformanceId, PerformanceMessage };
+export type { Performance, PerformanceMessage };
 export {
   listPerformances,
-  PERFORMANCE_ID,
   PERFORMANCE_MESSAGE,
   readPerformanceMessages,
   sendMessage,

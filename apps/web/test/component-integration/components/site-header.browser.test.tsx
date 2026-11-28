@@ -13,13 +13,10 @@ import {
 import { commands, type Locator, page, userEvent } from "vitest/browser";
 import { render } from "vitest-browser-react";
 import type { Breadcrumb } from "@/components/breadcrumb.ts";
-import {
-  AccountLinks,
-  PageHeader,
-  TrailBand,
-} from "@/components/page-header.tsx";
+import { AccountLinks, PageHeader } from "@/components/page-header.tsx";
 import { SignedInHeader } from "@/components/signed-in-header.tsx";
 import { SitePanel } from "@/components/site-panel.tsx";
+import { TrailBand } from "@/components/trail-band.tsx";
 import { THEME_IDS } from "@/themes/themes.ts";
 import { CREDITS_COPY } from "@/ui/copy/credits.ts";
 import { GRIMOIRE_COPY } from "@/ui/copy/grimoire.ts";
@@ -266,8 +263,10 @@ describe("the site panel", () => {
     await expect.element(closeButton()).toHaveFocus();
 
     await closePanel();
+    await expect
+      .element(panelButton())
+      .toHaveAttribute("aria-expanded", "false");
     expect(document.activeElement).toBe(panelButton().element());
-    expect(panelButton().element()).toHaveAttribute("aria-expanded", "false");
   });
 
   for (const viewport of [PHONE_VIEWPORT, LAPTOP_VIEWPORT]) {
@@ -340,6 +339,29 @@ describe("the site panel", () => {
     });
   }
 
+  test("on a wide screen, following its link to another page keeps it docked until that page shows", async () => {
+    await setViewport(LAPTOP_VIEWPORT);
+    usePathname.mockReturnValue("/grimoire");
+    const screen = await render(signedInFrame());
+    await openPanel();
+    globalThis.addEventListener("click", stayOnThisPage);
+    try {
+      await sitePanel()
+        .getByRole("link", { name: QUESTS_COPY.headerLink })
+        .click();
+    } finally {
+      globalThis.removeEventListener("click", stayOnThisPage);
+    }
+    // The page header stays put until the page changes with it.
+    await expect.element(sitePanel()).toBeVisible();
+
+    usePathname.mockReturnValue("/quests");
+    await screen.rerender(signedInFrame());
+    await expect
+      .element(panelButton())
+      .toHaveAttribute("aria-expanded", "false");
+  });
+
   test("leaves the page beside its drawer undimmed", async () => {
     await setViewport(PHONE_VIEWPORT);
     await renderSignedIn();
@@ -378,6 +400,10 @@ describe("the site panel", () => {
     expect(document.documentElement.scrollWidth).toBeLessThanOrEqual(
       LAPTOP_VIEWPORT.width,
     );
+
+    // A click on the page leaves it open.
+    await page.getByText(PAGE_TEXT).click();
+    await expect.element(sitePanel()).toBeVisible();
   });
 
   test("offers a visitor the appearance choices and Credits", async () => {

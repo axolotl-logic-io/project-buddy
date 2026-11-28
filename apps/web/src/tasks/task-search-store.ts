@@ -15,6 +15,7 @@ import { parseQuestId, type QuestId, type UserId } from "@/ids.ts";
 import { LIST_ID, type ListId } from "@/lists/list.ts";
 import { LIST_ITEM_ID, type ListItemId } from "@/lists/list-item.ts";
 import { CHECKED_OFF_NOW, QUEST_TODAY } from "@/lists/quest-today.ts";
+import { keepQuestsReadToday } from "@/quests/quest-reads.ts";
 import { SHARING_COLUMNS, sharingOf } from "@/quests/quest-sharing.ts";
 import { readTaskHistory } from "@/streaks/streak-store.ts";
 import { type Cadence, streakChains } from "@/streaks/streaks.ts";
@@ -90,11 +91,13 @@ async function withStreaks(
 // The tasks of the user's Active quests whose text holds the search,
 // ignoring case: open ones first, then those done today, then those
 // checked off earlier.
-function searchTasks(
+async function searchTasks(
   user: UserId,
   search: string,
 ): Promise<readonly FoundTask[]> {
-  return withAppErrors("searchTasks", async () => {
+  "use cache";
+  await keepQuestsReadToday(user);
+  return await withAppErrors("searchTasks", async () => {
     const pattern = `%${search.replaceAll(LIKE_SPECIAL, "\\$&")}%`;
     const earlier = sql<boolean>`(${listItems.checkedOff} and not ${listItems.recurring} and ${listItems.checkedOffOn} is distinct from ${QUEST_TODAY})`;
     const rows = await getDb()

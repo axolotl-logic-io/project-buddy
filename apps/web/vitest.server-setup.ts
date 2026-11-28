@@ -1,18 +1,29 @@
 // Runs before every server test file (vitest.server.config.mts). It refuses
-// to run any test unless the run's local test database, mock construct and email
-// outbox are loaded; serves the test's session cookies as next/headers'
-// `cookies()`; runs next/server's `after()` tasks at once; and after each
+// to run any test without the server suite's settings
+// (scripts/test-env/suite-environment.ts); serves the test's session cookies
+// as next/headers' `cookies()`; records next/cache's tags and lifetimes
+// instead of keeping anything; runs next/server's `after()` tasks at once; and after each
 // test waits for those tasks, signs out and deletes the test's users and
 // data (the kits in test/component-integration/test-database/ and
 // test/support/test-database/).
-import { afterAll, afterEach, vi } from "vitest";
-import { checkTestEnvironment } from "./scripts/test-db/test-database.ts";
+import { afterAll, afterEach, inject, vi } from "vitest";
+import { checkSuiteEnvironment } from "./scripts/test-env/suite-environment.ts";
 import { closeDb } from "./src/db/client.ts";
 import { afterTasksDone } from "./test/component-integration/test-database/after-test-kit.ts";
 import { clearCookies } from "./test/component-integration/test-database/session-test-kit.ts";
 import { deleteTestUsers } from "./test/support/test-database/user-test-kit.ts";
+import { fakeZoteroClientEnvironment } from "./test/support/zotero/fake-zotero-client.ts";
 
-checkTestEnvironment();
+checkSuiteEnvironment();
+
+// The site's Zotero client talks to the run's fake Zotero
+// (test/support/zotero/fake-zotero.ts), as the client the fake knows.
+const zoteroOrigin = inject("zoteroOrigin");
+vi.stubEnv("ZOTERO_API_ORIGIN", zoteroOrigin);
+vi.stubEnv("ZOTERO_OAUTH_ORIGIN", zoteroOrigin);
+for (const [name, value] of Object.entries(fakeZoteroClientEnvironment())) {
+  vi.stubEnv(name, value);
+}
 
 // The factories are hoisted above the imports, so they import the kit
 // themselves.
@@ -38,6 +49,23 @@ vi.mock("next/server", async (importOriginal) => {
     after,
   };
 });
+
+// Next's tags and lifetimes need its cache scopes and a request.
+vi.mock("next/cache", async (importOriginal) => {
+  const { cacheLife, cacheTag, revalidateTag } = await import(
+    "./test/component-integration/test-database/read-cache-test-kit.ts"
+  );
+  return {
+    ...(await importOriginal<typeof import("next/cache")>()),
+    cacheLife,
+    cacheTag,
+    revalidateTag,
+  };
+});
+
+// The stores expire kept reads only on the Next server, which sets
+// NEXT_RUNTIME; the server tests stand in for its Node runtime.
+vi.stubEnv("NEXT_RUNTIME", "nodejs");
 
 afterEach(async () => {
   await afterTasksDone();

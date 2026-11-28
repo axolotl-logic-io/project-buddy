@@ -11,30 +11,37 @@ import {
   inTransaction,
   type Transaction,
 } from "@/db/client.ts";
+import { expireReads } from "@/db/read-cache.ts";
 import { listChanges } from "@/db/tables/list-changes.ts";
 import { listItems, lists } from "@/db/tables/lists.ts";
 import { quests } from "@/db/tables/quests.ts";
 import { withAppErrors } from "@/errors/to-app-error.ts";
 import type { QuestId, UserId } from "@/ids.ts";
+import { keepQuestRead } from "@/quests/quest-reads.ts";
 import {
+  ITEM_LIST_TYPE,
   LIST_ID,
-  LIST_SETTINGS,
+  LIST_TYPE,
   type ListId,
   type ListSettings,
+  type ListType,
   STARTING_LISTS,
 } from "./list.ts";
 import { LIST_ITEM_COLUMNS } from "./quest-today.ts";
 import { retype } from "./retype.ts";
 
-interface List extends ListSettings {
+interface List {
   readonly id: ListId;
+  readonly name: string;
+  readonly type: ListType;
   readonly position: number;
   readonly version: number;
 }
 
 function toList(row: typeof lists.$inferSelect): List {
   return {
-    ...LIST_SETTINGS.parse(row),
+    name: row.name,
+    type: LIST_TYPE.parse(row.type),
     id: LIST_ID.parse(row.id),
     position: row.position,
     version: row.version,
@@ -51,8 +58,10 @@ async function seedLists(tx: Transaction, questId: QuestId): Promise<void> {
   );
 }
 
-function readLists(user: UserId, questId: QuestId): Promise<List[]> {
-  return withAppErrors("readLists", async () => {
+async function readLists(user: UserId, questId: QuestId): Promise<List[]> {
+  "use cache";
+  keepQuestRead(user, questId);
+  return await withAppErrors("readLists", async () => {
     const rows = await getDb()
       .select()
       .from(lists)
@@ -80,13 +89,13 @@ async function readList(
   return toList(row);
 }
 
-function saveList(
+async function saveList(
   user: UserId,
   questId: QuestId,
   settings: ListSettings,
   listId?: ListId,
 ): Promise<List | "invalid-text" | undefined> {
-  return withAppErrors("saveList", () =>
+  const saved = await withAppErrors("saveList", () =>
     inTransaction(async (tx) => {
       const [quest] = await tx
         .select({ id: quests.id })
@@ -98,7 +107,9 @@ function saveList(
       }
       if (listId !== undefined) {
         const current = await readList(tx, user, questId, listId);
-        if (current === undefined) {
+        // A Zotero Collection list keeps its settings in src/zotero/.
+        const from = ITEM_LIST_TYPE.safeParse(current?.type).data;
+        if (current === undefined || from === undefined) {
           return;
         }
         const items = await tx
@@ -106,7 +117,7 @@ function saveList(
           .from(listItems)
           .where(and(eq(listItems.listId, listId), listItemOpenTo(user)));
         const retyped = await retype(tx, { user, questId }, items, {
-          from: current.type,
+          from,
           to: settings.type,
         });
         if (retyped !== "saved") {
@@ -152,6 +163,8 @@ function saveList(
       return toList(added);
     }),
   );
+  expireReads({ accounts: [user], quests: [questId] });
+  return saved;
 }
 
 export type { List };

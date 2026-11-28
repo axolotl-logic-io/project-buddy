@@ -18,6 +18,9 @@ const SECURITY_HEADING_ID = "security-heading";
 
 export const metadata: Metadata = { title: SETTINGS_COPY.title };
 
+// A navigation here shows the page at once, from its App Shell.
+export const instant = true;
+
 // All preferences stay visible, including bookmarked sections and payment
 // feedback. A visitor, or a session that has ended, goes to sign in.
 export default async function SettingsPage(): Promise<JSX.Element> {

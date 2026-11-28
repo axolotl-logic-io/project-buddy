@@ -1,4 +1,5 @@
 import { describe, expect, test, vi } from "vitest";
+import { newPerformanceId } from "@/ids.ts";
 import { readLists } from "@/lists/list-store.ts";
 import {
   listPerformances,
@@ -20,8 +21,6 @@ import { expectRedirect } from "../test-database/navigation-test-kit.ts";
 import { signIn } from "../test-database/session-test-kit.ts";
 
 const SECOND_MS = 1000;
-
-vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
 
 test("use_case_customize_rite", async () => {
   const [author, stranger] = await Promise.all([testUser(), testUser()]);
@@ -50,6 +49,7 @@ test("use_case_customize_rite", async () => {
   }
   const id = OWN_RITE_ID.parse(created.id);
   const performance = await startPerformance(author.id, questId, {
+    id: newPerformanceId(),
     listId: list.id,
     riteId: id,
   });
@@ -88,6 +88,7 @@ test("use_case_customize_rite", async () => {
   expect(await changeRiteAvailability(author.id, id, "forget")).toBe(true);
   expect(
     await startPerformance(author.id, questId, {
+      id: newPerformanceId(),
       listId: list.id,
       riteId: id,
     }),
@@ -212,6 +213,7 @@ describe("use_case_delete_retired_definition", () => {
     await signIn(owner);
     const id = await ownRite(owner, "Plan");
     await startPerformance(owner.id, questId, {
+      id: newPerformanceId(),
       listId: list.id,
       riteId: id,
     });

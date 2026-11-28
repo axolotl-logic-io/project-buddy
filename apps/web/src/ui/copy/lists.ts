@@ -1,5 +1,6 @@
 import type { SplitCopy } from "@/components/ui/editable-list-contract.ts";
 import type { ListType } from "@/lists/list.ts";
+import type { ListItemChange } from "@/lists/list-item.ts";
 import type { StreakChain } from "@/streaks/streaks.ts";
 import { CADENCE_COPY } from "./cadence.ts";
 
@@ -10,6 +11,7 @@ const LIST_NOUNS: Readonly<
   task: { one: "task", many: "tasks" },
   "quick-note": { one: "note", many: "notes" },
   tally: { one: "tally", many: "tallies" },
+  "zotero-collection": { one: "reference", many: "references" },
 };
 
 function capitalized(word: string): string {
@@ -53,6 +55,19 @@ const LISTS_COPY = {
   splitListItem: (type: ListType): string => `Split ${LIST_NOUNS[type].one}`,
   splitDone: (type: ListType, count: number): string =>
     `${capitalized(LIST_NOUNS[type].one)} split into ${count} ${LIST_NOUNS[type].many}.`,
+  // The status a saved change to a list of the type shows.
+  changed: (change: ListItemChange, type: ListType): string => {
+    if (change.kind === "check" && change.checkedOff) {
+      return LISTS_COPY.checkedOff;
+    }
+    if (change.kind === "check") {
+      return LISTS_COPY.unchecked;
+    }
+    if (change.kind === "split") {
+      return LISTS_COPY.splitDone(type, change.texts.length);
+    }
+    return LISTS_COPY.savedChange;
+  },
   // The split dialog's words for a list item of the list's type.
   split: (type: ListType): SplitCopy => {
     const { one, many } = LIST_NOUNS[type];
@@ -95,6 +110,7 @@ const LISTS_COPY = {
     task: "Tasks",
     "quick-note": "Notes",
     tally: "Tallies",
+    "zotero-collection": "Zotero Collection",
   },
 };
 

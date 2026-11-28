@@ -1,4 +1,5 @@
 import type { Route } from "next";
+import { connection } from "next/server";
 import type { User } from "@/accounts/users-store.ts";
 import type { Breadcrumb } from "@/components/breadcrumb.ts";
 import {
@@ -66,10 +67,11 @@ const UNDER_HOME: ReadonlySet<Breadcrumb> = new Set([QUESTS, GRIMOIRE]);
 // A timer link's trail: the Timer, then the schedule it names. Once the
 // schedule has started, its crumb carries it for the band's timer tools; a
 // link whose start is still ahead shows no countdown, so it gets none.
-function timerLinkBreadcrumbs(
+// Whether it has started is read at the request, never in a prerender.
+async function timerLinkBreadcrumbs(
   root: Breadcrumb,
   path: readonly string[],
-): readonly HeaderBreadcrumb[] {
+): Promise<readonly HeaderBreadcrumb[]> {
   if (path.length !== TIMER_LINK_DEPTH) {
     return [];
   }
@@ -82,6 +84,7 @@ function timerLinkBreadcrumbs(
     schedule.workMinutes,
     schedule.breakMinutes,
   );
+  await connection();
   if (timerPhaseAt(schedule, Date.now()).kind === "not-started") {
     return [root, { label }];
   }
@@ -90,9 +93,9 @@ function timerLinkBreadcrumbs(
 
 // The trail of a page anyone may open, signed in or not: the Timer's setup
 // and its links. Any other path has none.
-function publicBreadcrumbs(
+async function publicBreadcrumbs(
   path: readonly string[],
-): readonly HeaderBreadcrumb[] {
+): Promise<readonly HeaderBreadcrumb[]> {
   const [section, id] = path;
   if (section !== "timer") {
     return [];
@@ -100,7 +103,7 @@ function publicBreadcrumbs(
   if (id === undefined) {
     return [{ label: TIMER_ROOT.label }];
   }
-  return timerLinkBreadcrumbs(TIMER_ROOT, path);
+  return await timerLinkBreadcrumbs(TIMER_ROOT, path);
 }
 
 // A signed-in user's trail: Home, then Quests, the Grimoire or the Timer
@@ -117,7 +120,7 @@ async function headerBreadcrumbs(
 ): Promise<readonly HeaderBreadcrumb[]> {
   const [section = "", id, child] = path;
   if (section === "timer") {
-    const trail = publicBreadcrumbs(path);
+    const trail = await publicBreadcrumbs(path);
     if (trail.length === 0) {
       return trail;
     }
@@ -178,4 +181,5 @@ async function headerBreadcrumbs(
   return [HOME, root, { label: name }];
 }
 
+export type { HeaderBreadcrumb };
 export { headerBreadcrumbs, publicBreadcrumbs };

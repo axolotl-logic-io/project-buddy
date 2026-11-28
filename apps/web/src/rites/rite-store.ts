@@ -2,6 +2,7 @@ import { and, desc, eq, isNotNull, isNull } from "drizzle-orm";
 import { z } from "zod";
 import { riteOwnedBy } from "@/accounts/owner-scope.ts";
 import { getDb } from "@/db/client.ts";
+import { expireReads, keepRead } from "@/db/read-cache.ts";
 import { rites } from "@/db/tables/performances.ts";
 import { withAppErrors } from "@/errors/to-app-error.ts";
 import type { UserId } from "@/ids.ts";
@@ -31,8 +32,10 @@ function asRite(row: typeof rites.$inferSelect): Rite {
 // The user's active rites, built-in ones first and then their own by name;
 // or, with forgotten, only their own forgotten rites, the most recently
 // forgotten first.
-function listRites(user: UserId, forgotten = false): Promise<Rite[]> {
-  return withAppErrors("listRites", async () => {
+async function listRites(user: UserId, forgotten = false): Promise<Rite[]> {
+  "use cache";
+  keepRead(user, []);
+  return await withAppErrors("listRites", async () => {
     if (forgotten) {
       const rows = await getDb()
         .select()
@@ -62,7 +65,17 @@ function readRite(
   if (!OWN_RITE_ID.safeParse(id).success) {
     return Promise.resolve(undefined);
   }
-  return withAppErrors("readRite", async () => {
+  return readOwnRite(user, id, includeForgotten);
+}
+
+async function readOwnRite(
+  user: UserId,
+  id: string,
+  includeForgotten: boolean,
+): Promise<Rite | undefined> {
+  "use cache";
+  keepRead(user, []);
+  return await withAppErrors("readRite", async () => {
     const [row] = await getDb()
       .select()
       .from(rites)
@@ -74,12 +87,12 @@ function readRite(
   });
 }
 
-function saveRite(
+async function saveRite(
   user: UserId,
   definition: RiteDefinition,
   id?: OwnRiteId,
 ): Promise<Rite | undefined> {
-  return withAppErrors("saveRite", async () => {
+  const saved = await withAppErrors("saveRite", async () => {
     if (id === undefined) {
       const [created] = await getDb()
         .insert(rites)
@@ -90,18 +103,20 @@ function saveRite(
       }
       return asRite(created);
     }
-    const [saved] = await getDb()
+    const [updated] = await getDb()
       .update(rites)
       .set({ ...definition, updatedAt: new Date() })
       .where(
         and(eq(rites.id, id), riteOwnedBy(user), isNull(rites.forgottenAt)),
       )
       .returning();
-    if (saved === undefined) {
+    if (updated === undefined) {
       return;
     }
-    return asRite(saved);
+    return asRite(updated);
   });
+  expireReads({ accounts: [user] });
+  return saved;
 }
 
 // Forgets the user's active own rite, restores their forgotten one, or
@@ -110,12 +125,12 @@ function saveRite(
 // rite is never deleted, however recently it was restored. A foreign or
 // unknown id, or a change already made, changes nothing. Performances keep
 // their rite snapshots.
-function changeRiteAvailability(
+async function changeRiteAvailability(
   user: UserId,
   id: OwnRiteId,
   change: "forget" | "restore" | "delete",
 ): Promise<boolean> {
-  return withAppErrors("changeRiteAvailability", async () => {
+  const changed = await withAppErrors("changeRiteAvailability", async () => {
     const owned = and(eq(rites.id, id), riteOwnedBy(user));
     if (change === "delete") {
       const removed = await getDb()
@@ -137,6 +152,8 @@ function changeRiteAvailability(
       .returning({ id: rites.id });
     return updated.length > 0;
   });
+  expireReads({ accounts: [user] });
+  return changed;
 }
 
 export { changeRiteAvailability, listRites, OWN_RITE_ID, readRite, saveRite };

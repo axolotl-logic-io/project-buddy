@@ -1,14 +1,12 @@
 "use server";
 
 import { z } from "zod";
-import { revalidateWorkspace } from "@/app/revalidate-workspace.ts";
 import { currentUser, requireUser } from "@/auth/current-user.ts";
 import { AppError } from "@/errors/app-error.ts";
-import { QUEST_ID } from "@/ids.ts";
+import { PERFORMANCE_ID, QUEST_ID } from "@/ids.ts";
 import { LIST_ID } from "@/lists/list.ts";
 import { PERFORMANCE_COPY } from "@/ui/copy/performances.ts";
 import {
-  PERFORMANCE_ID,
   PERFORMANCE_MESSAGE,
   sendMessage,
   startPerformance,
@@ -16,6 +14,7 @@ import {
 } from "./performance-store.ts";
 
 const START_INPUT = z.object({
+  id: PERFORMANCE_ID,
   questId: QUEST_ID,
   listId: LIST_ID,
   riteId: z.string().min(1),
@@ -37,7 +36,6 @@ async function startPerformanceAction(
   ) {
     return PERFORMANCE_COPY.unavailable;
   }
-  revalidateWorkspace();
   return undefined;
 }
 
@@ -52,7 +50,6 @@ async function stopPerformanceAction(
   ) {
     return PERFORMANCE_COPY.unavailable;
   }
-  revalidateWorkspace();
   return undefined;
 }
 
@@ -71,7 +68,6 @@ async function sendMessageAction(
     if ((await sendMessage(user.id, input.questId, input)) === undefined) {
       return PERFORMANCE_COPY.required;
     }
-    revalidateWorkspace();
     return undefined;
   } catch (error) {
     if (error instanceof AppError) {

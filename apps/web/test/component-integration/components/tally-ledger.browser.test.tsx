@@ -5,6 +5,7 @@ import { afterEach, describe, expect, test, vi } from "vitest";
 import { page, userEvent } from "vitest/browser";
 import { render } from "vitest-browser-react";
 import { TallyLedger } from "@/components/tally-ledger.tsx";
+import type { QuestActionResult } from "@/components/use-quest-action.ts";
 import {
   incrementTallyAction,
   setTallyDayAction,
@@ -12,7 +13,6 @@ import {
 import { TALLIES_COPY } from "@/ui/copy/tallies.ts";
 import {
   BOOKS,
-  BOOKS_ID,
   TALLY_QUEST,
   WORDS,
   WORDS_ID,
@@ -40,6 +40,19 @@ afterEach(async () => {
   await setViewport(LAPTOP_VIEWPORT);
 });
 
+// Holds the next increment unanswered until the returned function answers
+// it.
+function holdIncrement(): (result: QuestActionResult) => void {
+  let answer: (result: QuestActionResult) => void = () => undefined;
+  vi.mocked(incrementTallyAction).mockImplementationOnce(
+    () =>
+      new Promise((resolve) => {
+        answer = resolve;
+      }),
+  );
+  return (result: QuestActionResult): void => answer(result);
+}
+
 describe("use_case_home_tallies", () => {
   test("the ledger links each quest and shows each tally's days and total", async () => {
     await render(<TallyLedger quests={[TALLY_QUEST]} />);
@@ -64,10 +77,7 @@ describe("use_case_home_tallies", () => {
   });
 
   test("a day's total opens a field that sets it", async () => {
-    vi.mocked(setTallyDayAction).mockResolvedValue({
-      kind: "saved",
-      message: TALLIES_COPY.saved,
-    });
+    vi.mocked(setTallyDayAction).mockResolvedValue({ kind: "saved" });
     await render(<TallyLedger quests={[TALLY_QUEST]} />);
 
     await cell(WORDS, "Mon", "23", "1,500.5").click();
@@ -94,35 +104,36 @@ describe("use_case_home_tallies", () => {
     expect(incrementTallyAction).not.toHaveBeenCalled();
   });
 
-  test("Increment opens a field that adds to today's total", async () => {
-    vi.mocked(incrementTallyAction).mockResolvedValue({
-      kind: "saved",
-      message: TALLIES_COPY.saved,
-    });
+  test("Increment opens a field that adds to today's total, shown before the server replies", async () => {
+    const answer = holdIncrement();
     await render(<TallyLedger quests={[TALLY_QUEST]} />);
 
     await page
-      .getByRole("button", { name: `${TALLIES_COPY.increment} ${BOOKS}` })
+      .getByRole("button", { name: `${TALLIES_COPY.increment} ${WORDS}` })
       .click();
     const field = page.getByRole("spinbutton", {
-      name: TALLIES_COPY.incrementBy(BOOKS),
+      name: TALLIES_COPY.incrementBy(WORDS),
     });
     await expect.element(field).toHaveFocus();
     await field.fill("0.5");
     await page.getByRole("button", { name: TALLIES_COPY.add }).click();
 
+    expect(vi.mocked(incrementTallyAction).mock.calls).toEqual([
+      [{ questId: TALLY_QUEST.quest.id, id: WORDS_ID, amount: "0.5" }],
+    ]);
+    await expect.element(field).not.toBeInTheDocument();
+    await expect.element(cell(WORDS, "Tue", "24", "250.5")).toBeVisible();
     await expect
-      .poll(() => vi.mocked(incrementTallyAction).mock.calls)
-      .toEqual([
-        [{ questId: TALLY_QUEST.quest.id, id: BOOKS_ID, amount: "0.5" }],
-      ]);
+      .element(page.getByRole("rowheader", { name: WORDS, exact: false }))
+      .toHaveTextContent(`${WORDS}${TALLIES_COPY.total} 4,739`);
+    await expect.element(page.getByText(TALLIES_COPY.saved)).toBeVisible();
+
+    answer({ kind: "saved" });
+    await expect.element(page.getByText(TALLIES_COPY.saved)).toBeVisible();
   });
 
-  test("Escape closes a field without saving, and a refused amount says why", async () => {
-    vi.mocked(incrementTallyAction).mockResolvedValue({
-      kind: "problem",
-      text: TALLIES_COPY.problems["too-large"],
-    });
+  test("Escape closes a field without saving, and a refused amount is taken back and says why", async () => {
+    const answer = holdIncrement();
     await render(<TallyLedger quests={[TALLY_QUEST]} />);
     const increment = page.getByRole("button", {
       name: `${TALLIES_COPY.increment} ${WORDS}`,
@@ -139,10 +150,18 @@ describe("use_case_home_tallies", () => {
     await increment.click();
     await field.fill("1");
     await page.getByRole("button", { name: TALLIES_COPY.add }).click();
+    await expect.element(cell(WORDS, "Tue", "24", "251")).toBeVisible();
+
+    answer({ kind: "problem", text: TALLIES_COPY.problems["too-large"] });
+
     await expect
       .element(page.getByText(TALLIES_COPY.problems["too-large"]))
       .toBeVisible();
+    await expect.element(cell(WORDS, "Tue", "24", "250")).toBeVisible();
     await expect.element(field).toHaveDisplayValue("1");
+    await expect
+      .element(page.getByText(TALLIES_COPY.saved))
+      .not.toBeInTheDocument();
   });
 
   test("on a phone nothing scrolls sideways", async () => {

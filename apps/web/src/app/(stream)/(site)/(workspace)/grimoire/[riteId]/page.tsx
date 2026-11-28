@@ -182,4 +182,7 @@ async function RitePage({
   );
 }
 
+// A navigation here shows the page at once, from its App Shell.
+export const instant = true;
+
 export default RitePage;

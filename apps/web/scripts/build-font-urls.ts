@@ -1,6 +1,6 @@
 // How src/themes/theme-font-urls.ts has drifted from the production build:
 // the check in check-build-font-urls.ts runs on the CSS that
-// `npm run build` writes under `.next/static/`. The map is in
+// `mise run //apps/web:build` writes under `.next/static/`. The map is in
 // step when each typeface's URL is the `src` of a built `@font-face` rule
 // for the family the built CSS gives its variable, and every `.woff2` file
 // a built `@font-face` rule loads is in the map.
@@ -96,7 +96,9 @@ function typefaceDrift(
 function buildFontUrlDrift(sheets: readonly BuiltSheet[]): readonly string[] {
   const faces = sheets.flatMap(fontFaces);
   if (faces.length === 0) {
-    return ["The built CSS has no @font-face rules: run `npm run build` first"];
+    return [
+      "The built CSS has no @font-face rules: run `mise run //apps/web:build` first",
+    ];
   }
   const mapped = new Set(Object.values(TYPEFACE_FONT_URLS));
   const unmapped = [

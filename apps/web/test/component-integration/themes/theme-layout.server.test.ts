@@ -3,10 +3,13 @@ import { NextRequest } from "next/server";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, test, vi } from "vitest";
-import RootLayout from "@/app/layout.tsx";
+import StreamLayout from "@/app/(stream)/layout.tsx";
+import { SiteDocument } from "@/app/site-document.tsx";
 import { proxy } from "@/proxy.ts";
+import { readSavedThemeChoice } from "@/themes/saved-theme-choice.ts";
 import {
   parseThemeChoiceCookie,
+  SAVED_THEME_SCRIPT,
   THEME_COOKIE_NAME,
 } from "@/themes/theme-choice.ts";
 import { DEFAULT_THEME_CHOICE, THEME_MODES } from "@/themes/themes.ts";
@@ -55,19 +58,22 @@ describe("use_case_choose_theme", () => {
     expect((await visit("/quests")).headers.get("location")).toBe(
       `${SITE}/login`,
     );
-    const html = await pageHtml();
-    expect(html).toContain(`data-mode="${mode}"`);
+    expect(await completePageHtml()).toContain(`data-mode="${mode}"`);
     expect(fontPreloads(await visit("/login"))).toEqual(
       themeFontUrls(DEFAULT_THEME_CHOICE.theme),
     );
   });
 });
 
-async function pageHtml(): Promise<string> {
-  const layout = await RootLayout({
-    children: createElement("p"),
-  });
-  return renderToStaticMarkup(layout);
+// A complete page's first HTML, for a browser without scripting, in the
+// appearance it saved.
+async function completePageHtml(): Promise<string> {
+  return renderToStaticMarkup(
+    SiteDocument({
+      appearance: await readSavedThemeChoice(),
+      children: createElement("p"),
+    }),
+  );
 }
 
 test.each([
@@ -80,11 +86,24 @@ test.each([
   { value: "gravy-falls.dark", mode: "dark" },
   { value: "ghost-hasslers.dark", mode: "dark" },
   { value: "ay-liens.dark", mode: "dark" },
-])("renders $value in the initial HTML", async ({ value, mode }) => {
-  if (value !== undefined) {
-    (await cookies()).set({ name: THEME_COOKIE_NAME, value });
-  }
-  expect(await pageHtml()).toMatch(
-    `<html data-theme="parchment" data-mode="${mode}"`,
+])(
+  "renders $value in a complete page's first HTML",
+  async ({ value, mode }) => {
+    if (value !== undefined) {
+      (await cookies()).set({ name: THEME_COOKIE_NAME, value });
+    }
+    expect(await completePageHtml()).toMatch(
+      `<html data-theme="parchment" data-mode="${mode}"`,
+    );
+  },
+);
+
+test("a streamed page's root layout reads no cookie, and applies the saved appearance before its first paint", async () => {
+  (await cookies()).set({ name: THEME_COOKIE_NAME, value: "parchment.dark" });
+  const html = renderToStaticMarkup(
+    StreamLayout({ children: createElement("p") }),
   );
+  expect(html).toMatch('<html data-theme="parchment" data-mode="light"');
+  const head = html.slice(0, html.indexOf("<body"));
+  expect(head).toContain(`<script>${SAVED_THEME_SCRIPT}</script>`);
 });

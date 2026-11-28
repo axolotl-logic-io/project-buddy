@@ -1,5 +1,5 @@
 // The emails the site under test sent: with EMAIL_TRANSPORT "outbox"
-// (.env.test), each is a JSON file in EMAIL_OUTBOX_DIR, which
+// (scripts/test-env/suite-environment.ts), each is a JSON file in EMAIL_OUTBOX_DIR, which
 // src/email/outbox.ts writes, named by its idempotency key. For the
 // end-to-end tests (test/system/outbox.ts) and the server tests. One of the
 // files that may use Node's file system (biome.jsonc).

@@ -9,6 +9,7 @@ import {
   tallyDayOpenTo,
 } from "@/accounts/owner-scope.ts";
 import { getDb, inTransaction } from "@/db/client.ts";
+import { expireReads } from "@/db/read-cache.ts";
 import { listItems, lists } from "@/db/tables/lists.ts";
 import { quests } from "@/db/tables/quests.ts";
 import { tallyDays } from "@/db/tables/tallies.ts";
@@ -18,6 +19,10 @@ import { parseQuestId, type QuestId, type UserId } from "@/ids.ts";
 import { LIST_ID } from "@/lists/list.ts";
 import { LIST_ITEM_ID, type ListItemId } from "@/lists/list-item.ts";
 import { QUEST_TODAY } from "@/lists/quest-today.ts";
+import {
+  keepQuestReadToday,
+  keepQuestsReadToday,
+} from "@/quests/quest-reads.ts";
 import { addDays, type LocalDate } from "@/streaks/streaks.ts";
 import {
   TALLY_DAYS,
@@ -79,11 +84,13 @@ async function readSums(
 // The quest's tallies, in list order across its tally lists, with their
 // totals on the last TALLY_DAYS dates up to the quest's today, or
 // undefined when the quest isn't open to user.
-function readQuestTallies(
+async function readQuestTallies(
   user: UserId,
   questId: QuestId,
 ): Promise<TallyQuest | undefined> {
-  return withAppErrors("readQuestTallies", async () => {
+  "use cache";
+  await keepQuestReadToday(user, questId);
+  return await withAppErrors("readQuestTallies", async () => {
     const db = getDb();
     const [quest] = await db
       .select({
@@ -142,8 +149,10 @@ function readQuestTallies(
 
 // Every Active quest open to the user that has a tally, oldest first, with
 // its tallies, for Home.
-function readTallyQuests(user: UserId): Promise<readonly TallyQuest[]> {
-  return withAppErrors("readTallyQuests", async () => {
+async function readTallyQuests(user: UserId): Promise<readonly TallyQuest[]> {
+  "use cache";
+  await keepQuestsReadToday(user);
+  return await withAppErrors("readTallyQuests", async () => {
     const db = getDb();
     const rows = await db
       .select({ id: quests.id })
@@ -184,7 +193,7 @@ function readTallyQuests(user: UserId): Promise<readonly TallyQuest[]> {
 // Adds to, or sets, a tally's total on a date: the date must be one of the
 // last TALLY_DAYS up to the quest's today, and the new total must fit a
 // day.
-function writeTallyDay(
+async function writeTallyDay(
   user: UserId,
   questId: QuestId,
   change: {
@@ -195,7 +204,7 @@ function writeTallyDay(
     readonly add: boolean;
   },
 ): Promise<TallyResult> {
-  return withAppErrors("writeTallyDay", () =>
+  const result = await withAppErrors("writeTallyDay", () =>
     inTransaction(async (tx) => {
       const [tally] = await tx
         .select({ today: sql<string>`${QUEST_TODAY}::text` })
@@ -242,6 +251,8 @@ function writeTallyDay(
       return "saved";
     }),
   );
+  expireReads({ accounts: [user], quests: [questId] });
+  return result;
 }
 
 // Adds amount to the tally's total on its quest's today.

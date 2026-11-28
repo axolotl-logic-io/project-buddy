@@ -1,7 +1,6 @@
 "use server";
 
 import { z } from "zod";
-import { revalidateWorkspace } from "@/app/revalidate-workspace.ts";
 import { requireUser } from "@/auth/current-user.ts";
 import type { QuestActionResult } from "@/components/use-quest-action.ts";
 import { AppError } from "@/errors/app-error.ts";
@@ -34,21 +33,10 @@ async function changeListItemAction(
       change,
     );
     if (result === "saved") {
-      revalidateWorkspace();
-      let message = LISTS_COPY.savedChange;
-      if (change.kind === "check" && change.checkedOff) {
-        message = LISTS_COPY.checkedOff;
-      }
-      if (change.kind === "check" && !change.checkedOff) {
-        message = LISTS_COPY.unchecked;
-      }
-      if (change.kind === "split" && list !== undefined) {
-        message = LISTS_COPY.splitDone(list.type, change.texts.length);
-      }
       if (change.kind === "undo" || list === undefined) {
-        return { kind: "saved", message };
+        return { kind: "saved" };
       }
-      return { kind: "saved", message, undoVersion: list.version };
+      return { kind: "saved", undoVersion: list.version };
     }
     return { kind: "problem", text: LISTS_COPY.changeProblems[result] };
   } catch (error) {

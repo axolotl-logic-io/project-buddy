@@ -2,11 +2,8 @@ import type { JSX, ReactNode } from "react";
 import { currentUser } from "@/auth/current-user.ts";
 import type { Breadcrumb } from "@/components/breadcrumb.ts";
 import { ReportExperienceTotal } from "@/components/experience/experience-feedback.tsx";
-import {
-  AccountLinks,
-  PageHeader,
-  TrailBand,
-} from "@/components/page-header.tsx";
+import { AccountLinks, PageHeader } from "@/components/page-header.tsx";
+import { Trail } from "@/components/pending-page.tsx";
 import { SitePanel } from "@/components/site-panel.tsx";
 import { readExperience } from "@/experience/experience-store.ts";
 import { SignedInVisits } from "@/visits/signed-in-visits.tsx";
@@ -20,7 +17,7 @@ async function SignedInHeader({
   const user = await currentUser();
   let trail: ReactNode;
   if (breadcrumbs !== undefined) {
-    trail = <TrailBand items={breadcrumbs} />;
+    trail = <Trail items={breadcrumbs} />;
   }
   if (user === undefined) {
     return (

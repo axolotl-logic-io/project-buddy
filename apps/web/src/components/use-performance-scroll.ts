@@ -219,8 +219,11 @@ function usePerformanceScroll(): RefObject<HTMLDivElement | null> {
     }
 
     element.addEventListener("send-message", onSend);
+    // The page grows above the performance too, as when a message adds a
+    // list item to its list's section on Overview.
     const observer = new ResizeObserver(follow);
     observer.observe(element);
+    observer.observe(document.body);
     const mutations = new MutationObserver(onMutation);
     mutations.observe(element, {
       childList: true,

@@ -1,43 +1,43 @@
 // Starting quests, in the test database: what New quest makes from a name
 // and an optional Why, as the stores give it to the pages.
 
-import { describe, expect, test, vi } from "vitest";
+import { describe, expect, test } from "vitest";
 import type { User } from "@/accounts/users-store.ts";
-import {
-  type StartQuestState,
-  startQuestAction,
-} from "@/app/(stream)/(site)/(workspace)/quests/actions.ts";
+import { startQuestAction } from "@/app/(stream)/(site)/(workspace)/quests/actions.ts";
 import { readLists } from "@/lists/list-store.ts";
 import { listPerformances } from "@/performances/performance-store.ts";
 import { QUEST_NAME_MAX_LENGTH } from "@/quests/quest-name.ts";
 import { listQuests, type Quest } from "@/quests/store.ts";
-import { QUESTS_COPY } from "@/ui/copy/quests.ts";
+import { NEW_QUEST_COPY, QUESTS_COPY } from "@/ui/copy/quests.ts";
 import { testData } from "../../../../support/test-database/data-test-kit.ts";
 import { testUser } from "../../../../support/test-database/user-test-kit.ts";
-import { formOf } from "../../../test-database/form-test-kit.ts";
 import { expectRedirect } from "../../../test-database/navigation-test-kit.ts";
 import { signIn } from "../../../test-database/session-test-kit.ts";
 
-const IDLE: StartQuestState = { kind: "idle" };
-
-vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
-
-// The New quest form, with a name and any other field.
-function startForm(
-  name: string,
-  others: Partial<Record<"motivation" | "constructId", string>> = {},
-): FormData {
-  return formOf({ name, ...others });
+// What New quest sends: the id the browser made, the name and any other
+// field.
+interface StartRequest {
+  readonly id: string;
+  readonly name: string;
+  readonly motivation?: string;
+  readonly constructId?: string;
 }
 
-// Starts a quest from form as the signed-in user, checks the action opened
-// the quest it made, the newest of theirs, and returns it.
-async function startQuest(user: User, form: FormData): Promise<Quest> {
-  const starting = startQuestAction(IDLE, form);
+function startRequest(
+  name: string,
+  others: Partial<Record<"motivation" | "constructId", string>> = {},
+): StartRequest {
+  return { id: crypto.randomUUID(), name, ...others };
+}
+
+// Starts a quest from request as the signed-in user, checks the action
+// opened the quest it made, under the browser's id, and returns it.
+async function startQuest(user: User, request: StartRequest): Promise<Quest> {
+  const starting = startQuestAction(request);
   await Promise.allSettled([starting]);
-  const [quest] = await listQuests(user.id);
+  const quest = (await listQuests(user.id)).find(({ id }) => id === request.id);
   if (quest === undefined) {
-    throw new Error("No quest was made");
+    throw new Error("No quest was made under the browser's id");
   }
   await expectRedirect(() => starting, `/quests/${quest.id}`);
   return quest;
@@ -62,7 +62,7 @@ describe("use_case_new_quest", () => {
     const user = await testUser();
     await signIn(user);
 
-    const started = await startQuest(user, startForm("Learn Spanish"));
+    const started = await startQuest(user, startRequest("Learn Spanish"));
 
     expect(started).toMatchObject({
       name: "Learn Spanish",
@@ -87,7 +87,7 @@ describe("use_case_new_quest", () => {
 
     const started = await startQuest(
       user,
-      startForm("Knit", { motivation: "  Make time for myself.  " }),
+      startRequest("Knit", { motivation: "  Make time for myself.  " }),
     );
 
     expect(started.startingContext).toBe("Make time for myself.");
@@ -97,7 +97,7 @@ describe("use_case_new_quest", () => {
     const user = await testUser();
     await signIn(user);
 
-    const started = await startQuest(user, startForm("Knit"));
+    const started = await startQuest(user, startRequest("Knit"));
 
     expect(started.startingContext).toBe("");
   });
@@ -106,11 +106,38 @@ describe("use_case_new_quest", () => {
     const user = await testUser();
     await signIn(user);
 
-    const first = await startQuest(user, startForm("Learn Spanish"));
-    const second = await startQuest(user, startForm("Learn Spanish"));
+    const first = await startQuest(user, startRequest("Learn Spanish"));
+    const second = await startQuest(user, startRequest("Learn Spanish"));
 
     expect(second.id).not.toBe(first.id);
     expect(await listQuests(user.id)).toHaveLength(2);
+  });
+
+  test("an id a quest already has is refused and makes nothing", async () => {
+    const owner = await testUser();
+    await signIn(owner);
+    const first = await startQuest(owner, startRequest("Learn Spanish"));
+    const user = await testUser();
+    await signIn(user);
+
+    expect(
+      await startQuestAction({ ...startRequest("Knit"), id: first.id }),
+    ).toBe(NEW_QUEST_COPY.failed);
+    expect(await listQuests(user.id)).toEqual([]);
+    await signIn(owner);
+    expect(await listQuests(owner.id)).toMatchObject([
+      { id: first.id, name: "Learn Spanish" },
+    ]);
+  });
+
+  test("a request without a well-formed id is refused and makes nothing", async () => {
+    const user = await testUser();
+    await signIn(user);
+
+    expect(
+      await startQuestAction({ ...startRequest("Knit"), id: "quest-1" }),
+    ).toBe(NEW_QUEST_COPY.invalid);
+    expect(await listQuests(user.id)).toEqual([]);
   });
 });
 
@@ -121,7 +148,7 @@ describe("use_case_new_quest_with_construct", () => {
 
     const started = await startQuest(
       user,
-      startForm("Make a fox", { constructId: "lumen" }),
+      startRequest("Make a fox", { constructId: "lumen" }),
     );
 
     expect(started.constructId).toBe("vellum");
@@ -133,10 +160,9 @@ describe("use_case_new_quest_without_name", () => {
     const user = await testUser();
     await signIn(user);
 
-    expect(await startQuestAction(IDLE, startForm("   "))).toEqual({
-      kind: "invalid",
-      message: QUESTS_COPY.needsName,
-    });
+    expect(await startQuestAction(startRequest("   "))).toBe(
+      QUESTS_COPY.needsName,
+    );
     expect(await listQuests(user.id)).toEqual([]);
   });
 });
@@ -147,10 +173,9 @@ describe("use_case_new_quest_name_too_long", () => {
     await signIn(user);
     const name = "Fox ".repeat(QUEST_NAME_MAX_LENGTH);
 
-    expect(await startQuestAction(IDLE, startForm(name))).toEqual({
-      kind: "invalid",
-      message: QUESTS_COPY.nameTooLong(QUEST_NAME_MAX_LENGTH),
-    });
+    expect(await startQuestAction(startRequest(name))).toBe(
+      QUESTS_COPY.nameTooLong(QUEST_NAME_MAX_LENGTH),
+    );
     expect(await listQuests(user.id)).toEqual([]);
   });
 
@@ -159,7 +184,7 @@ describe("use_case_new_quest_name_too_long", () => {
     await signIn(user);
     const name = "f".repeat(QUEST_NAME_MAX_LENGTH);
 
-    const started = await startQuest(user, startForm(`  ${name}  `));
+    const started = await startQuest(user, startRequest(`  ${name}  `));
 
     expect(started.name).toBe(name);
   });
@@ -169,12 +194,12 @@ describe("use_case_new_quest_name_too_long", () => {
     await signIn(user);
     const atLimit = "🦊".repeat(QUEST_NAME_MAX_LENGTH / 2);
 
-    expect(
-      await startQuestAction(IDLE, startForm(`${atLimit}🦊`)),
-    ).toMatchObject({ kind: "invalid" });
+    expect(await startQuestAction(startRequest(`${atLimit}🦊`))).toBe(
+      QUESTS_COPY.nameTooLong(QUEST_NAME_MAX_LENGTH),
+    );
     expect(await listQuests(user.id)).toEqual([]);
 
-    const started = await startQuest(user, startForm(atLimit));
+    const started = await startQuest(user, startRequest(atLimit));
 
     expect(started.name).toBe(atLimit);
   });

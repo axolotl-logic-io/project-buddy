@@ -97,9 +97,7 @@ jobs:
         env:
           PREVIEW_URL: ${{ steps.build.outputs.url }}
           VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
-        run: >-
-          node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON
-          scripts/release/smoke.ts "https://$PREVIEW_URL"
+        run: node scripts/release/smoke.ts "https://$PREVIEW_URL"
 
       # 3. Open an issue for this commit, or comment on the open one.
       # Check this preview before merging a release PR into main.

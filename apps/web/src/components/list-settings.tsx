@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button.tsx";
 import { SelectField, TextField } from "@/components/ui/field.tsx";
 import { FormStatus } from "@/components/ui/form-message.tsx";
 import type { QuestId } from "@/ids.ts";
-import { LIST_TYPE } from "@/lists/list.ts";
+import { ITEM_LIST_TYPE } from "@/lists/list.ts";
 import { saveListAction } from "@/lists/list-actions.ts";
 import type { List } from "@/lists/list-store.ts";
 import { LISTS_COPY } from "@/ui/copy/lists.ts";
@@ -40,7 +40,7 @@ function ListSettings({
         name="type"
         defaultValue={typeDraft ?? list.type}
       >
-        {LIST_TYPE.options.map((type) => (
+        {ITEM_LIST_TYPE.options.map((type) => (
           <option key={type} value={type}>
             {LISTS_COPY.types[type]}
           </option>

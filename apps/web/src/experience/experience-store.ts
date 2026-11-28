@@ -4,6 +4,7 @@
 import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import { eventOwnedBy } from "@/accounts/owner-scope.ts";
 import { type Database, getDb } from "@/db/client.ts";
+import { keepRead } from "@/db/read-cache.ts";
 import { events } from "@/db/tables/events.ts";
 import { withAppErrors } from "@/errors/to-app-error.ts";
 import {
@@ -13,7 +14,7 @@ import {
   experienceOf,
   NO_EVENTS,
 } from "@/experience/experience.ts";
-import type { QuestId, UserId } from "@/ids.ts";
+import { parseQuestId, type QuestId, type UserId } from "@/ids.ts";
 
 // Who gains counts, and the quest they did it in.
 interface PointGainer {
@@ -83,24 +84,34 @@ async function latestCheckOff(
   return row;
 }
 
-// The user's counts in each event and where they put them.
-function readExperience(user: UserId): Promise<Experience> {
-  return withAppErrors("readExperience", async () => {
+// The user's counts in each event and where they put them. Anyone in a
+// quest can take back a point gained in it (takeBackEvents), so the read is
+// kept with the quests the points were gained in.
+async function readExperience(user: UserId): Promise<Experience> {
+  "use cache";
+  return await withAppErrors("readExperience", async () => {
     const rows = await getDb()
       .select({
         event: events.event,
+        questId: events.questId,
         counts: sql<number>`count(*)::int`,
       })
       .from(events)
       .where(eventOwnedBy(user))
-      .groupBy(events.event);
+      .groupBy(events.event, events.questId);
     const counts: Record<Event, number> = { ...NO_EVENTS };
+    const gainedIn = new Set<QuestId>();
     for (const row of rows) {
       const event = EVENT_KIND.safeParse(row.event).data;
       if (event !== undefined) {
-        counts[event] = row.counts;
+        counts[event] += row.counts;
+      }
+      const questId = parseQuestId(row.questId ?? "");
+      if (questId !== undefined) {
+        gainedIn.add(questId);
       }
     }
+    keepRead(user, [...gainedIn]);
     return experienceOf(counts);
   });
 }

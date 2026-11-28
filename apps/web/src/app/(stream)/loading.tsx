@@ -1,24 +1,18 @@
-import { headers } from "next/headers";
 import type { JSX } from "react";
 import { PageHeader } from "@/components/page-header.tsx";
+import { COMPLETE_PAGE_PATH } from "@/page-delivery.ts";
 
-import { completePageAddress, PAGE_ADDRESS_HEADER } from "@/page-delivery.ts";
-
-// The boundary above the shared site layout streams this shell on first load.
-export default async function SiteLoading(): Promise<JSX.Element> {
-  const address = (await headers()).get(PAGE_ADDRESS_HEADER);
+// The boundary above the shared site layout streams this shell on first
+// load. A browser without scripting can't reveal what streams after it, so
+// it asks for complete pages instead, and comes back to this one.
+export default function SiteLoading(): JSX.Element {
   return (
     <>
       <PageHeader loading={true} panel={null} />
       <main className="flex flex-1 flex-col" />
-      {address !== null && (
-        <noscript>
-          <meta
-            content={`0;url=${completePageAddress(address)}`}
-            httpEquiv="refresh"
-          />
-        </noscript>
-      )}
+      <noscript>
+        <meta content={`0;url=${COMPLETE_PAGE_PATH}`} httpEquiv="refresh" />
+      </noscript>
     </>
   );
 }

@@ -14,7 +14,7 @@ The panel beside a quest's pages: a link to the quest's **Members**, the quest's
 
 ### Life
 
-The quest every user has for the things they do every day. Each user has exactly one, made when they first need it, named Life. Quests pins it above their other quests with how many of its recurring tasks are done today and one of those not done yet, suggested at random to check off. Life stays Active. [Life use case](../apps/web/use-cases/quests.md#use_case_life)
+The quest every user has for the things they do every day. Each user has exactly one, made when they sign up or sign in without one, named Life. Quests pins it above their other quests with how many of its recurring tasks are done today and one of those not done yet, suggested at random to check off. Life stays Active. [Life use case](../apps/web/use-cases/quests.md#use_case_life)
 
 ### Quest status
 
@@ -48,7 +48,9 @@ A quest the user owns or has joined as a quest member. Use **open to** for acces
 
 ### List
 
-A named, ordered collection of list items in a quest. Every list belongs to one quest and has one type: **plain**, **task**, **quick note** or **tally**. Every list item in a list has the list's type, and the type names the items on screen: items, tasks, notes or tallies. Changing a list's type converts every list item in it. The site refuses the change when an item's text is too long for the new type. Themed wording belongs in a rite's replies rather than in the glossary. [List use cases](../apps/web/use-cases/lists.md)
+A named, ordered collection of list items in a quest. Every list belongs to one quest. The site supports **plain**, **task**, **quick note** and **tally** lists. Each list type names its list items on screen: items, tasks, notes or tallies. Changing between these types converts every list item in the list. The site refuses the change when an item's text is too long for the new type. Themed wording belongs in a rite's replies rather than in the glossary. [List use cases](../apps/web/use-cases/lists.md)
+
+A [Zotero Collection list](#zotero-collection-list) is a list of another kind: its list items are references that come from Zotero.
 
 ### List item
 
@@ -76,11 +78,35 @@ The panel, open from any page, that adds a list item to a list of an Active ques
 
 ### Add box
 
-The field under a quest's name on its Overview that searches the quest's lists and adds list items to whichever of them is chosen under it, one after another, or names a new task list. It works as the search box on a List page does. Unlike Quick Add, it adds only to the quest that is open. [Open quest use case](../apps/web/use-cases/quests.md#use_case_open_quest)
+The field under a quest's name on its Overview that searches the quest's lists and adds list items to whichever of them is chosen under it, one after another. Its New list opens a two-step dialog: the first step chooses the list's type, and the second names the list or sets up a Zotero Collection list. It works as the search box on a List page does. Unlike Quick Add, it adds only to the quest that is open. [Open quest use case](../apps/web/use-cases/quests.md#use_case_open_quest)
 
 ### List page
 
 The page for one of a quest's lists, open from its section on Overview. Its **search box** narrows the list to the list items that contain what the user types, and Enter adds that text as a new list item unless the list already has it. The gear beside the list's name shows its settings. [Quest lists use case](../apps/web/use-cases/lists.md#use_case_quest_lists)
+
+## Zotero lists
+
+See the [Zotero use cases](../apps/web/use-cases/zotero.md) for workflows.
+
+### Zotero connection
+
+Permission a user grants Project Buddy through [Zotero's OAuth authorization flow](https://www.zotero.org/support/dev/web_api/v3/oauth). The quest owner chooses **Connect Zotero** in the New list dialog, after choosing Zotero Collection as the type, and approves access in Zotero. Each Project Buddy account has at most one Zotero connection, and Project Buddy keeps its credentials on the server. The connection lets Project Buddy read collections, their references and the references' notes, and asks for permission to change the library, so that **Sync** can send notes and checkmarks.
+
+### Zotero Collection list
+
+A list linked to one collection from the connected Zotero account. The quest owner chooses the collection from their personal library when they set up the list, and chooses **Create and sync** to import it. Each imported reference is a read-only list item displayed as a Modern Language Association (MLA) Works Cited entry. The list's search box filters references. The list takes no new list items and stays out of Quick Add, moves and performances. Zotero supplies the reference text and determines which references belong to the list.
+
+### Zotero sync
+
+An import or refresh that the quest owner starts. **Sync** on the List page imports additions, updates references, and removes entries that have left the collection. It also sends waiting notes to Zotero and reads the references' notes. For a checkable Zotero Collection list, it also sends waiting checkmark changes to Zotero and reads which references have the checkmark tag. The List page shows the last successful sync time.
+
+### Checkmark tag
+
+The Zotero tag the quest owner specifies when they make a Zotero Collection list **Checkable**. A synced reference is checked when it has that tag and unchecked when it lacks it. The quest owner and quest members can check or uncheck references. They share the resulting changes, which wait until the quest owner's next **Sync** sends them as tag additions or removals. The tag belongs to the Zotero item and follows it across collections. Checking a reference earns no task experience.
+
+### Reference note
+
+A Zotero child note on a reference in a Zotero Collection list. The List page shows it beside its Works Cited entry, keyed by a small roman numeral. The quest owner and quest members can add notes and edit plain ones; each waits until the quest owner's next **Sync** sends it to Zotero. [Note a reference use case](../apps/web/use-cases/zotero.md#use_case_note_zotero_reference)
 
 ## Days and streaks
 

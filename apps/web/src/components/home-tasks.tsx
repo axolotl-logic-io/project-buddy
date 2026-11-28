@@ -4,7 +4,6 @@ import Link from "next/link";
 import {
   type JSX,
   type RefObject,
-  startTransition,
   useCallback,
   useId,
   useOptimistic,
@@ -14,21 +13,35 @@ import {
 import { keepFocus } from "@/components/keep-focus.ts";
 import { Button } from "@/components/ui/button.tsx";
 import { Alert, FormStatus } from "@/components/ui/form-message.tsx";
+import { NoticeSlot } from "@/components/ui/notice-slot.tsx";
 import { TaskCheck } from "@/components/ui/task-check.tsx";
-import { useQuestAction } from "@/components/use-quest-action.ts";
-import type { QuestId } from "@/ids.ts";
-import type { ListId } from "@/lists/list.ts";
+import {
+  type QuestAction,
+  useQuestAction,
+} from "@/components/use-quest-action.ts";
 import type { ListItemId } from "@/lists/list-item.ts";
 import { changeListItemAction } from "@/lists/list-item-actions.ts";
 import type { OneOffTask, TaskQuest } from "@/tasks/task-store.ts";
 import { HOME_COPY } from "@/ui/copy/home.ts";
 import { LISTS_COPY } from "@/ui/copy/lists.ts";
 
-// The task checked off last, so Undo can uncheck it.
+// The task checked off last, where it was, so Undo can uncheck it and
+// bring it back to its place.
 interface CheckedOff {
-  readonly questId: QuestId;
-  readonly listId: ListId;
-  readonly id: ListItemId;
+  readonly quest: TaskQuest["quest"];
+  readonly task: OneOffTask;
+  readonly questAt: number;
+  readonly taskAt: number;
+}
+
+// A change to the tasks shown, made before the server replies.
+type TasksChange = (quests: readonly TaskQuest[]) => readonly TaskQuest[];
+
+function changeTasks(
+  quests: readonly TaskQuest[],
+  change: TasksChange,
+): readonly TaskQuest[] {
+  return change(quests);
 }
 
 // The quests without a task that was just checked off, and without a
@@ -43,6 +56,23 @@ function without(
       tasks: entry.tasks.filter((task) => task.id !== id),
     }))
     .filter(({ tasks }) => tasks.length > 0);
+}
+
+// The quests with a task that was checked off back in its place.
+function withTask(
+  quests: readonly TaskQuest[],
+  { quest, task, questAt, taskAt }: CheckedOff,
+): readonly TaskQuest[] {
+  const entry = quests.find((each) => each.quest.id === quest.id);
+  if (entry === undefined) {
+    return quests.toSpliced(questAt, 0, { quest, tasks: [task] });
+  }
+  return quests.map((each) => {
+    if (each !== entry) {
+      return each;
+    }
+    return { ...each, tasks: each.tasks.toSpliced(taskAt, 0, task) };
+  });
 }
 
 function HomeTask({
@@ -96,33 +126,60 @@ function QuestTasks({
 }
 
 function useUndo(
-  run: (request: unknown) => Promise<boolean>,
+  start: QuestAction<unknown>["start"],
+  showTasks: (change: TasksChange) => void,
   headingRef: RefObject<HTMLHeadingElement | null>,
 ): {
   readonly checkedOff: CheckedOff | undefined;
-  readonly setCheckedOff: (task: CheckedOff | undefined) => void;
+  readonly checkOff: (task: CheckedOff) => void;
   readonly undo: () => void;
 } {
-  const [checkedOff, setCheckedOff] = useState<CheckedOff | undefined>(
-    undefined,
+  const [settled, setCheckedOff] = useState<CheckedOff | undefined>(undefined);
+  const [checkedOff, showCheckedOff] = useOptimistic(settled);
+  const checkOff = useCallback(
+    (target: CheckedOff): void => {
+      const { quest, task } = target;
+      start(
+        {
+          questId: quest.id,
+          listId: task.listId,
+          change: { kind: "check", id: task.id, checkedOff: true },
+        },
+        {
+          status: LISTS_COPY.checkedOff,
+          show: (): void => {
+            showTasks((quests) => without(quests, task.id));
+            showCheckedOff(target);
+          },
+          keep: (): void => setCheckedOff(target),
+        },
+      );
+    },
+    [start, showTasks, showCheckedOff],
   );
   const undo = useCallback((): void => {
     if (checkedOff === undefined) {
       return;
     }
-    const { questId, listId, id } = checkedOff;
-    setCheckedOff(undefined);
-    // Undo leaves with its notice.
+    const { quest, task } = checkedOff;
     headingRef.current?.focus();
-    startTransition(async () => {
-      await run({
-        questId,
-        listId,
-        change: { kind: "check", id, checkedOff: false },
-      });
-    });
-  }, [checkedOff, headingRef, run]);
-  return { checkedOff, setCheckedOff, undo };
+    start(
+      {
+        questId: quest.id,
+        listId: task.listId,
+        change: { kind: "check", id: task.id, checkedOff: false },
+      },
+      {
+        status: LISTS_COPY.unchecked,
+        show: (): void => {
+          showTasks((quests) => withTask(quests, checkedOff));
+          showCheckedOff(undefined);
+        },
+        keep: (): void => setCheckedOff(undefined),
+      },
+    );
+  }, [checkedOff, headingRef, start, showTasks, showCheckedOff]);
+  return { checkedOff, checkOff, undo };
 }
 
 // The open one-off tasks of the user's Active quests, grouped by quest. A
@@ -135,38 +192,24 @@ function HomeTasks({
   const headingId = useId();
   const sectionRef = useRef<HTMLElement>(null);
   const headingRef = useRef<HTMLHeadingElement>(null);
-  const [shown, hide] = useOptimistic(quests, without);
-  const { run, busy, status, problem } = useQuestAction(changeListItemAction);
-  const { checkedOff, setCheckedOff, undo } = useUndo(run, headingRef);
+  const [shown, showTasks] = useOptimistic(quests, changeTasks);
+  const { start, status, problem } = useQuestAction(changeListItemAction);
+  const { checkedOff, checkOff, undo } = useUndo(start, showTasks, headingRef);
   const onCheck = useCallback(
     (id: ListItemId): void => {
-      const entry = quests.find(({ tasks }) =>
+      const questAt = shown.findIndex(({ tasks }) =>
         tasks.some((each) => each.id === id),
       );
-      const task = entry?.tasks.find((each) => each.id === id);
+      const entry = shown[questAt];
+      const taskAt = entry?.tasks.findIndex((each) => each.id === id) ?? -1;
+      const task = entry?.tasks[taskAt];
       if (entry === undefined || task === undefined) {
         return;
       }
-      const target = {
-        questId: entry.quest.id,
-        listId: task.listId,
-        id: task.id,
-      };
       keepFocus(sectionRef.current, headingRef.current);
-      setCheckedOff(undefined);
-      startTransition(async () => {
-        hide(id);
-        const saved = await run({
-          questId: target.questId,
-          listId: target.listId,
-          change: { kind: "check", id, checkedOff: true },
-        });
-        if (saved) {
-          setCheckedOff(target);
-        }
-      });
+      checkOff({ quest: entry.quest, task, questAt, taskAt });
     },
-    [quests, run, hide, setCheckedOff],
+    [shown, checkOff],
   );
 
   let body: JSX.Element;
@@ -196,14 +239,16 @@ function HomeTasks({
       >
         {HOME_COPY.tasksHeading}
       </h2>
-      {body}
-      {problem !== undefined && <Alert>{problem}</Alert>}
-      <FormStatus>{status}</FormStatus>
-      {checkedOff !== undefined && (
-        <Button disabled={busy} onClick={undo} variant="quiet">
-          {LISTS_COPY.undo}
-        </Button>
-      )}
+      <NoticeSlot>
+        {body}
+        {problem !== undefined && <Alert>{problem}</Alert>}
+        <FormStatus>{status}</FormStatus>
+        {checkedOff !== undefined && (
+          <Button onClick={undo} variant="quiet">
+            {LISTS_COPY.undo}
+          </Button>
+        )}
+      </NoticeSlot>
     </section>
   );
 }

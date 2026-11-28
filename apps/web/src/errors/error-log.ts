@@ -83,3 +83,17 @@ export function logEmailFailure(
     JSON.stringify(describeError(error, 0)),
   );
 }
+
+// Logs a Zotero request that failed as `[zotero-error] <problem> in
+// <operation>` followed by error's details as JSON. Callers pass errors
+// that hold no API key or token (src/zotero/zotero-api.ts).
+export function logZoteroFailure(
+  problem: string,
+  operation: string,
+  error: unknown,
+): void {
+  console.error(
+    `[zotero-error] ${problem} in ${operation}`,
+    JSON.stringify(describeError(error, 0)),
+  );
+}

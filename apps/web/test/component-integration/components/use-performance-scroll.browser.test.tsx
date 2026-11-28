@@ -75,9 +75,14 @@ async function openPerformance(
 }
 
 // The transcript's list of messages, where late content, such as a
-// reply's laid-out code or images, grows the performance.
+// reply's laid-out code or images, grows the performance. With no messages
+// yet it takes no room, so it isn't in the accessibility tree.
 function transcript(): Element {
-  return page.getByRole("list").first().element();
+  const list = document.querySelector(".performance-entries");
+  if (list === null) {
+    throw new Error("The performance has no transcript");
+  }
+  return list;
 }
 
 function grow(): void {

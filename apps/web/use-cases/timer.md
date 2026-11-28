@@ -9,7 +9,7 @@ The conventions for these cases are in [the index](README.md#conventions). The T
 - **Steps:**
   - They open Timer from the site panel, or open `/timer` when signed out.
   - They choose how long to work for and how long to break for, and choose Start.
-- **Outcome:** each length is one of 10, 15, 25, 30, 45, 50, 60 or 120 minutes; a tab that has shown no timer offers 50 minutes of work and 10 of break. Start opens the new timer's link. It begins with work and its whole length left. An hourglass drains in Ivory Vellum; a large ring fills in the darker appearances. The period's name, Work or Break, and the time left, as MM:SS or from an hour HH:MM:SS, accompany the illustration. The timer moves between work and break by itself.
+- **Outcome:** each length is one of 10, 15, 25, 30, 45, 50, 60 or 120 minutes; a tab that has shown no timer offers 50 minutes of work and 10 of break. Start opens the new timer's link, showing the timer at once from the chosen schedule, before the server's page arrives. It begins with work and its whole length left. An hourglass drains in Ivory Vellum; a large ring fills in the darker appearances. The period's name, Work or Break, and the time left, as MM:SS or from an hour HH:MM:SS, accompany the illustration. The timer moves between work and break by itself.
 - **Next:**
   - [`use_case_timer_follow_cycle`](#use_case_timer_follow_cycle): work and rest by the timer.
   - [`use_case_timer_join_link`](#use_case_timer_join_link): share the page's link so someone else follows the same schedule.

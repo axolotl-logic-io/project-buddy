@@ -67,7 +67,11 @@
     // export `metadata`, `generateMetadata`, `viewport` or `instant` next to
     // their component.
     {
-      "includes": ["src/app/**/layout.tsx", "src/app/**/page.tsx"],
+      "includes": [
+        "src/app/**/layout.tsx",
+        "src/app/**/page.tsx",
+        "src/app/global-not-found.tsx"
+      ],
       "linter": {
         "rules": {
           "style": {
@@ -89,12 +93,12 @@
 
     // The site frame uses Tailwind
     // utilities like every other file. These rules follow imports, so they
-    // check only the root layout, the frame it renders (header, the site
+    // check only the root layouts' document, the frame it renders (header, the site
     // panel, its appearance choices, experience feedback and Quick Add) and
     // the global CSS files whose classes pages use.
     {
       "includes": [
-        "src/app/layout.tsx",
+        "src/app/site-document.tsx",
         "src/components/page-header.tsx",
         "src/components/site-panel.tsx",
         "src/components/close-panel-around.ts",
@@ -246,10 +250,15 @@
       }
     },
 
-    // Process environment names are SCREAMING_CASE by platform convention,
-    // and `emailFromAddressEnvironment` builds the server sender setting.
+    // Process environment names are SCREAMING_CASE by platform convention:
+    // `emailFromAddressEnvironment` builds the server sender setting, and the
+    // test suites' and the development server's settings are built too.
     {
-      "includes": ["src/env.ts"],
+      "includes": [
+        "src/env.ts",
+        "scripts/dev.ts",
+        "scripts/test-env/suite-environment.ts"
+      ],
       "linter": {
         "rules": {
           "style": {
@@ -259,7 +268,7 @@
                 "conventions": [
                   {
                     "selector": { "kind": "objectLiteralProperty" },
-                    "match": "DATABASE_URL|EMAIL_FROM_ADDRESS|(.+)"
+                    "match": "DATABASE_URL|EMAIL_FROM_ADDRESS|EMAIL_TRANSPORT|EMAIL_OUTBOX_DIR|SESSION_SECRET|(.+)"
                   }
                 ]
               }
@@ -301,54 +310,31 @@
       }
     },
 
-    // The test database commands' entry points print their progress to the
-    // terminal.
+    // Everything in scripts/ is a Node command behind a mise task, or a
+    // module only those commands and the test configs import: they use
+    // Node's platform APIs and process settings and report on the terminal.
+    // None is imported by the site.
     {
-      "includes": ["scripts/test-db/reset.ts"],
-      "linter": {
-        "rules": {
-          "suspicious": {
-            "noConsole": "off"
-          }
-        }
-      }
-    },
-
-    // The release workflow's smoke test command prints the failed checks and
-    // sets its exit status, which only Node's node:process can do; it takes
-    // the site's URL from its arguments. The build's font check
-    // (scripts/check-build-font-urls.ts) is a command too: it reads the built
-    // CSS with node:fs, prints each drift and sets its exit status.
-    {
-      "includes": [
-        "scripts/release/smoke.ts",
-        "scripts/check-build-font-urls.ts"
-      ],
-      "linter": {
-        "rules": {
-          "correctness": {
-            "noNodejsModules": "off"
-          },
-          "suspicious": {
-            "noConsole": "off"
-          }
-        }
-      }
-    },
-
-    // Vitest and Playwright load reporters through the default export.
-    {
-      "includes": ["scripts/test-env/*-failures.ts"],
+      "includes": ["scripts/**"],
       "linter": {
         "rules": {
           "correctness": { "noNodejsModules": "off" },
-          "style": { "noDefaultExport": "off" }
+          "style": { "noProcessEnv": "off" },
+          "suspicious": { "noConsole": "off" }
         }
       }
     },
-    // The reporters print shell commands from their Node processes.
+
+    // The fake Zotero is an HTTP server of its own, as the real one is, so
+    // the tests reach it the way the site reaches Zotero. Its command prints
+    // the origin it listens on for Playwright to read.
     {
-      "includes": ["scripts/test-env/rerun-command.ts"],
+      "includes": [
+        "test/support/zotero/fake-zotero.ts",
+        "test/support/zotero/fake-zotero-global-setup.ts",
+        "test/support/zotero/fake-zotero-state.ts",
+        "test/support/zotero/serve-fake-zotero.ts"
+      ],
       "linter": {
         "rules": {
           "correctness": { "noNodejsModules": "off" }
@@ -356,33 +342,23 @@
       }
     },
 
-    // Standalone Node commands read tooling environment files, use process
-    // settings and report results on the terminal. The production query reads
-    // pulled settings outside the checkout; development commands also run
-    // before dependencies have been installed. Neither imports app settings.
+    // Vitest and Playwright load reporters and global setup through the
+    // default export.
     {
-      "includes": ["scripts/development/*.ts"],
+      "includes": ["scripts/test-env/*-failures.ts", "vitest.server-reset.ts"],
       "linter": {
         "rules": {
-          "correctness": {
-            "noNodejsModules": "off"
-          },
-          "style": {
-            "noProcessEnv": "off"
-          },
-          "suspicious": {
-            "noConsole": "off"
-          }
+          "style": { "noDefaultExport": "off" }
         }
       }
     },
 
-    // Database reset refusals and development commands are tested in child
-    // processes with temporary configuration, using Node platform APIs.
+    // The development and database commands are tested in child processes
+    // and temporary repositories, using Node platform APIs.
     {
       "includes": [
-        "test/component-integration/scripts/test-db/reset-refusals.test.ts",
-        "test/component-integration/scripts/development/*.test.ts"
+        "test/component-integration/scripts/development/*.test.ts",
+        "test/component-integration/scripts/db/*.test.ts"
       ],
       "linter": {
         "rules": {
@@ -411,20 +387,6 @@
       }
     },
 
-    // A test of a migration builds a database as an older release left it,
-    // from a temporary copy of drizzle/ whose journal stops early:
-    // scripts/test-db/old-migrations.ts is the one file that makes that copy.
-    {
-      "includes": ["scripts/test-db/old-migrations.ts"],
-      "linter": {
-        "rules": {
-          "correctness": {
-            "noNodejsModules": "off"
-          }
-        }
-      }
-    },
-
     // The tests' email transport writes each email to a file, and the tests
     // read them: src/email/outbox.ts and test/support/email/outbox-files.ts,
     // the smallest platform boundary for that file access, use
@@ -441,6 +403,22 @@
         "rules": {
           "correctness": {
             "noNodejsModules": "off"
+          }
+        }
+      }
+    },
+
+    // HTML's `blocking="render"` attribute, which Biome's attribute list
+    // lacks, lets the root layouts' expect link hold the first frame.
+    {
+      "includes": ["src/app/site-document.tsx"],
+      "linter": {
+        "rules": {
+          "suspicious": {
+            "noUnknownAttribute": {
+              "level": "error",
+              "options": { "ignore": ["blocking"] }
+            }
           }
         }
       }

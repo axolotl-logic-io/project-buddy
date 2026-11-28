@@ -1,10 +1,11 @@
-import { expect, test, vi } from "vitest";
+import { expect, test } from "vitest";
 import {
   GET as read,
   POST as send,
   DELETE as stop,
 } from "@/app/api/v1/quests/[questId]/performances/[performanceId]/route.ts";
 import { POST as start } from "@/app/api/v1/quests/[questId]/performances/route.ts";
+import { newPerformanceId } from "@/ids.ts";
 import { readListItems } from "@/lists/list-item-store.ts";
 import { readLists } from "@/lists/list-store.ts";
 import {
@@ -18,11 +19,10 @@ import {
 } from "@/performances/performance-store.ts";
 import { QUEST_NAME } from "@/quests/quest-name.ts";
 import { createQuest } from "@/quests/store.ts";
+import { PERFORMANCE_COPY } from "@/ui/copy/performances.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
 import { callApi, dataOf } from "../api/api-test-kit.ts";
 import { signIn } from "../test-database/session-test-kit.ts";
-
-vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
 
 async function setup(): Promise<{
   user: Awaited<ReturnType<typeof testUser>>;
@@ -49,6 +49,7 @@ test("use_case_perform_rite", async () => {
   }
   expect(
     await startPerformanceAction({
+      id: newPerformanceId(),
       questId,
       listId: ideas.id,
       riteId: "capture",
@@ -80,6 +81,7 @@ test("use_case_perform_rite", async () => {
 
   expect(
     await startPerformanceAction({
+      id: newPerformanceId(),
       questId,
       listId: tasks.id,
       riteId: "brainstorm",
@@ -108,6 +110,27 @@ test("use_case_perform_rite", async () => {
   ).toBe(true);
 });
 
+test("a start with an existing id leaves the active performance in place", async () => {
+  const {
+    user,
+    questId,
+    lists: [list],
+  } = await setup();
+  if (list === undefined) {
+    throw new Error("The quest has no starting lists");
+  }
+  const id = newPerformanceId();
+  const request = { id, questId, listId: list.id, riteId: "capture" };
+  expect(await startPerformanceAction(request)).toBeUndefined();
+
+  expect(
+    await startPerformanceAction({ ...request, riteId: "brainstorm" }),
+  ).toBe(PERFORMANCE_COPY.unavailable);
+  expect(await listPerformances(user.id, questId)).toMatchObject([
+    { id, endedAt: null, rite: { name: "Capture" } },
+  ]);
+});
+
 test("a stopped performance keeps its messages, and a stranger reads none", async () => {
   const {
     user,
@@ -118,6 +141,7 @@ test("a stopped performance keeps its messages, and a stranger reads none", asyn
     throw new Error("The quest has no starting lists");
   }
   await startPerformanceAction({
+    id: newPerformanceId(),
     questId,
     listId: list.id,
     riteId: "capture",

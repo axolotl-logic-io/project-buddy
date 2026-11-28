@@ -23,9 +23,14 @@ The user adds a list to a quest and sets it up.
 
 - **Prerequisites:** [`use_case_open_quest`](quests.md#use_case_open_quest).
 - **Steps:**
-  - The user chooses New list in Overview's add box and names the list. It is a task list.
-  - Later, they open the list's settings with the gear on its page and change its name or type.
-- **Outcome:** the new list appears on Overview after the quest's other lists, and can be chosen for a performance. Its pages, menus, feedback and the site's messages during a performance name its items for its type. A name that is empty, longer than one line or too long is refused with the reason, and the draft stays. Everyone in the quest sees the same list.
+  - The user chooses New list in Overview's add box.
+  - In the dialog's first step, Kind, they choose the list's type: Tasks, Items, Notes or Tallies. Tasks is chosen at first.
+  - They choose **Next**.
+  - In the second step, Details, they name the list and choose **Create list**.
+  - Optional: later, they open the list's settings with the gear on its page and change its name or type.
+- **Outcome:** the dialog closes, the add box moves to the new list and says so, and the new list appears on Overview after the quest's other lists. It can be chosen for a performance. Each type in the dialog says what its list holds. Marks at the top of the dialog show which of its two steps is open, and the second step's title names the chosen type, such as "New Tallies list". **Back** returns to the first step with the type still chosen. Escape, the close button or a click outside the dialog closes it with no new list. Its pages, menus, feedback and the site's messages during a performance name its items for its type. A name that is empty, longer than one line or too long is refused with the reason, and the dialog keeps the draft. Everyone in the quest sees the same list.
+- **Next:**
+  - [`use_case_connect_zotero`](zotero.md#use_case_connect_zotero): make a Zotero Collection list, the dialog's fifth type, instead.
 
 ## use_case_split_list_item
 
@@ -60,7 +65,7 @@ The user counts something every day, such as words written, mantras recited or b
   - They add a tally to the list, named for what it counts.
   - They choose Increment on its card, enter an amount and add it.
   - They choose Edit today, enter today's new day total and save it.
-- **Outcome:** each tally is a card: its name, its day total for today in large type, a bar for each of its last seven quest days by the size of that day's total, and its total over every day. Increment adds the amount to today's day total; Edit today replaces it. Both take any number with up to 12 digits before the decimal point and 6 after, fractional or negative; anything else is refused with the reason, and the field keeps it. Numbers show decimal places only when they aren't 0, so 2.50 shows as 2.5 and 3.0 as 3. A below-zero day's bar has the danger color. Escape or Cancel closes the field without saving. The card's menu offers Split, Move to another list and Remove, and its name can be edited like any list item's. A removed tally that is restored by Undo has its counts again. Changing a tally earns no experience; adding one earns the experience of adding a list item. Everyone in the quest shares its tallies, with days in the owner's time zone; other users cannot read or change them.
+- **Outcome:** each tally is a card: its name, its day total for today in large type, a bar for each of its last seven quest days by the size of that day's total, and its total over every day. Increment adds the amount to today's day total; Edit today replaces it. The card follows at once, before the server replies; if the server refuses the change, the card goes back, the field opens again with the amount, and the page says why. Both take any number with up to 12 digits before the decimal point and 6 after, fractional or negative; anything else is refused with the reason, and the field keeps it. Numbers show decimal places only when they aren't 0, so 2.50 shows as 2.5 and 3.0 as 3. A below-zero day's bar has the danger color. Escape or Cancel closes the field without saving. The card's menu offers Split, Move to another list and Remove, and its name can be edited like any list item's. A removed tally that is restored by Undo has its counts again. Changing a tally earns no experience; adding one earns the experience of adding a list item. Everyone in the quest shares its tallies, with days in the owner's time zone; other users cannot read or change them.
 - **Next:**
   - [`use_case_home_tallies`](home.md#use_case_home_tallies): keep every tally up to date from Home.
 
@@ -72,4 +77,4 @@ The user adds a short thought to a quest from the site panel.
 - **Steps:**
   - They open the site panel and choose Quick Add. On a phone the panel closes; docked beside the page on a wide screen, it stays open. The Quick Add dialog opens.
   - They choose the quest and one of its lists, write the text and choose Add.
-- **Outcome:** the dialog offers their Active quests, newest first. On a quest's page that quest is chosen; elsewhere the newest is. With no Active quest, the dialog says so and links to Quests. The text becomes a list item at the top of the chosen list, with the list's type. Saving clears the text, keeps the quest and list chosen and says where the text went. Quick Add takes 1 to 1000 characters once trimmed, and a plain or task list takes one line of up to 200; empty or longer text is refused with the reason, and the text stays. Closing the dialog returns focus to the site panel's button, or to Quick Add when the panel is docked. Another user can't add to the quest. Saving makes no model request.
+- **Outcome:** the dialog offers their Active quests, newest first. On a quest's page that quest is chosen; elsewhere the newest is. With no Active quest, the dialog says so and links to Quests. The text becomes a list item at the top of the chosen list, with the list's type. Saving clears the text at once, before the server replies, keeps the quest and list chosen and says where the text went. If the server refuses it, the text comes back and the dialog says why. Quick Add takes 1 to 1000 characters once trimmed, and a plain or task list takes one line of up to 200; empty or longer text is refused with the reason, and the text stays. Closing the dialog returns focus to the site panel's button, or to Quick Add when the panel is docked. Another user can't add to the quest. Saving makes no model request.

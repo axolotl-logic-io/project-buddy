@@ -8,6 +8,7 @@ import {
   questOpenTo,
 } from "@/accounts/owner-scope.ts";
 import { getDb, inTransaction } from "@/db/client.ts";
+import { expireReads } from "@/db/read-cache.ts";
 import { events } from "@/db/tables/events.ts";
 import { listItems, lists } from "@/db/tables/lists.ts";
 import { quests } from "@/db/tables/quests.ts";
@@ -17,6 +18,10 @@ import { parseQuestId, type QuestId, type UserId } from "@/ids.ts";
 import { LIST_ID, type ListId } from "@/lists/list.ts";
 import { LIST_ITEM_ID, type ListItemId } from "@/lists/list-item.ts";
 import { CHECKED_OFF_NOW } from "@/lists/quest-today.ts";
+import {
+  keepQuestReadToday,
+  keepQuestsReadToday,
+} from "@/quests/quest-reads.ts";
 import {
   addPeriods,
   HISTORY_DAYS,
@@ -45,11 +50,13 @@ interface StreakQuest {
 
 // The quest's check-off history, in its owner's time zone, or undefined
 // when the quest isn't open to user.
-function readTaskHistory(
+async function readTaskHistory(
   user: UserId,
   questId: QuestId,
 ): Promise<TaskHistory | undefined> {
-  return withAppErrors("readTaskHistory", async () => {
+  "use cache";
+  await keepQuestReadToday(user, questId);
+  return await withAppErrors("readTaskHistory", async () => {
     const db = getDb();
     const [quest] = await db
       .select({
@@ -97,11 +104,13 @@ function readTaskHistory(
 }
 
 // The quest's recurring tasks, in list order, across its task lists.
-function readRecurringTasks(
+async function readRecurringTasks(
   user: UserId,
   questId: QuestId,
 ): Promise<RecurringTask[]> {
-  return withAppErrors("readRecurringTasks", async () => {
+  "use cache";
+  await keepQuestReadToday(user, questId);
+  return await withAppErrors("readRecurringTasks", async () => {
     const rows = await getDb()
       .select({
         id: listItems.id,
@@ -141,8 +150,10 @@ function readRecurringTasks(
 
 // Every Active quest open to the user that has a recurring task, oldest
 // first, with its recurring tasks and check-off history.
-function readStreakQuests(user: UserId): Promise<readonly StreakQuest[]> {
-  return withAppErrors("readStreakQuests", async () => {
+async function readStreakQuests(user: UserId): Promise<readonly StreakQuest[]> {
+  "use cache";
+  await keepQuestsReadToday(user);
+  return await withAppErrors("readStreakQuests", async () => {
     const db = getDb();
     const rows = await db
       .select({ id: quests.id, name: quests.name })
@@ -193,7 +204,7 @@ function readStreakQuests(user: UserId): Promise<readonly StreakQuest[]> {
 // isn't open to the user and Active, it has no such recurring task, or the
 // period is outside the table's earlier periods or before the one the task
 // was added in.
-function markTaskPeriod(
+async function markTaskPeriod(
   user: UserId,
   questId: QuestId,
   change: {
@@ -202,7 +213,7 @@ function markTaskPeriod(
     readonly done: boolean;
   },
 ): Promise<boolean> {
-  return withAppErrors("markTaskPeriod", () =>
+  const marked = await withAppErrors("markTaskPeriod", () =>
     inTransaction(async (tx) => {
       const [task] = await tx
         .select({
@@ -274,6 +285,8 @@ function markTaskPeriod(
       return true;
     }),
   );
+  expireReads({ accounts: [user], quests: [questId] });
+  return marked;
 }
 
 export type { RecurringTask, StreakQuest };

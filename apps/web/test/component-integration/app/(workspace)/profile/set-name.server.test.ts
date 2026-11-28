@@ -1,6 +1,7 @@
-import { expect, test, vi } from "vitest";
+import { expect, test } from "vitest";
 import { readUserName } from "@/accounts/users-store.ts";
 import { setNameAction } from "@/app/(stream)/(site)/(workspace)/profile/actions.ts";
+import { newPerformanceId } from "@/ids.ts";
 import { readLists } from "@/lists/list-store.ts";
 import {
   PERFORMANCE_MESSAGE,
@@ -13,8 +14,6 @@ import { testData } from "../../../../support/test-database/data-test-kit.ts";
 import { testUser } from "../../../../support/test-database/user-test-kit.ts";
 
 import { signIn } from "../../../test-database/session-test-kit.ts";
-
-vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
 
 test("use_case_set_name", async () => {
   const user = await testUser();
@@ -34,6 +33,7 @@ test("use_case_set_name", async () => {
     throw new Error("The performance could not be prepared");
   }
   const performance = await startPerformance(user.id, quest.id, {
+    id: newPerformanceId(),
     listId: list.id,
     riteId: rite.id,
   });

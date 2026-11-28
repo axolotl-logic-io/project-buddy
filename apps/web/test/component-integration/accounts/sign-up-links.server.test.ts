@@ -16,6 +16,8 @@ import { continueSignInAction } from "@/app/(stream)/(site)/login/link/actions.t
 import { getDb } from "@/db/client.ts";
 import { signUpLinks } from "@/db/tables/sign-up-links.ts";
 import { users } from "@/db/tables/users.ts";
+import type { UserId } from "@/ids.ts";
+import { LIFE_NAME, listQuests } from "@/quests/store.ts";
 import { LINK_PAGE_COPY } from "@/ui/copy/login.ts";
 import {
   createTestAccount,
@@ -24,6 +26,7 @@ import {
 import { afterTasksDone } from "../test-database/after-test-kit.ts";
 import {
   continueSignIn,
+  emailedLoginToken,
   type SendEmail,
 } from "../test-database/sign-in-link-test-kit.ts";
 
@@ -40,6 +43,12 @@ function newAddress(): string {
   const email = `signup-${crypto.randomUUID()}@example.test`;
   addresses.push(email);
   return email;
+}
+
+// The names of the user's Lives.
+async function livesOf(user: UserId): Promise<string[]> {
+  const quests = await listQuests(user);
+  return quests.filter(({ life }) => life).map(({ name }) => name);
 }
 
 function emailedToken(): string {
@@ -231,3 +240,20 @@ test.each(["Mars/Olympus_Mons", ""])(
     expect((await findUserByEmail(email))?.timeZone).toBe("UTC");
   },
 );
+
+test("use_case_life signing up or in makes one Life, before any page reads it", async () => {
+  const email = newAddress();
+  await continueSignIn(await request(email));
+  const user = await findUserByEmail(email);
+  if (user === undefined) {
+    throw new Error("No verified account was created");
+  }
+  expect(await livesOf(user.id)).toEqual([LIFE_NAME]);
+  await continueSignIn(await emailedLoginToken(user, sent.sendEmail));
+  expect(await livesOf(user.id)).toEqual([LIFE_NAME]);
+
+  const earlier = await testUser();
+  expect(await livesOf(earlier.id)).toEqual([]);
+  await continueSignIn(await emailedLoginToken(earlier, sent.sendEmail));
+  expect(await livesOf(earlier.id)).toEqual([LIFE_NAME]);
+});

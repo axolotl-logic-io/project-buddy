@@ -1,7 +1,8 @@
-import { expect, test, vi } from "vitest";
+import { expect, test } from "vitest";
 import type { User } from "@/accounts/users-store.ts";
 import { changeQuestStatusAction } from "@/app/(stream)/(site)/(workspace)/quests/status-actions.ts";
 import { readExperience } from "@/experience/experience-store.ts";
+import { newPerformanceId } from "@/ids.ts";
 import { readLists } from "@/lists/list-store.ts";
 import {
   listPerformances,
@@ -20,8 +21,6 @@ import {
   addMember,
   addRemovedMember,
 } from "./quest-members-test-kit.ts";
-
-vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
 
 const INVALID: StatusActionState = {
   kind: "invalid",
@@ -193,6 +192,7 @@ test.each(["owner", "member"] as const)(
       throw new Error("Missing list");
     }
     const performance = await startPerformance(owner.id, quest.id, {
+      id: newPerformanceId(),
       listId: list.id,
       riteId: "capture",
     });

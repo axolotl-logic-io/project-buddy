@@ -91,7 +91,6 @@ describe("use_case_recurring_tasks", () => {
   test("a task's menu makes it recurring, with Undo, and back to one-off", async () => {
     vi.mocked(changeListItemAction).mockResolvedValue({
       kind: "saved",
-      message: LISTS_COPY.savedChange,
       undoVersion: LIST.version + 1,
     });
     const stretch = task(STRETCH, 1);

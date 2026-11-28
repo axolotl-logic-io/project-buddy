@@ -1,4 +1,4 @@
-import { expect, test, vi } from "vitest";
+import { expect, test } from "vitest";
 import { QUEST_ID } from "@/ids.ts";
 import { LIST_ID } from "@/lists/list.ts";
 import { readListItems } from "@/lists/list-item-store.ts";
@@ -13,8 +13,6 @@ import { testData } from "../../support/test-database/data-test-kit.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
 import { addMember } from "../quests/quest-members-test-kit.ts";
 import { signIn } from "../test-database/session-test-kit.ts";
-
-vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
 
 test("use_case_quick_add", async () => {
   const owner = await testUser();

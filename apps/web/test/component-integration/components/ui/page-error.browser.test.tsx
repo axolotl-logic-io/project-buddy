@@ -5,7 +5,8 @@
 import { afterEach, describe, expect, test, vi } from "vitest";
 import { page } from "vitest/browser";
 import { render } from "vitest-browser-react";
-import { PageHeader, TrailBand } from "@/components/page-header.tsx";
+import { PageHeader } from "@/components/page-header.tsx";
+import { TrailBand } from "@/components/trail-band.tsx";
 import { PageError } from "@/components/ui/page-error.tsx";
 import { userMessage } from "@/errors/app-error.ts";
 import {

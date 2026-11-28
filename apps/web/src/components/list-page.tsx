@@ -76,7 +76,7 @@ function ListPage({
             </span>
           </div>
           {rites !== undefined && rites.length > 0 && (
-            <RiteDialog questId={questId} list={list} rites={rites} />
+            <RiteDialog list={list} rites={rites} />
           )}
           <Button
             variant="quiet"

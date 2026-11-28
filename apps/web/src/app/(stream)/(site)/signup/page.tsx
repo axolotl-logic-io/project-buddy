@@ -11,6 +11,9 @@ export const metadata: Metadata = {
   title: SIGNUP_COPY.title,
 };
 
+// A navigation here shows the page at once, from its App Shell.
+export const instant = true;
+
 // Anyone can request email verification to create an account.
 export default function SignUpPage(): JSX.Element {
   return (
