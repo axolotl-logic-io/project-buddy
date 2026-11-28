@@ -11,12 +11,12 @@ export default async function QuestPage({
   params,
   searchParams,
 }: PageProps<"/quests/[questId]">): Promise<JSX.Element> {
-  const [{ questId }, { section }, user] = await Promise.all([
+  const [{ questId }, { section, zotero }, user] = await Promise.all([
     params,
     searchParams,
     requireUser(),
   ]);
-  const page = await questPage(user, questId, section);
+  const page = await questPage(user, questId, section, zotero);
   // A missing quest is rendered here rather than thrown with notFound().
   // On a first load the page streams inside the site's loading boundary
   // (src/app/(stream)/loading.tsx), where the server can't render a
