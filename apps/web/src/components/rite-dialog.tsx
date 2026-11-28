@@ -153,7 +153,8 @@ function RiteForm({
 // first rite is chosen when it opens. A refused performance keeps the
 // dialog open and says why. Escape, Cancel, the close button or a click
 // beside it closes it. Once the rite is performed the button is gone, so
-// focus goes to the quest's title, just above the performance.
+// focus goes to the performance's name, after the list sections, or to the
+// quest's title while the performance is still on its way.
 function RiteDialog({
   questId,
   list,
@@ -178,9 +179,12 @@ function RiteDialog({
       return;
     }
     event.preventDefault();
-    document
-      .querySelector<HTMLElement>("[data-quest-overview-heading]")
-      ?.focus();
+    // The page scrolls to the performance's composer, so focus doesn't
+    // scroll it.
+    (
+      document.querySelector<HTMLElement>("[data-performance-heading]") ??
+      document.querySelector<HTMLElement>("[data-quest-overview-heading]")
+    )?.focus({ preventScroll: true });
   }, []);
   return (
     <Dialog.Root open={open} onOpenChange={changeOpen}>

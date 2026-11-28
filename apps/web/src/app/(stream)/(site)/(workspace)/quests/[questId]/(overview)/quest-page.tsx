@@ -42,7 +42,8 @@ function sectionPath(id: QuestId, section?: Section | ListId): Route {
 
 // The quest's overview, in the page's frame: its title, status and
 // summary, then the add box and each list's section. While a performance
-// runs it comes after the title, and the sections have no rite button.
+// runs it comes after the sections, which have no rite button, so starting
+// one adds it where nothing follows it to move.
 async function overviewOf({
   user,
   quest,
@@ -99,7 +100,6 @@ async function overviewOf({
       {quest.status !== "active" && (
         <Notice>{QUEST_STATUS_COPY.effects}</Notice>
       )}
-      {runningContent}
       <QuestFolio
         questId={quest.id}
         lists={lists.map((list, index) => ({
@@ -112,6 +112,7 @@ async function overviewOf({
         next={nextTasks[0]?.id}
         rites={sectionRites}
       />
+      {runningContent}
     </div>
   );
 }
@@ -173,7 +174,13 @@ async function questPage(
     const entries = await readPerformanceMessages(user, running.id);
     runningContent = (
       <section aria-label={running.rite.name} className="quest-section-body">
-        <h2 className="section-heading">{running.rite.name}</h2>
+        <h2
+          className="section-heading"
+          data-performance-heading=""
+          tabIndex={-1}
+        >
+          {running.rite.name}
+        </h2>
         <MessageComposer
           key={running.id}
           questId={quest.id}

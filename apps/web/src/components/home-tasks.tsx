@@ -14,6 +14,7 @@ import {
 import { keepFocus } from "@/components/keep-focus.ts";
 import { Button } from "@/components/ui/button.tsx";
 import { Alert, FormStatus } from "@/components/ui/form-message.tsx";
+import { NoticeSlot } from "@/components/ui/notice-slot.tsx";
 import { TaskCheck } from "@/components/ui/task-check.tsx";
 import { useQuestAction } from "@/components/use-quest-action.ts";
 import type { QuestId } from "@/ids.ts";
@@ -170,7 +171,8 @@ function HomeTasks({
           change: { kind: "check", id, checkedOff: true },
         });
         if (saved) {
-          setCheckedOff(target);
+          // Undo shows with the notice above it.
+          startTransition(() => setCheckedOff(target));
         }
       });
     },
@@ -204,14 +206,16 @@ function HomeTasks({
       >
         {HOME_COPY.tasksHeading}
       </h2>
-      {body}
-      {problem !== undefined && <Alert>{problem}</Alert>}
-      <FormStatus>{status}</FormStatus>
-      {checkedOff !== undefined && (
-        <Button disabled={busy} onClick={undo} variant="quiet">
-          {LISTS_COPY.undo}
-        </Button>
-      )}
+      <NoticeSlot>
+        {body}
+        {problem !== undefined && <Alert>{problem}</Alert>}
+        <FormStatus>{status}</FormStatus>
+        {checkedOff !== undefined && (
+          <Button disabled={busy} onClick={undo} variant="quiet">
+            {LISTS_COPY.undo}
+          </Button>
+        )}
+      </NoticeSlot>
     </section>
   );
 }

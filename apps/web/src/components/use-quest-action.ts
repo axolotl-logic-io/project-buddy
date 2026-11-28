@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { startTransition, useCallback, useState } from "react";
 import { LISTS_COPY } from "@/ui/copy/lists.ts";
 
 type QuestActionResult =
@@ -34,18 +34,22 @@ function useQuestAction<Request>(
       setProblem(undefined);
       try {
         const result = await action(request);
-        if (result.kind === "problem") {
-          setProblem(result.text);
-          return false;
-        }
-        setStatus(result.message);
-        setUndoVersion(result.undoVersion);
-        return true;
+        // The result shows with the page the server sent back with it, so
+        // a notice never stands where that page's changes will push it.
+        startTransition(() => {
+          setBusy(false);
+          if (result.kind === "problem") {
+            setProblem(result.text);
+          } else {
+            setStatus(result.message);
+            setUndoVersion(result.undoVersion);
+          }
+        });
+        return result.kind === "saved";
       } catch {
+        setBusy(false);
         setProblem(LISTS_COPY.saveFailed);
         return false;
-      } finally {
-        setBusy(false);
       }
     },
     [action],

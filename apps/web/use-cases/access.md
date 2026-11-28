@@ -66,3 +66,17 @@ The user follows a link between the sign-in and sign-up pages.
 - **Outcome:** during a page change, the current page stays visible. The trail band shows an indicator and announces “Loading page…” until the new page or its error is ready. Then the new content replaces the old content in one step. Back and Forward behave the same way. The indicator stays still when the user prefers reduced motion.
 - **Next:**
   - [`use_case_sign_up`](accounts.md#use_case_sign_up): verify the user's email and create an account.
+
+## use_case_content_stays_still
+
+The user acts on a signed-in page, or follows a link to another, while reading it on a phone or a wide screen.
+
+- **Prerequisites:** the user is signed in.
+- **Steps:**
+  - The user checks off a task on Home, undoes it, adds to a tally or adds a task with Quick Add.
+  - On a quest's Overview, the user starts a performance and sends a message.
+  - The user starts the Timer, or starts a new quest.
+  - The user follows a link to each signed-in page.
+- **Outcome:** nothing on the page moves that the user didn't change, while the action saves and once the server replies. A notice takes the place of what it replaces, such as the amount field that saving a tally closes, and its room stays when it goes, so what follows it stays put. Content the user didn't change moves only when a list item they added pushes what follows it in its own list, such as the tasks under one that Quick Add puts at the top. A performance starts after the list sections, so they stay put, and the page scrolls to its composer.
+- **Next:**
+  - [`use_case_perform_rite`](performances.md#use_case_perform_rite): perform a rite on a list.
