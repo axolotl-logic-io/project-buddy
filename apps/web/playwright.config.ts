@@ -5,6 +5,7 @@
 import {
   defineConfig,
   devices,
+  type PlaywrightTestConfig,
   type ReporterDescription,
 } from "@playwright/test";
 import { systemTestPort } from "./scripts/db/database-names.ts";
@@ -72,6 +73,41 @@ const OWN_SERVER_LISTENING = new RegExp(
 const FAKE_ZOTERO_LISTENING =
   /ZOTERO_API_ORIGIN=(?<zotero_api_origin>\S+) ZOTERO_OAUTH_ORIGIN=(?<zotero_oauth_origin>\S+)/u;
 const baseUrl = `http://localhost:${port}`;
+// Start the same servers for system tests and audits. Only the site's
+// startup command takes the audit flag.
+function testWebServers(
+  audit = false,
+): NonNullable<PlaywrightTestConfig["webServer"]> {
+  const command = ["bash scripts/test-env/start-system-server.sh", port];
+  if (audit) {
+    command.push("--audit");
+  }
+  return [
+    // The fake Zotero (test/support/zotero/fake-zotero.ts) starts first.
+    // Playwright copies its origin from the line it prints into
+    // ZOTERO_API_ORIGIN and ZOTERO_OAUTH_ORIGIN, which the site's server
+    // below and the tests then read.
+    {
+      command:
+        "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON test/support/zotero/serve-fake-zotero.ts",
+      wait: { stdout: FAKE_ZOTERO_LISTENING },
+      reuseExistingServer: false,
+      timeout: SERVER_START_TIMEOUT_MS,
+    },
+    {
+      command: command.join(" "),
+      wait: { stdout: OWN_SERVER_LISTENING },
+      // Never use URL health as readiness: this process must bind successfully.
+      reuseExistingServer: false,
+      timeout: SERVER_START_TIMEOUT_MS,
+      env: {
+        ...serverEmailEnvironment,
+        ...fakeZoteroClientEnvironment(),
+      },
+    },
+  ];
+}
+
 export default defineConfig({
   testDir: "./test/system",
   fullyParallel: true,
@@ -91,28 +127,7 @@ export default defineConfig({
       use: { ...devices["Desktop Chrome"] },
     },
   ],
-  webServer: [
-    // The fake Zotero (test/support/zotero/fake-zotero.ts) starts first.
-    // Playwright copies its origin from the line it prints into
-    // ZOTERO_API_ORIGIN and ZOTERO_OAUTH_ORIGIN, which the site's server
-    // below and the tests then read.
-    {
-      command:
-        "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON test/support/zotero/serve-fake-zotero.ts",
-      wait: { stdout: FAKE_ZOTERO_LISTENING },
-      reuseExistingServer: false,
-      timeout: SERVER_START_TIMEOUT_MS,
-    },
-    {
-      command: `bash scripts/test-env/start-system-server.sh ${port}`,
-      wait: { stdout: OWN_SERVER_LISTENING },
-      // Never use URL health as readiness: this process must bind successfully.
-      reuseExistingServer: false,
-      timeout: SERVER_START_TIMEOUT_MS,
-      env: {
-        ...serverEmailEnvironment,
-        ...fakeZoteroClientEnvironment(),
-      },
-    },
-  ],
+  webServer: testWebServers(),
 });
+
+export { testWebServers };

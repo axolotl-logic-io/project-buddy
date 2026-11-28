@@ -1,11 +1,6 @@
-import { defineConfig, type PlaywrightTestConfig } from "@playwright/test";
-import system from "./playwright.config.ts";
+import { defineConfig } from "@playwright/test";
+import system, { testWebServers } from "./playwright.config.ts";
 import { auditRun } from "./test/audit/run-options.ts";
-
-const server: PlaywrightTestConfig["webServer"] = system.webServer;
-if (server === undefined || Array.isArray(server)) {
-  throw new Error("The audit needs the system test web server.");
-}
 
 const { action, page, performance } = auditRun();
 const testMatch: string[] = [];
@@ -27,8 +22,5 @@ export default defineConfig({
   expect: { timeout: 5000 },
   use: { ...system.use, trace: "off" },
   reporter: [["dot"], ["./test/audit/reporter.ts"]],
-  webServer: {
-    ...server,
-    command: `${server.command} --audit`,
-  },
+  webServer: testWebServers(true),
 });
