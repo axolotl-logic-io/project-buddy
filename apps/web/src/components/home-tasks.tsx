@@ -97,6 +97,7 @@ function QuestTasks({
 
 function useUndo(
   run: (request: unknown) => Promise<boolean>,
+  clearStatus: () => void,
   headingRef: RefObject<HTMLHeadingElement | null>,
 ): {
   readonly checkedOff: CheckedOff | undefined;
@@ -112,7 +113,9 @@ function useUndo(
     }
     const { questId, listId, id } = checkedOff;
     setCheckedOff(undefined);
-    // Undo leaves with its notice.
+    // Undo leaves with its notice, before the task comes back above where
+    // the notice was.
+    clearStatus();
     headingRef.current?.focus();
     startTransition(async () => {
       await run({
@@ -121,7 +124,7 @@ function useUndo(
         change: { kind: "check", id, checkedOff: false },
       });
     });
-  }, [checkedOff, headingRef, run]);
+  }, [checkedOff, clearStatus, headingRef, run]);
   return { checkedOff, setCheckedOff, undo };
 }
 
@@ -136,8 +139,13 @@ function HomeTasks({
   const sectionRef = useRef<HTMLElement>(null);
   const headingRef = useRef<HTMLHeadingElement>(null);
   const [shown, hide] = useOptimistic(quests, without);
-  const { run, busy, status, problem } = useQuestAction(changeListItemAction);
-  const { checkedOff, setCheckedOff, undo } = useUndo(run, headingRef);
+  const { run, busy, status, problem, clearStatus } =
+    useQuestAction(changeListItemAction);
+  const { checkedOff, setCheckedOff, undo } = useUndo(
+    run,
+    clearStatus,
+    headingRef,
+  );
   const onCheck = useCallback(
     (id: ListItemId): void => {
       const entry = quests.find(({ tasks }) =>

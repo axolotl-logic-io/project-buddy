@@ -15,6 +15,9 @@ interface QuestAction<Request> {
   readonly undoVersion: number | undefined;
   readonly status: string | undefined;
   readonly problem: string | undefined;
+  // Empties the status at once, outside any transition, so a notice about to
+  // be replaced takes no room while the next change is saved.
+  readonly clearStatus: () => void;
 }
 
 function useQuestAction<Request>(
@@ -47,7 +50,10 @@ function useQuestAction<Request>(
     },
     [action],
   );
-  return { run, busy, undoVersion, status, problem };
+  const clearStatus = useCallback((): void => {
+    setStatus(undefined);
+  }, []);
+  return { run, busy, undoVersion, status, problem, clearStatus };
 }
 
 export type { QuestActionResult };
