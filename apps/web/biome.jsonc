@@ -387,6 +387,22 @@
       }
     },
 
+    // HTML's `blocking="render"` attribute, which Biome's attribute list
+    // lacks, lets the root layout's expect link hold the first frame.
+    {
+      "includes": ["src/app/layout.tsx"],
+      "linter": {
+        "rules": {
+          "suspicious": {
+            "noUnknownAttribute": {
+              "level": "error",
+              "options": { "ignore": ["blocking"] }
+            }
+          }
+        }
+      }
+    },
+
     // Retirement tests execute the public worker in its own Node VM context.
     {
       "includes": [

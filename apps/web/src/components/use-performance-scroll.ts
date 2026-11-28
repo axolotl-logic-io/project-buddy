@@ -2,7 +2,11 @@
 
 import { type RefObject, useLayoutEffect, useRef } from "react";
 
-// Follow the end of the document while the reader remains there.
+// Follow the end of the performance while the reader remains there. That
+// end is the page's end when only the page's own padding comes after the
+// performance, as on a list's page. On Overview the list sections follow
+// it, and following keeps its end where it is, never below the window, so
+// they stay put while a message or reply arrives above them.
 function usePerformanceScroll(): RefObject<HTMLDivElement | null> {
   const rootRef = useRef<HTMLDivElement>(null);
 
@@ -15,6 +19,8 @@ function usePerformanceScroll(): RefObject<HTMLDivElement | null> {
     let lastY = window.scrollY;
     const viewport = window.visualViewport;
     let lastHeight = window.innerHeight;
+    // Where the end was on screen after the last follow or scroll.
+    let lastEnd = window.innerHeight;
     let lastInset = -1;
     let resizeFrame = 0;
     let navigation = 0;
@@ -111,28 +117,65 @@ function usePerformanceScroll(): RefObject<HTMLDivElement | null> {
       }
     }
 
-    function atBottom(): boolean {
-      return (
-        document.documentElement.scrollHeight -
-          window.innerHeight -
-          window.scrollY <=
-        1
-      );
+    // The end on screen: the page's end when nothing but the padding and
+    // borders of the performance and the boxes around it comes after it,
+    // or else the performance's own end.
+    function findEnd(): { readonly at: number; readonly page: boolean } {
+      const end = element?.getBoundingClientRect().bottom ?? 0;
+      const after =
+        document.documentElement.scrollHeight - window.scrollY - end;
+      let padding = 0;
+      for (
+        let node: Element | null = element;
+        node !== null;
+        node = node.parentElement
+      ) {
+        const style = getComputedStyle(node);
+        padding += Number.parseFloat(style.marginBottom);
+        if (node !== element) {
+          padding +=
+            Number.parseFloat(style.paddingBottom) +
+            Number.parseFloat(style.borderBottomWidth);
+        }
+      }
+      if (after <= padding + 1) {
+        return { at: end + after, page: true };
+      }
+      return { at: end, page: false };
+    }
+
+    function endOnScreen(): number {
+      return findEnd().at;
+    }
+
+    function atEnd(): boolean {
+      return endOnScreen() <= window.innerHeight + 1;
+    }
+
+    // Keep the end where it was, or bring it up to the window's bottom.
+    function keepEnd(): void {
+      const end = findEnd();
+      const target = Math.min(lastEnd, window.innerHeight);
+      let top = window.scrollY + end.at - target;
+      if (end.page && target === window.innerHeight) {
+        top = document.documentElement.scrollHeight;
+      }
+      if (top !== window.scrollY) {
+        window.scrollTo({ top, behavior: "instant" });
+      }
+      lastY = window.scrollY;
+      lastEnd = endOnScreen();
     }
 
     function follow(): void {
       // Scroll events can arrive after a resize observer. Notice an actual
       // upward move here too (scrollbar dragging and navigation links).
       // Shrinking content can clamp Y upward while still at the bottom.
-      if (window.scrollY < lastY && !atBottom() && resizeFrame === 0) {
+      if (window.scrollY < lastY && !atEnd() && resizeFrame === 0) {
         following = false;
       }
       if (following) {
-        window.scrollTo({
-          top: document.documentElement.scrollHeight,
-          behavior: "instant",
-        });
-        lastY = window.scrollY;
+        keepEnd();
       }
     }
 
@@ -150,13 +193,14 @@ function usePerformanceScroll(): RefObject<HTMLDivElement | null> {
       if (y !== lastY) {
         pendingNavigation = false;
       }
-      if (y < lastY && !atBottom()) {
+      if (y < lastY && !atEnd()) {
         following = false;
         resumeBlocked = false;
-      } else if (y > lastY && atBottom() && !resumeBlocked) {
+      } else if (y > lastY && atEnd() && !resumeBlocked) {
         following = true;
       }
       lastY = y;
+      lastEnd = endOnScreen();
     }
 
     function onResize(): void {
@@ -202,11 +246,7 @@ function usePerformanceScroll(): RefObject<HTMLDivElement | null> {
     // seen before that event, so keep to the end and record it here.
     function onMutation(): void {
       if (following && !pendingNavigation && resizeFrame === 0) {
-        window.scrollTo({
-          top: document.documentElement.scrollHeight,
-          behavior: "instant",
-        });
-        lastY = window.scrollY;
+        keepEnd();
       }
     }
 
@@ -215,6 +255,7 @@ function usePerformanceScroll(): RefObject<HTMLDivElement | null> {
       pendingNavigation = false;
       resumeBlocked = false;
       lastY = window.scrollY;
+      lastEnd = endOnScreen();
       follow();
     }
 
