@@ -304,9 +304,23 @@ function TallyLedger({
     quests.map((each) => each.today),
     TALLY_DAYS,
   );
+  const problem = increment.problem ?? set.problem;
+  // Feedback sits under the table, above its legend, so it takes the room of
+  // the amount form that saving closes and the legend barely moves.
+  const feedback = (
+    <>
+      {problem !== undefined && <Alert>{problem}</Alert>}
+      <FormStatus>{increment.status ?? set.status}</FormStatus>
+    </>
+  );
   let body: JSX.Element;
   if (quests.length === 0) {
-    body = <p className="text-muted text-sm">{TALLIES_COPY.noTallies}</p>;
+    body = (
+      <>
+        <p className="text-muted text-sm">{TALLIES_COPY.noTallies}</p>
+        {feedback}
+      </>
+    );
   } else {
     body = (
       <>
@@ -336,19 +350,17 @@ function TallyLedger({
             />
           ))}
         </table>
+        {feedback}
         <p className="text-muted text-sm">{TALLIES_COPY.legend}</p>
       </>
     );
   }
-  const problem = increment.problem ?? set.problem;
   return (
     <section aria-labelledby={headingId} className="streak-panel">
       <h2 className="section-heading" id={headingId}>
         {TALLIES_COPY.heading}
       </h2>
       {body}
-      {problem !== undefined && <Alert>{problem}</Alert>}
-      <FormStatus>{increment.status ?? set.status}</FormStatus>
     </section>
   );
 }

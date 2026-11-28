@@ -53,7 +53,15 @@ function setDocked(key: string, docked: boolean): void {
   }
 }
 
-function closeForLink(event: MouseEvent<HTMLAnchorElement>): void {
+// Whether a click on a panel link should close the panel now: a modal
+// drawer closes at once, and so does a docked panel when the link leads to
+// the page already shown. Otherwise the docked panel stays until the page it
+// leads to shows, and closes with that change, so the page header doesn't
+// move before the page does.
+function closesNow(
+  event: MouseEvent<HTMLAnchorElement>,
+  here: string,
+): boolean {
   if (
     event.defaultPrevented ||
     event.button !== 0 ||
@@ -62,9 +70,14 @@ function closeForLink(event: MouseEvent<HTMLAnchorElement>): void {
     event.shiftKey ||
     event.altKey
   ) {
-    return;
+    return false;
   }
-  event.currentTarget.closest("dialog")?.close();
+  const { pathname, search } = event.currentTarget;
+  const dialog = event.currentTarget.closest("dialog");
+  return (
+    `${pathname}?${search.slice(1)}` === here ||
+    dialog?.matches(":modal") === true
+  );
 }
 
 // Close even when the user follows a link to the page they are already on.
@@ -75,8 +88,18 @@ function PanelLink({
   readonly href: string;
   readonly children: string;
 }): JSX.Element {
+  // The page shown, written as SitePanel writes its location.
+  const here = `${usePathname()}?${useSearchParams()}`;
+  const close = useCallback(
+    (event: MouseEvent<HTMLAnchorElement>): void => {
+      if (closesNow(event, here)) {
+        event.currentTarget.closest("dialog")?.close();
+      }
+    },
+    [here],
+  );
   return (
-    <Link className="panel-link" href={href} onClick={closeForLink}>
+    <Link className="panel-link" href={href} onClick={close}>
       {children}
     </Link>
   );
@@ -116,10 +139,11 @@ function containDrawerFocus(event: KeyboardEvent<HTMLDialogElement>): void {
 // page. The open panel hides that button and puts its own close button
 // at the same point.
 // It opens over the page and never changes the page's size or flow. On a
-// wide screen it docks there, leaving the page in reach. Narrower, it is a
-// modal drawer over the page, so the keyboard stays in it, and Escape, its
-// close button, following a link or a click beside it (where the browser
-// supports closedby) closes it. The page beside it isn't dimmed, so a theme
+// wide screen it docks there, leaving the page in reach: a click on the
+// page or in a dialog it opened, such as Quick Add, leaves it open.
+// Narrower, it is a modal drawer over the page, so the keyboard stays in
+// it, and Escape, its close button, following a link or a click beside it
+// (where the browser supports closedby) closes it. The page beside it isn't dimmed, so a theme
 // or mode chosen in it shows there at once.
 // Opening it from its button moves focus to the close button, and closing
 // it returns focus to its button. The links are in the page's first HTML,
@@ -172,6 +196,10 @@ function SidePanel({
   const closeRef = useRef<HTMLButtonElement>(null);
   const panelId = useId();
   const titleId = useId();
+  let closedBy: "any" | "closerequest" = "any";
+  if (wide) {
+    closedBy = "closerequest";
+  }
 
   useEffect(() => {
     const dialog = dialogRef.current;
@@ -251,7 +279,7 @@ function SidePanel({
       <dialog
         aria-labelledby={titleId}
         className={panelClass}
-        closedby="any"
+        closedby={closedBy}
         id={panelId}
         onClose={markClosed}
         onKeyDown={containDrawerFocus}

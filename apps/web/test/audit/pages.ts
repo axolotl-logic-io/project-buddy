@@ -6,7 +6,7 @@ import { QUEST_OVERVIEW_COPY } from "@/ui/copy/quest-overview.ts";
 import { NEW_QUEST_COPY } from "@/ui/copy/quests.ts";
 import { QUICK_ADD_COPY } from "@/ui/copy/quick-add.ts";
 import { SIGNUP_COPY } from "@/ui/copy/signup.ts";
-import { SITE_COPY, SITE_PANEL_COPY } from "@/ui/copy/site.ts";
+import { SITE_PANEL_COPY } from "@/ui/copy/site.ts";
 import type { TestData } from "../support/test-database/data-test-kit.ts";
 import { waitForHydrated } from "../system/page-helpers.ts";
 import type { PageName } from "./options.ts";
@@ -127,8 +127,14 @@ function auditPages(seed: Seed): Record<PageName, AuditPage> {
     construct: {
       path: "/constructs/vellum",
       marker: mainText("Visuals"),
-      // There is no link to the construct page. Measure its link back to Home.
-      change: { from: "/constructs/vellum", link: SITE_COPY.name, to: home },
+      // There is no link to the construct page. Measure its link back to
+      // Home, in the site panel, as a phone's trail shows only Quests.
+      change: {
+        from: "/constructs/vellum",
+        panel: true,
+        link: "Home",
+        to: home,
+      },
     },
     timer: {
       path: "/timer",
