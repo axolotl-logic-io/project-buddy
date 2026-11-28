@@ -11,6 +11,7 @@ import { auditRun } from "./run-options.ts";
 type AuditBrowser = Parameters<Parameters<typeof withAuditBrowser>[3]>[0];
 
 const CLICK_MARK = "performance-audit-click";
+const INTERACTION_WAIT_MS = 1000;
 const run = auditRun();
 
 async function measureOutcome(page: Page): Promise<number> {
@@ -27,6 +28,49 @@ async function measureOutcome(page: Page): Promise<number> {
     }
     return performance.now() - mark.startTime;
   }, CLICK_MARK);
+}
+
+// The Event Timing option the DOM types lack: the shortest event, in ms,
+// reported to an observer, 16 at the least. The default is 104.
+interface EventObserverInit extends PerformanceObserverInit {
+  readonly durationThreshold: number;
+}
+
+// Chrome reports an interaction once the frame after it is presented, and
+// a fast outcome can come before that. Lighthouse finds no interaction in a
+// timespan ended sooner, so wait for the click's report, or for a while
+// where the click was too short to be reported to an observer.
+async function interactionReported(page: Page): Promise<void> {
+  await page.evaluate(
+    async ({ label, waitMs }) => {
+      const mark = performance.getEntriesByName(label, "mark").at(-1);
+      const after = mark?.startTime ?? 0;
+      await new Promise<void>((resolve) => {
+        const observer = new PerformanceObserver((list) => {
+          const reported = list
+            .getEntries()
+            .some(
+              (entry) => entry.name === "click" && entry.startTime >= after,
+            );
+          if (reported) {
+            observer.disconnect();
+            resolve();
+          }
+        });
+        const init: EventObserverInit = {
+          type: "event",
+          buffered: true,
+          durationThreshold: 16,
+        };
+        observer.observe(init);
+        setTimeout(() => {
+          observer.disconnect();
+          resolve();
+        }, waitMs);
+      });
+    },
+    { label: CLICK_MARK, waitMs: INTERACTION_WAIT_MS },
+  );
 }
 
 async function measure(
@@ -69,6 +113,7 @@ async function measure(
     await target.click();
     await outcome();
     Object.assign(result.numbers, { outcomeMs: await measureOutcome(page) });
+    await interactionReported(page);
   } finally {
     await keepReport(sample, result, await timespan.endTimespan(), page.url());
   }

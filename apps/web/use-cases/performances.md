@@ -115,7 +115,7 @@ The user follows the latest messages and replies without repeatedly scrolling do
   - The user sends a message. The latest reply comes into view.
   - The user scrolls up with wheel, touch or document navigation keys to read earlier messages. Following pauses as the input begins, even when content or viewport updates arrive before its scroll event.
   - The user returns to the bottom or sends another message. Automatic scrolling resumes. Focusing the composer or opening, closing or resizing the phone keyboard preserves the earlier reading position and does not resume it.
-- **Outcome:** the performance follows the latest content only while the user wants to follow it. On phones, the composer stays above the keyboard and following adapts to the available list. Scroll movements are instant, including when reduced motion is requested.
+- **Outcome:** the performance follows the latest content only while the user wants to follow it. On Overview, where the list sections come after the performance, following keeps the performance's end where it is, and the sections stay put while a message or reply arrives. On phones, the composer stays above the keyboard and following adapts to the available list. Scroll movements are instant, including when reduced motion is requested.
 
 ## use_case_construct_presence
 
