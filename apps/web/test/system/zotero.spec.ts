@@ -6,6 +6,8 @@
 // browser and the pages it lands on.
 import { expect } from "@playwright/test";
 import { readZoteroOrigins } from "@/env.ts";
+import { LISTS_COPY } from "@/ui/copy/lists.ts";
+import { QUEST_OVERVIEW_COPY } from "@/ui/copy/quest-overview.ts";
 import { ZOTERO_COPY } from "@/ui/copy/zotero.ts";
 import {
   addZoteroCollection,
@@ -39,15 +41,23 @@ test.describe("use_case_create_zotero_collection_list", () => {
     const quest = await testData.quest("Thesis");
     await logIn(page, account);
 
-    await test.step("declining in Zotero returns to setup to try again", async () => {
+    await test.step("declining in Zotero returns to the New list dialog to try again", async () => {
       await page.goto(`/quests/${quest.id}`);
-      await page.getByRole("link", { name: ZOTERO_COPY.addCollection }).click();
+      await page
+        .getByRole("button", { name: QUEST_OVERVIEW_COPY.addBox.newList })
+        .click();
+      await page
+        .getByRole("dialog", { name: QUEST_OVERVIEW_COPY.newList.title })
+        .getByRole("radio", { name: LISTS_COPY.types["zotero-collection"] })
+        .check();
       await page
         .getByRole("button", { name: ZOTERO_COPY.setup.connect })
         .click();
       await page.getByRole("button", { name: "Deny" }).click();
       await expect(
-        page.getByText(ZOTERO_COPY.setup.connectFailed),
+        page
+          .getByRole("dialog", { name: QUEST_OVERVIEW_COPY.newList.title })
+          .getByText(ZOTERO_COPY.setup.connectFailed),
       ).toBeVisible();
     });
 

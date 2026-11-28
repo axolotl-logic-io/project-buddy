@@ -23,11 +23,13 @@ The user adds a list to a quest and sets it up.
 
 - **Prerequisites:** [`use_case_open_quest`](quests.md#use_case_open_quest).
 - **Steps:**
-  - The user chooses New list in Overview's add box and names the list. It is a task list.
-  - Later, they open the list's settings with the gear on its page and change its name or type.
-- **Outcome:** the new list appears on Overview after the quest's other lists, and can be chosen for a performance. Its pages, menus, feedback and the site's messages during a performance name its items for its type. A name that is empty, longer than one line or too long is refused with the reason, and the draft stays. Everyone in the quest sees the same list.
+  - The user chooses New list in Overview's add box.
+  - In the dialog, they choose the list's type: Tasks, Items, Notes or Tallies. Tasks is chosen at first.
+  - They name the list and choose **Create list**.
+  - Optional: later, they open the list's settings with the gear on its page and change its name or type.
+- **Outcome:** the dialog closes, the add box moves to the new list and says so, and the new list appears on Overview after the quest's other lists. It can be chosen for a performance. Each type in the dialog says what its list holds. Escape, the close button or a click outside the dialog closes it with no new list. Its pages, menus, feedback and the site's messages during a performance name its items for its type. A name that is empty, longer than one line or too long is refused with the reason, and the dialog keeps the draft. Everyone in the quest sees the same list.
 - **Next:**
-  - [`use_case_connect_zotero`](zotero.md#use_case_connect_zotero): make a list from a Zotero collection instead.
+  - [`use_case_connect_zotero`](zotero.md#use_case_connect_zotero): make a Zotero Collection list, the dialog's fifth type, instead.
 
 ## use_case_split_list_item
 

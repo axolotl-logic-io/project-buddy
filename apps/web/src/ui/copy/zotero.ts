@@ -5,18 +5,16 @@ function plural(count: number, one: string, many: string): string {
   return `${count} ${many}`;
 }
 
-// Zotero setup, the Zotero Collection list page and its section on the
-// quest's overview.
+// Zotero setup in the New list dialog, the Zotero Collection list page,
+// and its section on the quest's overview.
 const ZOTERO_COPY = {
-  // The add box's link to Zotero setup, for the quest's owner.
-  addCollection: "Add a Zotero Collection",
   setup: {
     title: "Add a Zotero Collection",
     intro:
       "A Zotero Collection list shows the works in one of your Zotero collections as Works Cited entries in MLA style. You can’t edit the entries here: change the items in Zotero, then sync.",
     connect: "Connect Zotero",
     connectHint:
-      "Zotero asks you to approve access to your personal library, then sends you back here.",
+      "Zotero asks you to approve access to your personal library, then sends you back to this dialog.",
     connected: (username: string): string =>
       `Connected to Zotero as ${username}.`,
     disconnect: "Disconnect Zotero",

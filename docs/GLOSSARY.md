@@ -78,7 +78,7 @@ The panel, open from any page, that adds a list item to a list of an Active ques
 
 ### Add box
 
-The field under a quest's name on its Overview that searches the quest's lists and adds list items to whichever of them is chosen under it, one after another, or names a new task list. It works as the search box on a List page does. Unlike Quick Add, it adds only to the quest that is open. [Open quest use case](../apps/web/use-cases/quests.md#use_case_open_quest)
+The field under a quest's name on its Overview that searches the quest's lists and adds list items to whichever of them is chosen under it, one after another. Its New list opens a dialog that makes a list of any type. It works as the search box on a List page does. Unlike Quick Add, it adds only to the quest that is open. [Open quest use case](../apps/web/use-cases/quests.md#use_case_open_quest)
 
 ### List page
 
@@ -90,7 +90,7 @@ See the [Zotero use cases](../apps/web/use-cases/zotero.md) for workflows.
 
 ### Zotero connection
 
-Permission a user grants Project Buddy through [Zotero's OAuth authorization flow](https://www.zotero.org/support/dev/web_api/v3/oauth). The user chooses **Connect Zotero** in Zotero setup and approves access in Zotero. Each Project Buddy account has at most one Zotero connection, and Project Buddy keeps its credentials on the server. The connection lets Project Buddy read collections and their references. Sending checkmark changes to Zotero requires permission to write to the library.
+Permission a user grants Project Buddy through [Zotero's OAuth authorization flow](https://www.zotero.org/support/dev/web_api/v3/oauth). The quest owner chooses **Connect Zotero** in the New list dialog, with Zotero Collection as the type, and approves access in Zotero. Each Project Buddy account has at most one Zotero connection, and Project Buddy keeps its credentials on the server. The connection lets Project Buddy read collections and their references. Sending checkmark changes to Zotero requires permission to write to the library.
 
 ### Zotero Collection list
 

@@ -1,7 +1,6 @@
 "use client";
 
 import type { Route } from "next";
-import Link from "next/link";
 import {
   type ChangeEvent,
   type JSX,
@@ -16,15 +15,15 @@ import { FolioDivider } from "@/components/folio-divider.tsx";
 import { editorFor, useListChanges } from "@/components/list-changes.ts";
 import { holds, sameText, shownItems } from "@/components/list-filters.ts";
 import { ListChangeNotices } from "@/components/list-items.tsx";
+import { NewListDialog } from "@/components/new-list-dialog.tsx";
+import type { NewListZotero } from "@/components/new-list-zotero.ts";
 import { QuestListSection } from "@/components/quest-list-section.tsx";
 import { Button } from "@/components/ui/button.tsx";
-import type { EditorOptions } from "@/components/ui/editable-list-contract.ts";
 import { Icon } from "@/components/ui/icon.tsx";
 import { useEntry } from "@/components/use-entry.ts";
 import { ZoteroListSection } from "@/components/zotero/zotero-list-section.tsx";
 import type { QuestId } from "@/ids.ts";
-import { LIST_ID, LIST_SETTINGS, type ListId } from "@/lists/list.ts";
-import { saveListAction } from "@/lists/list-actions.ts";
+import { LIST_ID, type ListId } from "@/lists/list.ts";
 import type { ListItemId } from "@/lists/list-item.ts";
 import type { ListItem } from "@/lists/list-item-store.ts";
 import type { List } from "@/lists/list-store.ts";
@@ -33,7 +32,6 @@ import type { TaskHistory } from "@/streaks/streaks.ts";
 import type { TallyQuest } from "@/tallies/tally.ts";
 import { LIST_PAGE_COPY } from "@/ui/copy/list-page.ts";
 import { QUEST_OVERVIEW_COPY } from "@/ui/copy/quest-overview.ts";
-import { ZOTERO_COPY } from "@/ui/copy/zotero.ts";
 import { entryHolds } from "@/zotero/works-cited.ts";
 import type { ZoteroList } from "@/zotero/zotero-list-store.ts";
 
@@ -53,12 +51,9 @@ function startingTarget(lists: readonly List[]): List | undefined {
   return lists.find(({ type }) => type === "task") ?? lists[0];
 }
 
-function validateName(text: string): ReturnType<EditorOptions["validate"]> {
-  const name = LIST_SETTINGS.shape.name.safeParse(text).data;
-  if (name === undefined) {
-    return { problem: COPY.nameProblem };
-  }
-  return { text: name };
+// Nothing to add to: a quest with no list of list items only searches.
+function addNothing(): Promise<boolean> {
+  return Promise.resolve(false);
 }
 
 type IconName = Parameters<typeof Icon>[0]["name"];
@@ -66,22 +61,25 @@ type IconName = Parameters<typeof Icon>[0]["name"];
 // The add box under the quest's name, as on a list's page: a field that
 // searches the quest's lists as it is typed in and adds its text to the
 // list marked in gold, unless that list has the text already. The lists
-// to add to are chips below it, with New list, which turns the field to
-// naming a new task list. Each add empties the field and keeps focus in
+// to add to are chips below it, with New list, which opens a dialog that
+// makes a list of any type. Each add empties the field and keeps focus in
 // it.
 function AddBox({
   questId,
   lists,
+  known,
   target,
   taken,
   matches,
   onTarget,
   onMade,
   onSearch,
-  zoteroSetup,
+  zotero,
 }: {
   readonly questId: QuestId;
   readonly lists: readonly List[];
+  // Every list of the quest, Zotero Collection lists too.
+  readonly known: readonly ListId[];
   readonly target: List | undefined;
   // The items of the list the box adds to.
   readonly taken: readonly ListItem[];
@@ -90,25 +88,20 @@ function AddBox({
   readonly onTarget: (list: ListId) => void;
   // Called when a new list is made, with the lists there were before it.
   readonly onMade: (known: readonly ListId[]) => void;
-  // Called with the field's search, or "" while it names a new list.
+  // Called with the field's search.
   readonly onSearch: (search: string) => void;
-  // Where the quest's owner adds a Zotero Collection list; undefined for
-  // its members.
-  readonly zoteroSetup: Route | undefined;
+  // Zotero setup in New list, for the quest's owner; undefined for its
+  // members.
+  readonly zotero: NewListZotero | undefined;
 }): JSX.Element {
   const groupLabelId = useId();
   const hintId = useId();
   const changes = useListChanges(questId);
   const { runOn } = changes;
-  const [namingChosen, setNaming] = useState<boolean>(false);
-  const [making, setMaking] = useState(false);
   const [said, setSaid] = useState<string | undefined>();
-  const [refused, setRefused] = useState<string | undefined>();
-  const naming = namingChosen || target === undefined;
   const addItem = useCallback(
     async (entry: string): Promise<boolean> => {
       setSaid(undefined);
-      setRefused(undefined);
       if (target === undefined || taken.some((item) => sameText(item, entry))) {
         return false;
       }
@@ -120,53 +113,22 @@ function AddBox({
     },
     [runOn, target, taken],
   );
-  // Makes a task list with this name, then moves the add box to it.
-  async function makeList(name: string): Promise<boolean> {
-    setSaid(undefined);
-    setRefused(undefined);
-    setMaking(true);
-    const form = new FormData();
-    form.set("questId", questId);
-    form.set("name", name);
-    form.set("type", "task");
-    const known = lists.map(({ id }) => id);
-    try {
-      const result = await saveListAction({}, form);
-      if (result.saved !== true) {
-        setRefused(result.error);
-        return false;
-      }
-      onMade(known);
-      setNaming(false);
-      setSaid(COPY.made(name));
-      return true;
-    } finally {
-      setMaking(false);
-    }
-  }
-  let { validate } = editorFor(target?.type ?? "task");
+  const { validate } = editorFor(target?.type ?? "task");
   let add = addItem;
-  if (naming) {
-    validate = validateName;
-    add = makeList;
+  if (target === undefined) {
+    add = addNothing;
   }
   const { text, problem, inputRef, change, submit, clear } = useEntry(
     validate,
     add,
   );
-  let search = text.trim();
-  let label = COPY.nameList;
-  let placeholder = COPY.nameList;
-  let icon: IconName = "plus";
-  let fieldType = "text";
-  let hint = COPY.namingHint;
-  if (naming) {
-    search = "";
-  } else if (target !== undefined) {
+  const search = text.trim();
+  let label = COPY.searchOnly;
+  let placeholder = COPY.searchOnly;
+  let hint = COPY.noList;
+  if (target !== undefined) {
     label = LIST_PAGE_COPY.searchIn(target.type, target.name);
     placeholder = LIST_PAGE_COPY.search(target.type);
-    icon = "search";
-    fieldType = "search";
     const same = taken.find((item) => sameText(item, search));
     hint = LIST_PAGE_COPY.hint(target.type);
     if (same !== undefined) {
@@ -174,7 +136,10 @@ function AddBox({
     } else if (search !== "") {
       hint = LIST_PAGE_COPY.matches(target.type, matches, search);
     }
+  } else if (search !== "") {
+    hint = LIST_PAGE_COPY.matches("plain", matches, search);
   }
+  const icon: IconName = "search";
   let hintClass = "add-box-hint";
   if (problem !== undefined) {
     hint = problem;
@@ -187,7 +152,6 @@ function AddBox({
     (event: ChangeEvent<HTMLInputElement>): void => {
       const id = LIST_ID.safeParse(event.currentTarget.value).data;
       if (id !== undefined) {
-        setNaming(false);
         onTarget(id);
       }
     },
@@ -203,25 +167,24 @@ function AddBox({
     },
     [inputRef],
   );
-  const startNaming = useCallback((): void => {
-    setNaming(true);
-    inputRef.current?.focus();
-  }, [inputRef]);
-  // Escape goes back from naming a new list, else clears the search.
-  const backOnEscape = useCallback(
+  // A new list becomes the add box's list, and the field takes focus.
+  const made = useCallback(
+    (before: readonly ListId[], name: string): void => {
+      onMade(before);
+      setSaid(COPY.made(name));
+      inputRef.current?.focus();
+    },
+    [inputRef, onMade],
+  );
+  // Escape clears the search.
+  const clearOnEscape = useCallback(
     (event: KeyboardEvent<HTMLInputElement>): void => {
-      if (event.key !== "Escape") {
-        return;
-      }
-      if (namingChosen) {
-        event.preventDefault();
-        setNaming(false);
-      } else if (text !== "") {
+      if (event.key === "Escape" && text !== "") {
         event.preventDefault();
         clear();
       }
     },
-    [clear, namingChosen, text],
+    [clear, text],
   );
   return (
     <form className="add-box" aria-label={COPY.label} onSubmit={submit}>
@@ -229,7 +192,7 @@ function AddBox({
         <Icon name={icon} />
         <input
           ref={inputRef}
-          type={fieldType}
+          type="search"
           className="add-box-field"
           aria-label={label}
           aria-describedby={hintId}
@@ -237,9 +200,9 @@ function AddBox({
           placeholder={placeholder}
           value={text}
           onChange={change}
-          onKeyDown={backOnEscape}
+          onKeyDown={clearOnEscape}
         />
-        <Button type="submit" disabled={changes.busy || making}>
+        <Button type="submit" disabled={changes.busy || target === undefined}>
           {COPY.add}
         </Button>
       </div>
@@ -258,7 +221,7 @@ function AddBox({
                 type="radio"
                 name={groupLabelId}
                 value={list.id}
-                checked={!naming && list.id === target?.id}
+                checked={list.id === target?.id}
                 onChange={choose}
                 onClick={focusField}
               />
@@ -266,21 +229,12 @@ function AddBox({
             </label>
           ))}
         </div>
-        <Button
-          variant="quiet"
-          className="add-box-new"
-          aria-pressed={naming}
-          onClick={startNaming}
-        >
-          <Icon name="plus" />
-          {COPY.newList}
-        </Button>
-        {zoteroSetup !== undefined && (
-          <Link className="add-box-new add-box-zotero" href={zoteroSetup}>
-            <Icon name="book" />
-            {ZOTERO_COPY.addCollection}
-          </Link>
-        )}
+        <NewListDialog
+          questId={questId}
+          known={known}
+          zotero={zotero}
+          onMade={made}
+        />
       </div>
       <p id={hintId} className={hintClass} aria-live="polite">
         {hint}
@@ -289,7 +243,6 @@ function AddBox({
         changes={{
           ...changes,
           status: said,
-          problem: refused ?? changes.problem,
         }}
       />
     </form>
@@ -307,7 +260,7 @@ function QuestFolio({
   tallies,
   next,
   rites,
-  zoteroSetup,
+  newListZotero,
 }: {
   readonly questId: QuestId;
   readonly lists: readonly FolioList[];
@@ -315,7 +268,8 @@ function QuestFolio({
   readonly tallies: TallyQuest | undefined;
   readonly next: ListItemId | undefined;
   readonly rites: readonly Rite[] | undefined;
-  readonly zoteroSetup: Route | undefined;
+  // Zotero setup in New list, for the quest's owner alone.
+  readonly newListZotero: NewListZotero | undefined;
 }): JSX.Element {
   const [chosen, setChosen] = useState<ListId | undefined>();
   const [search, setSearch] = useState("");
@@ -354,13 +308,14 @@ function QuestFolio({
       <AddBox
         questId={questId}
         lists={plain}
+        known={lists.map(({ list }) => list.id)}
         target={target}
         taken={taken ?? []}
         matches={matches}
         onTarget={setChosen}
         onMade={setAwaited}
         onSearch={setSearch}
-        zoteroSetup={zoteroSetup}
+        zotero={newListZotero}
       />
       {lists.flatMap(({ list, contents, href, zotero }) => {
         const rule = <FolioDivider key={`${list.id}-rule`} />;

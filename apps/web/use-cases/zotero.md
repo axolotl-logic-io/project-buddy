@@ -8,10 +8,11 @@ The user connects their Zotero account to choose a collection for a quest.
 
 - **Prerequisites:** [`use_case_open_quest`](quests.md#use_case_open_quest), in a quest the user owns.
 - **Steps:**
-  - The user chooses Add a Zotero Collection beside New list in Overview's add box.
+  - The user chooses New list in Overview's add box.
+  - In the dialog, they choose Zotero Collection as the list's type.
   - They choose **Connect Zotero**.
   - They sign in to Zotero if needed and approve access to their personal library on Zotero's site.
-- **Outcome:** Zotero sends the user back to the setup on the quest's Overview, which says Zotero is connected, names the Zotero account and lists its collections, with subcollections under their parents. When the user declines or the connection fails, setup says Zotero didn't connect, nothing changes, and the user can try again. Project Buddy connects through [Zotero's OAuth authorization flow](https://www.zotero.org/support/dev/web_api/v3/oauth), so the user never types a Zotero key. Connecting again replaces the earlier connection and ends its access. **Disconnect Zotero** ends Project Buddy's access to the library and keeps the user's Zotero Collection lists with their last sync. Only the quest owner sees the setup.
+- **Outcome:** Zotero sends the user back to the New list dialog on the quest's Overview, open on Zotero Collection. The dialog says Zotero is connected, names the Zotero account and lists its collections, with subcollections under their parents. When the user declines or the connection fails, the dialog says Zotero didn't connect, nothing changes, and the user can try again. Project Buddy connects through [Zotero's OAuth authorization flow](https://www.zotero.org/support/dev/web_api/v3/oauth), so the user never types a Zotero key. Connecting again replaces the earlier connection and ends its access. **Disconnect Zotero** ends Project Buddy's access to the library and keeps the user's Zotero Collection lists with their last sync. Only the quest owner sees Zotero Collection in the dialog; quest members see the other types.
 - **Next:**
   - `use_case_create_zotero_collection_list`: import a collection as a list.
 
@@ -21,10 +22,10 @@ The quest owner imports a Zotero collection as a list.
 
 - **Prerequisites:** `use_case_connect_zotero`.
 - **Steps:**
-  - The owner selects one collection in the setup.
+  - The owner selects one collection in the New list dialog.
   - Optional: they turn on **Checkable** and name a checkmark tag. When the connection can't change the library, they choose to connect again and approve changes in Zotero first.
   - They choose **Create and sync**.
-- **Outcome:** the list appears on Overview with the collection's name, after the quest's other lists. Its List page shows one read-only MLA Works Cited entry for each work directly in that collection; notes, attachments and works only in subcollections stay out. Entries follow Works Cited order, which skips opening quotation marks and articles, keep their italics and wrap across lines. A subcollection can be chosen for a list of its own, and an empty collection makes an empty list. The search box filters the references, and each reference opens its item in Zotero. The list can't take new list items, and it stays out of Quick Add, the add box's lists, moves and performances. In a shared quest, setup says that everyone in the quest can see the references and checkmarks and mark them. Setup also says that a checkmark tag applies to the item everywhere in Zotero. A checkable list starts with the checkmarks Zotero already holds as that tag. When the import fails, setup keeps the selection and shows the reason, and the owner can try again.
+- **Outcome:** the list appears on Overview with the collection's name, after the quest's other lists. Its List page shows one read-only MLA Works Cited entry for each work directly in that collection; notes, attachments and works only in subcollections stay out. Entries follow Works Cited order, which skips opening quotation marks and articles, keep their italics and wrap across lines. A subcollection can be chosen for a list of its own, and an empty collection makes an empty list. The search box filters the references, and each reference opens its item in Zotero. The list can't take new list items, and it stays out of Quick Add, the add box's lists, moves and performances. In a shared quest, the dialog says that everyone in the quest can see the references and checkmarks and mark them. It also says that a checkmark tag applies to the item everywhere in Zotero. A checkable list starts with the checkmarks Zotero already holds as that tag. When the import fails, the dialog keeps the selection and shows the reason, and the owner can try again.
 - **Next:**
   - `use_case_sync_zotero_collection_list`: refresh the list.
   - `use_case_check_zotero_reference`: change a checkmark.

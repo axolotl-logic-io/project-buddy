@@ -1,7 +1,5 @@
 "use client";
 
-import type { Route } from "next";
-import Link from "next/link";
 import {
   type JSX,
   useActionState,
@@ -12,7 +10,6 @@ import {
 import { Button } from "@/components/ui/button.tsx";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog.tsx";
 import { Alert, FormStatus, Notice } from "@/components/ui/form-message.tsx";
-import { Icon } from "@/components/ui/icon.tsx";
 import type { QuestId } from "@/ids.ts";
 import { ZOTERO_COPY } from "@/ui/copy/zotero.ts";
 import {
@@ -155,19 +152,15 @@ function CreateForm({
   );
 }
 
-// Zotero setup on the quest's page, for its owner: connecting Zotero, then
-// choosing a collection to import as a new list.
-function ZoteroSetupSection({
+// Zotero setup in the New list dialog, for the quest's owner: connecting
+// Zotero, then choosing a collection to import as a new list.
+function ZoteroSetupPanel({
   questId,
-  quest,
-  back,
   setup,
   outcome,
   shared,
 }: {
   readonly questId: QuestId;
-  readonly quest: string;
-  readonly back: Route;
   readonly setup: ZoteroSetup;
   // What Zotero answered when it sent the user back, if it just did.
   readonly outcome: "connected" | "failed" | undefined;
@@ -175,19 +168,8 @@ function ZoteroSetupSection({
   readonly shared: boolean;
 }): JSX.Element {
   return (
-    <section className="page-workspace quest-folio zotero-setup list-page">
-      <header className="list-page-top">
-        <Link
-          className="list-page-back"
-          href={back}
-          aria-label={COPY.back(quest)}
-        >
-          <Icon name="chevron-left" />
-          <span className="list-page-back-name">{quest}</span>
-        </Link>
-        <h2 className="quest-focus-title">{COPY.title}</h2>
-      </header>
-      <p>{COPY.intro}</p>
+    <div className="zotero-setup">
+      <p className="zotero-hint">{COPY.intro}</p>
       {outcome === "connected" && setup.kind === "connected" && (
         <Notice role="status">{COPY.connectedNow}</Notice>
       )}
@@ -225,8 +207,8 @@ function ZoteroSetupSection({
           )}
         </>
       )}
-    </section>
+    </div>
   );
 }
 
-export { ZoteroSetupSection };
+export { ZoteroSetupPanel };

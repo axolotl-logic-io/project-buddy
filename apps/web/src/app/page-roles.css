@@ -2638,6 +2638,41 @@
     @apply size-4;
   }
 
+  /* The New list dialog: the list's type, then its name or Zotero setup. */
+  .new-list,
+  .new-list-form {
+    @apply flex flex-col gap-5;
+  }
+
+  .new-list-types {
+    @apply flex flex-col gap-1 border-0 p-0;
+  }
+
+  .new-list-types > legend {
+    @apply mb-1 font-heading font-semibold;
+  }
+
+  .new-list-type {
+    min-block-size: var(--target-size);
+    @apply flex items-start gap-3 rounded-action px-2 py-1.5;
+  }
+
+  .new-list-type:has(input:checked) {
+    @apply bg-field;
+  }
+
+  .new-list-type > input {
+    @apply mt-1 shrink-0;
+  }
+
+  .new-list-type-text {
+    @apply flex flex-col;
+  }
+
+  .new-list-type-hint {
+    @apply text-muted text-sm;
+  }
+
   .add-box-hint {
     @apply mt-4 text-muted text-sm;
   }
@@ -3330,11 +3365,6 @@
 
   .zotero-reference-open {
     @apply text-muted hover:text-foreground;
-  }
-
-  .add-box .add-box-zotero {
-    min-block-size: var(--target-size);
-    @apply inline-flex items-center gap-1.5 no-underline;
   }
 }
 

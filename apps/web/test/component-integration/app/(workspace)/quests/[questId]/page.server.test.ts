@@ -1,10 +1,17 @@
 import { renderToStaticMarkup } from "react-dom/server";
-import { describe, expect, test } from "vitest";
+import { describe, expect, test, vi } from "vitest";
 import QuestPage from "@/app/(stream)/(site)/(workspace)/quests/[questId]/(overview)/page.tsx";
 import { listPerformances } from "@/performances/performance-store.ts";
 import { PERFORMANCE_COPY } from "@/ui/copy/performances.ts";
 import { expectNotFound } from "../../../../test-database/navigation-test-kit.ts";
 import { twoUsers } from "../../../../test-database/two-users-test-kit.ts";
+
+// The page renders here outside Next's App Router, which New list's dialog
+// navigates with; notFound and the rest stay Next's own.
+vi.mock("next/navigation", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("next/navigation")>()),
+  useRouter: (): { replace: () => void } => ({ replace: vi.fn() }),
+}));
 
 // The quest's page, as the signed-in user sees it.
 async function pageHtml(questId: string): Promise<string> {
