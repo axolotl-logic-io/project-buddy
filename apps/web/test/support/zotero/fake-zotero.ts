@@ -24,7 +24,9 @@ import {
   type FakeState,
   type FakeUser,
   fakeState,
+  newKey,
   newToken,
+  noteItem,
   userOf,
   wake,
 } from "./fake-zotero-state.ts";
@@ -42,6 +44,14 @@ const SERVER_ERROR = 500;
 const PATCH_BODY = z.object({
   tags: z.array(z.object({ tag: z.string(), type: z.number().optional() })),
 });
+const NOTE_PATCH_BODY = z.object({ note: z.string() });
+const NEW_NOTES_BODY = z.array(
+  z.object({
+    itemType: z.literal("note"),
+    parentItem: z.string(),
+    note: z.string(),
+  }),
+);
 
 const HEX = 16;
 const DEFAULT_PAGE = 25;
@@ -170,18 +180,42 @@ function itemJson(origin: string, user: FakeUser, item: FakeItem): unknown {
       },
     },
     bib: `<div class="csl-bib-body"><div class="csl-entry">${item.bib}</div></div>`,
-    data: {
-      key: item.key,
-      version: item.version,
-      itemType: item.itemType,
-      title: item.title,
-      tags: item.tags,
-      collections: item.collections,
-    },
+    data: dataOf(item),
   };
 }
 
-function collectionJson(collection: FakeCollection): unknown {
+// An item's data as Zotero gives it: a note's parent and HTML, or a
+// bibliographic item's fields.
+function dataOf(item: FakeItem): unknown {
+  if (item.parentItem !== undefined) {
+    return {
+      key: item.key,
+      version: item.version,
+      itemType: item.itemType,
+      parentItem: item.parentItem,
+      note: item.note,
+      tags: item.tags,
+      collections: [],
+    };
+  }
+  return {
+    key: item.key,
+    version: item.version,
+    itemType: item.itemType,
+    title: item.title,
+    tags: item.tags,
+    collections: item.collections,
+  };
+}
+
+// The items directly in the collection, without their child notes.
+function topItems(user: FakeUser, collectionKey: string): FakeItem[] {
+  return [...user.items.values()].filter(({ collections }) =>
+    collections.includes(collectionKey),
+  );
+}
+
+function collectionJson(user: FakeUser, collection: FakeCollection): unknown {
   let parentCollection: string | false = false;
   if (collection.parent !== undefined) {
     parentCollection = collection.parent;
@@ -189,6 +223,7 @@ function collectionJson(collection: FakeCollection): unknown {
   return {
     key: collection.key,
     version: 1,
+    meta: { numItems: topItems(user, collection.key).length },
     data: { key: collection.key, name: collection.name, parentCollection },
   };
 }
@@ -400,10 +435,106 @@ async function patchItem(
   item.tags = tags;
   item.version += 1;
   user.patches.push({ itemKey: item.key, tags: tags.map(({ tag }) => tag) });
+  countWrite(user);
+  response
+    .writeHead(NO_CONTENT, { "Last-Modified-Version": String(item.version) })
+    .end();
+}
+
+function countWrite(user: FakeUser): void {
   if (user.writesBeforeFailure !== undefined) {
     user.writesBeforeFailure -= 1;
   }
-  response.writeHead(NO_CONTENT).end();
+}
+
+// A note write: 412 when the note changed since the version the client
+// read, else the note gets the HTML sent.
+async function patchNote(
+  { request, response }: Exchange,
+  { user, key }: { readonly user: FakeUser; readonly key: FakeKey },
+  item: FakeItem,
+): Promise<void> {
+  if (!key.write) {
+    sendText(response, FORBIDDEN, "Write access denied");
+    return;
+  }
+  const interference = user.noteInterference.get(item.key);
+  if (interference !== undefined) {
+    item.note = interference.note;
+    item.version += 1;
+    interference.times -= 1;
+    if (interference.times <= 0) {
+      user.noteInterference.delete(item.key);
+    }
+  }
+  if (request.headers["if-unmodified-since-version"] !== String(item.version)) {
+    sendText(response, PRECONDITION_FAILED, "Item changed");
+    return;
+  }
+  const sent: unknown = JSON.parse(await bodyOf(request));
+  item.note = NOTE_PATCH_BODY.parse(sent).note;
+  item.version += 1;
+  user.noteWrites.push({
+    noteKey: item.key,
+    parentItem: item.parentItem ?? "",
+    note: item.note,
+  });
+  countWrite(user);
+  response
+    .writeHead(NO_CONTENT, { "Last-Modified-Version": String(item.version) })
+    .end();
+}
+
+// POST /users/USER_ID/items: new child notes, as Zotero answers a write of
+// new objects.
+async function createNotes(
+  { request, response }: Exchange,
+  { user, key }: { readonly user: FakeUser; readonly key: FakeKey },
+): Promise<void> {
+  if (!key.write) {
+    sendText(response, FORBIDDEN, "Write access denied");
+    return;
+  }
+  const sent: unknown = JSON.parse(await bodyOf(request));
+  const notes = NEW_NOTES_BODY.parse(sent);
+  const successful: Record<string, unknown> = {};
+  const failed: Record<string, unknown> = {};
+  for (const [index, { parentItem, note }] of notes.entries()) {
+    if (user.items.has(parentItem)) {
+      successful[String(index)] = addNote(user, parentItem, note);
+    } else {
+      failed[String(index)] = { code: BAD_REQUEST, message: "No parent" };
+    }
+  }
+  countWrite(user);
+  sendJson(response, { successful, success: {}, unchanged: {}, failed });
+}
+
+// Adds the note to the user's library: what Zotero answers for it.
+function addNote(user: FakeUser, parentItem: string, note: string): unknown {
+  const noteKey = newKey();
+  const item = noteItem(noteKey, parentItem, note);
+  user.items.set(noteKey, item);
+  user.noteWrites.push({ noteKey, parentItem, note });
+  return { key: noteKey, version: item.version, data: dataOf(item) };
+}
+
+// The items in the collection and their child notes, of the itemType the
+// request asks for when it asks.
+function collectionItems(
+  { url }: Exchange,
+  user: FakeUser,
+  collectionKey: string,
+): FakeItem[] {
+  const top = topItems(user, collectionKey);
+  const parents = new Set(top.map(({ key }) => key));
+  const children = [...user.items.values()].filter(
+    ({ parentItem }) => parentItem !== undefined && parents.has(parentItem),
+  );
+  const itemType = url.searchParams.get("itemType");
+  return [...top, ...children].filter(
+    (item) => itemType === null || item.itemType === itemType,
+  );
 }
 
 // Requests for the user's collection items wait here while they are held.
@@ -428,7 +559,14 @@ async function library(
   const { user } = access;
   const [kind = "", objectKey = "", sub = "", top = ""] = parts;
   if (kind === "collections" && parts.length === 1) {
-    sendPage(exchange, [...user.collections.values()].map(collectionJson));
+    sendPage(
+      exchange,
+      [...user.collections.values()].map((each) => collectionJson(user, each)),
+    );
+    return;
+  }
+  if (kind === "items" && parts.length === 1 && request.method === "POST") {
+    await createNotes(exchange, access);
     return;
   }
   const collection = user.collections.get(objectKey);
@@ -441,22 +579,33 @@ async function library(
     collection !== undefined &&
     parts.length === 2
   ) {
-    sendJson(response, collectionJson(collection));
+    sendJson(response, collectionJson(user, collection));
     return;
   }
   if (kind === "collections" && sub === "items" && top === "top") {
     await heldItems(state, user);
     sendPage(
       exchange,
-      [...user.items.values()]
-        .filter(({ collections }) => collections.includes(objectKey))
-        .map((inCollection) => itemJson(origin, user, inCollection)),
+      topItems(user, objectKey).map((each) => itemJson(origin, user, each)),
+    );
+    return;
+  }
+  if (kind === "collections" && sub === "items" && top === "") {
+    sendPage(
+      exchange,
+      collectionItems(exchange, user, objectKey).map((each) =>
+        itemJson(origin, user, each),
+      ),
     );
     return;
   }
   const item = user.items.get(objectKey);
   if (kind !== "items" || parts.length !== 2 || item === undefined) {
     sendText(response, NOT_FOUND, "Not found");
+    return;
+  }
+  if (request.method === "PATCH" && item.parentItem !== undefined) {
+    await patchNote(exchange, access, item);
     return;
   }
   if (request.method === "PATCH") {
@@ -489,7 +638,7 @@ async function api(exchange: Exchange): Promise<void> {
       key: apiKey,
       username: userOf(state, key.userId).username,
       access: {
-        user: { library: true, files: false, notes: false, write: key.write },
+        user: { library: true, files: false, notes: true, write: key.write },
       },
     });
     return;

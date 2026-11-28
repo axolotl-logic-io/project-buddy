@@ -28,11 +28,18 @@ function CheckableFields({
   checkable,
   tag,
   onCheckable,
+  offHint = ZOTERO_COPY.setup.checkableHint,
 }: {
   readonly checkable: boolean;
   readonly tag: string | undefined;
   readonly onCheckable: (checkable: boolean) => void;
+  // The hint while the list isn't checkable.
+  readonly offHint?: string;
 }): JSX.Element {
+  let hint = offHint;
+  if (checkable) {
+    hint = ZOTERO_COPY.setup.checkableHint;
+  }
   const change = useCallback(
     (event: ChangeEvent<HTMLInputElement>): void =>
       onCheckable(event.target.checked),
@@ -49,7 +56,7 @@ function CheckableFields({
         />
         <span>{ZOTERO_COPY.setup.checkable}</span>
       </label>
-      <p className="zotero-hint">{ZOTERO_COPY.setup.checkableHint}</p>
+      <p className="zotero-hint">{hint}</p>
       {checkable === true && (
         <TextField
           label={ZOTERO_COPY.setup.tag}

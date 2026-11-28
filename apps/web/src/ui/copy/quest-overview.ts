@@ -13,6 +13,14 @@ const NEW_LIST_HINTS: Readonly<Record<ListType, string>> = {
     "Works Cited entries from one of your Zotero collections.",
 };
 
+const NEW_LIST_TILES: Readonly<Record<ListType, string>> = {
+  task: "To check off",
+  plain: "To keep",
+  "quick-note": "Dated thoughts",
+  tally: "Daily counts",
+  "zotero-collection": "Works Cited from your library",
+};
+
 const QUEST_OVERVIEW_COPY = {
   quest: "Quest",
   status: "Quest status",
@@ -64,6 +72,17 @@ const QUEST_OVERVIEW_COPY = {
     creating: "Creating the list…",
     failed: "The list wasn’t made. Try again.",
     hints: (type: ListType): string => NEW_LIST_HINTS[type],
+    // Under each kind's name on the first step's tiles.
+    tiles: (type: ListType): string => NEW_LIST_TILES[type],
+    // The second step's title, for the kind chosen.
+    titleOf: (type: ListType): string => `New ${LISTS_COPY.types[type]} list`,
+    steps: "Steps",
+    kind: "Kind",
+    details: "Details",
+    kindLegend: "Kind of list",
+    next: "Next",
+    back: "Back",
+    cancel: "Cancel",
     loadingZotero: "Opening Zotero setup…",
   },
   performRite: "Perform a rite",

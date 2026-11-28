@@ -2,6 +2,7 @@
 
 import {
   type JSX,
+  type ReactNode,
   startTransition,
   useCallback,
   useOptimistic,
@@ -12,19 +13,24 @@ import { TaskCheck } from "@/components/ui/task-check.tsx";
 import type { QuestId } from "@/ids.ts";
 import type { ListId } from "@/lists/list.ts";
 import { ZOTERO_COPY } from "@/ui/copy/zotero.ts";
+import { romanNumeral } from "@/ui/roman-numeral.ts";
 import { entryHolds, plainText } from "@/zotero/works-cited.ts";
 import type { WorksCitedEntry, ZoteroReferenceId } from "@/zotero/zotero.ts";
 import { markZoteroReferenceAction } from "@/zotero/zotero-actions.ts";
 import type { ZoteroReference } from "@/zotero/zotero-list-store.ts";
+import { ReferenceNotes } from "./zotero-notes.tsx";
 
 const COPY: typeof ZOTERO_COPY.list = ZOTERO_COPY.list;
 
 // A Works Cited entry as MLA sets it: its titles in italics, wrapping
-// anywhere a long address needs to.
+// anywhere a long address needs to, and anything that follows its last
+// word, such as the numerals of its notes.
 function WorksCitedText({
   entry,
+  children,
 }: {
   readonly entry: WorksCitedEntry;
+  readonly children?: ReactNode;
 }): JSX.Element {
   return (
     <span className="zotero-entry">
@@ -35,6 +41,7 @@ function WorksCitedText({
         }
         return <span key={key}>{run.text}</span>;
       })}
+      {children}
     </span>
   );
 }
@@ -66,15 +73,41 @@ function withMark(
   });
 }
 
-// One reference: its checkmark, when the list shows them, its entry, and a
-// link to the item in Zotero.
+// The rubric numeral of each reference's notes, counted down the list in
+// view: the first reference's notes are i and ii, the next one's iii.
+function noteNumerals(
+  references: readonly ZoteroReference[],
+): ReadonlyMap<ZoteroReferenceId, readonly string[]> {
+  const numerals = new Map<ZoteroReferenceId, readonly string[]>();
+  let count = 0;
+  for (const reference of references) {
+    const first = count + 1;
+    numerals.set(
+      reference.id,
+      reference.notes.map((_note, index) => romanNumeral(first + index)),
+    );
+    count += reference.notes.length;
+  }
+  return numerals;
+}
+
+// One reference: its checkmark, when the list shows them, its entry keyed
+// to its notes, a link to the item in Zotero, and its notes beside it.
 function ReferenceRow({
+  questId,
+  listId,
   reference,
   checkmarks,
+  numerals,
+  notesOpen,
   onMark,
 }: {
+  readonly questId: QuestId;
+  readonly listId: ListId;
   readonly reference: ZoteroReference;
   readonly checkmarks: "markable" | "shown" | "hidden";
+  readonly numerals: readonly string[];
+  readonly notesOpen: boolean;
   readonly onMark: (mark: Mark) => void;
 }): JSX.Element {
   const text = plainText(reference.entry);
@@ -101,7 +134,13 @@ function ReferenceRow({
         />
       )}
       <div className="zotero-reference-body">
-        <WorksCitedText entry={reference.entry} />
+        <WorksCitedText entry={reference.entry}>
+          {numerals.length > 0 && (
+            <sup className="zotero-note-ref" aria-hidden="true">
+              {numerals.join(" ")}
+            </sup>
+          )}
+        </WorksCitedText>
         <span className="zotero-reference-meta">
           {reference.pending !== undefined && (
             <span className="zotero-reference-waiting">{COPY.waiting}</span>
@@ -119,6 +158,13 @@ function ReferenceRow({
           )}
         </span>
       </div>
+      <ReferenceNotes
+        place={{ questId, listId, referenceId: reference.id }}
+        entry={text}
+        notes={reference.notes}
+        numerals={numerals}
+        open={notesOpen}
+      />
     </li>
   );
 }
@@ -132,6 +178,7 @@ function ZoteroReferences({
   label,
   references,
   checkmarks,
+  notesOpen,
   search,
 }: {
   readonly questId: QuestId;
@@ -139,6 +186,9 @@ function ZoteroReferences({
   readonly label: string;
   readonly references: readonly ZoteroReference[];
   readonly checkmarks: "markable" | "shown" | "hidden";
+  // Whether people may add and edit notes: while the list's collection is
+  // available.
+  readonly notesOpen: boolean;
   readonly search: string;
 }): JSX.Element {
   const [shown, showMark] = useOptimistic(references, withMark);
@@ -165,19 +215,32 @@ function ZoteroReferences({
   if (search.trim() !== "") {
     inView = shown.filter((reference) => entryHolds(reference.entry, search));
   }
+  const numerals = noteNumerals(inView);
   return (
     <>
       {inView.length > 0 && (
-        <ul aria-label={label} className="zotero-references">
-          {inView.map((reference) => (
-            <ReferenceRow
-              key={reference.id}
-              reference={reference}
-              checkmarks={checkmarks}
-              onMark={mark}
-            />
-          ))}
-        </ul>
+        <div className="zotero-works">
+          <div className="zotero-works-heads" aria-hidden="true">
+            <span className="zotero-works-head">{ZOTERO_COPY.notes.works}</span>
+            <span className="zotero-works-head">
+              {ZOTERO_COPY.notes.heading}
+            </span>
+          </div>
+          <ul aria-label={label} className="zotero-references">
+            {inView.map((reference) => (
+              <ReferenceRow
+                key={reference.id}
+                questId={questId}
+                listId={listId}
+                reference={reference}
+                checkmarks={checkmarks}
+                numerals={numerals.get(reference.id) ?? []}
+                notesOpen={notesOpen}
+                onMark={mark}
+              />
+            ))}
+          </ul>
+        </div>
       )}
       {inView.length === 0 && search.trim() !== "" && (
         <p className="list-page-empty">{COPY.noMatch(search.trim())}</p>

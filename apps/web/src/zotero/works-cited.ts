@@ -178,4 +178,4 @@ function entryHolds(entry: WorksCitedEntry, search: string): boolean {
     .includes(search.trim().toLocaleLowerCase());
 }
 
-export { entryFromBib, entryHolds, inWorksCitedOrder, plainText };
+export { decoded, entryFromBib, entryHolds, inWorksCitedOrder, plainText };

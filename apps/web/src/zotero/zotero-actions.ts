@@ -11,11 +11,13 @@ import { QUEST_ID, type QuestId, type UserId } from "@/ids.ts";
 import { LIST_ID, LIST_WORD, type ListId } from "@/lists/list.ts";
 import { getQuest } from "@/quests/store.ts";
 import { ZOTERO_COPY } from "@/ui/copy/zotero.ts";
+import { NOTE_MAX, tidyNote } from "./note-text.ts";
 import {
   CHECKMARK_TAG,
   SYNC_PROBLEM,
   type SyncProblem,
   ZOTERO_KEY,
+  ZOTERO_NOTE_ID,
   ZOTERO_REFERENCE_ID,
 } from "./zotero.ts";
 import {
@@ -27,6 +29,7 @@ import {
   markZoteroReference,
   removeZoteroList,
   saveZoteroListSettings,
+  saveZoteroNote,
 } from "./zotero-list-store.ts";
 import { importZoteroCollection, syncZoteroList } from "./zotero-sync.ts";
 
@@ -76,6 +79,12 @@ const LIST_ARGUMENTS = z.object({ questId: QUEST_ID, listId: LIST_ID });
 const MARK_ARGUMENTS = LIST_ARGUMENTS.extend({
   referenceId: ZOTERO_REFERENCE_ID,
   checked: z.boolean(),
+});
+
+const NOTE_ARGUMENTS = LIST_ARGUMENTS.extend({
+  referenceId: ZOTERO_REFERENCE_ID,
+  noteId: ZOTERO_NOTE_ID.optional(),
+  text: z.string().transform(tidyNote).pipe(z.string().min(1).max(NOTE_MAX)),
 });
 
 function draftOf(form: FormData): Record<string, string> {
@@ -260,6 +269,44 @@ async function markZoteroReferenceAction(
   }
 }
 
+// Saves the user's note on a reference, new or edited, as a note the
+// list's next sync sends to Zotero.
+async function saveZoteroNoteAction(
+  where: {
+    readonly questId: string;
+    readonly listId: string;
+    readonly referenceId: string;
+    readonly noteId: string | undefined;
+  },
+  text: string,
+): Promise<ZoteroResult> {
+  const user = await requireUser();
+  const input = NOTE_ARGUMENTS.safeParse({ ...where, text });
+  if (!input.success) {
+    return { ok: false, message: ZOTERO_COPY.notes.problem };
+  }
+  try {
+    const { text: note, noteId, ...place } = input.data;
+    const outcome = await saveZoteroNote(user.id, { ...place, noteId }, note);
+    revalidateWorkspace();
+    if (outcome === "saved") {
+      return { ok: true };
+    }
+    if (outcome === "closed") {
+      return { ok: false, message: ZOTERO_COPY.notes.closed };
+    }
+    if (outcome === "formatted") {
+      return { ok: false, message: ZOTERO_COPY.notes.formatted };
+    }
+    return { ok: false, message: ZOTERO_COPY.settings.unavailable };
+  } catch (error) {
+    if (error instanceof AppError) {
+      return { ok: false, message: error.message };
+    }
+    throw error;
+  }
+}
+
 // Saves the owner's list name and checkmark tag.
 async function saveZoteroListSettingsAction(
   _previous: ZoteroFormState,
@@ -358,5 +405,6 @@ export {
   markZoteroReferenceAction,
   removeZoteroListAction,
   saveZoteroListSettingsAction,
+  saveZoteroNoteAction,
   syncZoteroListAction,
 };

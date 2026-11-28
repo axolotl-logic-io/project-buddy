@@ -56,6 +56,7 @@ import {
   zoteroAuthorizations,
   zoteroConnections,
   zoteroLists,
+  zoteroNotes,
   zoteroReferences,
 } from "@/db/tables/zotero.ts";
 import type { UserId } from "@/ids.ts";
@@ -141,6 +142,16 @@ function zoteroReferenceOpenTo(user: UserId): SQL {
 // A `zotero_references` row of a quest owner owns.
 function zoteroReferenceOwnedBy(owner: UserId): SQL {
   return inArray(zoteroReferences.questId, ownedQuestIds(owner));
+}
+
+// A `zotero_notes` row of a quest open to user.
+function zoteroNoteOpenTo(user: UserId): SQL {
+  return inArray(zoteroNotes.questId, openQuestIds(user));
+}
+
+// A `zotero_notes` row of a quest owner owns.
+function zoteroNoteOwnedBy(owner: UserId): SQL {
+  return inArray(zoteroNotes.questId, ownedQuestIds(owner));
 }
 
 // A `zotero_connections` row of owner's: their own.
@@ -257,6 +268,8 @@ export {
   zoteroConnectionOwnedBy,
   zoteroListOpenTo,
   zoteroListOwnedBy,
+  zoteroNoteOpenTo,
+  zoteroNoteOwnedBy,
   zoteroReferenceOpenTo,
   zoteroReferenceOwnedBy,
 };

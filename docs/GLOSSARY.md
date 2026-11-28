@@ -78,7 +78,7 @@ The panel, open from any page, that adds a list item to a list of an Active ques
 
 ### Add box
 
-The field under a quest's name on its Overview that searches the quest's lists and adds list items to whichever of them is chosen under it, one after another. Its New list opens a dialog that makes a list of any type. It works as the search box on a List page does. Unlike Quick Add, it adds only to the quest that is open. [Open quest use case](../apps/web/use-cases/quests.md#use_case_open_quest)
+The field under a quest's name on its Overview that searches the quest's lists and adds list items to whichever of them is chosen under it, one after another. Its New list opens a two-step dialog: the first step chooses the list's type, and the second names the list or sets up a Zotero Collection list. It works as the search box on a List page does. Unlike Quick Add, it adds only to the quest that is open. [Open quest use case](../apps/web/use-cases/quests.md#use_case_open_quest)
 
 ### List page
 
@@ -90,7 +90,7 @@ See the [Zotero use cases](../apps/web/use-cases/zotero.md) for workflows.
 
 ### Zotero connection
 
-Permission a user grants Project Buddy through [Zotero's OAuth authorization flow](https://www.zotero.org/support/dev/web_api/v3/oauth). The quest owner chooses **Connect Zotero** in the New list dialog, with Zotero Collection as the type, and approves access in Zotero. Each Project Buddy account has at most one Zotero connection, and Project Buddy keeps its credentials on the server. The connection lets Project Buddy read collections and their references. Sending checkmark changes to Zotero requires permission to write to the library.
+Permission a user grants Project Buddy through [Zotero's OAuth authorization flow](https://www.zotero.org/support/dev/web_api/v3/oauth). The quest owner chooses **Connect Zotero** in the New list dialog, after choosing Zotero Collection as the type, and approves access in Zotero. Each Project Buddy account has at most one Zotero connection, and Project Buddy keeps its credentials on the server. The connection lets Project Buddy read collections, their references and the references' notes, and asks for permission to change the library, so that **Sync** can send notes and checkmarks.
 
 ### Zotero Collection list
 
@@ -98,11 +98,15 @@ A list linked to one collection from the connected Zotero account. The quest own
 
 ### Zotero sync
 
-An import or refresh that the quest owner starts. **Sync** on the List page imports additions, updates references, and removes entries that have left the collection. For a checkable Zotero Collection list, it also sends waiting checkmark changes to Zotero and reads which references have the checkmark tag. The List page shows the last successful sync time.
+An import or refresh that the quest owner starts. **Sync** on the List page imports additions, updates references, and removes entries that have left the collection. It also sends waiting notes to Zotero and reads the references' notes. For a checkable Zotero Collection list, it also sends waiting checkmark changes to Zotero and reads which references have the checkmark tag. The List page shows the last successful sync time.
 
 ### Checkmark tag
 
 The Zotero tag the quest owner specifies when they make a Zotero Collection list **Checkable**. A synced reference is checked when it has that tag and unchecked when it lacks it. The quest owner and quest members can check or uncheck references. They share the resulting changes, which wait until the quest owner's next **Sync** sends them as tag additions or removals. The tag belongs to the Zotero item and follows it across collections. Checking a reference earns no task experience.
+
+### Reference note
+
+A Zotero child note on a reference in a Zotero Collection list. The List page shows it beside its Works Cited entry, keyed by a small roman numeral. The quest owner and quest members can add notes and edit plain ones; each waits until the quest owner's next **Sync** sends it to Zotero. [Note a reference use case](../apps/web/use-cases/zotero.md#use_case_note_zotero_reference)
 
 ## Days and streaks
 

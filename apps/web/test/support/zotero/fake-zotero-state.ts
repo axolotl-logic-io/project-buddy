@@ -23,6 +23,9 @@ interface FakeItem {
   title: string;
   tags: FakeTag[];
   collections: string[];
+  // A child note's item and HTML; a bibliographic item has neither.
+  parentItem: string | undefined;
+  note: string;
 }
 
 interface FakeCollection {
@@ -39,6 +42,8 @@ interface FakeUser {
   // An edit someone makes in Zotero just before each of the item's next
   // times tag writes, so each meets a newer version.
   interference: Map<string, { tags: FakeTag[]; times: number }>;
+  // The same for a note's HTML, before the note's next times writes.
+  noteInterference: Map<string, { note: string; times: number }>;
   // Once this many more tag writes succeed, every library request for the
   // user fails with failStatus.
   writesBeforeFailure: number | undefined;
@@ -46,6 +51,8 @@ interface FakeUser {
   // Requests for the user's collection items wait for a release.
   hold: boolean;
   patches: { itemKey: string; tags: string[] }[];
+  // Every note write the fake accepted: new notes and changed ones.
+  noteWrites: { noteKey: string; parentItem: string; note: string }[];
 }
 
 interface FakeKey {
@@ -115,6 +122,21 @@ function wake(waiters: Map<string, (() => void)[]>, userId: string): void {
 
 const CONTROL_PATH = /^\/_fake\//u;
 
+// A child note of the item parentItem, at its first version.
+function noteItem(key: string, parentItem: string, note: string): FakeItem {
+  return {
+    key,
+    version: 1,
+    itemType: "note",
+    bib: "",
+    title: "",
+    tags: [],
+    collections: [],
+    parentItem,
+    note,
+  };
+}
+
 const TAG = z.object({ tag: z.string(), type: z.number().optional() });
 const USER_ONLY = z.object({ userId: z.string() });
 const API_KEY = z.object({ apiKey: z.string() });
@@ -132,10 +154,12 @@ const CONTROLS: Readonly<
       collections: new Map(),
       items: new Map(),
       interference: new Map(),
+      noteInterference: new Map(),
       writesBeforeFailure: undefined,
       failStatus: SERVICE_UNAVAILABLE,
       hold: false,
       patches: [],
+      noteWrites: [],
     });
     return { userId: id };
   },
@@ -189,8 +213,54 @@ const CONTROLS: Readonly<
       title: seed.title,
       tags: seed.tags,
       collections: seed.collections,
+      parentItem: undefined,
+      note: "",
     });
     return { key };
+  },
+  // A child note on an item, as someone adding it in Zotero would.
+  notes(state: FakeState, body: unknown): unknown {
+    const { userId, parentItem, note } = z
+      .object({ userId: z.string(), parentItem: z.string(), note: z.string() })
+      .parse(body);
+    const key = newKey();
+    userOf(state, userId).items.set(key, noteItem(key, parentItem, note));
+    return { key };
+  },
+  // Changes or deletes a note, as someone editing it in Zotero would.
+  note(state: FakeState, body: unknown): unknown {
+    const { userId, noteKey, note, remove } = z
+      .object({
+        userId: z.string(),
+        noteKey: z.string(),
+        note: z.string().optional(),
+        remove: z.boolean().default(false),
+      })
+      .parse(body);
+    const user = userOf(state, userId);
+    if (remove) {
+      user.items.delete(noteKey);
+      return {};
+    }
+    const item = itemOf(user, noteKey);
+    item.note = note ?? item.note;
+    item.version += 1;
+    return {};
+  },
+  "note-writes"(state: FakeState, body: unknown): unknown {
+    return userOf(state, USER_ONLY.parse(body).userId).noteWrites;
+  },
+  "interfere-note"(state: FakeState, body: unknown): unknown {
+    const { userId, noteKey, note, times } = z
+      .object({
+        userId: z.string(),
+        noteKey: z.string(),
+        note: z.string(),
+        times: z.number().int().default(1),
+      })
+      .parse(body);
+    userOf(state, userId).noteInterference.set(noteKey, { note, times });
+    return {};
   },
   item(state: FakeState, body: unknown): unknown {
     const edit = z
@@ -290,4 +360,4 @@ function control(state: FakeState, path: string, body: unknown): unknown {
 }
 
 export type { FakeCollection, FakeItem, FakeKey, FakeState, FakeTag, FakeUser };
-export { control, fakeState, newToken, userOf, wake };
+export { control, fakeState, newKey, newToken, noteItem, userOf, wake };

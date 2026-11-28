@@ -208,6 +208,7 @@ vi.mock("@/zotero/zotero-actions.ts", () => ({
   discardZoteroChangesAction: vi.fn(),
   disconnectZoteroAction: vi.fn(),
   markZoteroReferenceAction: vi.fn(),
+  saveZoteroNoteAction: vi.fn(),
   removeZoteroListAction: vi.fn(),
   saveZoteroListSettingsAction: vi.fn(),
   syncZoteroListAction: vi.fn(),

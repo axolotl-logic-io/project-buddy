@@ -39,6 +39,8 @@ const COLLATOR = new Intl.Collator("en", {
 interface CollectionNode {
   readonly key: string;
   readonly name: string;
+  // How many items are directly in it, if Zotero said.
+  readonly count: number | undefined;
   readonly children: readonly CollectionNode[];
 }
 
@@ -169,9 +171,10 @@ function treeOf(
     .sort(
       (a, b) => COLLATOR.compare(a.name, b.name) || a.key.localeCompare(b.key),
     )
-    .map(({ key, name }) => ({
+    .map(({ key, name, count }) => ({
       key,
       name,
+      count,
       children: treeOf(collections, key),
     }));
 }

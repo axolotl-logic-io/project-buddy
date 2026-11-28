@@ -103,15 +103,19 @@ async function zoteroQuest(
     items,
     tag,
     collection = "Reading",
+    write = tag !== undefined,
   }: {
     readonly items: readonly Omit<FakeItemSeed, "collections">[];
     readonly tag?: string;
     readonly collection?: string;
+    // Whether the owner lets Project Buddy change the library: by default,
+    // when the list is checkable.
+    readonly write?: boolean;
   },
 ): Promise<ZoteroQuest> {
   const origin = fakeZoteroOrigin();
   const account = await zoteroAccount();
-  const apiKey = await connectZotero(owner, account, tag !== undefined);
+  const apiKey = await connectZotero(owner, account, write);
   const { id: questId } = await createQuest(
     owner.id,
     QUEST_NAME.parse("Thesis"),

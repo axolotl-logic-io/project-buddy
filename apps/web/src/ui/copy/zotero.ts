@@ -10,11 +10,24 @@ function plural(count: number, one: string, many: string): string {
 const ZOTERO_COPY = {
   setup: {
     title: "Add a Zotero Collection",
-    intro:
-      "A Zotero Collection list shows the works in one of your Zotero collections as Works Cited entries in MLA style. You can’t edit the entries here: change the items in Zotero, then sync.",
+    // The steps of Zotero setup in the New list dialog.
+    steps: {
+      connect: "Connect",
+      connected: "Connected",
+      connectedAs: (username: string): string => `as ${username}`,
+      // Disconnects, so the owner can connect another account.
+      change: "change",
+      collection: "Collection",
+      // How many works are directly in a collection, as a screen reader
+      // reads the count beside it.
+      count: (count: number): string => plural(count, "work", "works"),
+      checkmarks: "Checkmarks",
+      optional: "optional",
+      checkmarksOff: "Off. Turn on to check references off with a Zotero tag.",
+    },
     connect: "Connect Zotero",
     connectHint:
-      "Zotero asks you to approve access to your personal library, then sends you back to this dialog.",
+      "Zotero asks you to approve access to your personal library and its notes, then sends you back to this dialog.",
     connected: (username: string): string =>
       `Connected to Zotero as ${username}.`,
     disconnect: "Disconnect Zotero",
@@ -61,7 +74,7 @@ const ZOTERO_COPY = {
     "other-account":
       "Zotero is connected to a different account than this list’s. Connect the account the collection is in, then sync.",
     "no-write-access":
-      "Sending checkmarks needs permission to change your Zotero library. Connect Zotero again and approve changes, then sync.",
+      "Sending checkmarks and notes needs permission to change your Zotero library and its notes. Connect Zotero again and approve changes, then sync.",
     "zotero-unavailable":
       "Zotero didn’t answer just now. Your references and waiting changes are kept. Try syncing again in a few minutes.",
     "already-syncing":
@@ -80,24 +93,45 @@ const ZOTERO_COPY = {
   list: {
     sync: "Sync",
     syncing: "Syncing…",
-    // Beside Sync: how many checkmark changes wait for it.
-    pending: (count: number): string =>
-      `${plural(count, "change", "changes")} waiting`,
+    // Beside Sync: how many checkmark changes and notes wait for it.
+    pending: ({
+      marks,
+      notes,
+    }: {
+      readonly marks: number;
+      readonly notes: number;
+    }): string => {
+      const things: string[] = [];
+      if (marks > 0) {
+        things.push(plural(marks, "checkmark", "checkmarks"));
+      }
+      if (notes > 0) {
+        things.push(plural(notes, "note", "notes"));
+      }
+      return `${things.join(" and ")} waiting`;
+    },
     lastSynced: "Last synced",
     never: "No sync yet",
     // The last sync's result, under the time of the last successful one.
     synced: ({
       sent,
+      notesSent,
       waiting,
     }: {
       readonly sent: number;
+      readonly notesSent: number;
       readonly waiting: number;
     }): string => {
       const parts: string[] = ["Synced."];
+      const things: string[] = [];
       if (sent > 0) {
-        parts.push(
-          `Sent ${plural(sent, "checkmark", "checkmarks")} to Zotero.`,
-        );
+        things.push(plural(sent, "checkmark", "checkmarks"));
+      }
+      if (notesSent > 0) {
+        things.push(plural(notesSent, "note", "notes"));
+      }
+      if (things.length > 0) {
+        parts.push(`Sent ${things.join(" and ")} to Zotero.`);
       }
       if (waiting === 1) {
         parts.push("1 change made during the sync waits for the next one.");
@@ -110,15 +144,24 @@ const ZOTERO_COPY = {
     },
     failed: ({
       sent,
+      notesSent,
       waiting,
     }: {
       readonly sent: number;
+      readonly notesSent: number;
       readonly waiting: number;
     }): string => {
       const parts: string[] = ["The last sync failed."];
+      const things: string[] = [];
       if (sent > 0) {
+        things.push(plural(sent, "checkmark", "checkmarks"));
+      }
+      if (notesSent > 0) {
+        things.push(plural(notesSent, "note", "notes"));
+      }
+      if (things.length > 0) {
         parts.push(
-          `Zotero confirmed ${plural(sent, "checkmark", "checkmarks")} before it stopped.`,
+          `Zotero confirmed ${things.join(" and ")} before it stopped.`,
         );
       }
       if (waiting > 0) {
@@ -127,7 +170,7 @@ const ZOTERO_COPY = {
       return parts.join(" ");
     },
     skipped:
-      "These works left the collection before their checkmarks were sent, so the sync left them as they are in Zotero:",
+      "These works left the collection before their changes were sent, so the sync left them as they are in Zotero:",
     marksClosed:
       "Checkmarks can’t change until a sync succeeds. You can still read and search the references.",
     newTag: "Sync to show checkmarks for the new checkmark tag.",
@@ -141,6 +184,29 @@ const ZOTERO_COPY = {
     count: (count: number): string => plural(count, "reference", "references"),
     more: (count: number, list: string): string => `${count} more in ${list}`,
   },
+  // Notes on references: Zotero child notes, shown beside their entries.
+  notes: {
+    works: "Works Cited",
+    heading: "Notes",
+    // The rubric numeral that ties a note to its entry, as a screen reader
+    // reads it.
+    key: (numeral: string): string => `Note ${numeral}`,
+    add: "Add a note",
+    addFor: (entry: string): string => `Add a note to ${entry}`,
+    edit: "Edit",
+    editFor: (numeral: string): string => `Edit note ${numeral}`,
+    field: (entry: string): string => `Note on ${entry}`,
+    save: "Save note",
+    saving: "Saving…",
+    cancel: "Cancel",
+    hint: "Saved notes wait for Sync, then go to Zotero.",
+    inZotero: "in Zotero",
+    waiting: "waiting to sync",
+    formatted: "This note has formatting from Zotero. Edit it in Zotero.",
+    closed:
+      "Notes can’t change until a sync succeeds. You can still read them.",
+    problem: "Write the note in 1 to 4000 characters.",
+  },
   settings: {
     title: "List settings",
     name: "Name",
@@ -150,12 +216,12 @@ const ZOTERO_COPY = {
     save: "Save",
     saved: "Saved.",
     pending:
-      "Sync or discard the waiting checkmark changes before you change the checkmark tag.",
+      "Sync or discard the waiting changes before you change the checkmark tag.",
     discard: "Discard waiting changes",
     discardConfirm: {
       title: "Discard waiting changes?",
       description:
-        "The waiting checkmark changes are dropped, and each reference shows its checkmark from the last sync. Zotero stays as it is.",
+        "The waiting checkmark changes and notes are dropped, and each reference shows its checkmarks and notes from the last sync. Zotero stays as it is.",
       confirm: "Discard",
       cancel: "Cancel",
     },

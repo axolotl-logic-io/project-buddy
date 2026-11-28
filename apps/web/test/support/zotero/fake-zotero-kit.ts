@@ -109,6 +109,57 @@ function zoteroItemNow(
   return control(origin, "read-item", { userId, itemKey });
 }
 
+// A child note on the item, as someone adding it in Zotero would: its key.
+async function addZoteroNote(
+  origin: string,
+  userId: string,
+  parentItem: string,
+  note: string,
+): Promise<string> {
+  const { key } = await control<{ key: string }>(origin, "notes", {
+    userId,
+    parentItem,
+    note,
+  });
+  return key;
+}
+
+// Gives the note this HTML, or deletes it, as someone in Zotero would.
+async function editZoteroNote(
+  origin: string,
+  userId: string,
+  noteKey: string,
+  edit: { readonly note: string } | { readonly remove: true },
+): Promise<void> {
+  await control(origin, "note", { userId, noteKey, ...edit });
+}
+
+// Every note write the fake accepted for the user, in order: the note,
+// its item and the HTML written.
+function zoteroNoteWrites(
+  origin: string,
+  userId: string,
+): Promise<
+  {
+    readonly noteKey: string;
+    readonly parentItem: string;
+    readonly note: string;
+  }[]
+> {
+  return control(origin, "note-writes", { userId });
+}
+
+// Gives the note this HTML, as an edit in Zotero would, just before each
+// of its next times writes, so each meets a newer version.
+async function interfereWithZoteroNote(
+  origin: string,
+  userId: string,
+  noteKey: string,
+  { note, times = 1 }: { readonly note: string; readonly times?: number },
+): Promise<void> {
+  await control(origin, "interfere-note", { userId, noteKey, note, times });
+}
+
 // Renames the collection.
 async function renameZoteroCollection(
   origin: string,
@@ -230,13 +281,16 @@ export type { FakeItemNow, FakeItemSeed, FakeTag };
 export {
   addZoteroCollection,
   addZoteroItem,
+  addZoteroNote,
   addZoteroUser,
   answerZoteroAuthorization,
   deleteZoteroCollection,
   editZoteroItem,
+  editZoteroNote,
   failZoteroAfter,
   holdZoteroItems,
   interfereWithZoteroItem,
+  interfereWithZoteroNote,
   recoverZotero,
   releaseZoteroItems,
   renameZoteroCollection,
@@ -244,5 +298,6 @@ export {
   zoteroItemNow,
   zoteroItemsHeld,
   zoteroKeyLive,
+  zoteroNoteWrites,
   zoteroTagWrites,
 };

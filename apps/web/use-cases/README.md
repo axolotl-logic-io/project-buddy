@@ -44,7 +44,7 @@ Each area's cases are in their own file:
 - [Quest status](quest-status.md)
 - [Quest members](quest-members.md): invite people, join by link or from Pending, and remove members.
 - [Lists](lists.md): lists, their types and list items, and Quick Add.
-- [Zotero](zotero.md): import a Zotero collection as a list of Works Cited entries, sync it and share its checkmarks.
+- [Zotero](zotero.md): import a Zotero collection as a list of Works Cited entries, sync it, share its checkmarks and write notes beside its references.
 - [Tasks](tasks.md)
 - [Performances](performances.md): perform a rite on a list and send messages.
 - [Experience](experience.md): events, experience and circles.

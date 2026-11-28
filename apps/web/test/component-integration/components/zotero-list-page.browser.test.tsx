@@ -11,14 +11,16 @@ import { ZoteroListPage } from "@/components/zotero/zotero-list-page.tsx";
 import { LIST_ID } from "@/lists/list.ts";
 import { ZOTERO_COPY } from "@/ui/copy/zotero.ts";
 import { plainText } from "@/zotero/works-cited.ts";
-import { ZOTERO_REFERENCE_ID } from "@/zotero/zotero.ts";
+import { ZOTERO_NOTE_ID, ZOTERO_REFERENCE_ID } from "@/zotero/zotero.ts";
 import {
   markZoteroReferenceAction,
+  saveZoteroNoteAction,
   syncZoteroListAction,
 } from "@/zotero/zotero-actions.ts";
 import type {
   ZoteroList,
   ZoteroReference,
+  ZoteroReferenceNote,
 } from "@/zotero/zotero-list-store.ts";
 import { questIdFixture } from "../../support/id-fixtures.ts";
 
@@ -41,6 +43,7 @@ function reference(
     href: `https://www.zotero.org/reader/items/${title.length}`,
     checked: false,
     pending: undefined,
+    notes: [],
     ...more,
   };
 }
@@ -70,6 +73,7 @@ function zoteroList(more: Partial<ZoteroList> = {}): ZoteroList {
       kind: "synced",
       at: "2026-11-20T09:00:00Z",
       sent: 0,
+      notesSent: 0,
       skipped: [],
       waiting: 0,
     },
@@ -97,6 +101,7 @@ function checkmark(of: ZoteroReference): ReturnType<typeof page.getByRole> {
 
 afterEach(() => {
   vi.mocked(markZoteroReferenceAction).mockReset();
+  vi.mocked(saveZoteroNoteAction).mockReset();
   vi.mocked(syncZoteroListAction).mockReset();
 });
 
@@ -129,7 +134,9 @@ describe("Zotero Collection list page", () => {
       message: ZOTERO_COPY.problems["zotero-unavailable"],
     });
     await renderPage(zoteroList(), true);
-    await expect.element(page.getByText(COPY.pending(1))).toBeVisible();
+    await expect
+      .element(page.getByText(COPY.pending({ marks: 1, notes: 0 })))
+      .toBeVisible();
     await expect.element(page.getByText(COPY.waiting)).toBeVisible();
 
     await userEvent.click(page.getByRole("button", { name: COPY.sync }));
@@ -209,6 +216,7 @@ describe("Zotero Collection list page", () => {
           at: "2026-11-20T09:05:00Z",
           problem: "zotero-unavailable",
           sent: 1,
+          notesSent: 0,
           skipped: [],
           waiting: 1,
         },
@@ -218,7 +226,131 @@ describe("Zotero Collection list page", () => {
     await expect
       .element(page.getByRole("status").filter({ hasText: "failed" }))
       .toHaveTextContent(
-        `${COPY.failed({ sent: 1, waiting: 1 })} ${ZOTERO_COPY.problems["zotero-unavailable"]}`,
+        `${COPY.failed({ sent: 1, notesSent: 0, waiting: 1 })} ${ZOTERO_COPY.problems["zotero-unavailable"]}`,
       );
+  });
+});
+
+function note(
+  text: string,
+  more: Partial<ZoteroReferenceNote> = {},
+): ZoteroReferenceNote {
+  return {
+    id: ZOTERO_NOTE_ID.parse(crypto.randomUUID()),
+    text,
+    waiting: false,
+    editable: true,
+    author: undefined,
+    ...more,
+  };
+}
+
+// Austen has a note from Zotero; Baldwin, one waiting to sync and one with
+// formatting from Zotero.
+const NOTED: readonly ZoteroReference[] = [
+  { ...AUSTEN, notes: [note("Box Hill scene.", { author: "Autumn" })] },
+  {
+    ...BALDWIN,
+    notes: [
+      note("Pair with Beloved.", { author: "Rowan", waiting: true }),
+      note("A table from Zotero.", { editable: false }),
+    ],
+  },
+];
+
+describe("use_case_note_zotero_reference: notes beside references", () => {
+  const Notes = ZOTERO_COPY.notes;
+  const austen = plainText(AUSTEN.entry);
+  const baldwin = plainText(BALDWIN.entry);
+
+  test("each note sits beside its entry, keyed by a numeral, with who wrote it", async () => {
+    await renderPage(zoteroList({ references: NOTED }), false);
+    await expect.element(page.getByText("Box Hill scene.")).toBeVisible();
+    await Promise.all(
+      ["i", "ii", "iii"].map((numeral) =>
+        expect
+          .element(page.getByText(Notes.key(numeral), { exact: true }))
+          .toBeInTheDocument(),
+      ),
+    );
+    await expect.element(page.getByText("Autumn")).toBeVisible();
+    await expect.element(page.getByText("Rowan")).toBeVisible();
+    await expect
+      .element(page.getByText(Notes.waiting, { exact: true }))
+      .toBeVisible();
+    await expect
+      .element(page.getByText(Notes.inZotero, { exact: true }))
+      .toHaveLength(2);
+    // A note with formatting is edited in Zotero.
+    await expect
+      .element(page.getByRole("button", { name: Notes.editFor("ii") }))
+      .toBeVisible();
+    await expect
+      .element(page.getByRole("button", { name: Notes.editFor("iii") }))
+      .not.toBeInTheDocument();
+  });
+
+  test("anyone in the quest adds a note, which waits for the owner's Sync", async () => {
+    vi.mocked(saveZoteroNoteAction).mockResolvedValue({ ok: true });
+    await renderPage(zoteroList({ references: NOTED }), false);
+    await page.getByRole("button", { name: Notes.addFor(austen) }).click();
+    const field = page.getByRole("textbox", { name: Notes.field(austen) });
+    await expect.element(field).toHaveFocus();
+    await expect
+      .element(page.getByRole("button", { name: Notes.save }))
+      .toBeDisabled();
+    await field.fill("Quote the introduction.");
+    await page.getByRole("button", { name: Notes.save }).click();
+    expect(saveZoteroNoteAction).toHaveBeenCalledWith(
+      {
+        questId: QUEST_ID,
+        listId: LIST,
+        referenceId: AUSTEN.id,
+        noteId: undefined,
+      },
+      "Quote the introduction.",
+    );
+    await expect.element(field).not.toBeInTheDocument();
+  });
+
+  test("Edit opens the note's text, and a refused save says why", async () => {
+    vi.mocked(saveZoteroNoteAction).mockResolvedValue({
+      ok: false,
+      message: Notes.problem,
+    });
+    await renderPage(zoteroList({ references: NOTED }), false);
+    await page.getByRole("button", { name: Notes.editFor("ii") }).click();
+    const field = page.getByRole("textbox", { name: Notes.field(baldwin) });
+    await expect.element(field).toHaveValue("Pair with Beloved.");
+    await field.fill("Pair with Beloved, chapter 3.");
+    await page.getByRole("button", { name: Notes.save }).click();
+    expect(saveZoteroNoteAction).toHaveBeenCalledWith(
+      expect.objectContaining({ noteId: NOTED[1]?.notes[0]?.id }),
+      "Pair with Beloved, chapter 3.",
+    );
+    await expect
+      .element(page.getByRole("alert").filter({ hasText: Notes.problem }))
+      .toBeVisible();
+    await expect.element(field).toBeVisible();
+    await page.getByRole("button", { name: Notes.cancel }).click();
+    await expect.element(field).not.toBeInTheDocument();
+  });
+
+  test("while the collection can't be reached, notes show but can't change", async () => {
+    await renderPage(
+      zoteroList({
+        references: NOTED,
+        markable: false,
+        unavailable: "access-ended",
+      }),
+      true,
+    );
+    await expect.element(page.getByText("Box Hill scene.")).toBeVisible();
+    await expect
+      .element(page.getByRole("button", { name: Notes.addFor(austen) }))
+      .not.toBeInTheDocument();
+    await expect
+      .element(page.getByRole("button", { name: Notes.editFor("i") }))
+      .not.toBeInTheDocument();
   });
 });

@@ -85,6 +85,20 @@ function SyncSummary({ zotero }: { readonly zotero: ZoteroList }): JSX.Element {
   );
 }
 
+// How many checkmark changes and notes wait for the next sync.
+function waitingOf(zotero: ZoteroList): {
+  readonly marks: number;
+  readonly notes: number;
+} {
+  let marks = 0;
+  let notes = 0;
+  for (const reference of zotero.references) {
+    marks += Number(reference.pending !== undefined);
+    notes += reference.notes.filter(({ waiting }) => waiting).length;
+  }
+  return { marks, notes };
+}
+
 // The owner's Sync button with the count of waiting changes beside it.
 function SyncButton({
   questId,
@@ -115,7 +129,9 @@ function SyncButton({
         {label}
       </Button>
       {zotero.pending > 0 && (
-        <span className="zotero-pending">{COPY.pending(zotero.pending)}</span>
+        <span className="zotero-pending">
+          {COPY.pending(waitingOf(zotero))}
+        </span>
       )}
       {problem !== undefined && <Alert>{problem}</Alert>}
     </div>
@@ -154,7 +170,11 @@ function ListNotices({
         <ReconnectForm
           questId={questId}
           section={list.id}
-          write={zotero.checkmarkTag !== undefined}
+          write={
+            zotero.checkmarkTag !== undefined ||
+            (lastSync.kind === "failed" &&
+              lastSync.problem === "no-write-access")
+          }
           label={ZOTERO_COPY.setup.connect}
         />
       )}
@@ -269,6 +289,7 @@ function ZoteroListPage({
         label={list.name}
         references={zotero.references}
         checkmarks={checkmarks}
+        notesOpen={zotero.unavailable === undefined}
         search={search}
       />
     </div>

@@ -5,6 +5,8 @@ import { z } from "zod";
 
 const ZOTERO_REFERENCE_ID = z.guid().toLowerCase().brand<"ZoteroReferenceId">();
 type ZoteroReferenceId = z.infer<typeof ZOTERO_REFERENCE_ID>;
+const ZOTERO_NOTE_ID = z.guid().toLowerCase().brand<"ZoteroNoteId">();
+type ZoteroNoteId = z.infer<typeof ZOTERO_NOTE_ID>;
 
 // One run of a Works Cited entry's text, italic or not. An entry is its
 // runs in order.
@@ -59,15 +61,16 @@ type SyncProblem = z.infer<typeof SYNC_PROBLEM>;
 const SKIPPED_ENTRY = z.object({ key: z.string(), text: z.string() });
 
 // How a list's latest sync went. sent counts the checkmark changes that
-// Zotero confirmed. skipped holds the entries whose pending change was
-// dropped because their item left the collection. A successful sync says
-// how many marks made while it ran still wait; a failed one, how many
-// changes it left pending.
+// Zotero confirmed, and notesSent the notes it added or changed. skipped
+// holds the entries whose pending changes were dropped because their item
+// left the collection. A successful sync says how many changes made while
+// it ran still wait; a failed one, how many changes it left pending.
 const SYNC_RESULT = z.discriminatedUnion("kind", [
   z.object({
     kind: z.literal("synced"),
     at: z.iso.datetime(),
     sent: z.number().int().nonnegative(),
+    notesSent: z.number().int().nonnegative(),
     skipped: z.array(SKIPPED_ENTRY),
     waiting: z.number().int().nonnegative(),
   }),
@@ -76,6 +79,7 @@ const SYNC_RESULT = z.discriminatedUnion("kind", [
     at: z.iso.datetime(),
     problem: SYNC_PROBLEM,
     sent: z.number().int().nonnegative(),
+    notesSent: z.number().int().nonnegative(),
     skipped: z.array(SKIPPED_ENTRY),
     waiting: z.number().int().nonnegative(),
   }),
@@ -88,6 +92,7 @@ export type {
   SyncResult,
   Unavailable,
   WorksCitedEntry,
+  ZoteroNoteId,
   ZoteroReferenceId,
 };
 export {
@@ -98,5 +103,6 @@ export {
   UNAVAILABLE,
   WORKS_CITED_ENTRY,
   ZOTERO_KEY,
+  ZOTERO_NOTE_ID,
   ZOTERO_REFERENCE_ID,
 };

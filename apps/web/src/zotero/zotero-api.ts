@@ -1,7 +1,7 @@
 // Zotero, as Project Buddy reaches it: the OAuth 1.0a flow that connects an
 // account (https://www.zotero.org/support/dev/web_api/v3/oauth) and the Web
-// API v3 calls that read a personal library's collections and references
-// and change an item's tags. This module alone knows Zotero's URLs, headers,
+// API v3 calls that read a personal library's collections, references and
+// their notes, change an item's tags, and write notes. This module alone knows Zotero's URLs, headers,
 // signatures and JSON. A failure is a ZoteroProblem that names what it
 // means for the caller; the key and tokens never appear in one.
 import { z } from "zod";
@@ -79,6 +79,8 @@ interface ZoteroCollection {
   readonly name: string;
   // The key of the collection it is in, if any.
   readonly parent: string | undefined;
+  // How many items are directly in it, if Zotero said.
+  readonly count: number | undefined;
 }
 
 interface ZoteroTag {
@@ -95,6 +97,15 @@ interface ZoteroItem {
   readonly href: string | undefined;
   readonly tags: readonly ZoteroTag[];
   readonly collections: readonly string[];
+}
+
+// A child note of a bibliographic item: its HTML as Zotero keeps it.
+interface ZoteroNote {
+  readonly key: string;
+  readonly version: number;
+  // The key of the item the note belongs to.
+  readonly parentItem: string;
+  readonly html: string;
 }
 
 const TOKEN_RESPONSE = z.object({
@@ -116,10 +127,29 @@ const KEY_RESPONSE = z.looseObject({
 
 const COLLECTION_RESPONSE = z.object({
   key: z.string(),
+  meta: z.object({ numItems: z.number().int().optional() }).optional(),
   data: z.object({
     name: z.string(),
     parentCollection: z.union([z.string(), z.literal(false)]).optional(),
   }),
+});
+
+const NOTE_RESPONSE = z.object({
+  key: z.string(),
+  version: z.number().int(),
+  data: z.object({
+    itemType: z.string(),
+    parentItem: z.string().optional(),
+    note: z.string().default(""),
+  }),
+});
+
+// What Zotero answers to a write of new objects, by each object's index.
+const CREATED_RESPONSE = z.object({
+  successful: z.record(
+    z.string(),
+    z.object({ key: z.string(), version: z.number().int() }),
+  ),
 });
 
 const HTTP_LINK = z.url({ protocol: /^https?$/u });
@@ -324,7 +354,7 @@ async function startAuthorization({
   authorize.searchParams.set("oauth_token", tokens.oauthToken);
   authorize.searchParams.set("name", APP_NAME);
   authorize.searchParams.set("library_access", "1");
-  authorize.searchParams.set("notes_access", "0");
+  authorize.searchParams.set("notes_access", "1");
   authorize.searchParams.set("write_access", String(Number(write)));
   authorize.searchParams.set("all_groups", "none");
   return {
@@ -474,7 +504,12 @@ async function readCollections(key: ZoteroKey): Promise<ZoteroCollection[]> {
     if (typeof collection.data.parentCollection === "string") {
       parent = collection.data.parentCollection;
     }
-    return { key: collection.key, name: collection.data.name, parent };
+    return {
+      key: collection.key,
+      name: collection.data.name,
+      parent,
+      count: collection.meta?.numItems,
+    };
   });
 }
 
@@ -576,23 +611,158 @@ async function writeTags(
   }
 }
 
+function toNote(operation: string, object: unknown): ZoteroNote | undefined {
+  const note = parsed(operation, NOTE_RESPONSE, object);
+  if (note.data.itemType !== "note" || note.data.parentItem === undefined) {
+    return undefined;
+  }
+  return {
+    key: note.key,
+    version: note.version,
+    parentItem: note.data.parentItem,
+    html: note.data.note,
+  };
+}
+
+// The child notes of the items directly in the collection; missing when
+// the collection is gone.
+async function readCollectionNotes(
+  key: ZoteroKey,
+  collectionKey: string,
+): Promise<ZoteroNote[]> {
+  const operation = "readCollectionNotes";
+  const objects = await allPages(operation, key.apiKey, {
+    path: `${libraryPath(key)}/collections/${encodeURIComponent(collectionKey)}/items`,
+    query: { format: "json", itemType: "note" },
+  });
+  return objects.flatMap((object) => toNote(operation, object) ?? []);
+}
+
+// The note as it is now, or undefined when it is gone.
+async function readNote(
+  key: ZoteroKey,
+  noteKey: string,
+): Promise<ZoteroNote | undefined> {
+  const operation = "readNote";
+  try {
+    const { body } = await apiJson(
+      operation,
+      key.apiKey,
+      `${libraryPath(key)}/items/${encodeURIComponent(noteKey)}`,
+      { format: "json" },
+    );
+    return toNote(operation, body);
+  } catch (error) {
+    if (error instanceof ZoteroProblem && error.kind === "missing") {
+      return undefined;
+    }
+    throw error;
+  }
+}
+
+function writeHeaders(apiKey: string): Headers {
+  const headers = apiHeaders(apiKey);
+  headers.set("Content-Type", "application/json");
+  return headers;
+}
+
+// Adds a child note with this HTML to the item: the new note's key and
+// version.
+async function createNote(
+  key: ZoteroKey,
+  parentItem: string,
+  html: string,
+): Promise<{ readonly key: string; readonly version: number }> {
+  const operation = "createNote";
+  const response = await send(
+    operation,
+    `${readZoteroOrigins().api}${libraryPath(key)}/items`,
+    {
+      method: "POST",
+      headers: writeHeaders(key.apiKey),
+      body: JSON.stringify([
+        {
+          itemType: "note",
+          parentItem,
+          note: html,
+          tags: [],
+          collections: [],
+          relations: {},
+        },
+      ]),
+    },
+  );
+  let body: unknown;
+  try {
+    body = await response.json();
+  } catch (error) {
+    throw new ZoteroProblem("unavailable", { operation, cause: error });
+  }
+  const created = parsed(operation, CREATED_RESPONSE, body).successful["0"];
+  if (created === undefined) {
+    throw new ZoteroProblem("unavailable", { operation });
+  }
+  return created;
+}
+
+// Gives the note this HTML if it is still at the version it was read at:
+// its new version, "changed" when someone changed it since, or "missing"
+// when it is gone.
+async function writeNote(
+  key: ZoteroKey,
+  note: { readonly key: string; readonly version: number },
+  html: string,
+): Promise<number | "changed" | "missing"> {
+  const operation = "writeNote";
+  const headers = writeHeaders(key.apiKey);
+  headers.set("If-Unmodified-Since-Version", String(note.version));
+  try {
+    const response = await send(
+      operation,
+      `${readZoteroOrigins().api}${libraryPath(key)}/items/${encodeURIComponent(note.key)}`,
+      { method: "PATCH", headers, body: JSON.stringify({ note: html }) },
+    );
+    const version = z.coerce
+      .number()
+      .int()
+      .safeParse(response.headers.get("Last-Modified-Version") ?? undefined);
+    if (!version.success) {
+      throw new ZoteroProblem("unavailable", { operation });
+    }
+    return version.data;
+  } catch (error) {
+    if (
+      error instanceof ZoteroProblem &&
+      (error.kind === "changed" || error.kind === "missing")
+    ) {
+      return error.kind;
+    }
+    throw error;
+  }
+}
+
 export type {
   ZoteroAccess,
   ZoteroCollection,
   ZoteroItem,
   ZoteroKey,
+  ZoteroNote,
   ZoteroProblemKind,
   ZoteroTag,
 };
 export {
+  createNote,
   deleteKey,
   finishAuthorization,
   readAccess,
   readCollectionItems,
   readCollectionName,
+  readCollectionNotes,
   readCollections,
   readItem,
+  readNote,
   startAuthorization,
+  writeNote,
   writeTags,
   ZoteroProblem,
 };

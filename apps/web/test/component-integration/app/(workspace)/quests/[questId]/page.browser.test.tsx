@@ -365,11 +365,16 @@ describe("use_case_open_quest: the add box", () => {
   });
 });
 
+// The New list dialog's title on either step.
+const NEW_LIST_TITLE = /^New /u;
+
 describe("use_case_set_up_list: New list", () => {
   const dialogCopy = QUEST_OVERVIEW_COPY.newList;
 
+  // The dialog, named New list on its first step and for the kind chosen
+  // on its second.
   function dialog(): ReturnType<typeof page.getByRole> {
-    return page.getByRole("dialog", { name: dialogCopy.title });
+    return page.getByRole("dialog", { name: NEW_LIST_TITLE });
   }
 
   async function openNewList(quest: Quest): Promise<void> {
@@ -381,11 +386,25 @@ describe("use_case_set_up_list: New list", () => {
     await vi.waitFor(() => dialog().element());
   }
 
-  // A type's choice, named for the type and then its hint.
+  // A kind's tile, named for the kind and then what it is for.
   function typeChoice(type: ListType): ReturnType<typeof page.getByRole> {
     return dialog().getByRole("radio", {
       name: new RegExp(`^${LISTS_COPY.types[type]} `, "u"),
     });
+  }
+
+  // Chooses the kind on the first step, then goes on with Next.
+  async function chooseKind(type: ListType): Promise<void> {
+    await typeChoice(type).click();
+    await dialog().getByRole("button", { name: dialogCopy.next }).click();
+  }
+
+  // The step the dialog is on, as its step marks say.
+  function currentStep(): string | undefined {
+    const steps = dialog()
+      .getByRole("list", { name: dialogCopy.steps })
+      .query();
+    return steps?.querySelector('[aria-current="step"]')?.textContent;
   }
 
   beforeEach(() => {
@@ -393,14 +412,24 @@ describe("use_case_set_up_list: New list", () => {
     vi.mocked(replace).mockReset();
   });
 
-  test("makes a list of the chosen type, and the add box moves to it", async () => {
+  test("makes a list of the chosen kind, and the add box moves to it", async () => {
     vi.mocked(saveListAction).mockReset().mockResolvedValue({ saved: true });
     await openNewList(FOX_QUEST);
+    await expect
+      .element(page.getByRole("dialog", { name: dialogCopy.title }))
+      .toBeVisible();
+    await expect.poll(currentStep).toContain(dialogCopy.kind);
     await expect.element(typeChoice("task")).toBeChecked();
-    await typeChoice("tally").click();
-    await dialog()
-      .getByRole("textbox", { name: LISTS_COPY.fields.name })
-      .fill("Words");
+    await chooseKind("tally");
+    await expect
+      .element(page.getByRole("dialog", { name: dialogCopy.titleOf("tally") }))
+      .toBeVisible();
+    await expect.poll(currentStep).toContain(dialogCopy.details);
+    const name = dialog().getByRole("textbox", {
+      name: LISTS_COPY.fields.name,
+    });
+    await expect.element(name).toHaveFocus();
+    await name.fill("Words");
     await dialog().getByRole("button", { name: dialogCopy.create }).click();
     const form = vi.mocked(saveListAction).mock.lastCall?.[1];
     expect(form?.get("questId")).toBe(FOX_QUEST.id);
@@ -413,11 +442,21 @@ describe("use_case_set_up_list: New list", () => {
       .toBeVisible();
   });
 
+  test("Back returns to the kinds with the chosen kind still chosen", async () => {
+    await openNewList(FOX_QUEST);
+    await chooseKind("plain");
+    await dialog().getByRole("button", { name: dialogCopy.back }).click();
+    await expect.poll(currentStep).toContain(dialogCopy.kind);
+    await expect.element(typeChoice("plain")).toBeChecked();
+    await expect.element(typeChoice("plain")).toHaveFocus();
+  });
+
   test("a refused name keeps the dialog open with the reason", async () => {
     vi.mocked(saveListAction)
       .mockReset()
       .mockResolvedValue({ error: LISTS_COPY.unavailable });
     await openNewList(FOX_QUEST);
+    await chooseKind("task");
     await dialog()
       .getByRole("textbox", { name: LISTS_COPY.fields.name })
       .fill("Reading");
@@ -432,11 +471,18 @@ describe("use_case_set_up_list: New list", () => {
 
   test("Zotero Collection opens Zotero setup, for the quest's owner alone", async () => {
     await openNewList(FOX_QUEST);
-    await typeChoice("zotero-collection").click();
+    await chooseKind("zotero-collection");
     expect(replace).toHaveBeenCalledWith(
       `/quests/${FOX_QUEST.id}?section=zotero`,
       { scroll: false },
     );
+    await expect
+      .element(
+        page.getByRole("dialog", {
+          name: dialogCopy.titleOf("zotero-collection"),
+        }),
+      )
+      .toBeVisible();
     await expect
       .element(dialog().getByText(dialogCopy.loadingZotero))
       .toBeVisible();
@@ -457,8 +503,14 @@ describe("use_case_set_up_list: New list", () => {
 
   test("Zotero's return opens the dialog on its setup, and closing leaves it", async () => {
     await open(FOX_QUEST, "zotero");
-    await expect.element(dialog()).toBeVisible();
-    await expect.element(typeChoice("zotero-collection")).toBeChecked();
+    await expect
+      .element(
+        page.getByRole("dialog", {
+          name: dialogCopy.titleOf("zotero-collection"),
+        }),
+      )
+      .toBeVisible();
+    await expect.poll(currentStep).toContain(dialogCopy.details);
     await expect
       .element(
         dialog().getByRole("button", { name: ZOTERO_COPY.setup.connect }),

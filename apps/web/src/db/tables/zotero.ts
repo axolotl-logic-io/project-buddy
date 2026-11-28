@@ -125,9 +125,49 @@ const zoteroReferences = pgTable(
   ],
 );
 
+// A note on a reference of a Zotero Collection list: a child note of the
+// reference's item in Zotero, or one written in Project Buddy that waits
+// for the next sync to add it. note_key and version are the Zotero note's,
+// null until a sync adds it. text is the note as the last sync left it,
+// empty before then; plain says the note has no formatting, so it may be
+// edited here. pending is the text the next sync sends, or null when there
+// is none; revision counts the edits made to it, so a sync can tell an edit
+// made while it ran. written_by is who last wrote the note here, or null
+// for a note written in Zotero.
+const zoteroNotes = pgTable(
+  "zotero_notes",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    questId: uuid("quest_id").notNull(),
+    listId: uuid("list_id")
+      .notNull()
+      .references(() => zoteroLists.listId, { onDelete: "cascade" }),
+    itemKey: text("item_key").notNull(),
+    noteKey: text("note_key"),
+    version: integer("version"),
+    position: integer("position").notNull(),
+    text: text("text").notNull(),
+    plain: boolean("plain").notNull(),
+    pending: text("pending"),
+    revision: integer("revision").notNull().default(0),
+    writtenBy: uuid("written_by").references(() => users.id, {
+      onDelete: "set null",
+    }),
+  },
+  (table) => [
+    uniqueIndex("zotero_notes_list_note_idx").on(table.listId, table.noteKey),
+    index("zotero_notes_list_item_idx").on(
+      table.listId,
+      table.itemKey,
+      table.position,
+    ),
+  ],
+);
+
 export {
   zoteroAuthorizations,
   zoteroConnections,
   zoteroLists,
+  zoteroNotes,
   zoteroReferences,
 };
