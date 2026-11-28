@@ -39,5 +39,5 @@ export async function startQuestAction(request: unknown): Promise<string> {
     return NEW_QUEST_COPY.failed;
   }
   revalidateWorkspace();
-  redirect(`/quests/${quest.id}`, RedirectType.replace);
+  redirect(`/quests/${quest.id}`, RedirectType.push);
 }

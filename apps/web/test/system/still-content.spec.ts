@@ -40,17 +40,22 @@ const SIGNED_IN_PAGES: readonly PageName[] = PAGE.exclude([
 
 type Device = Parameters<typeof test.use>[0];
 
+// Home's Tasks.
+function homeTasks(page: Page): Locator {
+  // A dialog, such as Quick Add's, hides the page from assistive technology.
+  return page.getByRole("region", {
+    name: HOME_COPY.tasksHeading,
+    exact: true,
+    includeHidden: true,
+  });
+}
+
 // The list each action adds a list item to, where the list item moves what
 // follows it. Quick Add adds at the top of the chosen list, here under Home's
-// Tasks.
+// Tasks, and Undo puts the task checked off back in its place there.
 const ADDS_TO: Partial<Record<ActionName, (page: Page) => Locator>> = {
-  "quick-add-task": (page: Page): Locator =>
-    // The dialog hides the page from assistive technology.
-    page.getByRole("region", {
-      name: HOME_COPY.tasksHeading,
-      exact: true,
-      includeHidden: true,
-    }),
+  "quick-add-task": homeTasks,
+  "undo-task-check-off": homeTasks,
 };
 
 // The audit's profiles, without the browser type that a describe can't set.

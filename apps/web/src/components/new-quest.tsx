@@ -142,7 +142,6 @@ function NewQuest(): JSX.Element {
       setProblem(undefined);
       startTransition(async () => {
         showPage(startedQuestPage(checked.name));
-        globalThis.history.pushState(null, "", `/quests/${id}`);
         let refusal: string | undefined = NEW_QUEST_COPY.failed;
         try {
           refusal = await startQuestAction({ ...details, id });
@@ -155,7 +154,6 @@ function NewQuest(): JSX.Element {
           return;
         }
         const why = refusal;
-        globalThis.history.back();
         startTransition(() => {
           setEntered(details);
           setProblem(why);

@@ -2,7 +2,7 @@
 // where only the real App Router and server show when each reply lands.
 // Each test holds the reply until it has checked the page in between.
 
-import { expect, type Page, type Route } from "@playwright/test";
+import { expect, type Page, type Request } from "@playwright/test";
 import { NEW_QUEST_COPY, QUESTS_COPY } from "@/ui/copy/quests.ts";
 import { TIMER_COPY } from "@/ui/copy/timer.ts";
 import { test } from "./fixtures.ts";
@@ -21,10 +21,18 @@ function trailHeading(page: Page): ReturnType<Page["getByRole"]> {
     .getByRole("heading", { level: 1 });
 }
 
-// Holds the next Server Action's request until the test answers it: the
-// returned promise gives its route once the browser has sent it.
-async function holdServerAction(page: Page): Promise<Promise<Route>> {
-  const held = Promise.withResolvers<Route>();
+interface HeldAction {
+  readonly requested: Promise<Request>;
+  readonly answer: (reply: "continue" | "abort") => void;
+}
+
+// Holds the next Server Action until the test has checked the page in progress.
+async function holdServerAction<T>(
+  page: Page,
+  check: (action: HeldAction) => Promise<T>,
+): Promise<T> {
+  const requested = Promise.withResolvers<Request>();
+  const answer = Promise.withResolvers<"continue" | "abort">();
   await page.route("**/*", async (route) => {
     const request = route.request();
     if (
@@ -34,9 +42,22 @@ async function holdServerAction(page: Page): Promise<Promise<Route>> {
       await route.fallback();
       return;
     }
-    held.resolve(route);
+    requested.resolve(request);
+    if ((await answer.promise) === "abort") {
+      await route.abort();
+      return;
+    }
+    await route.continue();
   });
-  return held.promise;
+  try {
+    return await check({
+      requested: requested.promise,
+      answer: answer.resolve,
+    });
+  } finally {
+    answer.resolve("abort");
+    await page.unrouteAll({ behavior: "wait" });
+  }
 }
 
 // Opens New quest on Quests and fills in the name.
@@ -65,40 +86,44 @@ test.describe("use_case_new_quest", () => {
   }) => {
     await logIn(page, account);
     const dialog = await fillNewQuest(page, "Pottery");
-    const held = await holdServerAction(page);
+    await holdServerAction(page, async ({ requested, answer }) => {
+      await dialog.getByRole("button", { name: NEW_QUEST_COPY.start }).click();
+      await expect(dialog).toHaveCount(0);
+      await expect(trailHeading(page)).toHaveText("Pottery");
+      expect(new URL((await requested).url()).pathname).toBe("/quests");
+      answer("continue");
+    });
 
-    await dialog.getByRole("button", { name: NEW_QUEST_COPY.start }).click();
-    const route = await held;
-
-    await expect(dialog).toHaveCount(0);
     await expect(page).toHaveURL(STARTED_QUEST);
-    await expect(trailHeading(page)).toHaveText("Pottery");
-    const started = page.url();
-
-    await route.continue();
     await expect(
-      page.getByRole("heading", { name: "Tasks", exact: true }),
+      page.getByRole("radio", { name: "Tasks", exact: true }),
     ).toBeVisible();
-    expect(page.url()).toBe(started);
-    await page.unrouteAll({ behavior: "wait" });
+    await page.goBack();
+    await expect(page).toHaveURL("/quests");
+    await expect(trailHeading(page)).toHaveText("Quests");
   });
 
-  test("a start the server never answers brings Quests back with the dialog as the user left it, saying why", async ({
+  test("a refused start brings Quests back with the dialog as the user left it, saying why", async ({
     account,
     page,
+    testData,
   }) => {
+    const { id } = await testData.quest("Ceramics");
     await logIn(page, account);
     const dialog = await fillNewQuest(page, "Pottery");
     await dialog
       .getByRole("textbox", { name: QUESTS_COPY.motivationLabel })
       .fill("To make a bowl");
-    const held = await holdServerAction(page);
+    await page.evaluate((existingId: string): void => {
+      Object.defineProperty(crypto, "randomUUID", { value: () => existingId });
+    }, id);
+    await holdServerAction(page, async ({ requested, answer }) => {
+      await dialog.getByRole("button", { name: NEW_QUEST_COPY.start }).click();
+      await expect(trailHeading(page)).toHaveText("Pottery");
+      await requested;
+      answer("continue");
+    });
 
-    await dialog.getByRole("button", { name: NEW_QUEST_COPY.start }).click();
-    const route = await held;
-    await expect(page).toHaveURL(STARTED_QUEST);
-
-    await route.abort();
     await expect(page).toHaveURL("/quests");
     await expect(dialog.getByRole("alert")).toHaveText(NEW_QUEST_COPY.failed);
     await expect(
@@ -110,8 +135,16 @@ test.describe("use_case_new_quest", () => {
     await expect(
       dialog.getByRole("textbox", { name: QUESTS_COPY.motivationLabel }),
     ).toHaveValue("To make a bowl");
+    await expect(
+      dialog.getByRole("button", { name: NEW_QUEST_COPY.close }),
+    ).toBeFocused();
+    await page.keyboard.press("Escape");
+    await expect(
+      page.getByRole("button", { name: NEW_QUEST_COPY.open, exact: true }),
+    ).toBeFocused();
     await expect(trailHeading(page)).toHaveText("Quests");
-    await page.unrouteAll({ behavior: "wait" });
+    await page.goBack();
+    await expect(page).toHaveURL("/");
   });
 });
 
@@ -131,10 +164,11 @@ test.describe("use_case_timer_start", () => {
       await expect(
         page.getByRole("region", { name: TIMER_COPY.displayLabel }),
       ).toBeVisible();
-      await expect(page).toHaveURL(TIMER_PAGE);
       release();
     });
 
+    // The link's URL comes with the server's page.
+    await expect(page).toHaveURL(TIMER_PAGE);
     await expect(
       page.getByRole("region", { name: TIMER_COPY.displayLabel }),
     ).toBeVisible();
