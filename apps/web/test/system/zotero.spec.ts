@@ -92,10 +92,15 @@ test.describe("use_case_create_zotero_collection_list", () => {
     });
 
     await test.step("Create and sync opens the new list with its entries", async () => {
+      await page.setViewportSize({ width: 320, height: 640 });
       await setup.getByRole("radio", { name: READING }).check();
-      await page
-        .getByRole("button", { name: ZOTERO_COPY.setup.create })
-        .click();
+      await setup
+        .getByRole("checkbox", { name: ZOTERO_COPY.setup.checkable })
+        .check();
+      await setup.getByLabel(ZOTERO_COPY.setup.tag, { exact: true }).fill("read");
+      const create = setup.getByRole("button", { name: ZOTERO_COPY.setup.create });
+      await expect(create).toBeInViewport();
+      await create.click();
       await expect(
         page.getByRole("heading", { level: 2, name: "Reading" }),
       ).toBeVisible();

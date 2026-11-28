@@ -2801,9 +2801,14 @@
     outline-offset: var(--focus-offset);
   }
 
-  /* A step's foot: Back at the start, its own actions at the end. */
+  /* Keep the step's actions reachable while the dialog scrolls. Reserve
+     space above the footer when a field takes keyboard focus. */
+  .dialog-panel:has(> .new-list) {
+    scroll-padding-block-end: calc(2 * var(--target-size));
+  }
+
   .new-list-foot {
-    @apply mt-1 flex flex-wrap items-center justify-end gap-2 border-line/30 border-t pt-3;
+    @apply sticky bottom-0 z-10 mt-1 flex flex-wrap items-center justify-end gap-2 border-line/30 border-t bg-surface pt-3;
   }
 
   .new-list-back {
@@ -3450,6 +3455,14 @@
     @apply text-muted text-sm italic;
   }
 
+  .zotero-sync-time {
+    @apply ms-auto;
+  }
+
+  .zotero-sync-error {
+    @apply basis-full;
+  }
+
   .zotero-choice {
     min-block-size: var(--target-size);
     @apply flex items-center gap-2;
@@ -3548,7 +3561,27 @@
   }
 
   .zotero-collection input {
-    @apply m-0 shrink-0;
+    @apply m-0 grid size-3.5 shrink-0 appearance-none place-items-center rounded-full border border-line bg-field;
+  }
+
+  .zotero-collection input:checked::before {
+    content: "";
+    @apply size-2 rounded-full bg-primary;
+  }
+
+  .zotero-collection input:focus-visible {
+    outline: var(--focus-outline);
+    outline-offset: var(--focus-offset);
+  }
+
+  @media (forced-colors: active) {
+    .zotero-collection input {
+      @apply appearance-auto;
+    }
+
+    .zotero-collection input:checked::before {
+      content: none;
+    }
   }
 
   .zotero-collection-name {
@@ -3606,7 +3639,7 @@
   }
 
   .zotero-reference-open {
-    @apply text-muted hover:text-foreground;
+    @apply text-muted underline underline-offset-2 hover:text-foreground;
   }
 
   /* The references as Works Cited with their notes in the margin, like a
@@ -3638,10 +3671,6 @@
 
   .zotero-works .zotero-reference {
     @apply flex-wrap;
-  }
-
-  .zotero-works .zotero-reference-body {
-    flex-basis: 12rem;
   }
 
   .zotero-notes {

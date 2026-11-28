@@ -56,8 +56,8 @@ function ReconnectForm({
   );
 }
 
-// The last sync's time and what it did: what it sent, what waits, and
-// each work it skipped because the work left the collection.
+// What the last sync sent or left waiting, and each work it skipped because
+// the work left the collection.
 function SyncSummary({ zotero }: { readonly zotero: ZoteroList }): JSX.Element {
   const { lastSync } = zotero;
   let summary = COPY.synced(lastSync);
@@ -66,10 +66,6 @@ function SyncSummary({ zotero }: { readonly zotero: ZoteroList }): JSX.Element {
   }
   return (
     <div className="zotero-sync-summary">
-      <p className="zotero-hint">
-        {COPY.lastSynced}{" "}
-        <LocalTime dateTime={zotero.syncedAt} detail="minute" />
-      </p>
       <Notice role="status">{summary}</Notice>
       {lastSync.skipped.length > 0 && (
         <div className="zotero-skipped">
@@ -99,13 +95,16 @@ function waitingOf(zotero: ZoteroList): {
   return { marks, notes };
 }
 
-// The owner's Sync button with the count of waiting changes beside it.
-function SyncButton({
+// The last successful sync time. The owner also sees the Sync button and
+// how many changes are waiting.
+function SyncBar({
   questId,
   zotero,
+  owner,
 }: {
   readonly questId: QuestId;
   readonly zotero: ZoteroList;
+  readonly owner: boolean;
 }): JSX.Element {
   const [syncing, startSync] = useTransition();
   const [problem, setProblem] = useState<string | undefined>();
@@ -125,15 +124,25 @@ function SyncButton({
   }
   return (
     <div className="zotero-sync">
-      <Button onClick={sync} disabled={syncing} aria-busy={syncing}>
-        {label}
-      </Button>
-      {zotero.pending > 0 && (
+      {owner === true && (
+        <Button onClick={sync} disabled={syncing} aria-busy={syncing}>
+          {label}
+        </Button>
+      )}
+      {owner === true && zotero.pending > 0 && (
         <span className="zotero-pending">
           {COPY.pending(waitingOf(zotero))}
         </span>
       )}
-      {problem !== undefined && <Alert>{problem}</Alert>}
+      <p className="zotero-hint zotero-sync-time">
+        {COPY.lastSynced}{" "}
+        <LocalTime dateTime={zotero.syncedAt} detail="minute" />
+      </p>
+      {problem !== undefined && (
+        <div className="zotero-sync-error">
+          <Alert>{problem}</Alert>
+        </div>
+      )}
     </div>
   );
 }
@@ -264,7 +273,7 @@ function ZoteroListPage({
           </div>
         )}
       </header>
-      {owner === true && <SyncButton questId={questId} zotero={zotero} />}
+      <SyncBar questId={questId} zotero={zotero} owner={owner} />
       <SyncSummary zotero={zotero} />
       <ListNotices questId={questId} zotero={zotero} owner={owner} />
       <div className="zotero-search">
