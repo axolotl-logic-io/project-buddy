@@ -241,7 +241,7 @@ function startPerformance(
         .returning();
       if (row === undefined) {
         // The id is already in use. Keep the previous performance active.
-        tx.rollback();
+        return tx.rollback();
       }
       return asPerformance({
         ...row,
