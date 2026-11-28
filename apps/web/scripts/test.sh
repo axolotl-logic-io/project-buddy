@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # `mise run //apps/web:test`: every test of the site. Each stage is one of the
 # site's test tasks, so its rerun command is its own task. The stages run in
-# three parallel lanes: the fast checks; the server tests; and the browser
-# install, then the browser tests and the system tests at once. Every stage
+# three parallel lanes: the fast checks, the server tests, and the browser
+# install followed by the browser and system tests in order. Every stage
 # runs to completion; each one's output is kept together, and the failed
 # stages' output and rerun commands are printed after the lanes finish.
 set -uo pipefail
@@ -45,17 +45,15 @@ fast() {
 }
 
 browsers() {
-  local result=0 browser_pid system_pid
+  local result=0
   if ! stage browsers:install; then
     printf 'BLOCKED test:browser and test:system (browser installation failed)\n'
     return 1
   fi
-  stage test:browser &
-  browser_pid=$!
-  stage test:system &
-  system_pid=$!
-  wait "$browser_pid" || result=1
-  wait "$system_pid" || result=1
+  # The Playwright build and browsers compete with Vitest's browsers for
+  # rendering time. Give each browser suite its own turn on the same runner.
+  stage test:browser || result=1
+  stage test:system || result=1
   return "$result"
 }
 
