@@ -87,7 +87,7 @@ async function stopDevelopmentServer(webRoot: string): Promise<void> {
     }
     if (Date.now() >= deadline) {
       throw new Error(
-        "The development server is still shutting down. Run mise setup again after it stops.",
+        "The development server is still shutting down. Run mise run setup again after it stops.",
       );
     }
   }

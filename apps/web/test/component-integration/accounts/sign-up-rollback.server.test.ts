@@ -1,21 +1,21 @@
 import { expect, test, vi } from "vitest";
 import { hashToken, newToken } from "@/accounts/emailed-link.ts";
 import { openPool } from "@/db/client.ts";
+import { scratchDatabase } from "../../../scripts/db/database-names.ts";
 import {
-  dropTestDatabase,
-  resetTestDatabase,
-} from "../../../scripts/test-db/test-database.ts";
-import { scratchDatabase } from "../test-database/scratch-database-test-kit.ts";
+  dropDatabase,
+  resetDatabase,
+} from "../../../scripts/db/local-databases.ts";
 
 const MABEL = { name: "Mabel", timeZone: "UTC" };
 
 const LINK_LIFETIME_MS = 60_000;
 
 test("a failed account insert rolls back sign-up consumption and permits exactly one retry", async () => {
-  const database = scratchDatabase("_signup_rollback");
+  const database = scratchDatabase("signup_rollback");
   const pool = openPool(database.url);
   try {
-    await resetTestDatabase(database);
+    await resetDatabase(database);
     const email = "rollback@example.test";
     const token = newToken();
     const tokenHash = await hashToken(token);
@@ -59,6 +59,6 @@ test("a failed account insert rolls back sign-up consumption and permits exactly
     vi.unstubAllEnvs();
     vi.resetModules();
     await pool.end();
-    await dropTestDatabase(database);
+    await dropDatabase(database);
   }
 });

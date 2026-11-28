@@ -1,6 +1,6 @@
-# Persistent development data, separate from the disposable test database.
-# Each worktree has its own database on this server (mise setup makes it);
-# project_buddy_dev is the one they all shared before.
+# Persistent development data, separate from the disposable test databases.
+# Each branch has its own database on this server (mise run
+# //apps/web:db:migrate makes it; scripts/db/database-names.ts names it).
 name: project-buddy-dev-db
 services:
   postgres:

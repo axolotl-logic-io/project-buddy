@@ -29,6 +29,6 @@ export default defineConfig({
   reporter: [["dot"], ["./test/audit/reporter.ts"]],
   webServer: {
     ...server,
-    command: `npm run test-db:reset && ${server.command} --audit`,
+    command: `${server.command} --audit`,
   },
 });

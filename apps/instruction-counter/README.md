@@ -14,7 +14,7 @@ From the repository root:
 node apps/instruction-counter/src/cli.ts path/to/file
 ```
 
-Or run `mise //apps/instruction-counter:count /absolute/path/to/file`. The mise task runs in the app directory, so a relative path resolves from there. When you consume stdout, use the direct Node command or `npm run --silent count`, because npm otherwise prints its own script banner.
+Or run `mise run //apps/instruction-counter:count /absolute/path/to/file`. The mise task runs in the app directory, so a relative path resolves from there. mise prints the command it runs on stderr, so stdout holds only the JSON.
 
 The file's contents are sent to the model provider. Only inspect files you intend to disclose to that provider; do not pass secrets or `.env*` files.
 
@@ -57,8 +57,8 @@ If the interactive pi session works but the counter reports a missing API key, c
 ## Tests
 
 ```bash
-mise //apps/instruction-counter:lint
-mise //apps/instruction-counter:test
+mise run //apps/instruction-counter:lint
+mise run //apps/instruction-counter:test
 ```
 
 The tests in `test/system/` run the CLI against a fake pi executable and make no live model calls. They test the wrapper contract, not the model's semantic accuracy.

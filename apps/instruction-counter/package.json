@@ -2,12 +2,6 @@
   "name": "@project-buddy/instruction-counter",
   "private": true,
   "type": "module",
-  "scripts": {
-    "count": "node src/cli.ts",
-    "test": "vitest run --reporter=default --reporter=../web/scripts/test-env/vitest-failures.ts",
-    "typecheck": "tsc -p .",
-    "lint": "npm run typecheck && biome check --error-on-warnings"
-  },
   "dependencies": {
     "zod": "^4.6.7"
   },
