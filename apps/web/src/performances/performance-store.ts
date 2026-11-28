@@ -1,4 +1,12 @@
-import { and, desc, eq, isNotNull, isNull, sql } from "drizzle-orm";
+import {
+  and,
+  desc,
+  eq,
+  isNotNull,
+  isNull,
+  sql,
+  TransactionRollbackError,
+} from "drizzle-orm";
 import { z } from "zod";
 import {
   listOpenTo,
@@ -237,7 +245,8 @@ async function startPerformance(
         .onConflictDoNothing({ target: performances.id })
         .returning();
       if (row === undefined) {
-        return;
+        // The id is already in use. Keep the previous performance active.
+        tx.rollback();
       }
       return asPerformance({
         ...row,
@@ -245,6 +254,11 @@ async function startPerformance(
         listName: list.name,
         listType: list.type,
       });
+    }).catch((error: unknown): undefined => {
+      if (error instanceof TransactionRollbackError) {
+        return;
+      }
+      throw error;
     });
   });
   expireReads({ accounts: [user], quests: [questId] });
