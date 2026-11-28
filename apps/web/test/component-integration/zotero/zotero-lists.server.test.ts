@@ -7,6 +7,7 @@ import type { User } from "@/accounts/users-store.ts";
 import { GET as zoteroCallback } from "@/app/api/zotero/callback/route.ts";
 import { readExperience } from "@/experience/experience-store.ts";
 import { HTTP_STATUS } from "@/http-status.ts";
+import { newPerformanceId } from "@/ids.ts";
 import { LIST_ID, type ListId } from "@/lists/list.ts";
 import { writeListContents } from "@/lists/list-item-store.ts";
 import { readLists } from "@/lists/list-store.ts";
@@ -261,6 +262,7 @@ test("use_case_create_zotero_collection_list", async () => {
   expect(target?.lists.map(({ id }) => id)).not.toContain(quest.listId);
   expect(
     await startPerformance(owner.id, quest.questId, {
+      id: newPerformanceId(),
       listId: quest.listId,
       riteId: "capture",
     }),
