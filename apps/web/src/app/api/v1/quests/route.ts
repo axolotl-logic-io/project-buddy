@@ -11,7 +11,7 @@ import {
 import { questView } from "@/api/api-views.ts";
 import { QUEST_NAME } from "@/quests/quest-name.ts";
 import { QUEST_STATUS } from "@/quests/quest-status.ts";
-import { createQuest, ensureLife, listQuests } from "@/quests/store.ts";
+import { createQuest, listQuests } from "@/quests/store.ts";
 
 const LIST_QUERY = z.object({ status: QUEST_STATUS.optional() });
 
@@ -31,7 +31,6 @@ export const GET = apiRoute(
     if (query instanceof Response) {
       return query;
     }
-    await ensureLife(user.id);
     const quests = await listQuests(user.id);
     return apiItems(
       quests

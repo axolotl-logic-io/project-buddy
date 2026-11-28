@@ -14,7 +14,7 @@ The panel beside a quest's pages: a link to the quest's **Members**, the quest's
 
 ### Life
 
-The quest every user has for the things they do every day. Each user has exactly one, made when they first need it, named Life. Quests pins it above their other quests with how many of its recurring tasks are done today and one of those not done yet, suggested at random to check off. Life stays Active. [Life use case](../apps/web/use-cases/quests.md#use_case_life)
+The quest every user has for the things they do every day. Each user has exactly one, made when they sign up or sign in without one, named Life. Quests pins it above their other quests with how many of its recurring tasks are done today and one of those not done yet, suggested at random to check off. Life stays Active. [Life use case](../apps/web/use-cases/quests.md#use_case_life)
 
 ### Quest status
 

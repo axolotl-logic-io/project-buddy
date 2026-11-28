@@ -11,7 +11,6 @@ import { listPendingQuests } from "@/quests/membership-store.ts";
 import { finderQuests } from "@/quests/quest-finder-entries.ts";
 import { readLife, readQuestEntries } from "@/quests/quest-index-store.ts";
 import { QUEST_STATUS } from "@/quests/quest-status.ts";
-import { ensureLife } from "@/quests/store.ts";
 import { type FoundTask, searchTasks } from "@/tasks/task-search-store.ts";
 import { QUESTS_COPY } from "@/ui/copy/quests.ts";
 
@@ -49,7 +48,6 @@ export default async function QuestsPage({
   ]);
   const search = single(q).trim();
   const status = QUEST_STATUS.safeParse(single(shown));
-  await ensureLife(user.id);
   const [entries, life, pending, found] = await Promise.all([
     readQuestEntries(user.id),
     readLife(user.id),

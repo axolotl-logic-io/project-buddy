@@ -15,7 +15,7 @@ import { page } from "vitest/browser";
 import { render } from "vitest-browser-react";
 import type { readSignInLinkUser } from "@/accounts/sign-in-links.ts";
 
-import type { ensureLife, getQuest, listQuests } from "@/quests/store.ts";
+import type { getQuest, listQuests } from "@/quests/store.ts";
 
 import { THEME_IDS, type ThemeId } from "@/themes/themes.ts";
 import { TIMER_COPY } from "@/ui/copy/timer.ts";
@@ -57,7 +57,6 @@ vi.mock(
 vi.mock("@/quests/store.ts", () => ({
   getQuest: vi.fn<typeof getQuest>(),
   listQuests: vi.fn<typeof listQuests>(),
-  ensureLife: vi.fn<typeof ensureLife>(() => Promise.resolve()),
 }));
 
 vi.mock("@/accounts/sign-in-links.ts", () => ({
