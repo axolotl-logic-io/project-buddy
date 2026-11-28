@@ -5,14 +5,12 @@ const COMPLETE_PAGE_PATH = "/complete-page";
 const COMPLETE_ROUTE_PREFIX = "/document";
 const COMPLETE_PAGE_COOKIE = "pb-complete-page";
 
-function completePageAddress(address: string): string {
-  return `${COMPLETE_PAGE_PATH}?${new URLSearchParams({ next: address })}`;
-}
-
+// Switches this browser to complete pages, and sends it back to the page it
+// came from: the streamed shell's refresh (src/app/(stream)/loading.tsx)
+// names it as the referrer. Another site, or no referrer, goes Home.
 function completePageResponse(request: NextRequest): NextResponse {
-  const next = request.nextUrl.searchParams.get("next");
   const destination = new URL("/", request.url);
-  const target = URL.parse(next ?? "/", destination);
+  const target = URL.parse(request.headers.get("referer") ?? "/", destination);
   let address = destination;
   if (
     target?.origin === destination.origin &&
@@ -51,7 +49,6 @@ function deliverPage(request: NextRequest): NextResponse {
 export {
   COMPLETE_PAGE_PATH,
   COMPLETE_ROUTE_PREFIX,
-  completePageAddress,
   completePageResponse,
   deliverPage,
   PAGE_ADDRESS_HEADER,

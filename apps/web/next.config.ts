@@ -9,12 +9,12 @@ const nextConfig: NextConfig = {
   // AGENTS.md instead.
   agentRules: false,
   experimental: {
-    // Every page renders per request and waits for the session lookup, as
-    // the root layout's `instant = false` declares (src/app/layout.tsx).
-    // Next's default, "warning", still checks each page in development for
-    // an instant navigation and logs the session read on every request
-    // (#874). "manual-warning" checks only segments that set `instant`
-    // themselves, which is how Next's docs say to pin the level.
+    // Two root layouts, for streamed and complete pages, leave no single
+    // layout for an unmatched address: global-not-found.tsx renders it.
+    globalNotFound: true,
+    // Next's default, "warning", checks every page in development for an
+    // instant navigation. "manual-warning" checks only segments that set
+    // `instant` themselves, which is how Next's docs say to pin the level.
     instantInsights: { validationLevel: "manual-warning" },
   },
   turbopack: {

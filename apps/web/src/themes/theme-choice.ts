@@ -1,9 +1,12 @@
-// The appearance lives in a browser cookie. The root layout reads it for
-// the first HTML and the proxy reads it for font preloads. The site panel
-// updates the document and cookie together.
+// The appearance lives in a browser cookie. On a streamed page a script
+// applies it before the first paint (SAVED_THEME_SCRIPT); a complete page,
+// for a browser without scripting, has it in its first HTML. The proxy
+// reads it for font preloads. The site panel updates the document and
+// cookie together.
 import {
   DEFAULT_THEME_CHOICE,
   parseThemeChoice,
+  THEME_IDS,
   THEME_MODES,
   type ThemeChoice,
 } from "@/themes/themes.ts";
@@ -69,6 +72,11 @@ function themeChoiceCookie(choice: ThemeChoice): {
   };
 }
 
+// Applies the saved choice to <html>, from the cookie, as an inline script
+// that runs before the first paint. An unknown theme or mode keeps the
+// default attributes the HTML has, as parseThemeChoiceCookie would.
+const SAVED_THEME_SCRIPT = `(function(){var m=document.cookie.match(/(?:^|; )${COOKIE_NAME}=([^;]*)/);if(!m)return;var p=m[1].split(${JSON.stringify(COOKIE_VALUE_SEPARATOR)}),r=document.documentElement;if(${JSON.stringify(THEME_IDS)}.indexOf(p[0])>=0)r.setAttribute("${THEME_ATTRIBUTE}",p[0]);if(${JSON.stringify(THEME_MODES)}.indexOf(p[1])>=0)r.setAttribute("${MODE_ATTRIBUTE}",p[1])})()`;
+
 function readThemeChoiceCookie(): string | undefined {
   const prefix = `${COOKIE_NAME}=`;
   return document.cookie
@@ -116,6 +124,7 @@ export {
   parseThemeChoiceCookie,
   readAppliedMode,
   readAppliedTheme,
+  SAVED_THEME_SCRIPT,
   subscribeToThemeChoice,
   THEME_ATTRIBUTE,
   THEME_SWATCHES,

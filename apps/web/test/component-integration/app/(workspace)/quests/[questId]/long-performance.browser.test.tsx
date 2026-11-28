@@ -113,7 +113,7 @@ function topmostAtCentre(element: Element): boolean {
 
 beforeEach(() => {
   applyTheme("parchment");
-  // The root layout's page and body (src/app/layout.tsx); the theme kit
+  // The root layouts' page and body (src/app/site-document.tsx); the theme kit
   // restores them after each test.
   document.documentElement.classList.add("h-full");
   document.body.classList.add("flex", "min-h-full", "flex-col");
