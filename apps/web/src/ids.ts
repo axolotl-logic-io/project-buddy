@@ -19,11 +19,17 @@ const QUEST_ID = z
   .regex(CANONICAL_UUID)
   .toLowerCase()
   .brand<"QuestId">();
+// A performance's id. The browser makes a new performance's, so its
+// composer shows before the server has saved it.
+const PERFORMANCE_ID = z.guid().toLowerCase().brand<"PerformanceId">();
+
 // A user's id, as `parseUserId` returns it.
 type UserId = z.infer<typeof USER_ID>;
 
 // A quest's id, as `parseQuestId` returns it.
 type QuestId = z.infer<typeof QUEST_ID>;
+
+type PerformanceId = z.infer<typeof PERFORMANCE_ID>;
 
 // The value as a lowercase UserId, or undefined unless it is a canonical
 // UUID.
@@ -37,5 +43,17 @@ function parseQuestId(value: string): QuestId | undefined {
   return QUEST_ID.safeParse(value).data;
 }
 
-export type { QuestId, UserId };
-export { parseQuestId, parseUserId, QUEST_ID, USER_ID };
+// A new performance's id.
+function newPerformanceId(): PerformanceId {
+  return PERFORMANCE_ID.parse(crypto.randomUUID());
+}
+
+export type { PerformanceId, QuestId, UserId };
+export {
+  newPerformanceId,
+  PERFORMANCE_ID,
+  parseQuestId,
+  parseUserId,
+  QUEST_ID,
+  USER_ID,
+};

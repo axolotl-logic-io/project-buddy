@@ -6,6 +6,7 @@ import { afterEach, describe, expect, test, vi } from "vitest";
 import { page } from "vitest/browser";
 import { render } from "vitest-browser-react";
 import { ListItems } from "@/components/list-items.tsx";
+import type { QuestActionResult } from "@/components/use-quest-action.ts";
 import type { ListItem } from "@/lists/list-item-store.ts";
 import type { List } from "@/lists/list-store.ts";
 import { TALLY_DAYS } from "@/tallies/tally.ts";
@@ -60,6 +61,20 @@ async function renderList(): Promise<void> {
   );
 }
 
+// Holds the action's next reply until the returned function gives it.
+function hold(
+  action: typeof incrementTallyAction | typeof setTallyDayAction,
+): (result: QuestActionResult) => void {
+  let answer: (result: QuestActionResult) => void = () => undefined;
+  vi.mocked(action).mockImplementationOnce(
+    () =>
+      new Promise<QuestActionResult>((resolve) => {
+        answer = resolve;
+      }),
+  );
+  return (result: QuestActionResult): void => answer(result);
+}
+
 afterEach(() => {
   vi.clearAllMocks();
 });
@@ -107,11 +122,8 @@ describe("use_case_tally_lists", () => {
       .not.toBeInTheDocument();
   });
 
-  test("Increment gives a number field that adds the amount to today's", async () => {
-    vi.mocked(incrementTallyAction).mockResolvedValue({
-      kind: "saved",
-      message: TALLIES_COPY.saved,
-    });
+  test("Increment gives a number field that adds the amount to today's, shown before the server replies", async () => {
+    const answer = hold(incrementTallyAction);
     await renderList();
 
     await card(WORDS)
@@ -131,15 +143,20 @@ describe("use_case_tally_lists", () => {
       ]);
     await expect.element(field).not.toBeInTheDocument();
     await expect
+      .element(card(WORDS).getByText("247.25", { exact: true }))
+      .toBeVisible();
+    await expect
+      .element(page.getByRole("status"))
+      .toHaveTextContent(TALLIES_COPY.saved);
+
+    answer({ kind: "saved" });
+    await expect
       .element(page.getByRole("status"))
       .toHaveTextContent(TALLIES_COPY.saved);
   });
 
-  test("Edit today gives today's total to change", async () => {
-    vi.mocked(setTallyDayAction).mockResolvedValue({
-      kind: "saved",
-      message: TALLIES_COPY.saved,
-    });
+  test("Edit today gives today's total to change, and a refusal puts it back and opens the field again with the new total", async () => {
+    const answer = hold(setTallyDayAction);
     await renderList();
 
     await card(WORDS)
@@ -164,6 +181,21 @@ describe("use_case_tally_lists", () => {
           },
         ],
       ]);
+    await expect.element(field).not.toBeInTheDocument();
+    await expect
+      .element(card(WORDS).getByText("300.5", { exact: true }))
+      .toBeVisible();
+
+    answer({ kind: "problem", text: LISTS_COPY.saveFailed });
+
+    await expect
+      .element(page.getByRole("alert"))
+      .toHaveTextContent(LISTS_COPY.saveFailed);
+    await expect.element(field).toHaveDisplayValue("300.5");
+    await expect
+      .element(card(WORDS).getByText("250", { exact: true }))
+      .toBeVisible();
+    await expect.element(page.getByRole("status")).toHaveTextContent("");
   });
 
   test("a number a tally can't hold is refused with the reason, and Cancel closes the field", async () => {

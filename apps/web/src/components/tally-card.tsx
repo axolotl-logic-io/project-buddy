@@ -49,10 +49,24 @@ function TallyCard({
   readonly changes: TallyChanges;
   readonly busy: boolean;
 }): JSX.Element {
-  const [open, setOpen] = useState<"increment" | "edit" | undefined>();
-  const increment = useCallback((): void => setOpen("increment"), []);
-  const edit = useCallback((): void => setOpen("edit"), []);
+  // The form open, with the amount a refused save left in it.
+  const [open, setOpen] = useState<
+    | { readonly form: "increment" | "edit"; readonly amount?: string }
+    | undefined
+  >();
+  const increment = useCallback((): void => setOpen({ form: "increment" }), []);
+  const edit = useCallback((): void => setOpen({ form: "edit" }), []);
   const close = useCallback((): void => setOpen(undefined), []);
+  const add = useCallback(
+    (amount: string): void =>
+      changes.increment(amount, () => setOpen({ form: "increment", amount })),
+    [changes],
+  );
+  const setToday = useCallback(
+    (total: string): void =>
+      changes.setToday(total, () => setOpen({ form: "edit", amount: total })),
+    [changes],
+  );
   const days = tallyDays(tally, today, TALLY_DAYS);
   const todayTotal = days.at(-1)?.total ?? "0";
   const largest = Math.max(...days.map(({ total }) => Math.abs(Number(total))));
@@ -66,25 +80,26 @@ function TallyCard({
       </Button>
     </span>
   );
-  if (open === "increment") {
+  if (open?.form === "increment") {
     controls = (
       <TallyAmountForm
         label={TALLIES_COPY.incrementBy(tally.text)}
         submit={TALLIES_COPY.add}
+        initial={open.amount ?? ""}
         disabled={busy}
-        onSave={changes.increment}
+        onSave={add}
         onClose={close}
       />
     );
   }
-  if (open === "edit") {
+  if (open?.form === "edit") {
     controls = (
       <TallyAmountForm
         label={TALLIES_COPY.todayTotal(tally.text)}
         submit={TALLIES_COPY.save}
-        initial={plainAmount(todayTotal)}
+        initial={open.amount ?? plainAmount(todayTotal)}
         disabled={busy}
-        onSave={changes.setToday}
+        onSave={setToday}
         onClose={close}
       />
     );

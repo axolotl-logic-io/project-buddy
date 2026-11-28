@@ -1,4 +1,5 @@
 import { describe, expect, test, vi } from "vitest";
+import { newPerformanceId } from "@/ids.ts";
 import { readLists } from "@/lists/list-store.ts";
 import {
   listPerformances,
@@ -50,6 +51,7 @@ test("use_case_customize_rite", async () => {
   }
   const id = OWN_RITE_ID.parse(created.id);
   const performance = await startPerformance(author.id, questId, {
+    id: newPerformanceId(),
     listId: list.id,
     riteId: id,
   });
@@ -88,6 +90,7 @@ test("use_case_customize_rite", async () => {
   expect(await changeRiteAvailability(author.id, id, "forget")).toBe(true);
   expect(
     await startPerformance(author.id, questId, {
+      id: newPerformanceId(),
       listId: list.id,
       riteId: id,
     }),
@@ -212,6 +215,7 @@ describe("use_case_delete_retired_definition", () => {
     await signIn(owner);
     const id = await ownRite(owner, "Plan");
     await startPerformance(owner.id, questId, {
+      id: newPerformanceId(),
       listId: list.id,
       riteId: id,
     });

@@ -19,8 +19,9 @@ function focusField(input: HTMLInputElement | null): void {
 }
 
 // A number field for a tally's amount, such as one to add to today's total
-// or a day's new total. Fractions and negatives are fine. Saving closes
-// it; Escape or Cancel closes it without saving.
+// or a day's new total. Fractions and negatives are fine. Saving closes it
+// at once, and a refused save opens it again with the amount, from
+// initial; Escape or Cancel closes it without saving.
 function TallyAmountForm({
   label,
   submit,
@@ -33,7 +34,7 @@ function TallyAmountForm({
   readonly submit: string;
   readonly initial?: string;
   readonly disabled: boolean;
-  readonly onSave: (amount: string) => Promise<boolean>;
+  readonly onSave: (amount: string) => void;
   readonly onClose: () => void;
 }): JSX.Element {
   const [text, setText] = useState(initial);
@@ -43,16 +44,15 @@ function TallyAmountForm({
     setProblem(undefined);
   }, []);
   const save = useCallback(
-    async (event: SubmitEvent<HTMLFormElement>): Promise<void> => {
+    (event: SubmitEvent<HTMLFormElement>): void => {
       event.preventDefault();
       const amount = parseAmount(text);
       if (amount === undefined) {
         setProblem(TALLIES_COPY.problems["invalid-amount"]);
         return;
       }
-      if (await onSave(amount)) {
-        onClose();
-      }
+      onClose();
+      onSave(amount);
     },
     [onClose, onSave, text],
   );

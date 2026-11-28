@@ -5,7 +5,6 @@ import Link from "next/link";
 import {
   type JSX,
   type KeyboardEvent,
-  startTransition,
   useCallback,
   useEffect,
   useId,
@@ -188,10 +187,9 @@ function QuestListSection({
     shownItems(list, contents),
     withCheck,
   );
-  const listId = list.id;
   const runHere = useCallback(
-    (change: ListItemChange): Promise<boolean> => runOn(listId, change),
-    [runOn, listId],
+    (change: ListItemChange): Promise<boolean> => runOn(list, change),
+    [runOn, list],
   );
   const run = useCallback(
     (change: ListItemChange): Promise<boolean> => {
@@ -202,14 +200,9 @@ function QuestListSection({
       if (change.checkedOff && item?.recurring === false) {
         keepFocus(sectionRef.current, openRef.current);
       }
-      return new Promise<boolean>((resolve) => {
-        startTransition(async () => {
-          showCheck(change);
-          resolve(await runHere(change));
-        });
-      });
+      return runOn(list, change, () => showCheck(change));
     },
-    [runHere, showCheck, shown],
+    [list, runHere, runOn, showCheck, shown],
   );
   const add = useCallback(
     (text: string): Promise<boolean> => runHere({ kind: "add", text }),
@@ -284,7 +277,7 @@ function QuestListSection({
             {LISTS_COPY.addListItem(list.type)}
           </Button>
           {rites !== undefined && rites.length > 0 && (
-            <RiteDialog questId={questId} list={list} rites={rites} />
+            <RiteDialog list={list} rites={rites} />
           )}
           {/* While a performance runs the candle's place stays, so starting
               one moves nothing in the heading. */}

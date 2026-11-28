@@ -34,10 +34,10 @@ The user starts a quest to learn, make or do something.
 - **Steps:**
   - On Quests, they choose New quest in the trail band. A dialog asks for the quest's name and an optional Why.
   - They name the quest, optionally fill in Why, and choose Start quest.
-- **Outcome:** the quest opens on Overview. It has an empty Tasks list and an empty Ideas list, and no active performance. The Why becomes its starting context, which its construct reads. It is listed first under Active on Quests.
+- **Outcome:** the dialog closes and the quest's page opens at once, before the server replies, with the quest's name at the end of the trail band. Its Overview then follows. It has an empty Tasks list and an empty Ideas list, and no active performance. The Why becomes its starting context, which its construct reads. It is listed first under Active on Quests.
 - **Variations:**
   - Cancelling the dialog, with its close button, Escape or a click outside, creates nothing and spends nothing.
-  - Storage is unavailable: the dialog keeps its edits and explains why nothing was saved ([`use_case_storage_unavailable`](when-things-go-wrong.md#use_case_storage_unavailable)).
+  - The server refuses the quest, because storage is unavailable or for any other reason: Quests comes back with the dialog open, its edits kept, saying why nothing was saved ([`use_case_storage_unavailable`](when-things-go-wrong.md#use_case_storage_unavailable)). No quest is made.
 - **Next:**
   - `use_case_new_quest_without_name`: the name is empty.
   - `use_case_new_quest_with_construct`: the quest's construct.

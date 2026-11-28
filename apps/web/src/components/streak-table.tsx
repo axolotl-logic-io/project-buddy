@@ -1,13 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import {
-  type JSX,
-  startTransition,
-  useCallback,
-  useId,
-  useOptimistic,
-} from "react";
+import { type JSX, useCallback, useId, useOptimistic } from "react";
 import { periodName } from "@/components/calendar-days.ts";
 import { PeriodHeading } from "@/components/date-heading.tsx";
 import { Alert, FormStatus } from "@/components/ui/form-message.tsx";
@@ -34,6 +28,7 @@ import {
 } from "@/streaks/streaks.ts";
 import { CADENCE_COPY } from "@/ui/copy/cadence.ts";
 import { HOME_COPY } from "@/ui/copy/home.ts";
+import { LISTS_COPY } from "@/ui/copy/lists.ts";
 
 // The marks a square can be checked or unchecked on: the task had been
 // added by the end of that period, and the period isn't after the quest's
@@ -268,8 +263,9 @@ function StreakTable({
   const headingId = useId();
   const [shown, showMark] = useOptimistic(quests, marked);
   const today = useBrowserToday();
-  const { run: runCheck, ...check } = useQuestAction(changeListItemAction);
-  const { run: runRecord, ...record } = useQuestAction(markTaskPeriodAction);
+  const { start: startCheck, ...check } = useQuestAction(changeListItemAction);
+  const { start: startRecord, ...record } =
+    useQuestAction(markTaskPeriodAction);
   const onMark = useCallback(
     (change: Mark): void => {
       const entry = quests.find(({ quest }) => quest.id === change.questId);
@@ -277,28 +273,35 @@ function StreakTable({
       if (entry === undefined || task === undefined) {
         return;
       }
-      startTransition(async () => {
+      function show(): void {
         showMark(change);
-        if (
-          periodOf(change.date, task.cadence) ===
-          periodOf(entry.history.today, task.cadence)
-        ) {
-          await runCheck({
-            questId: change.questId,
-            listId: task.listId,
-            change: { kind: "check", id: task.id, checkedOff: change.done },
-          });
-          return;
-        }
-        await runRecord({
+      }
+      if (
+        periodOf(change.date, task.cadence) ===
+        periodOf(entry.history.today, task.cadence)
+      ) {
+        const checked = {
+          kind: "check",
+          id: task.id,
+          checkedOff: change.done,
+        } as const;
+        startCheck(
+          { questId: change.questId, listId: task.listId, change: checked },
+          { status: LISTS_COPY.changed(checked, "task"), show },
+        );
+        return;
+      }
+      startRecord(
+        {
           questId: change.questId,
           localDate: change.date,
           number: change.number,
           done: change.done,
-        });
-      });
+        },
+        { show },
+      );
     },
-    [quests, showMark, runCheck, runRecord],
+    [quests, showMark, startCheck, startRecord],
   );
 
   const tables = CADENCES.flatMap((cadence) => {

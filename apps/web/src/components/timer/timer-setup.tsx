@@ -4,17 +4,24 @@ import { useRouter } from "next/navigation";
 import {
   type ChangeEvent,
   type JSX,
+  startTransition,
   useCallback,
   useId,
   useState,
 } from "react";
+import type { Breadcrumb } from "@/components/breadcrumb.ts";
+import { useShowPage } from "@/components/pending-page-context.ts";
 import { useRememberedDurations } from "@/components/timer/remembered-durations.ts";
+import { TimerDisplay } from "@/components/timer/timer-display.tsx";
+import { TimerTrailTools } from "@/components/timer/timer-trail-tools.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { SelectField } from "@/components/ui/field.tsx";
+import { TimerFrame } from "@/components/ui/page-frame.tsx";
 import {
   GLOBAL_START_MS,
   parseTimerDurations,
   TIMER_MINUTES,
+  TIMER_PATH,
   type TimerDurations,
   type TimerSchedule,
   timerPath,
@@ -33,18 +40,52 @@ const MINUTE_OPTIONS = TIMER_MINUTES.map((minutes) => (
   </option>
 ));
 
-// The standalone Timer opens a link. A quest runs the same schedule in place.
+// A timer link's trail, from the Timer's own: the Timer, then the
+// schedule, with its tools. Who else follows it shows once the server's
+// page arrives.
+function timerTrail(
+  schedule: TimerSchedule,
+): (current: readonly Breadcrumb[]) => readonly Breadcrumb[] {
+  return (current: readonly Breadcrumb[]): readonly Breadcrumb[] => [
+    ...current.slice(0, -1),
+    { label: TIMER_COPY.heading, href: TIMER_PATH },
+    {
+      label: TIMER_COPY.scheduleName(
+        schedule.workMinutes,
+        schedule.breakMinutes,
+      ),
+      action: <TimerTrailTools schedule={schedule} signedIn={false} />,
+    },
+  ];
+}
+
+// The standalone Timer opens a link, whose running timer shows at once,
+// from the schedule, while its page loads. A quest runs the same schedule
+// in place.
 function TimerSetup({
   clock = currentTimeMs,
 }: {
   readonly clock?: () => number;
 }): JSX.Element {
   const router = useRouter();
+  const showPage = useShowPage();
   const open = useCallback(
     (schedule: TimerSchedule): void => {
-      router.push(timerPath(schedule));
+      startTransition(() => {
+        showPage({
+          trail: timerTrail(schedule),
+          main: (
+            <TimerFrame>
+              <div className="workspace-content">
+                <TimerDisplay clock={clock} schedule={schedule} />
+              </div>
+            </TimerFrame>
+          ),
+        });
+        router.push(timerPath(schedule));
+      });
     },
-    [router],
+    [clock, router, showPage],
   );
   return <TimerSettings onStart={open} onJoinGlobal={open} clock={clock} />;
 }

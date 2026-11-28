@@ -13,13 +13,10 @@ import {
 import { commands, type Locator, page, userEvent } from "vitest/browser";
 import { render } from "vitest-browser-react";
 import type { Breadcrumb } from "@/components/breadcrumb.ts";
-import {
-  AccountLinks,
-  PageHeader,
-  TrailBand,
-} from "@/components/page-header.tsx";
+import { AccountLinks, PageHeader } from "@/components/page-header.tsx";
 import { SignedInHeader } from "@/components/signed-in-header.tsx";
 import { SitePanel } from "@/components/site-panel.tsx";
+import { TrailBand } from "@/components/trail-band.tsx";
 import { THEME_IDS } from "@/themes/themes.ts";
 import { CREDITS_COPY } from "@/ui/copy/credits.ts";
 import { GRIMOIRE_COPY } from "@/ui/copy/grimoire.ts";
@@ -266,8 +263,10 @@ describe("the site panel", () => {
     await expect.element(closeButton()).toHaveFocus();
 
     await closePanel();
+    await expect
+      .element(panelButton())
+      .toHaveAttribute("aria-expanded", "false");
     expect(document.activeElement).toBe(panelButton().element());
-    expect(panelButton().element()).toHaveAttribute("aria-expanded", "false");
   });
 
   for (const viewport of [PHONE_VIEWPORT, LAPTOP_VIEWPORT]) {

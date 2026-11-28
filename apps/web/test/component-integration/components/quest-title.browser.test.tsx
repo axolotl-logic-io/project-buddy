@@ -1,8 +1,9 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { page, userEvent } from "vitest/browser";
 import { render } from "vitest-browser-react";
-import { PageHeader, TrailBand } from "@/components/page-header.tsx";
+import { PageHeader } from "@/components/page-header.tsx";
 import { QuestTitle } from "@/components/quest-title.tsx";
+import { TrailBand } from "@/components/trail-band.tsx";
 import { renameQuestAction } from "@/quests/rename-quest-action.ts";
 import { QUEST_COPY } from "@/ui/copy/quests.ts";
 import { FOX_QUEST } from "../app/(workspace)/page-fixtures.ts";

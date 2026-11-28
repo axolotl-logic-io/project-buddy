@@ -1,14 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import {
-  type JSX,
-  startTransition,
-  useCallback,
-  useId,
-  useOptimistic,
-  useState,
-} from "react";
+import { type JSX, useCallback, useId, useOptimistic, useState } from "react";
 import { Button } from "@/components/ui/button.tsx";
 import { Alert, FormStatus } from "@/components/ui/form-message.tsx";
 import { Icon } from "@/components/ui/icon.tsx";
@@ -18,6 +11,7 @@ import type { ListItemId } from "@/lists/list-item.ts";
 import { changeListItemAction } from "@/lists/list-item-actions.ts";
 import type { LifeSummary, SuggestedTask } from "@/quests/quest-index-store.ts";
 import { CADENCE_COPY } from "@/ui/copy/cadence.ts";
+import { LISTS_COPY } from "@/ui/copy/lists.ts";
 import { LIFE_COPY } from "@/ui/copy/quests.ts";
 
 function markDone(
@@ -82,19 +76,22 @@ function LifePin({ life }: { readonly life: LifeSummary }): JSX.Element {
     }
   }
   const [checked, showChecked] = useOptimistic(new Set<ListItemId>(), markDone);
-  const { run, status, problem } = useQuestAction(changeListItemAction);
+  const { start, status, problem } = useQuestAction(changeListItemAction);
   const onCheck = useCallback(
     (task: SuggestedTask): void => {
-      startTransition(async () => {
-        showChecked(task.id);
-        await run({
+      start(
+        {
           questId: life.quest.id,
           listId: task.listId,
           change: { kind: "check", id: task.id, checkedOff: true },
-        });
-      });
+        },
+        {
+          status: LISTS_COPY.checkedOff,
+          show: (): void => showChecked(task.id),
+        },
+      );
     },
-    [life.quest.id, run, showChecked],
+    [life.quest.id, start, showChecked],
   );
   let { doneNow } = life;
   if (suggestion !== undefined && checked.has(suggestion.id)) {

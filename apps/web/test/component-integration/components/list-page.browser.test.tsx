@@ -157,7 +157,6 @@ describe("use_case_quest_lists", () => {
   test("Enter adds the text as a new task and empties the box", async () => {
     vi.mocked(changeListItemAction).mockResolvedValue({
       kind: "saved",
-      message: LISTS_COPY.savedChange,
       undoVersion: TASKS.version + 1,
     });
     await renderPage();
@@ -213,7 +212,6 @@ describe("use_case_quest_lists", () => {
   test("a task's menu moves it to another list of the quest", async () => {
     vi.mocked(changeListItemAction).mockResolvedValue({
       kind: "saved",
-      message: LISTS_COPY.savedChange,
       undoVersion: TASKS.version + 1,
     });
     await renderPage();

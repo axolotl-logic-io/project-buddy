@@ -326,11 +326,10 @@ function ListItems({
   const { runOn, busy } = changes;
   const tally = useTallyCards(questId, tallies, busy);
   const [said, setSaid] = useState<string | undefined>();
-  const listId = list.id;
   const listName = list.name;
   const run = useCallback(
-    (listChange: ListItemChange): Promise<boolean> => runOn(listId, listChange),
-    [runOn, listId],
+    (listChange: ListItemChange): Promise<boolean> => runOn(list, listChange),
+    [runOn, list],
   );
   const add = useCallback(
     async (entry: string): Promise<boolean> => {

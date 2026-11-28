@@ -29,7 +29,7 @@ const SET_REQUEST = z.object({
 
 function answer(result: TallyResult): QuestActionResult {
   if (result === "saved") {
-    return { kind: "saved", message: TALLIES_COPY.saved };
+    return { kind: "saved" };
   }
   return { kind: "problem", text: TALLIES_COPY.problems[result] };
 }

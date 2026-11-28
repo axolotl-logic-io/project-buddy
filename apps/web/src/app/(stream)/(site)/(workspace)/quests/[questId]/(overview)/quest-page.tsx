@@ -4,13 +4,17 @@ import { z } from "zod";
 import type { User } from "@/accounts/users-store.ts";
 import { ListPage } from "@/components/list-page.tsx";
 import type { NewListZotero } from "@/components/new-list-zotero.ts";
-import { MessageComposer } from "@/components/performance-controls.tsx";
 import { PerformanceTranscript } from "@/components/performance-transcript.tsx";
 import { QuestFolio } from "@/components/quest-folio.tsx";
 import { QuestMembers } from "@/components/quest-members.tsx";
 import { QuestPanel } from "@/components/quest-panel.tsx";
 import { QuestSharingMark } from "@/components/quest-sharing-mark.tsx";
 import { QuestSidePanel } from "@/components/quest-side-panel.tsx";
+import {
+  PerformanceSlot,
+  PerformanceStarts,
+  RunningPerformance,
+} from "@/components/running-performance.tsx";
 import { Notice } from "@/components/ui/form-message.tsx";
 import { ZoteroListPage } from "@/components/zotero/zotero-list-page.tsx";
 import { ZoteroSetupPanel } from "@/components/zotero/zotero-setup.tsx";
@@ -60,6 +64,7 @@ async function overviewOf({
   lists,
   history,
   runningContent,
+  performing,
   zoteroLists,
   newListZotero,
 }: {
@@ -68,6 +73,7 @@ async function overviewOf({
   readonly lists: readonly List[];
   readonly history: TaskHistory | undefined;
   readonly runningContent: ReactNode;
+  readonly performing: boolean;
   readonly zoteroLists: readonly ZoteroList[];
   readonly newListZotero: NewListZotero | undefined;
 }): Promise<JSX.Element> {
@@ -89,14 +95,20 @@ async function overviewOf({
     talliesRead,
   ]);
   let sectionRites: typeof rites | undefined = rites;
-  if (runningContent !== undefined) {
+  if (performing) {
     sectionRites = undefined;
   }
   return (
     <div className="page-workspace quest-folio">
       <header className="quest-focus-head">
         <div className="quest-focus-line">
-          <h2 className="quest-focus-title">{quest.name}</h2>
+          <h2
+            data-quest-overview-heading=""
+            className="quest-focus-title"
+            tabIndex={-1}
+          >
+            {quest.name}
+          </h2>
           <p className="quest-overview-meta">
             <span className="quest-status-mark">
               {QUEST_STATUS_COPY.labels[quest.status]}
@@ -164,7 +176,9 @@ async function questPage(
   const owner = quest.sharing.kind !== "joined";
   const listId = LIST_ID.safeParse(section).data;
   const list = lists.find(({ id }) => id === listId);
-  const running = performances.find(({ endedAt }) => endedAt === null);
+  const runningPerformance = performances.find(
+    ({ endedAt }) => endedAt === null,
+  );
   let listPage: JSX.Element | undefined;
   const zotero = zoteroLists.find(({ list: { id } }) => id === list?.id);
   if (zotero !== undefined) {
@@ -190,7 +204,7 @@ async function questPage(
       talliesRead,
     ]);
     let listRitesShown: typeof rites | undefined = rites;
-    if (running !== undefined) {
+    if (runningPerformance !== undefined) {
       listRitesShown = undefined;
     }
     listPage = (
@@ -212,37 +226,32 @@ async function questPage(
     );
   }
   const construct = getConstruct(quest.constructId);
-  let runningContent: ReactNode;
-  if (running !== undefined) {
-    const entries = await readPerformanceMessages(user, running.id);
-    runningContent = (
-      <section aria-label={running.rite.name} className="quest-section-body">
-        <h2
-          className="section-heading"
-          data-performance-heading={quest.id}
-          tabIndex={-1}
-        >
-          {running.rite.name}
-        </h2>
-        <MessageComposer
-          key={running.id}
-          questId={quest.id}
-          performance={running}
-          viewer={user}
-          author={viewer.name ?? PERFORMANCE_COPY.unnamed}
+  const stage = {
+    questId: quest.id,
+    viewer: user,
+    author: viewer.name ?? PERFORMANCE_COPY.unnamed,
+    construct,
+  };
+  let running: ReactNode;
+  if (runningPerformance !== undefined) {
+    const entries = await readPerformanceMessages(user, runningPerformance.id);
+    running = (
+      <RunningPerformance
+        key={runningPerformance.id}
+        performance={runningPerformance}
+        stage={stage}
+        answered={entries.map(({ id }) => id)}
+        given={entries.flatMap(({ replyIndex }) => replyIndex ?? [])}
+      >
+        <PerformanceTranscript
+          performance={runningPerformance}
+          entries={entries}
           construct={construct}
-          answered={entries.map(({ id }) => id)}
-          given={entries.flatMap(({ replyIndex }) => replyIndex ?? [])}
-        >
-          <PerformanceTranscript
-            performance={running}
-            entries={entries}
-            construct={construct}
-          />
-        </MessageComposer>
-      </section>
+        />
+      </RunningPerformance>
     );
   }
+  const runningContent = <PerformanceSlot>{running}</PerformanceSlot>;
   const current = SECTION.safeParse(section).data;
 
   // Zotero setup is the owner's alone, in the New list dialog on the
@@ -276,6 +285,7 @@ async function questPage(
       lists,
       history,
       runningContent,
+      performing: runningPerformance !== undefined,
       zoteroLists,
       newListZotero,
     });
@@ -288,22 +298,24 @@ async function questPage(
         <QuestPanel quest={quest} people={1 + (people?.members.length ?? 0)} />
       }
     >
-      <div className="quest-workspace quest-overview">
-        {overview}
-        {quest.status !== "active" && !onOverview && (
-          <Notice>{QUEST_STATUS_COPY.effects}</Notice>
-        )}
-        {listPage}
-        {current === "members" && people !== undefined && (
-          <QuestMembers
-            viewer={user}
-            people={people}
-            quest={quest}
-            back={sectionPath(quest.id)}
-          />
-        )}
-        {!onOverview && runningContent}
-      </div>
+      <PerformanceStarts stage={stage}>
+        <div className="quest-workspace quest-overview">
+          {overview}
+          {quest.status !== "active" && !onOverview && (
+            <Notice>{QUEST_STATUS_COPY.effects}</Notice>
+          )}
+          {listPage}
+          {current === "members" && people !== undefined && (
+            <QuestMembers
+              viewer={user}
+              people={people}
+              quest={quest}
+              back={sectionPath(quest.id)}
+            />
+          )}
+          {!onOverview && runningContent}
+        </div>
+      </PerformanceStarts>
     </QuestSidePanel>
   );
 }

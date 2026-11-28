@@ -8,6 +8,7 @@ import {
   questRoute,
   readApiBody,
 } from "@/api/api-route.ts";
+import { newPerformanceId } from "@/ids.ts";
 import { LIST_ID } from "@/lists/list.ts";
 import {
   listPerformances,
@@ -31,7 +32,10 @@ export const POST = questRoute(
     if (input instanceof Response) {
       return input;
     }
-    const performance = await startPerformance(user.id, quest.id, input);
+    const performance = await startPerformance(user.id, quest.id, {
+      ...input,
+      id: newPerformanceId(),
+    });
     if (performance === undefined) {
       return apiNotFound();
     }
