@@ -8,7 +8,7 @@ import type {
 } from "@playwright/test/reporter";
 import { literalPattern, printRerun } from "./rerun-command.ts";
 
-const COMMAND = "npm run --workspace @project-buddy/web test:system --";
+const COMMAND = "mise run //apps/web:test:system";
 
 function reportFileError(error: TestError): void {
   if (error.location !== undefined) {

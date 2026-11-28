@@ -10,11 +10,11 @@ import process from "node:process";
 import { fileURLToPath } from "node:url";
 import { afterAll, beforeAll, expect, test } from "vitest";
 import { openPool } from "@/db/client.ts";
+import { scratchDatabase } from "../../../../scripts/db/database-names.ts";
 import {
-  dropTestDatabase,
-  resetTestDatabase,
-} from "../../../../scripts/test-db/test-database.ts";
-import { scratchDatabase } from "../../test-database/scratch-database-test-kit.ts";
+  dropDatabase,
+  resetDatabase,
+} from "../../../../scripts/db/local-databases.ts";
 
 const QUERY = fileURLToPath(
   new URL("../../../../../../scripts/ops/query.ts", import.meta.url),
@@ -22,7 +22,7 @@ const QUERY = fileURLToPath(
 const RUN_TIMEOUT_MS = 30_000;
 // The setting scripts/ops/query.ts reads its env file's directory from.
 const OPS_DIR_SETTING = "PROJECT_BUDDY_OPS_DIR";
-const database = scratchDatabase("_ops_query");
+const database = scratchDatabase("ops_query");
 let opsDir = "";
 
 // One run of the command, as `mise run ops:query production "<sql>"`.
@@ -33,20 +33,11 @@ interface Run {
 }
 
 function runQuery(sql: string): Run {
-  const run = spawnSync(
-    process.execPath,
-    [
-      "--disable-warning=MODULE_TYPELESS_PACKAGE_JSON",
-      QUERY,
-      "production",
-      sql,
-    ],
-    {
-      encoding: "utf8",
-      env: { ...process.env, [OPS_DIR_SETTING]: opsDir },
-      timeout: RUN_TIMEOUT_MS,
-    },
-  );
+  const run = spawnSync(process.execPath, [QUERY, "production", sql], {
+    encoding: "utf8",
+    env: { ...process.env, [OPS_DIR_SETTING]: opsDir },
+    timeout: RUN_TIMEOUT_MS,
+  });
   return { status: run.status, stdout: run.stdout, stderr: run.stderr };
 }
 
@@ -61,8 +52,8 @@ async function noteCount(): Promise<number> {
 }
 
 beforeAll(async () => {
-  await dropTestDatabase(database);
-  await resetTestDatabase(database);
+  await dropDatabase(database);
+  await resetDatabase(database);
   const pool = openPool(database.url);
   try {
     await pool.query("create table ops_notes (body text)");
@@ -80,7 +71,7 @@ beforeAll(async () => {
 
 afterAll(async () => {
   await rm(opsDir, { recursive: true, force: true });
-  await dropTestDatabase(database);
+  await dropDatabase(database);
 });
 
 test("prints the rows of one statement as JSON", () => {

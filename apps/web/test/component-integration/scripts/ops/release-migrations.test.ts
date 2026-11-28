@@ -1,4 +1,4 @@
-// `mise deploy` releases a migration on its own only when the live build can
+// `mise run deploy` releases a migration on its own only when the live build can
 // run on the schema it leaves (scripts/ops/release-migrations.ts).
 import { expect, test } from "vitest";
 import { classifyMigrations } from "../../../../../../scripts/ops/release-migrations.ts";

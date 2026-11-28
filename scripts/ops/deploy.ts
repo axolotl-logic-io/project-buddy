@@ -1,4 +1,4 @@
-// `mise deploy`: releases integration to production, the way
+// `mise run deploy`: releases integration to production, the way
 // docs/project-practices.md describes. It reads only origin's branches, so
 // the checkout and its working tree stay as they are.
 //
@@ -13,7 +13,7 @@
 // 5. Waits for the PR's required checks, merges it, and follows the Release
 //    workflow, which builds, migrates, promotes and smoke-tests production.
 //
-// `mise deploy --dry-run` stops after step 3 and prints the PR it would open.
+// `mise run deploy --dry-run` stops after step 3 and prints the PR it would open.
 // Needs `gh auth login` with rights to merge into main.
 import { execFileSync } from "node:child_process";
 import process from "node:process";
@@ -214,7 +214,7 @@ function releaseBody(sha: string, migrations: readonly string[]): string {
     `- Integration checks: ${INTEGRATION_WORKFLOWS.join(" and ")} passed on ${shortSha(sha)}.`,
     ...migrations,
     "",
-    "Opened by `mise deploy`.",
+    "Opened by `mise run deploy`.",
   ].join("\n");
 }
 
@@ -367,7 +367,7 @@ try {
   await deploy(isDryRun(process.argv.slice(2)));
 } catch (error) {
   if (error instanceof Stop) {
-    process.stderr.write(`mise deploy stopped: ${error.message}\n`);
+    process.stderr.write(`mise run deploy stopped: ${error.message}\n`);
     process.exit(1);
   }
   throw error;
