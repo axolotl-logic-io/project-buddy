@@ -120,7 +120,7 @@ Changes to rites, constructs, reply templates or relevant user flows update the 
 
 ## Site tests
 
-- **Quality checks.** `mise run lint` runs Biome and the type check. `mise run test` runs every test in parallel lanes: React Doctor and the fast checks; the server tests; and the Vitest browser tests beside the Playwright tests. Each `test:*` task in `apps/web/mise.toml` is one stage and runs on its own too. CI runs the same `mise run test`.
+- **Quality checks.** `mise run lint` runs Biome and the type check. `mise run test` runs the fast checks, including React Doctor, and the server tests alongside the browser lane. The browser lane runs the Vitest browser tests before the Playwright system tests so they each have time to render. Each `test:*` task in `apps/web/mise.toml` is one stage and runs on its own too. CI runs the same `mise run test`.
 - **Reruns.** The full run reports each stage as it finishes, lets the other stages finish after a failure, and prints a command for each failed case, which runs from any folder. Run `mise run test` again after fixing the failures.
 - **Use cases drive tests.** Every use case gets a test in the lane that can see its risk.
   - A browser test (`*.browser.test.tsx`) checks one component or page in one state, in both Chromium and WebKit: what it shows, focus and the keyboard, touch, phone layouts, the light and dark appearance, the time zone, optimistic states, error copy, and storage or reply faults it injects.
