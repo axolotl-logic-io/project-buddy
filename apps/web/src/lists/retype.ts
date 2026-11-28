@@ -7,7 +7,7 @@ import { listItems } from "@/db/tables/lists.ts";
 import { quests } from "@/db/tables/quests.ts";
 import { takeBackEvents } from "@/experience/experience-store.ts";
 import type { QuestId, UserId } from "@/ids.ts";
-import { type ListType, listItemText } from "./list.ts";
+import { type ItemListType, listItemText } from "./list.ts";
 
 interface RetypedRow {
   readonly id: string;
@@ -26,7 +26,7 @@ async function retype(
   tx: Transaction,
   { user, questId }: { readonly user: UserId; readonly questId: QuestId },
   rows: readonly RetypedRow[],
-  { from, to }: { readonly from: ListType; readonly to: ListType },
+  { from, to }: { readonly from: ItemListType; readonly to: ItemListType },
 ): Promise<"saved" | "invalid-text"> {
   if (from === to || rows.length === 0) {
     return "saved";

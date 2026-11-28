@@ -3,6 +3,24 @@ import type { StreakChain } from "@/streaks/streaks.ts";
 import { CADENCE_COPY } from "./cadence.ts";
 import { LISTS_COPY } from "./lists.ts";
 
+// Under each type's name in the New list dialog.
+const NEW_LIST_HINTS: Readonly<Record<ListType, string>> = {
+  task: "Work to check off, once or on a schedule.",
+  plain: "Anything to keep, one line each.",
+  "quick-note": "Thoughts of up to 1000 characters, each with its date.",
+  tally: "Counts of something done each day.",
+  "zotero-collection":
+    "Works Cited entries from one of your Zotero collections.",
+};
+
+const NEW_LIST_TILES: Readonly<Record<ListType, string>> = {
+  task: "To check off",
+  plain: "To keep",
+  "quick-note": "Dated thoughts",
+  tally: "Daily counts",
+  "zotero-collection": "Works Cited from your library",
+};
+
 const QUEST_OVERVIEW_COPY = {
   quest: "Quest",
   status: "Quest status",
@@ -39,12 +57,33 @@ const QUEST_OVERVIEW_COPY = {
     add: "Add",
     target: "Add to",
     newList: "New list",
-    nameList: "Name the new list",
-    nameProblem: "Name the list in 1 to 80 characters on one line.",
-    namingHint: "Enter makes a task list with this name. Escape goes back.",
+    // The field while the quest has no list to add to.
+    searchOnly: "Search the quest's lists",
+    noList: "Choose New list to make a list to add to.",
     added: (text: string, list: string): string =>
       `Added “${text}” to ${list}.`,
     made: (list: string): string => `Made ${list}. Enter now adds to it.`,
+  },
+  // The dialog that New list opens, which makes a list of the chosen type.
+  newList: {
+    title: "New list",
+    close: "Close",
+    create: "Create list",
+    creating: "Creating the list…",
+    failed: "The list wasn’t made. Try again.",
+    hints: (type: ListType): string => NEW_LIST_HINTS[type],
+    // Under each kind's name on the first step's tiles.
+    tiles: (type: ListType): string => NEW_LIST_TILES[type],
+    // The second step's title, for the kind chosen.
+    titleOf: (type: ListType): string => `New ${LISTS_COPY.types[type]} list`,
+    steps: "Steps",
+    kind: "Kind",
+    details: "Details",
+    kindLegend: "Kind of list",
+    next: "Next",
+    back: "Back",
+    cancel: "Cancel",
+    loadingZotero: "Opening Zotero setup…",
   },
   performRite: "Perform a rite",
   // A list section's candle button, named for its list, that opens the

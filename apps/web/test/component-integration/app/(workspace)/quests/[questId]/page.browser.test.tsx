@@ -4,7 +4,7 @@ import { render } from "vitest-browser-react";
 import QuestLayout from "@/app/(stream)/(site)/(workspace)/quests/[questId]/(overview)/layout.tsx";
 import QuestPage from "@/app/(stream)/(site)/(workspace)/quests/[questId]/(overview)/page.tsx";
 import type { QuestActionResult } from "@/components/use-quest-action.ts";
-import { LIST_ID } from "@/lists/list.ts";
+import { ITEM_LIST_TYPE, LIST_ID, type ListType } from "@/lists/list.ts";
 import { saveListAction } from "@/lists/list-actions.ts";
 import { changeListItemAction } from "@/lists/list-item-actions.ts";
 import { readNextTasks } from "@/lists/list-item-store.ts";
@@ -25,10 +25,12 @@ import { QUEST_OVERVIEW_COPY } from "@/ui/copy/quest-overview.ts";
 import { QUEST_SIDEBAR_COPY } from "@/ui/copy/quest-sidebar.ts";
 import { QUEST_STATUS_COPY } from "@/ui/copy/quest-status.ts";
 import { TIMER_COPY } from "@/ui/copy/timer.ts";
+import { ZOTERO_COPY } from "@/ui/copy/zotero.ts";
 import {
   SIGNED_IN_USER,
   signInAs,
 } from "../../../../auth/current-user-test-kit.ts";
+import { replace } from "../../../../components/router-test-kit.ts";
 import { PERFORMANCE } from "../../../../performances/performance-test-kit.tsx";
 import {
   DONE_TASK,
@@ -361,31 +363,163 @@ describe("use_case_open_quest: the add box", () => {
     expect(changeListItemAction).not.toHaveBeenCalled();
     await expect.element(field).toHaveValue(DONE_TASK.text.toUpperCase());
   });
+});
 
-  test("names a new task list with New list, and Escape goes back", async () => {
+// The New list dialog's title on either step.
+const NEW_LIST_TITLE = /^New /u;
+
+describe("use_case_set_up_list: New list", () => {
+  const dialogCopy = QUEST_OVERVIEW_COPY.newList;
+
+  // The dialog, named New list on its first step and for the kind chosen
+  // on its second.
+  function dialog(): ReturnType<typeof page.getByRole> {
+    return page.getByRole("dialog", { name: NEW_LIST_TITLE });
+  }
+
+  async function openNewList(quest: Quest): Promise<void> {
+    await open(quest);
+    await page
+      .getByRole("form", { name: QUEST_OVERVIEW_COPY.addBox.label })
+      .getByRole("button", { name: QUEST_OVERVIEW_COPY.addBox.newList })
+      .click();
+    await vi.waitFor(() => dialog().element());
+  }
+
+  // A kind's tile, named for the kind and then what it is for.
+  function typeChoice(type: ListType): ReturnType<typeof page.getByRole> {
+    return dialog().getByRole("radio", {
+      name: new RegExp(`^${LISTS_COPY.types[type]} `, "u"),
+    });
+  }
+
+  // Chooses the kind on the first step, then goes on with Next.
+  async function chooseKind(type: ListType): Promise<void> {
+    await typeChoice(type).click();
+    await dialog().getByRole("button", { name: dialogCopy.next }).click();
+  }
+
+  // The step the dialog is on, as its step marks say.
+  function currentStep(): string | undefined {
+    const steps = dialog()
+      .getByRole("list", { name: dialogCopy.steps })
+      .query();
+    return steps?.querySelector('[aria-current="step"]')?.textContent;
+  }
+
+  beforeEach(() => {
+    mockQuestOverview();
+    vi.mocked(replace).mockReset();
+  });
+
+  test("makes a list of the chosen kind, and the add box moves to it", async () => {
     vi.mocked(saveListAction).mockReset().mockResolvedValue({ saved: true });
-    await open(FOX_QUEST);
-    await addBox().getByRole("button", { name: AddBox.newList }).click();
-    const naming = addBox().getByRole("textbox", { name: AddBox.nameList });
-    await expect.element(naming).toHaveFocus();
-    await userEvent.keyboard("{Escape}");
+    await openNewList(FOX_QUEST);
+    await expect
+      .element(page.getByRole("dialog", { name: dialogCopy.title }))
+      .toBeVisible();
+    await expect.poll(currentStep).toContain(dialogCopy.kind);
+    await expect.element(typeChoice("task")).toBeChecked();
+    await chooseKind("tally");
+    await expect
+      .element(page.getByRole("dialog", { name: dialogCopy.titleOf("tally") }))
+      .toBeVisible();
+    await expect.poll(currentStep).toContain(dialogCopy.details);
+    const name = dialog().getByRole("textbox", {
+      name: LISTS_COPY.fields.name,
+    });
+    await expect.element(name).toHaveFocus();
+    await name.fill("Words");
+    await dialog().getByRole("button", { name: dialogCopy.create }).click();
+    const form = vi.mocked(saveListAction).mock.lastCall?.[1];
+    expect(form?.get("questId")).toBe(FOX_QUEST.id);
+    expect(form?.get("name")).toBe("Words");
+    expect(form?.get("type")).toBe("tally");
+    expect(changeListItemAction).not.toHaveBeenCalled();
+    await expect.element(dialog()).not.toBeInTheDocument();
+    await expect
+      .element(page.getByText(QUEST_OVERVIEW_COPY.addBox.made("Words")))
+      .toBeVisible();
+  });
+
+  test("Back returns to the kinds with the chosen kind still chosen", async () => {
+    await openNewList(FOX_QUEST);
+    await chooseKind("plain");
+    await dialog().getByRole("button", { name: dialogCopy.back }).click();
+    await expect.poll(currentStep).toContain(dialogCopy.kind);
+    await expect.element(typeChoice("plain")).toBeChecked();
+    await expect.element(typeChoice("plain")).toHaveFocus();
+  });
+
+  test("a refused name keeps the dialog open with the reason", async () => {
+    vi.mocked(saveListAction)
+      .mockReset()
+      .mockResolvedValue({ error: LISTS_COPY.unavailable });
+    await openNewList(FOX_QUEST);
+    await chooseKind("task");
+    await dialog()
+      .getByRole("textbox", { name: LISTS_COPY.fields.name })
+      .fill("Reading");
+    await dialog().getByRole("button", { name: dialogCopy.create }).click();
+    await expect
+      .element(dialog().getByRole("alert"))
+      .toHaveTextContent(LISTS_COPY.unavailable);
+    await expect
+      .element(dialog().getByRole("textbox", { name: LISTS_COPY.fields.name }))
+      .toHaveValue("Reading");
+  });
+
+  test("Zotero Collection opens Zotero setup, for the quest's owner alone", async () => {
+    await openNewList(FOX_QUEST);
+    await chooseKind("zotero-collection");
+    expect(replace).toHaveBeenCalledWith(
+      `/quests/${FOX_QUEST.id}?section=zotero`,
+      { scroll: false },
+    );
     await expect
       .element(
-        addBox().getByRole("searchbox", {
-          name: LIST_PAGE_COPY.searchIn("task", TASKS.name),
+        page.getByRole("dialog", {
+          name: dialogCopy.titleOf("zotero-collection"),
         }),
       )
       .toBeVisible();
-    await addBox().getByRole("button", { name: AddBox.newList }).click();
-    await naming.fill("Reading");
-    await userEvent.keyboard("{Enter}");
-    const form = vi.mocked(saveListAction).mock.lastCall?.[1];
-    expect(form?.get("questId")).toBe(FOX_QUEST.id);
-    expect(form?.get("name")).toBe("Reading");
-    expect(form?.get("type")).toBe("task");
     await expect
-      .element(addBox().getByText(AddBox.made("Reading")))
+      .element(dialog().getByText(dialogCopy.loadingZotero))
       .toBeVisible();
+  });
+
+  test("a quest member's New list offers no Zotero Collection", async () => {
+    await openNewList({
+      ...FOX_QUEST,
+      sharing: { kind: "joined", owner: "Rowan Owner" },
+    });
+    await expect
+      .element(dialog().getByRole("radio"))
+      .toHaveLength(ITEM_LIST_TYPE.options.length);
+    await expect
+      .element(typeChoice("zotero-collection"))
+      .not.toBeInTheDocument();
+  });
+
+  test("Zotero's return opens the dialog on its setup, and closing leaves it", async () => {
+    await open(FOX_QUEST, "zotero");
+    await expect
+      .element(
+        page.getByRole("dialog", {
+          name: dialogCopy.titleOf("zotero-collection"),
+        }),
+      )
+      .toBeVisible();
+    await expect.poll(currentStep).toContain(dialogCopy.details);
+    await expect
+      .element(
+        dialog().getByRole("button", { name: ZOTERO_COPY.setup.connect }),
+      )
+      .toBeVisible();
+    await dialog().getByRole("button", { name: dialogCopy.close }).click();
+    expect(replace).toHaveBeenCalledWith(`/quests/${FOX_QUEST.id}`, {
+      scroll: false,
+    });
   });
 });
 

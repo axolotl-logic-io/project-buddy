@@ -17,10 +17,10 @@ import {
 import type { QuestId, UserId } from "@/ids.ts";
 import type { Cadence } from "@/streaks/streaks.ts";
 import {
+  ITEM_LIST_TYPE,
+  type ItemListType,
   LIST_ID,
-  LIST_TYPE,
   type ListId,
-  type ListType,
   listItemText,
 } from "./list.ts";
 import { LIST_ITEM_ID, type ListItemChange } from "./list-item.ts";
@@ -103,7 +103,7 @@ interface ListWrite {
   readonly listId: ListId;
   readonly nextTaskNumber: number;
   readonly atTop: boolean;
-  readonly type: ListType;
+  readonly type: ItemListType;
 }
 
 // The quest's next count task numbers, in order, taken so no other task
@@ -296,12 +296,14 @@ async function applyExisting(
             listOpenTo(user),
           ),
         );
-      if (destination === undefined) {
+      // A Zotero Collection list takes no list items.
+      const to = ITEM_LIST_TYPE.safeParse(destination?.type).data;
+      if (to === undefined) {
         return "missing";
       }
       const retyped = await retype(tx, { user, questId }, [row], {
         from: write.type,
-        to: LIST_TYPE.parse(destination.type),
+        to,
       });
       if (retyped !== "saved") {
         return retyped;
@@ -483,7 +485,9 @@ async function changeWithin(
     .where(
       and(eq(lists.questId, questId), eq(lists.id, listId), listOpenTo(user)),
     );
-  if (list === undefined) {
+  // A Zotero Collection list's references are read-only.
+  const type = ITEM_LIST_TYPE.safeParse(list?.type).data;
+  if (type === undefined) {
     return "missing";
   }
   if (change.kind === "undo") {
@@ -498,7 +502,7 @@ async function changeWithin(
       listId,
       atTop,
       nextTaskNumber: quest.nextTaskNumber,
-      type: LIST_TYPE.parse(list.type),
+      type,
     },
     rows,
     change,

@@ -29,8 +29,12 @@ export default defineConfig({
     environment: "node",
     include: ["test/**/*.server.test.ts"],
     env: suiteEnvironment("server"),
-    globalSetup: ["./vitest.server-reset.ts"],
     setupFiles: ["./vitest.server-setup.ts"],
+    // Reset the database and start one fake Zotero for the run.
+    globalSetup: [
+      "./vitest.server-reset.ts",
+      "./test/support/zotero/fake-zotero-global-setup.ts",
+    ],
     maxWorkers: SERVER_TEST_FILES_AT_ONCE,
     testTimeout: SERVER_TEST_TIMEOUT_MS,
     hookTimeout: SERVER_TEST_TIMEOUT_MS,
