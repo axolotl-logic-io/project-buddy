@@ -164,3 +164,21 @@ function readZoteroOrigins(): {
     oauth: oauth ?? "https://www.zotero.org",
     api: api ?? "https://api.zotero.org",
   };
+}
+
+export {
+  emailFromAddressEnvironment,
+  isContinuousIntegration,
+  isNextServer,
+  readDatabaseUrl,
+  readDatabaseUrlForTooling,
+  readEmailFromAddress,
+  readEmailOutboxDir,
+  readEmailTransport,
+  readProductionOrigin,
+  readResendApiKey,
+  readSessionSecret,
+  readVercelBypassSecretIfSet,
+  readZoteroClientIfSet,
+  readZoteroOrigins,
+};

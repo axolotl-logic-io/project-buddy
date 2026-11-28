@@ -1,5 +1,5 @@
 {
-  "id": "86d5a417-3752-4516-b46e-cf8055bbd6c5",
+  "id": "98ace81f-9389-4b88-b1f6-07c44d6a390c",
   "prevId": "2d19e910-dd7e-447b-a6f7-bef492b341ad",
   "version": "7",
   "dialect": "postgresql",
@@ -65,9 +65,9 @@
             }
           ],
           "isUnique": false,
-          "concurrently": false,
+          "with": {},
           "method": "btree",
-          "with": {}
+          "concurrently": false
         },
         "events_quest_id_event_source_idx": {
           "name": "events_quest_id_event_source_idx",
@@ -92,37 +92,37 @@
             }
           ],
           "isUnique": false,
-          "concurrently": false,
+          "with": {},
           "method": "btree",
-          "with": {}
+          "concurrently": false
         }
       },
       "foreignKeys": {
         "events_user_id_users_id_fk": {
           "name": "events_user_id_users_id_fk",
           "tableFrom": "events",
-          "tableTo": "users",
           "columnsFrom": [
             "user_id"
           ],
+          "tableTo": "users",
           "columnsTo": [
             "id"
           ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "cascade"
         },
         "events_quest_id_quests_id_fk": {
           "name": "events_quest_id_quests_id_fk",
           "tableFrom": "events",
-          "tableTo": "quests",
           "columnsFrom": [
             "quest_id"
           ],
+          "tableTo": "quests",
           "columnsTo": [
             "id"
           ],
-          "onDelete": "set null",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "set null"
         }
       },
       "compositePrimaryKeys": {},
@@ -166,26 +166,26 @@
         "list_changes_list_id_lists_id_fk": {
           "name": "list_changes_list_id_lists_id_fk",
           "tableFrom": "list_changes",
-          "tableTo": "lists",
           "columnsFrom": [
             "list_id"
           ],
+          "tableTo": "lists",
           "columnsTo": [
             "id"
           ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "cascade"
         }
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
         "list_changes_version_key": {
           "name": "list_changes_version_key",
-          "nullsNotDistinct": false,
           "columns": [
             "list_id",
             "version"
-          ]
+          ],
+          "nullsNotDistinct": false
         }
       },
       "policies": {},
@@ -286,9 +286,9 @@
             }
           ],
           "isUnique": false,
-          "concurrently": false,
+          "with": {},
           "method": "btree",
-          "with": {}
+          "concurrently": false
         },
         "list_items_quest_task_number_idx": {
           "name": "list_items_quest_task_number_idx",
@@ -307,26 +307,26 @@
             }
           ],
           "isUnique": true,
-          "concurrently": false,
+          "with": {},
           "method": "btree",
-          "with": {}
+          "concurrently": false
         }
       },
       "foreignKeys": {
         "list_items_quest_id_list_id_lists_quest_id_id_fk": {
           "name": "list_items_quest_id_list_id_lists_quest_id_id_fk",
           "tableFrom": "list_items",
-          "tableTo": "lists",
           "columnsFrom": [
             "quest_id",
             "list_id"
           ],
+          "tableTo": "lists",
           "columnsTo": [
             "quest_id",
             "id"
           ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "cascade"
         }
       },
       "compositePrimaryKeys": {},
@@ -401,35 +401,35 @@
             }
           ],
           "isUnique": true,
-          "concurrently": false,
+          "with": {},
           "method": "btree",
-          "with": {}
+          "concurrently": false
         }
       },
       "foreignKeys": {
         "lists_quest_id_quests_id_fk": {
           "name": "lists_quest_id_quests_id_fk",
           "tableFrom": "lists",
-          "tableTo": "quests",
           "columnsFrom": [
             "quest_id"
           ],
+          "tableTo": "quests",
           "columnsTo": [
             "id"
           ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "cascade"
         }
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
         "lists_quest_id_id_key": {
           "name": "lists_quest_id_id_key",
-          "nullsNotDistinct": false,
           "columns": [
             "quest_id",
             "id"
-          ]
+          ],
+          "nullsNotDistinct": false
         }
       },
       "policies": {},
@@ -525,37 +525,37 @@
             }
           ],
           "isUnique": true,
-          "concurrently": false,
+          "with": {},
           "method": "btree",
-          "with": {}
+          "concurrently": false
         }
       },
       "foreignKeys": {
         "performance_messages_performance_id_performances_id_fk": {
           "name": "performance_messages_performance_id_performances_id_fk",
           "tableFrom": "performance_messages",
-          "tableTo": "performances",
           "columnsFrom": [
             "performance_id"
           ],
+          "tableTo": "performances",
           "columnsTo": [
             "id"
           ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "cascade"
         },
         "performance_messages_user_id_users_id_fk": {
           "name": "performance_messages_user_id_users_id_fk",
           "tableFrom": "performance_messages",
-          "tableTo": "users",
           "columnsFrom": [
             "user_id"
           ],
+          "tableTo": "users",
           "columnsTo": [
             "id"
           ],
-          "onDelete": "set null",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "set null"
         }
       },
       "compositePrimaryKeys": {},
@@ -638,9 +638,9 @@
             }
           ],
           "isUnique": false,
-          "concurrently": false,
+          "with": {},
           "method": "btree",
-          "with": {}
+          "concurrently": false
         },
         "performances_active_quest_idx": {
           "name": "performances_active_quest_idx",
@@ -653,27 +653,27 @@
             }
           ],
           "isUnique": true,
-          "where": "\"performances\".\"ended_at\" is null",
-          "concurrently": false,
+          "with": {},
           "method": "btree",
-          "with": {}
+          "where": "\"performances\".\"ended_at\" is null",
+          "concurrently": false
         }
       },
       "foreignKeys": {
         "performances_quest_id_list_id_lists_quest_id_id_fk": {
           "name": "performances_quest_id_list_id_lists_quest_id_id_fk",
           "tableFrom": "performances",
-          "tableTo": "lists",
           "columnsFrom": [
             "quest_id",
             "list_id"
           ],
+          "tableTo": "lists",
           "columnsTo": [
             "quest_id",
             "id"
           ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "cascade"
         }
       },
       "compositePrimaryKeys": {},
@@ -764,24 +764,24 @@
             }
           ],
           "isUnique": false,
-          "concurrently": false,
+          "with": {},
           "method": "btree",
-          "with": {}
+          "concurrently": false
         }
       },
       "foreignKeys": {
         "rites_user_id_users_id_fk": {
           "name": "rites_user_id_users_id_fk",
           "tableFrom": "rites",
-          "tableTo": "users",
           "columnsFrom": [
             "user_id"
           ],
+          "tableTo": "users",
           "columnsTo": [
             "id"
           ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "cascade"
         }
       },
       "compositePrimaryKeys": {},
@@ -851,24 +851,24 @@
             }
           ],
           "isUnique": false,
-          "concurrently": false,
+          "with": {},
           "method": "btree",
-          "with": {}
+          "concurrently": false
         }
       },
       "foreignKeys": {
         "quest_days_quest_id_quests_id_fk": {
           "name": "quest_days_quest_id_quests_id_fk",
           "tableFrom": "quest_days",
-          "tableTo": "quests",
           "columnsFrom": [
             "quest_id"
           ],
+          "tableTo": "quests",
           "columnsTo": [
             "id"
           ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "cascade"
         }
       },
       "compositePrimaryKeys": {},
@@ -944,9 +944,9 @@
             }
           ],
           "isUnique": true,
-          "concurrently": false,
+          "with": {},
           "method": "btree",
-          "with": {}
+          "concurrently": false
         },
         "quest_invitations_invitee_id_idx": {
           "name": "quest_invitations_invitee_id_idx",
@@ -959,60 +959,60 @@
             }
           ],
           "isUnique": false,
-          "concurrently": false,
+          "with": {},
           "method": "btree",
-          "with": {}
+          "concurrently": false
         }
       },
       "foreignKeys": {
         "quest_invitations_quest_id_quests_id_fk": {
           "name": "quest_invitations_quest_id_quests_id_fk",
           "tableFrom": "quest_invitations",
-          "tableTo": "quests",
           "columnsFrom": [
             "quest_id"
           ],
+          "tableTo": "quests",
           "columnsTo": [
             "id"
           ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "cascade"
         },
         "quest_invitations_invitee_id_users_id_fk": {
           "name": "quest_invitations_invitee_id_users_id_fk",
           "tableFrom": "quest_invitations",
-          "tableTo": "users",
           "columnsFrom": [
             "invitee_id"
           ],
+          "tableTo": "users",
           "columnsTo": [
             "id"
           ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "cascade"
         },
         "quest_invitations_inviter_id_users_id_fk": {
           "name": "quest_invitations_inviter_id_users_id_fk",
           "tableFrom": "quest_invitations",
-          "tableTo": "users",
           "columnsFrom": [
             "inviter_id"
           ],
+          "tableTo": "users",
           "columnsTo": [
             "id"
           ],
-          "onDelete": "set null",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "set null"
         }
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
         "quest_invitations_token_hash_unique": {
           "name": "quest_invitations_token_hash_unique",
-          "nullsNotDistinct": false,
           "columns": [
             "token_hash"
-          ]
+          ],
+          "nullsNotDistinct": false
         }
       },
       "policies": {},
@@ -1066,9 +1066,9 @@
             }
           ],
           "isUnique": true,
-          "concurrently": false,
+          "with": {},
           "method": "btree",
-          "with": {}
+          "concurrently": false
         },
         "quest_members_user_id_idx": {
           "name": "quest_members_user_id_idx",
@@ -1081,37 +1081,37 @@
             }
           ],
           "isUnique": false,
-          "concurrently": false,
+          "with": {},
           "method": "btree",
-          "with": {}
+          "concurrently": false
         }
       },
       "foreignKeys": {
         "quest_members_quest_id_quests_id_fk": {
           "name": "quest_members_quest_id_quests_id_fk",
           "tableFrom": "quest_members",
-          "tableTo": "quests",
           "columnsFrom": [
             "quest_id"
           ],
+          "tableTo": "quests",
           "columnsTo": [
             "id"
           ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "cascade"
         },
         "quest_members_user_id_users_id_fk": {
           "name": "quest_members_user_id_users_id_fk",
           "tableFrom": "quest_members",
-          "tableTo": "users",
           "columnsFrom": [
             "user_id"
           ],
+          "tableTo": "users",
           "columnsTo": [
             "id"
           ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "cascade"
         }
       },
       "compositePrimaryKeys": {},
@@ -1211,9 +1211,9 @@
             }
           ],
           "isUnique": false,
-          "concurrently": false,
+          "with": {},
           "method": "btree",
-          "with": {}
+          "concurrently": false
         },
         "quests_dailies_user_idx": {
           "name": "quests_dailies_user_idx",
@@ -1226,10 +1226,10 @@
             }
           ],
           "isUnique": true,
-          "where": "\"quests\".\"dailies\"",
-          "concurrently": false,
+          "with": {},
           "method": "btree",
-          "with": {}
+          "where": "\"quests\".\"dailies\"",
+          "concurrently": false
         },
         "quests_life_user_idx": {
           "name": "quests_life_user_idx",
@@ -1242,25 +1242,25 @@
             }
           ],
           "isUnique": true,
-          "where": "\"quests\".\"life\"",
-          "concurrently": false,
+          "with": {},
           "method": "btree",
-          "with": {}
+          "where": "\"quests\".\"life\"",
+          "concurrently": false
         }
       },
       "foreignKeys": {
         "quests_user_id_users_id_fk": {
           "name": "quests_user_id_users_id_fk",
           "tableFrom": "quests",
-          "tableTo": "users",
           "columnsFrom": [
             "user_id"
           ],
+          "tableTo": "users",
           "columnsTo": [
             "id"
           ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "cascade"
         }
       },
       "compositePrimaryKeys": {},
@@ -1338,10 +1338,10 @@
       "uniqueConstraints": {
         "signup_links_token_hash_unique": {
           "name": "signup_links_token_hash_unique",
-          "nullsNotDistinct": false,
           "columns": [
             "token_hash"
-          ]
+          ],
+          "nullsNotDistinct": false
         }
       },
       "policies": {},
@@ -1388,24 +1388,24 @@
             }
           ],
           "isUnique": true,
-          "concurrently": false,
+          "with": {},
           "method": "btree",
-          "with": {}
+          "concurrently": false
         }
       },
       "foreignKeys": {
         "signed_in_days_user_id_users_id_fk": {
           "name": "signed_in_days_user_id_users_id_fk",
           "tableFrom": "signed_in_days",
-          "tableTo": "users",
           "columnsFrom": [
             "user_id"
           ],
+          "tableTo": "users",
           "columnsTo": [
             "id"
           ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "cascade"
         }
       },
       "compositePrimaryKeys": {},
@@ -1461,24 +1461,24 @@
             }
           ],
           "isUnique": true,
-          "concurrently": false,
+          "with": {},
           "method": "btree",
-          "with": {}
+          "concurrently": false
         }
       },
       "foreignKeys": {
         "tally_days_quest_id_quests_id_fk": {
           "name": "tally_days_quest_id_quests_id_fk",
           "tableFrom": "tally_days",
-          "tableTo": "quests",
           "columnsFrom": [
             "quest_id"
           ],
+          "tableTo": "quests",
           "columnsTo": [
             "id"
           ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "cascade"
         }
       },
       "compositePrimaryKeys": {},
@@ -1559,9 +1559,9 @@
             }
           ],
           "isUnique": true,
-          "concurrently": false,
+          "with": {},
           "method": "btree",
-          "with": {}
+          "concurrently": false
         },
         "timer_presence_schedule_idx": {
           "name": "timer_presence_schedule_idx",
@@ -1592,9 +1592,9 @@
             }
           ],
           "isUnique": false,
-          "concurrently": false,
+          "with": {},
           "method": "btree",
-          "with": {}
+          "concurrently": false
         },
         "timer_presence_reported_at_idx": {
           "name": "timer_presence_reported_at_idx",
@@ -1607,24 +1607,24 @@
             }
           ],
           "isUnique": false,
-          "concurrently": false,
+          "with": {},
           "method": "btree",
-          "with": {}
+          "concurrently": false
         }
       },
       "foreignKeys": {
         "timer_presence_user_id_users_id_fk": {
           "name": "timer_presence_user_id_users_id_fk",
           "tableFrom": "timer_presence",
-          "tableTo": "users",
           "columnsFrom": [
             "user_id"
           ],
+          "tableTo": "users",
           "columnsTo": [
             "id"
           ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "cascade"
         }
       },
       "compositePrimaryKeys": {},
@@ -1675,24 +1675,24 @@
             }
           ],
           "isUnique": false,
-          "concurrently": false,
+          "with": {},
           "method": "btree",
-          "with": {}
+          "concurrently": false
         }
       },
       "foreignKeys": {
         "login_links_user_id_users_id_fk": {
           "name": "login_links_user_id_users_id_fk",
           "tableFrom": "login_links",
-          "tableTo": "users",
           "columnsFrom": [
             "user_id"
           ],
+          "tableTo": "users",
           "columnsTo": [
             "id"
           ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "cascade"
         }
       },
       "compositePrimaryKeys": {},
@@ -1766,10 +1766,10 @@
       "uniqueConstraints": {
         "users_email_unique": {
           "name": "users_email_unique",
-          "nullsNotDistinct": false,
           "columns": [
             "email"
-          ]
+          ],
+          "nullsNotDistinct": false
         }
       },
       "policies": {},
@@ -1841,24 +1841,24 @@
             }
           ],
           "isUnique": false,
-          "concurrently": false,
+          "with": {},
           "method": "btree",
-          "with": {}
+          "concurrently": false
         }
       },
       "foreignKeys": {
         "zotero_authorizations_user_id_users_id_fk": {
           "name": "zotero_authorizations_user_id_users_id_fk",
           "tableFrom": "zotero_authorizations",
-          "tableTo": "users",
           "columnsFrom": [
             "user_id"
           ],
+          "tableTo": "users",
           "columnsTo": [
             "id"
           ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "cascade"
         }
       },
       "compositePrimaryKeys": {},
@@ -1914,15 +1914,15 @@
         "zotero_connections_user_id_users_id_fk": {
           "name": "zotero_connections_user_id_users_id_fk",
           "tableFrom": "zotero_connections",
-          "tableTo": "users",
           "columnsFrom": [
             "user_id"
           ],
+          "tableTo": "users",
           "columnsTo": [
             "id"
           ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "cascade"
         }
       },
       "compositePrimaryKeys": {},
@@ -2015,17 +2015,17 @@
         "zotero_lists_quest_id_list_id_lists_quest_id_id_fk": {
           "name": "zotero_lists_quest_id_list_id_lists_quest_id_id_fk",
           "tableFrom": "zotero_lists",
-          "tableTo": "lists",
           "columnsFrom": [
             "quest_id",
             "list_id"
           ],
+          "tableTo": "lists",
           "columnsTo": [
             "quest_id",
             "id"
           ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "cascade"
         }
       },
       "compositePrimaryKeys": {},
@@ -2136,9 +2136,9 @@
             }
           ],
           "isUnique": true,
-          "concurrently": false,
+          "with": {},
           "method": "btree",
-          "with": {}
+          "concurrently": false
         },
         "zotero_notes_list_item_idx": {
           "name": "zotero_notes_list_item_idx",
@@ -2163,37 +2163,37 @@
             }
           ],
           "isUnique": false,
-          "concurrently": false,
+          "with": {},
           "method": "btree",
-          "with": {}
+          "concurrently": false
         }
       },
       "foreignKeys": {
         "zotero_notes_list_id_zotero_lists_list_id_fk": {
           "name": "zotero_notes_list_id_zotero_lists_list_id_fk",
           "tableFrom": "zotero_notes",
-          "tableTo": "zotero_lists",
           "columnsFrom": [
             "list_id"
           ],
+          "tableTo": "zotero_lists",
           "columnsTo": [
             "list_id"
           ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "cascade"
         },
         "zotero_notes_written_by_users_id_fk": {
           "name": "zotero_notes_written_by_users_id_fk",
           "tableFrom": "zotero_notes",
-          "tableTo": "users",
           "columnsFrom": [
             "written_by"
           ],
+          "tableTo": "users",
           "columnsTo": [
             "id"
           ],
-          "onDelete": "set null",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "set null"
         }
       },
       "compositePrimaryKeys": {},
@@ -2293,9 +2293,9 @@
             }
           ],
           "isUnique": true,
-          "concurrently": false,
+          "with": {},
           "method": "btree",
-          "with": {}
+          "concurrently": false
         },
         "zotero_references_list_position_idx": {
           "name": "zotero_references_list_position_idx",
@@ -2314,24 +2314,24 @@
             }
           ],
           "isUnique": false,
-          "concurrently": false,
+          "with": {},
           "method": "btree",
-          "with": {}
+          "concurrently": false
         }
       },
       "foreignKeys": {
         "zotero_references_list_id_zotero_lists_list_id_fk": {
           "name": "zotero_references_list_id_zotero_lists_list_id_fk",
           "tableFrom": "zotero_references",
-          "tableTo": "zotero_lists",
           "columnsFrom": [
             "list_id"
           ],
+          "tableTo": "zotero_lists",
           "columnsTo": [
             "list_id"
           ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "cascade"
         }
       },
       "compositePrimaryKeys": {},
@@ -2343,10 +2343,10 @@
   },
   "enums": {},
   "schemas": {},
+  "views": {},
   "sequences": {},
   "roles": {},
   "policies": {},
-  "views": {},
   "_meta": {
     "columns": {},
     "schemas": {},

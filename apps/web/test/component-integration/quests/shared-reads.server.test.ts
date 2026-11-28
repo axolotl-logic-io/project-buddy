@@ -145,7 +145,8 @@ describe("a shared quest's kept reads", () => {
     expect(
       await writeExpiresRead(
         () => listQuests(member.id),
-        () => removeFromQuest(owner.id, { questId: quest.id, person: member.id }),
+        () =>
+          removeFromQuest(owner.id, { questId: quest.id, person: member.id }),
       ),
     ).toBe(true);
     expect((await listQuests(member.id)).map(({ id }) => id)).not.toContain(
