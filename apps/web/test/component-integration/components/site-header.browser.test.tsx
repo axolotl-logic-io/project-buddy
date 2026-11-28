@@ -263,8 +263,10 @@ describe("the site panel", () => {
     await expect.element(closeButton()).toHaveFocus();
 
     await closePanel();
+    await expect
+      .element(panelButton())
+      .toHaveAttribute("aria-expanded", "false");
     expect(document.activeElement).toBe(panelButton().element());
-    expect(panelButton().element()).toHaveAttribute("aria-expanded", "false");
   });
 
   for (const viewport of [PHONE_VIEWPORT, LAPTOP_VIEWPORT]) {
