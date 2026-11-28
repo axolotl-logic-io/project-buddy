@@ -34,10 +34,12 @@ function useQuestAction<Request>(
       setProblem(undefined);
       try {
         const result = await action(request);
+        // The controls work again at once, so a dialog that closes on the
+        // result can give focus back to the control that opened it.
+        setBusy(false);
         // The result shows with the page the server sent back with it, so
         // a notice never stands where that page's changes will push it.
         startTransition(() => {
-          setBusy(false);
           if (result.kind === "problem") {
             setProblem(result.text);
           } else {

@@ -75,13 +75,7 @@ async function overviewOf({
     <div className="page-workspace quest-folio">
       <header className="quest-focus-head">
         <div className="quest-focus-line">
-          <h2
-            data-quest-overview-heading=""
-            className="quest-focus-title"
-            tabIndex={-1}
-          >
-            {quest.name}
-          </h2>
+          <h2 className="quest-focus-title">{quest.name}</h2>
           <p className="quest-overview-meta">
             <span className="quest-status-mark">
               {QUEST_STATUS_COPY.labels[quest.status]}
@@ -176,7 +170,7 @@ async function questPage(
       <section aria-label={running.rite.name} className="quest-section-body">
         <h2
           className="section-heading"
-          data-performance-heading=""
+          data-performance-heading={quest.id}
           tabIndex={-1}
         >
           {running.rite.name}
