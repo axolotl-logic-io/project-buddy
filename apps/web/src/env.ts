@@ -11,9 +11,6 @@ import { z } from "zod";
 
 const SET_VALUE = z.string().trim().min(1);
 
-// The highest valid port.
-const HIGHEST_PORT = 65_535;
-const PORT_NUMBER = z.coerce.number().int().positive().max(HIGHEST_PORT);
 // The variable's trimmed value, or undefined when it is unset or blank.
 function readIfSet(name: string): string | undefined {
   return SET_VALUE.safeParse(process.env[name]).data;
@@ -40,19 +37,6 @@ function readDatabaseUrl(): string {
 // that connect, such as `db:migrate`.
 function readDatabaseUrlForTooling(): string {
   return readIfSet("DATABASE_URL") ?? "";
-}
-
-// DATABASE_URL as the end-to-end test commands take it, from .env.test;
-// throws when it is unset or blank. Only scripts/test-db/ reads it, to check
-// that it names the local test database.
-function readTestDatabaseUrl(): string {
-  const value = readIfSet("DATABASE_URL");
-  if (value === undefined) {
-    throw new Error(
-      "DATABASE_URL is not set. The test commands load it from .env.test: copy .env.test.example to .env.test.",
-    );
-  }
-  return value;
 }
 
 // The HMAC key that signs the session cookie.
@@ -144,22 +128,6 @@ function isNextServer(): boolean {
   return process.env[RUNTIME_VARIABLE] !== undefined;
 }
 
-// The supplied site port. An incomplete test environment is an error, never
-// permission for a command to choose a fallback port.
-function readEndToEndPort(): number {
-  const value = readIfSet("E2E_PORT");
-  if (value === undefined) {
-    throw new Error(
-      "E2E_PORT is not set. Configure it in the supplied .env.test.",
-    );
-  }
-  const parsed = PORT_NUMBER.safeParse(value);
-  if (!parsed.success) {
-    throw new Error(`E2E_PORT must be a port number, not "${value}".`);
-  }
-  return parsed.data;
-}
-
 export {
   emailFromAddressEnvironment,
   isContinuousIntegration,
@@ -169,10 +137,8 @@ export {
   readEmailFromAddress,
   readEmailOutboxDir,
   readEmailTransport,
-  readEndToEndPort,
   readProductionOrigin,
   readResendApiKey,
   readSessionSecret,
-  readTestDatabaseUrl,
   readVercelBypassSecretIfSet,
 };

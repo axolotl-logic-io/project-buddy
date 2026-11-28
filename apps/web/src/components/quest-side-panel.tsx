@@ -14,6 +14,7 @@ import {
   useState,
 } from "react";
 import { createPortal } from "react-dom";
+import { slideFromNow } from "@/components/panel-slide.ts";
 import { Button } from "@/components/ui/button.tsx";
 import { Icon } from "@/components/ui/icon.tsx";
 import { useHydrated } from "@/components/use-hydrated.ts";
@@ -136,8 +137,12 @@ function QuestSidePanel({
       }
     }
   }, [open, wide, initialSection]);
-  const expand = useCallback((): void => setExpanded(true), []);
+  const expand = useCallback((): void => {
+    slideFromNow(dialogRef.current);
+    setExpanded(true);
+  }, []);
   const collapse = useCallback((): void => {
+    slideFromNow(dialogRef.current);
     setExpanded(false);
     queueMicrotask(() => toggleRef.current?.focus());
   }, []);

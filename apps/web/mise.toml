@@ -1,20 +1,131 @@
-# The site's tasks. Each runs in this folder and uses the node version from
-# the root mise.toml. Run them from anywhere with `mise //apps/web:<task>`.
+# The site's tasks. Each runs in this folder, with the root mise.toml's Node
+# and node_modules/.bin on PATH. Run one from anywhere with
+# `mise run //apps/web:<task>`; a root task of the same name runs it for
+# every app that has it. A task runs one tool, or the script in scripts/
+# named like it.
+
+# The site's package has no "type": Next and Playwright load its TypeScript
+# as their own modules, and Playwright can't load it as Node's ES modules. So
+# Node warns about each script it reads as an ES module; that is expected.
+[env]
+NODE_OPTIONS = "--disable-warning=MODULE_TYPELESS_PACKAGE_JSON"
+
+[tasks.setup]
+description = "Install dependencies, start the database servers, migrate this branch's development database and install the test browsers"
+run = "node scripts/setup.ts"
+
+[tasks.doctor]
+description = "Check development prerequisites, settings and this branch's development database without changing them"
+run = "node scripts/doctor.ts"
+
+[tasks.dev]
+description = "Serve the site on this branch's development database"
+depends = ["db:migrate"]
+run = "node scripts/dev.ts"
+
+[tasks.sign-in-link]
+description = "Print a sign-in link for EMAIL, or the developer account, making the account if it's missing"
+usage = 'arg "[email]" help="The address to sign in as; developer@project-buddy.test without one"'
+depends = ["db:migrate"]
+run = 'node scripts/sign-in-link.ts {{usage.email}}'
+
+[tasks.build]
+description = "Build the site for production"
+run = "next build"
 
 [tasks.lint]
 description = "Biome and the type check"
-run = "npm run lint"
+run = ["biome check --error-on-warnings", "next typegen", "tsc --noEmit"]
+
+[tasks.format]
+description = "Format the site's files with Biome"
+run = "biome format --write"
+
+# The tests. `test` runs every one of the test:* tasks below in parallel
+# lanes (scripts/test.sh); each of them also runs on its own and takes a
+# file filter and its runner's options.
 
 [tasks.test]
-description = "React Doctor, then script, repository and Vite guards, and server tests against the test database"
-run = "npm test"
+description = "Every test: the fast checks, the server tests, and the browser and system tests, in parallel"
+run = "bash scripts/test.sh"
 
 [tasks."test:e2e"]
-description = "The Vitest browser tests, then reset the test database and run the Playwright end-to-end tests against a production build"
-run = "npm run test:e2e"
+description = "The browser tests and the system tests"
+depends = ["test:browser", "test:system"]
 
-[tasks.build]
-run = "npm run build"
+[tasks."test:doctor"]
+description = "React Doctor"
+run = "npx --yes react-doctor@0.9.23 --yes --no-score --no-supply-chain"
 
-[tasks.dev]
-run = "npm run dev"
+[tasks."test:scripts"]
+description = "The tests of the shell scripts: the test run and the ops scripts"
+run = [
+  "bash test/component-integration/scripts/test.test.sh",
+  "bash test/component-integration/scripts/ops/ops.test.sh",
+]
+
+[tasks."test:repository"]
+description = "The repository guards and the in-process Vite checks"
+run = "vitest run --project repository --project vite-integration --reporter=default --reporter=./scripts/test-env/vitest-failures.ts"
+
+[tasks."test:browser"]
+description = "The Vitest browser tests, in Chromium and WebKit"
+depends = ["browsers:install"]
+run = "vitest run --project 'browser*' --reporter=default --reporter=./scripts/test-env/vitest-failures.ts"
+
+[tasks."test:server"]
+description = "The server tests, against this branch's server test database, which they empty and migrate first"
+run = "vitest run --config vitest.server.config.mts --reporter=default --reporter=./scripts/test-env/vitest-failures.ts"
+
+[tasks."test:system"]
+description = "The Playwright tests, against a production build on this branch's system test database, which they empty and migrate first"
+depends = ["browsers:install"]
+run = "playwright test"
+
+[tasks."browsers:install"]
+description = "Install Playwright's Chromium and WebKit"
+run = "playwright install chromium webkit"
+
+[tasks.audit]
+description = "Lighthouse and axe audits of the built site; --help for the options"
+run = "node test/audit/command.ts"
+
+[tasks."audit:performance"]
+description = "The audits with performance measurements; --help for the options"
+run = "node test/audit/command.ts --performance"
+
+# The local databases (scripts/db/database-names.ts names them by branch).
+
+[tasks."db:up"]
+description = "Start the development and test database servers"
+run = [
+  "docker compose --file compose.dev-db.yml up --detach --wait",
+  "docker compose --file compose.test-db.yml up --detach --wait",
+]
+
+[tasks."db:down"]
+description = "Stop the database servers; the test server's databases go with it"
+run = [
+  "docker compose --file compose.dev-db.yml down",
+  "docker compose --file compose.test-db.yml down",
+]
+
+[tasks."db:migrate"]
+description = "Make this branch's development database if it's missing and give it the checkout's migrations, resetting it if its history differs"
+run = "node scripts/db/migrate.ts"
+
+[tasks."db:reset"]
+description = "Empty one of this branch's databases and migrate it: dev (the default), server or system"
+run = "node scripts/db/reset.ts"
+
+[tasks."db:prune"]
+description = "Drop the local databases whose branch, worktree or repository is gone"
+run = "node scripts/db/prune.ts"
+
+[tasks."db:generate"]
+description = "Generate a migration from the changed tables in src/db/tables/"
+run = "drizzle-kit generate"
+
+[tasks."release:smoke"]
+description = "Smoke-test a deployment of the site at URL"
+run = "node scripts/release/smoke.ts"

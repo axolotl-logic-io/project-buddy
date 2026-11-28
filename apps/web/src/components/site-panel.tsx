@@ -15,6 +15,7 @@ import {
   useSyncExternalStore,
 } from "react";
 import { AppearanceChoices } from "@/components/appearance-choices.tsx";
+import { slideFromNow, slideOnCancel } from "@/components/panel-slide.ts";
 import { Button } from "@/components/ui/button.tsx";
 import { Icon } from "@/components/ui/icon.tsx";
 import { useWideScreen } from "@/components/use-wide-screen.ts";
@@ -243,6 +244,7 @@ function SidePanel({
   // where a click doesn't focus a button, as in Safari.
   const toggle = useCallback((): void => {
     toggleRef.current?.focus({ preventScroll: true });
+    slideFromNow(dialogRef.current);
     if (wide && storageKey !== undefined) {
       setDocked(storageKey, !docked);
     } else {
@@ -250,6 +252,7 @@ function SidePanel({
     }
   }, [docked, storageKey, wide]);
   const close = useCallback((): void => {
+    slideFromNow(dialogRef.current);
     if (wide && storageKey !== undefined) {
       setDocked(storageKey, false);
     } else {
@@ -283,6 +286,7 @@ function SidePanel({
         className={panelClass}
         closedby={closedBy}
         id={panelId}
+        onCancel={slideOnCancel}
         onClose={markClosed}
         onKeyDown={containDrawerFocus}
         ref={dialogRef}

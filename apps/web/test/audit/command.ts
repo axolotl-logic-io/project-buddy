@@ -20,8 +20,8 @@ const { values } = parseArgs({
 
 if (values.help === true) {
   process.stdout.write(
-    `npm run audit -- [--page NAME] [--profile phone|desktop] [--samples N] [--compare DIR]
-npm run audit:performance -- [--page NAME | --action NAME] [--profile phone|desktop] [--samples N] [--compare DIR]
+    `mise run //apps/web:audit [--page NAME] [--profile phone|desktop] [--samples N] [--compare DIR]
+mise run //apps/web:audit:performance [--page NAME | --action NAME] [--profile phone|desktop] [--samples N] [--compare DIR]
 Pages: ${PAGE.options.join(", ")}
 Actions: ${ACTION.options.join(", ")}
 `,
@@ -44,7 +44,6 @@ Actions: ${ACTION.options.join(", ")}
     const run = spawnSync(
       process.execPath,
       [
-        "--disable-warning=MODULE_TYPELESS_PACKAGE_JSON",
         "../../node_modules/@playwright/test/cli.js",
         "test",
         "--config=playwright.audit.config.ts",

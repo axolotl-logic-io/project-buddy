@@ -7,44 +7,75 @@ config_roots = ["apps/web", "apps/instruction-counter"]
 [tools]
 node = "24"
 
-# The three quality tasks. Each runs the same npm script in every workspace.
-[tasks.lint]
-description = "Run Biome and the type check in every workspace"
-run = "npm run lint"
+# Every task finds the workspace's command-line tools, such as biome, vitest
+# and next, as npm scripts would.
+[env]
+_.path = ["{{config_root}}/node_modules/.bin"]
 
-[tasks.test]
-description = "Run React Doctor and the full test suite in every workspace"
-run = "npm test"
-
-[tasks."test:e2e"]
-description = "Run the browser tests and the end-to-end tests"
-run = "npm run test:e2e"
+# The tasks every app may have. Each runs the app task of the same name in
+# every app that has it (`mise run //apps/web:test` runs only the site's),
+# plus the repository's own part, if any. An app's task runs one tool, or
+# the script named like it in the app's scripts/.
 
 [tasks.setup]
-description = "Install dependencies and prepare the persistent local development environment"
-run = 'node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON "{{config_root}}/apps/web/scripts/development/run.ts" setup'
+description = "Install dependencies and prepare every app for development and tests"
+run = "mise run '//apps/...:setup'"
 
 [tasks.doctor]
-description = "Check development prerequisites, configuration and database without changing them"
-run = 'node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON "{{config_root}}/apps/web/scripts/development/run.ts" doctor'
+description = "Check every app's development prerequisites, settings and databases without changing them"
+run = "mise run '//apps/...:doctor'"
+
+[tasks.dev]
+description = "Serve the site on this branch's development database"
+run = "mise run '//apps/...:dev'"
+
+[tasks.build]
+description = "Build every app"
+run = "mise run '//apps/...:build'"
+
+[tasks.lint]
+description = "Biome and the type check, for the repository's scripts and in every app"
+run = [
+  "biome check --error-on-warnings scripts/ops",
+  "mise run '//apps/...:lint'",
+]
+
+[tasks.format]
+description = "Format every app's files with Biome"
+run = "mise run '//apps/...:format'"
+
+[tasks.test]
+description = "Every test: the release script tests and every app's tests"
+run = [
+  "bash .github/scripts/vercel-promote.test.sh",
+  "mise run '//apps/...:test'",
+]
+
+[tasks."test:e2e"]
+description = "Every app's browser and end-to-end tests"
+run = "mise run '//apps/...:test:e2e'"
 
 [tasks.sign-in-link]
-description = "Print a sign-in link for EMAIL, or the developer account, making the account if it's missing"
+description = "Print a sign-in link to the development site for EMAIL, or the developer account, making the account if it's missing"
 usage = 'arg "[email]" help="The address to sign in as; developer@project-buddy.test without one"'
-run = 'node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON "{{config_root}}/apps/web/scripts/development/run.ts" sign-in-link {{usage.email}}'
+run = "mise run '//apps/...:sign-in-link' {{usage.email}}"
+
+[tasks."db:prune"]
+description = "Drop every app's local databases whose branch, worktree or repository is gone"
+run = "mise run '//apps/...:db:prune'"
 
 # Vercel operations. They need a personal `vercel login`. Pulled environments
 # are written outside the checkout; see scripts/ops/project.sh.
 [tasks."ops:link"]
 description = "Link this checkout to the site's Vercel project, so the other ops tasks and the vercel CLI work without --scope"
-run = 'bash "{{config_root}}/scripts/ops/link.sh"'
+run = 'bash scripts/ops/link.sh'
 
 [tasks."ops:env"]
 description = "Pull one environment's variables to a private file outside the checkout, and print their names"
 usage = '''
 arg "[environment]" help="production, preview or development"
 '''
-run = 'bash "{{config_root}}/scripts/ops/pull-env.sh" "$usage_environment"'
+run = 'bash scripts/ops/pull-env.sh "$usage_environment"'
 
 [tasks."ops:query"]
 description = "Run one read-only SQL statement against an environment's database, and print the rows as JSON"
@@ -52,17 +83,17 @@ usage = '''
 arg "[environment]" help="production, preview or development"
 arg "[sql]" help="One SQL statement, quoted"
 '''
-run = 'node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON "{{config_root}}/scripts/ops/query.ts" "$usage_environment" "$usage_sql"'
+run = 'node scripts/ops/query.ts "$usage_environment" "$usage_sql"'
 
 # Releases integration to production: checks, release PR, merge, and the
 # Release workflow. Needs `gh auth login`; see scripts/ops/deploy.ts.
 [tasks.deploy]
 description = "Check integration, open and merge the release PR into main, and follow the production release; --dry-run prints the PR instead"
 usage = 'flag "--dry-run" help="Run the checks and print the release PR without opening or merging it"'
-run = 'node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON "{{config_root}}/scripts/ops/deploy.ts" {% if usage.dry_run %}--dry-run{% endif %}'
+run = 'node scripts/ops/deploy.ts {% if usage.dry_run %}--dry-run{% endif %}'
 
 # Which local scripts recent T3 Code threads for this project ran, and which
 # they did not, read from T3 Code's local database.
 [tasks.script-usage]
-description = "List the npm scripts, mise tasks and script files the last N T3 Code threads ran, and those they did not, with where each is defined; --help for the options"
-run = 'node "{{config_root}}/scripts/script-usage.mts"'
+description = "List the mise tasks and script files the last N T3 Code threads ran, and those they did not, with where each is defined; --help for the options"
+run = 'node scripts/script-usage.mts'

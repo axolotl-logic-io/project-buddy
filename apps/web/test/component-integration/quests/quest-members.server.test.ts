@@ -10,7 +10,6 @@ import {
   findUserByEmail,
   saveUserName,
 } from "@/accounts/users-store.ts";
-import QuestPage from "@/app/(stream)/(site)/(workspace)/quests/[questId]/(overview)/page.tsx";
 import { continueSignInAction } from "@/app/(stream)/(site)/login/link/actions.ts";
 import SignInLinkPage from "@/app/(stream)/(site)/login/link/page.tsx";
 import { currentUser } from "@/auth/current-user.ts";
@@ -60,6 +59,7 @@ import {
   emailedLoginToken,
   type SendEmail,
 } from "../test-database/sign-in-link-test-kit.ts";
+import { expectQuestNotFound } from "./missing-quest-test-kit.tsx";
 import {
   accountOf,
   addInvitee,
@@ -583,12 +583,7 @@ describe("use_case_remove_quest_member", () => {
     await signIn(member);
 
     expect(await getQuest(member.id, first.id)).toBeUndefined();
-    await expectNotFound(() =>
-      QuestPage({
-        params: Promise.resolve({ questId: first.id }),
-        searchParams: Promise.resolve({}),
-      }),
-    );
+    await expectQuestNotFound(first.id);
   });
 });
 

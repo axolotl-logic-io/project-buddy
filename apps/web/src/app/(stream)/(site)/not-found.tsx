@@ -5,8 +5,8 @@ import { PROBLEMS_COPY } from "@/ui/copy/problems.ts";
 
 // What an address the site doesn't have shows, and any page whose
 // notFound() no closer not-found page catches, such as Invitations for an
-// ordinary user. A missing quest says so instead (the
-// not-found pages of their own segments).
+// ordinary user. A missing quest's page says so itself instead
+// (quests/[questId]/(overview)/quest-not-found.tsx).
 export default function NotFound(): JSX.Element {
   return (
     <PageFrame>
