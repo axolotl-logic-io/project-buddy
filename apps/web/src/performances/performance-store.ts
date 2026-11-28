@@ -27,9 +27,9 @@ import { performanceMessages, performances } from "@/db/tables/performances.ts";
 import { quests } from "@/db/tables/quests.ts";
 import { withAppErrors } from "@/errors/to-app-error.ts";
 import {
-  parseQuestId,
   PERFORMANCE_ID,
   type PerformanceId,
+  parseQuestId,
   type QuestId,
   type UserId,
 } from "@/ids.ts";
