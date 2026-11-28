@@ -74,7 +74,9 @@ function questPanel(): HTMLDialogElement {
   return dialog;
 }
 
-// Whether the user can see `dialog`, or would if it were in view.
+// Whether the user can see `dialog`, or would if it were in view. WebKit
+// can still show a panel just after its slide ends, until its next style
+// update, so the tests wait for this rather than read it as the slide ends.
 function onScreen(dialog: HTMLDialogElement): boolean {
   return dialog.checkVisibility({ visibilityProperty: true });
 }
@@ -193,7 +195,9 @@ describe("use_case_use_on_phone: side panels slide", () => {
       await opening;
       expect(slideOf(dialog)).toEqual({ ms: SLIDE_MS, easing: ARRIVING });
       await animationsSettled(dialog, "The site panel");
-      expect(onScreen(dialog), "it has slid in").toBe(true);
+      await expect
+        .poll(() => onScreen(dialog), { message: "it has slid in" })
+        .toBe(true);
 
       const closing = nextSlide(dialog);
       await closeButton().click();
@@ -204,7 +208,11 @@ describe("use_case_use_on_phone: side panels slide", () => {
       expect(dialog.open).toBe(false);
       expect(slideOf(dialog)).toEqual({ ms: SLIDE_MS, easing: LEAVING });
       await animationsSettled(dialog, "The site panel");
-      expect(onScreen(dialog), "it has gone once it slid out").toBe(false);
+      await expect
+        .poll(() => onScreen(dialog), {
+          message: "it has gone once it slid out",
+        })
+        .toBe(false);
       expect(
         document.documentElement.scrollWidth,
         "the page doesn't scroll sideways to it",
@@ -239,7 +247,9 @@ describe("use_case_use_on_phone: side panels slide", () => {
       "so do the breadcrumbs",
     ).toEqual({ ms: SLIDE_MS, easing: LEAVING });
     await animationsSettled(document, "The page");
-    expect(onScreen(dialog)).toBe(false);
+    await expect
+      .poll(() => onScreen(dialog), { message: "it has gone once it slid out" })
+      .toBe(false);
     expect(document.documentElement.scrollWidth).toBeLessThanOrEqual(
       LAPTOP_VIEWPORT.width,
     );
@@ -257,7 +267,9 @@ describe("use_case_use_on_phone: side panels slide", () => {
       "so do the breadcrumbs",
     ).toEqual({ ms: SLIDE_MS, easing: ARRIVING });
     await animationsSettled(document, "The page");
-    expect(onScreen(dialog), "it has slid back in").toBe(true);
+    await expect
+      .poll(() => onScreen(dialog), { message: "it has slid back in" })
+      .toBe(true);
   });
 });
 
