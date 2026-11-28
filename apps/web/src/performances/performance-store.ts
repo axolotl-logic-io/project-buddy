@@ -13,11 +13,12 @@ import {
   inTransaction,
   type Transaction,
 } from "@/db/client.ts";
+import { expireReads, keepRead } from "@/db/read-cache.ts";
 import { lists } from "@/db/tables/lists.ts";
 import { performanceMessages, performances } from "@/db/tables/performances.ts";
 import { quests } from "@/db/tables/quests.ts";
 import { withAppErrors } from "@/errors/to-app-error.ts";
-import type { QuestId, UserId } from "@/ids.ts";
+import { parseQuestId, type QuestId, type UserId } from "@/ids.ts";
 import {
   LIST_ID,
   LIST_SETTINGS,
@@ -26,6 +27,7 @@ import {
   type ListType,
 } from "@/lists/list.ts";
 import { changeWithin } from "@/lists/list-item-store.ts";
+import { keepQuestRead } from "@/quests/quest-reads.ts";
 import {
   nextReply,
   REPLY_CHOICE,
@@ -94,11 +96,13 @@ function asPerformance(row: {
 
 type Performance = ReturnType<typeof asPerformance>;
 
-function listPerformances(
+async function listPerformances(
   user: UserId,
   questId: QuestId,
 ): Promise<Performance[]> {
-  return withAppErrors("listPerformances", async () => {
+  "use cache";
+  keepQuestRead(user, questId);
+  return await withAppErrors("listPerformances", async () => {
     const rows = await getDb()
       .select(PERFORMANCE_COLUMNS)
       .from(performances)
@@ -181,12 +185,12 @@ async function stopWithin(
     .where(and(eq(performances.id, performance.id), performanceOpenTo(user)));
 }
 
-function startPerformance(
+async function startPerformance(
   user: UserId,
   questId: QuestId,
   input: { readonly listId: ListId; readonly riteId: string },
 ): Promise<Performance | undefined> {
-  return withAppErrors("startPerformance", async () => {
+  const started = await withAppErrors("startPerformance", async () => {
     const rite = await readRite(user, input.riteId);
     if (rite === undefined) {
       return;
@@ -231,14 +235,16 @@ function startPerformance(
       });
     });
   });
+  expireReads({ accounts: [user], quests: [questId] });
+  return started;
 }
 
-function stopPerformance(
+async function stopPerformance(
   user: UserId,
   questId: QuestId,
   id: PerformanceId,
 ): Promise<boolean> {
-  return withAppErrors("stopPerformance", () =>
+  const stopped = await withAppErrors("stopPerformance", () =>
     inTransaction(async (tx) => {
       if (!(await lockQuest(tx, user, questId))) {
         return false;
@@ -251,6 +257,8 @@ function stopPerformance(
       return true;
     }),
   );
+  expireReads({ accounts: [user], quests: [questId] });
+  return stopped;
 }
 
 // A message to send, with the rite's reply the sender's browser chose for
@@ -285,12 +293,18 @@ type PerformanceMessage = Pick<
   keyof typeof PERFORMANCE_MESSAGE_COLUMNS
 >;
 
-function readPerformanceMessages(
+async function readPerformanceMessages(
   user: UserId,
   id: PerformanceId,
 ): Promise<PerformanceMessage[]> {
-  return withAppErrors("readPerformanceMessages", async () =>
-    getDb()
+  "use cache";
+  return await withAppErrors("readPerformanceMessages", async () => {
+    const [performance] = await getDb()
+      .select({ questId: performances.questId })
+      .from(performances)
+      .where(and(eq(performances.id, id), performanceOpenTo(user)));
+    keepRead(user, [parseQuestId(performance?.questId ?? "") ?? []].flat());
+    return await getDb()
       .select(PERFORMANCE_MESSAGE_COLUMNS)
       .from(performanceMessages)
       .where(
@@ -299,16 +313,16 @@ function readPerformanceMessages(
           performanceMessageOpenTo(user),
         ),
       )
-      .orderBy(performanceMessages.position),
-  );
+      .orderBy(performanceMessages.position);
+  });
 }
 
-function sendMessage(
+async function sendMessage(
   user: UserId,
   questId: QuestId,
   input: PerformanceMessageRequest,
 ): Promise<PerformanceMessage | undefined> {
-  return withAppErrors("sendMessage", async () => {
+  const sent = await withAppErrors("sendMessage", async () => {
     const author = (await readUserName(user)) ?? PERFORMANCE_COPY.unnamed;
     return inTransaction(async (tx) => {
       if (!(await lockQuest(tx, user, questId))) {
@@ -346,6 +360,8 @@ function sendMessage(
       return entry;
     });
   });
+  expireReads({ accounts: [user], quests: [questId] });
+  return sent;
 }
 
 async function addPerformanceMessage(

@@ -88,7 +88,6 @@ import { expectNotFound } from "../test-database/navigation-test-kit.ts";
 import { signIn } from "../test-database/session-test-kit.ts";
 import { twoUsers } from "../test-database/two-users-test-kit.ts";
 
-vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
 // Quests' finder searches through the router, which a page rendered to
 // HTML here has none of.
 vi.mock("next/navigation", async (importOriginal) => ({

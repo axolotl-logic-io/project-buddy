@@ -1,4 +1,4 @@
-import { expect, test, vi } from "vitest";
+import { expect, test } from "vitest";
 import type { User } from "@/accounts/users-store.ts";
 import { changeQuestStatusAction } from "@/app/(stream)/(site)/(workspace)/quests/status-actions.ts";
 import { readExperience } from "@/experience/experience-store.ts";
@@ -20,8 +20,6 @@ import {
   addMember,
   addRemovedMember,
 } from "./quest-members-test-kit.ts";
-
-vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
 
 const INVALID: StatusActionState = {
   kind: "invalid",

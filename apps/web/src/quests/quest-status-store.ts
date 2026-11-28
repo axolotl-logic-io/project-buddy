@@ -1,6 +1,7 @@
 import { and, eq, sql } from "drizzle-orm";
 import { questOpenTo } from "@/accounts/owner-scope.ts";
 import { inTransaction, type Transaction } from "@/db/client.ts";
+import { expireReads } from "@/db/read-cache.ts";
 import { quests } from "@/db/tables/quests.ts";
 import { withAppErrors } from "@/errors/to-app-error.ts";
 import { recordEvents, takeBackEvents } from "@/experience/experience-store.ts";
@@ -60,11 +61,11 @@ async function saveStatus(
 // A change the owner or a member asked for. The revision is the one shown
 // in the UI, never a blind overwrite. Undefined includes stale, foreign and
 // already-set, and Life, which stays Active.
-function changeQuestStatus(
+async function changeQuestStatus(
   user: UserId,
   change: StatusChange,
 ): Promise<StatusChange | undefined> {
-  return withAppErrors("change quest status", () =>
+  const changed = await withAppErrors("change quest status", () =>
     inTransaction(async (tx) => {
       const quest = await lockedQuest(tx, user, change.questId);
       if (
@@ -80,6 +81,10 @@ function changeQuestStatus(
       return { ...change, revision: change.revision + 1 };
     }),
   );
+  if (changed !== undefined) {
+    expireReads({ accounts: [user], quests: [change.questId] });
+  }
+  return changed;
 }
 
 export { changeQuestStatus };

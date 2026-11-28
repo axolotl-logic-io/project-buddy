@@ -2,7 +2,6 @@
 
 import { redirect } from "next/navigation";
 import { z } from "zod";
-import { revalidateWorkspace } from "@/app/revalidate-workspace.ts";
 import { requireUser } from "@/auth/current-user.ts";
 import { checkQuestName, QUEST_NAME_MAX_LENGTH } from "@/quests/quest-name.ts";
 import { createQuest } from "@/quests/store.ts";
@@ -45,7 +44,6 @@ export async function startQuestAction(
   const quest = await createQuest(user.id, checked.name, {
     startingContext: motivation,
   });
-  revalidateWorkspace();
   redirect(`/quests/${quest.id}`);
 }
 

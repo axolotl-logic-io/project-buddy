@@ -18,6 +18,7 @@ import { signUpLinks } from "@/db/tables/sign-up-links.ts";
 import { signInLinks, users } from "@/db/tables/users.ts";
 import { withAppErrors } from "@/errors/to-app-error.ts";
 import { parseUserId, type UserId } from "@/ids.ts";
+import { expireAccountReads } from "@/quests/quest-reads.ts";
 
 // Whether the account's user has completed sign-up.
 type AccountState = "invited" | "signed_up";
@@ -173,6 +174,7 @@ async function saveUserName(
       .set({ name: name ?? null })
       .where(eq(users.id, owner)),
   );
+  await expireAccountReads(owner);
 }
 
 // Saves the owner's time zone. Answers false, saving nothing, when Postgres
@@ -185,7 +187,11 @@ async function saveTimeZone(owner: UserId, timeZone: string): Promise<boolean> {
       .where(and(eq(users.id, owner), postgresKnows(timeZone)))
       .returning({ id: users.id }),
   );
-  return saved.length > 0;
+  if (saved.length === 0) {
+    return false;
+  }
+  await expireAccountReads(owner);
+  return true;
 }
 
 // The owner's name, or undefined if they have none or no longer exist. One
@@ -272,11 +278,14 @@ async function completeSignUp(
   id: UserId,
   details: SignUpDetails,
 ): Promise<boolean> {
-  return (
-    (await withAppErrors("complete sign-up", () =>
-      completeSignUpIn(getDb(), id, details),
-    )) !== undefined
+  const completed = await withAppErrors("complete sign-up", () =>
+    completeSignUpIn(getDb(), id, details),
   );
+  if (completed === undefined) {
+    return false;
+  }
+  await expireAccountReads(id);
+  return true;
 }
 
 export type { SignUpDetails, User };

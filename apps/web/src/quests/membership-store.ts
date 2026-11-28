@@ -33,6 +33,7 @@ import {
 } from "@/accounts/users-store.ts";
 import type { SessionUser } from "@/auth/session-token.ts";
 import { getDb, inTransaction, type Transaction } from "@/db/client.ts";
+import { expireReads, keepRead } from "@/db/read-cache.ts";
 import { questInvitations, questMembers } from "@/db/tables/quest-members.ts";
 import { quests } from "@/db/tables/quests.ts";
 import { users } from "@/db/tables/users.ts";
@@ -43,6 +44,7 @@ import { logEmailFailure } from "@/errors/error-log.ts";
 import { withAppErrors } from "@/errors/to-app-error.ts";
 import { parseQuestId, parseUserId, type QuestId, type UserId } from "@/ids.ts";
 import { INVITATION_LINK_LIFETIME_DAYS } from "@/quests/membership.ts";
+import { keepQuestRead } from "@/quests/quest-reads.ts";
 import { QUEST_STATUS, type QuestStatus } from "@/quests/quest-status.ts";
 import { SIGN_IN_LINK_PATH } from "@/routes.ts";
 
@@ -122,6 +124,7 @@ type AcceptLinkResult =
 type SavedInvitation =
   | {
       readonly kind: "pending";
+      readonly inviteeId: UserId;
       readonly questName: string;
       readonly invitedBy: string;
       // The owner's display name when someone else invites.
@@ -322,6 +325,7 @@ async function inviteToQuest(
       );
       return {
         kind: "pending",
+        inviteeId,
         questName: quest.name,
         ...accounts,
         token,
@@ -332,6 +336,7 @@ async function inviteToQuest(
   if (saved.kind !== "pending") {
     return saved;
   }
+  expireReads({ accounts: [saved.inviteeId], quests: [questId] });
   const url = new URL(SIGN_IN_LINK_PATH, origin);
   url.searchParams.set("token", saved.token);
   try {
@@ -355,11 +360,13 @@ async function inviteToQuest(
 
 // The quest's owner, members and pending invitees, as user sees them;
 // undefined unless the quest is open to user.
-function listQuestPeople(
+async function listQuestPeople(
   user: UserId,
   questId: QuestId,
 ): Promise<QuestPeople | undefined> {
-  return withAppErrors("list quest people", async () => {
+  "use cache";
+  keepQuestRead(user, questId);
+  return await withAppErrors("list quest people", async () => {
     const db = getDb();
     const [[owner], members, invited] = await Promise.all([
       db
@@ -427,11 +434,11 @@ function listQuestPeople(
 // user removes no one. What a removed member wrote stays in the quest; a
 // reply their message is waiting for stops, so anyone left can ask for it
 // again.
-function removeFromQuest(
+async function removeFromQuest(
   user: UserId,
   request: { readonly questId: QuestId; readonly person: UserId },
 ): Promise<boolean> {
-  return withAppErrors("remove from quest", () =>
+  const removed = await withAppErrors("remove from quest", () =>
     inTransaction(async (tx) => {
       if (
         (await lockedSharableQuest(tx, user, request.questId)) === undefined
@@ -461,12 +468,17 @@ function removeFromQuest(
       return members.length + invitations.length > 0;
     }),
   );
+  if (removed) {
+    expireReads({ accounts: [request.person], quests: [request.questId] });
+  }
+  return removed;
 }
 
 // The quests the user is invited to and hasn't accepted, newest invitation
 // first.
-function listPendingQuests(user: UserId): Promise<PendingQuest[]> {
-  return withAppErrors("list pending quests", async () => {
+async function listPendingQuests(user: UserId): Promise<PendingQuest[]> {
+  "use cache";
+  return await withAppErrors("list pending quests", async () => {
     const rows = await getDb()
       .select({
         questId: quests.id,
@@ -481,6 +493,10 @@ function listPendingQuests(user: UserId): Promise<PendingQuest[]> {
       .leftJoin(inviters, eq(inviters.id, questInvitations.inviterId))
       .where(and(questInvitationTo(user), questPendingFor(user)))
       .orderBy(desc(questInvitations.createdAt), asc(quests.id));
+    keepRead(
+      user,
+      rows.flatMap(({ questId }) => parseQuestId(questId) ?? []),
+    );
     return rows.flatMap((row) => {
       const questId = parseQuestId(row.questId);
       if (questId === undefined) {
@@ -539,12 +555,12 @@ async function acceptInTransaction(
 // Answers the user's pending invitation to the quest: accepting makes them
 // a member, declining deletes it. Either way their other invitations stay
 // pending. Answers whether there was an invitation to answer.
-function answerInvitation(
+async function answerInvitation(
   user: UserId,
   questId: QuestId,
   accept: boolean,
 ): Promise<boolean> {
-  return withAppErrors("answer quest invitation", () =>
+  const answered = await withAppErrors("answer quest invitation", () =>
     inTransaction(async (tx) => {
       if (accept) {
         return acceptInTransaction(tx, user, questId);
@@ -558,6 +574,10 @@ function answerInvitation(
       return declined.length > 0;
     }),
   );
+  // Either way the user's Pending is out of date when this is called:
+  // expiring it also drops an invitation withdrawn or answered elsewhere.
+  expireReads({ accounts: [user], quests: [questId] });
+  return answered;
 }
 
 // The acceptance link holding the token, or undefined if it isn't one the
@@ -625,7 +645,7 @@ async function acceptInvitationLink(
     return { kind: "gone" };
   }
   const tokenHash = await hashToken(token);
-  return withAppErrors("accept invitation link", () =>
+  const result = await withAppErrors("accept invitation link", () =>
     inTransaction(async (tx): Promise<AcceptLinkResult> => {
       const [row] = await tx
         .select({
@@ -663,6 +683,10 @@ async function acceptInvitationLink(
       };
     }),
   );
+  if (result.kind === "accepted") {
+    expireReads({ accounts: [result.user.id], quests: [result.questId] });
+  }
+  return result;
 }
 
 export type { InviteResult, PendingQuest, QuestPeople, QuestPerson };

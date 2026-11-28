@@ -133,6 +133,17 @@ function isContinuousIntegration(): boolean {
   return readIfSet("CI") !== undefined;
 }
 
+// The variable naming the runtime the Next server runs code in. Next sets it
+// when it starts, and writes its value into the server bundles in place of
+// each read of it.
+const RUNTIME_VARIABLE = "NEXT_RUNTIME";
+
+// Whether this code runs on the Next server, rather than in a test process
+// that imports it.
+function isNextServer(): boolean {
+  return process.env[RUNTIME_VARIABLE] !== undefined;
+}
+
 // The supplied site port. An incomplete test environment is an error, never
 // permission for a command to choose a fallback port.
 function readEndToEndPort(): number {
@@ -152,6 +163,7 @@ function readEndToEndPort(): number {
 export {
   emailFromAddressEnvironment,
   isContinuousIntegration,
+  isNextServer,
   readDatabaseUrl,
   readDatabaseUrlForTooling,
   readEmailFromAddress,

@@ -5,6 +5,7 @@ import {
   questOpenTo,
 } from "@/accounts/owner-scope.ts";
 import { getDb, inTransaction, type Transaction } from "@/db/client.ts";
+import { expireReads } from "@/db/read-cache.ts";
 import { listChanges } from "@/db/tables/list-changes.ts";
 import { listItems, lists } from "@/db/tables/lists.ts";
 import { quests } from "@/db/tables/quests.ts";
@@ -15,6 +16,7 @@ import {
   takeBackEvents,
 } from "@/experience/experience-store.ts";
 import type { QuestId, UserId } from "@/ids.ts";
+import { keepQuestReadToday } from "@/quests/quest-reads.ts";
 import type { Cadence } from "@/streaks/streaks.ts";
 import {
   LIST_ID,
@@ -86,12 +88,14 @@ function listRows(
   );
 }
 
-function readListItems(
+async function readListItems(
   user: UserId,
   questId: QuestId,
   listId: ListId,
 ): Promise<ListItem[]> {
-  return withAppErrors("readListItems", async () =>
+  "use cache";
+  await keepQuestReadToday(user, questId);
+  return await withAppErrors("readListItems", async () =>
     (await listRows(getDb(), user, questId, listId)).map(toListItem),
   );
 }
@@ -538,17 +542,19 @@ async function listContents(
   return { ...list, listItems: rows.map(toListItem) };
 }
 
-function readListContents(
+async function readListContents(
   user: UserId,
   questId: QuestId,
   listId: ListId,
 ): Promise<ListContents | undefined> {
-  return withAppErrors("readListContents", () =>
+  "use cache";
+  await keepQuestReadToday(user, questId);
+  return await withAppErrors("readListContents", () =>
     listContents(getDb(), user, questId, listId),
   );
 }
 
-function writeListContents(
+async function writeListContents(
   user: UserId,
   questId: QuestId,
   listId: ListId,
@@ -557,7 +563,7 @@ function writeListContents(
   readonly result: ChangeResult;
   readonly list?: ListContents | undefined;
 }> {
-  return withAppErrors("writeListContents", () =>
+  const written = await withAppErrors("writeListContents", () =>
     inTransaction(async (tx) => {
       const result = await changeWithin(tx, user, { questId, listId }, change);
       if (result !== "saved") {
@@ -566,6 +572,28 @@ function writeListContents(
       return { result, list: await listContents(tx, user, questId, listId) };
     }),
   );
+  expireReads({ accounts: [user], quests: [questId] });
+  return written;
+}
+
+// Adds to a list of an active quest, at the top, as quick add does.
+async function quickAdd(
+  user: UserId,
+  target: { readonly questId: QuestId; readonly listId: ListId },
+  text: string,
+): Promise<ChangeResult> {
+  const result = await withAppErrors("quickAdd", () =>
+    inTransaction((tx) =>
+      changeWithin(
+        tx,
+        user,
+        { ...target, activeOnly: true, atTop: true },
+        { kind: "add", text },
+      ),
+    ),
+  );
+  expireReads({ accounts: [user], quests: [target.questId] });
+  return result;
 }
 
 // An open task with the list it is in.
@@ -576,12 +604,14 @@ interface OpenTask extends ListItem {
 // The quest's next tasks, up to count of them: its open tasks, taking its
 // task lists in order and each list's tasks in their saved order. The first
 // is the quest's next task.
-function readNextTasks(
+async function readNextTasks(
   user: UserId,
   questId: QuestId,
   count: number,
 ): Promise<OpenTask[]> {
-  return withAppErrors("readNextTasks", async () => {
+  "use cache";
+  await keepQuestReadToday(user, questId);
+  return await withAppErrors("readNextTasks", async () => {
     const rows = await getDb()
       .select({ item: LIST_ITEM_COLUMNS })
       .from(listItems)
@@ -607,6 +637,7 @@ function readNextTasks(
 export type { ListItem, OpenTask };
 export {
   changeWithin,
+  quickAdd,
   readListContents,
   readListItems,
   readNextTasks,

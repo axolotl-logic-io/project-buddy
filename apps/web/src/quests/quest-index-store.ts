@@ -1,7 +1,8 @@
 // What Quests shows of each quest open to the user: the quest, when
 // something last happened in it, how many tasks it has open, how many were
 // checked off this week and the rite running in it, if any; and the user's Life, with how many of its
-// recurring tasks are done today and one not done yet, picked at random.
+// recurring tasks are done today and one not done yet, picked at random
+// each time the read is kept again (src/db/read-cache.ts).
 import { and, desc, eq, isNull, not, sql } from "drizzle-orm";
 import {
   checkOffInQuestOpenTo,
@@ -14,6 +15,7 @@ import {
   questOwnedBy,
 } from "@/accounts/owner-scope.ts";
 import { getDb } from "@/db/client.ts";
+import { keepRead } from "@/db/read-cache.ts";
 import { events } from "@/db/tables/events.ts";
 import { listItems, lists } from "@/db/tables/lists.ts";
 import { performanceMessages, performances } from "@/db/tables/performances.ts";
@@ -23,6 +25,10 @@ import { parseQuestId, type QuestId, type UserId } from "@/ids.ts";
 import type { ListId } from "@/lists/list.ts";
 import type { ListItemId } from "@/lists/list-item.ts";
 import { CHECKED_OFF_NOW } from "@/lists/quest-today.ts";
+import {
+  keepQuestReadToday,
+  keepQuestsReadToday,
+} from "@/quests/quest-reads.ts";
 import { SHARING_COLUMNS } from "@/quests/quest-sharing.ts";
 import { QUEST_COLUMNS, type Quest, toQuests } from "@/quests/store.ts";
 import { readRecurringTasks, readTaskHistory } from "@/streaks/streak-store.ts";
@@ -77,8 +83,10 @@ const OUTER_QUEST_ZONE = sql.raw(
 );
 
 // Every quest open to the user, newest activity first.
-function readQuestEntries(user: UserId): Promise<readonly QuestEntry[]> {
-  return withAppErrors("readQuestEntries", async () => {
+async function readQuestEntries(user: UserId): Promise<readonly QuestEntry[]> {
+  "use cache";
+  await keepQuestsReadToday(user);
+  return await withAppErrors("readQuestEntries", async () => {
     const db = getDb();
     const taskAdded = db
       .select({ time: sql`max(${listItems.createdAt})` })
@@ -174,16 +182,19 @@ function readQuestEntries(user: UserId): Promise<readonly QuestEntry[]> {
 }
 
 // The user's own Life, or undefined before it is made.
-function readLife(user: UserId): Promise<LifeSummary | undefined> {
-  return withAppErrors("readLife", async () => {
+async function readLife(user: UserId): Promise<LifeSummary | undefined> {
+  "use cache";
+  return await withAppErrors("readLife", async () => {
     const [found] = await getDb()
       .select({ id: quests.id, name: quests.name })
       .from(quests)
       .where(and(questOwnedBy(user), eq(quests.life, true)));
     const id = parseQuestId(found?.id ?? "");
     if (found === undefined || id === undefined) {
+      keepRead(user, []);
       return;
     }
+    await keepQuestReadToday(user, id);
     const tasks = await readRecurringTasks(user, id);
     const notDone = tasks.filter(({ done }) => !done);
     let waiting: SuggestedTask[] = [];

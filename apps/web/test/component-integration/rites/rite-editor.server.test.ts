@@ -21,8 +21,6 @@ import { signIn } from "../test-database/session-test-kit.ts";
 
 const SECOND_MS = 1000;
 
-vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
-
 test("use_case_customize_rite", async () => {
   const [author, stranger] = await Promise.all([testUser(), testUser()]);
   const { id: questId } = await createQuest(
