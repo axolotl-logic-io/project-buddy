@@ -117,6 +117,44 @@ function isContinuousIntegration(): boolean {
   return readIfSet("CI") !== undefined;
 }
 
+// The Zotero OAuth client that Project Buddy registered at
+// https://www.zotero.org/oauth/apps, or undefined when either half is unset,
+// which leaves Zotero Collection lists unavailable on the site.
+function readZoteroClientIfSet():
+  | { readonly key: string; readonly secret: string }
+  | undefined {
+  const key = readIfSet("ZOTERO_CLIENT_KEY");
+  const secret = readIfSet("ZOTERO_CLIENT_SECRET");
+  if (key === undefined || secret === undefined) {
+    return undefined;
+  }
+  return { key, secret };
+}
+
+// Where Zotero's OAuth pages and Web API are: zotero.org's own, unless
+// ZOTERO_OAUTH_ORIGIN and ZOTERO_API_ORIGIN name others, as the tests' fake
+// Zotero does. A production deployment refuses others, so its keys never
+// go anywhere but Zotero.
+function readZoteroOrigins(): {
+  readonly oauth: string;
+  readonly api: string;
+} {
+  const oauth = readIfSet("ZOTERO_OAUTH_ORIGIN");
+  const api = readIfSet("ZOTERO_API_ORIGIN");
+  if (
+    (oauth !== undefined || api !== undefined) &&
+    readIfSet("VERCEL_ENV") === "production"
+  ) {
+    throw new Error(
+      "ZOTERO_OAUTH_ORIGIN and ZOTERO_API_ORIGIN are set in production, where Zotero must be zotero.org.",
+    );
+  }
+  return {
+    oauth: oauth ?? "https://www.zotero.org",
+    api: api ?? "https://api.zotero.org",
+  };
+}
+
 export {
   emailFromAddressEnvironment,
   isContinuousIntegration,
@@ -129,4 +167,6 @@ export {
   readResendApiKey,
   readSessionSecret,
   readVercelBypassSecretIfSet,
+  readZoteroClientIfSet,
+  readZoteroOrigins,
 };

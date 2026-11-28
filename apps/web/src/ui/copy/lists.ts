@@ -10,6 +10,7 @@ const LIST_NOUNS: Readonly<
   task: { one: "task", many: "tasks" },
   "quick-note": { one: "note", many: "notes" },
   tally: { one: "tally", many: "tallies" },
+  "zotero-collection": { one: "reference", many: "references" },
 };
 
 function capitalized(word: string): string {
@@ -95,6 +96,7 @@ const LISTS_COPY = {
     task: "Tasks",
     "quick-note": "Notes",
     tally: "Tallies",
+    "zotero-collection": "Zotero Collection",
   },
 };
 
