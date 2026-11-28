@@ -19,24 +19,29 @@ import { withAppErrors } from "@/errors/to-app-error.ts";
 import type { QuestId, UserId } from "@/ids.ts";
 import { keepQuestRead } from "@/quests/quest-reads.ts";
 import {
+  ITEM_LIST_TYPE,
   LIST_ID,
-  LIST_SETTINGS,
+  LIST_TYPE,
   type ListId,
   type ListSettings,
+  type ListType,
   STARTING_LISTS,
 } from "./list.ts";
 import { LIST_ITEM_COLUMNS } from "./quest-today.ts";
 import { retype } from "./retype.ts";
 
-interface List extends ListSettings {
+interface List {
   readonly id: ListId;
+  readonly name: string;
+  readonly type: ListType;
   readonly position: number;
   readonly version: number;
 }
 
 function toList(row: typeof lists.$inferSelect): List {
   return {
-    ...LIST_SETTINGS.parse(row),
+    name: row.name,
+    type: LIST_TYPE.parse(row.type),
     id: LIST_ID.parse(row.id),
     position: row.position,
     version: row.version,
@@ -102,7 +107,9 @@ async function saveList(
       }
       if (listId !== undefined) {
         const current = await readList(tx, user, questId, listId);
-        if (current === undefined) {
+        // A Zotero Collection list keeps its settings in src/zotero/.
+        const from = ITEM_LIST_TYPE.safeParse(current?.type).data;
+        if (current === undefined || from === undefined) {
           return;
         }
         const items = await tx
@@ -110,7 +117,7 @@ async function saveList(
           .from(listItems)
           .where(and(eq(listItems.listId, listId), listItemOpenTo(user)));
         const retyped = await retype(tx, { user, questId }, items, {
-          from: current.type,
+          from,
           to: settings.type,
         });
         if (retyped !== "saved") {

@@ -670,8 +670,22 @@
     {
       "idx": 95,
       "version": "7",
-      "when": 1795834152720,
-      "tag": "0095_life_at_sign_up",
+      "when": 1795831493472,
+      "tag": "0095_zotero_collection_lists",
+      "breakpoints": true
+    },
+    {
+      "idx": 96,
+      "version": "7",
+      "when": 1795837815939,
+      "tag": "0096_zotero_notes",
+      "breakpoints": true
+    },
+    {
+      "idx": 97,
+      "version": "7",
+      "when": 1795837815940,
+      "tag": "0097_life_at_sign_up",
       "breakpoints": true
     }
   ]

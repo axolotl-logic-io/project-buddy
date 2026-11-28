@@ -4,6 +4,7 @@
 export const HTTP_STATUS = {
   ok: 200,
   noContent: 204,
+  seeOther: 303,
   badRequest: 400,
   unauthorized: 401,
   forbidden: 403,

@@ -53,6 +53,22 @@ const ICON_PATHS = {
       "M4 2h8M4 14h8M5 2v2c0 2 3 3 3 4s-3 2-3 4v2m6-12v2c0 2-3 3-3 4s3 2 3 4v2",
   },
   plus: { stroke: "M8 3v10M3 8h10" },
+  // The kinds of list, on New list's tiles: a checked box for Tasks, a
+  // bulleted list for Items, a pen for Notes, tally marks for Tallies and
+  // a written page for a Zotero Collection.
+  "list-task": { stroke: "M2.5 2.5h11v11h-11zM5 8l2 2 4-4" },
+  "list-plain": {
+    stroke: "M5.5 4h8M5.5 8h8M5.5 12h8M2.75 4h.01M2.75 8h.01M2.75 12h.01",
+  },
+  "list-quick-note": {
+    stroke: "M3 13l.8-3.2L10.6 3 13 5.4l-6.8 6.8zM9.2 4.4l2.4 2.4",
+  },
+  "list-tally": {
+    stroke: "M3.5 3v10M6.25 3v10M9 3v10M11.75 3v10M2 10.5l11.5-5.5",
+  },
+  "list-zotero-collection": {
+    stroke: "M3 2.5h7.5L13 5v8.5H3zM5.5 6.5h5M5.5 9h5M5.5 11.5h3",
+  },
   // A lit candle, for performing a rite.
   candle: {
     stroke:

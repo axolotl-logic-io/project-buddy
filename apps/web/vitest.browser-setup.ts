@@ -193,3 +193,25 @@ vi.mock("@/quests/quest-index-store.ts", () => ({
 vi.mock("@/tasks/task-search-store.ts", () => ({
   searchTasks: vi.fn(() => Promise.resolve([])),
 }));
+
+// A quest's page reads its Zotero Collection lists and Zotero setup. Tests
+// of those pages supply their own answers; by default a quest has no
+// Zotero Collection lists and the user hasn't connected Zotero.
+vi.mock("@/zotero/zotero-list-store.ts", () => ({
+  readZoteroLists: vi.fn(() => Promise.resolve([])),
+  readZoteroList: vi.fn(() => Promise.resolve(undefined)),
+}));
+vi.mock("@/zotero/zotero-connection.ts", () => ({
+  readZoteroSetup: vi.fn(() => Promise.resolve({ kind: "not-connected" })),
+}));
+vi.mock("@/zotero/zotero-actions.ts", () => ({
+  connectZoteroAction: vi.fn(),
+  createZoteroListAction: vi.fn(),
+  discardZoteroChangesAction: vi.fn(),
+  disconnectZoteroAction: vi.fn(),
+  markZoteroReferenceAction: vi.fn(),
+  saveZoteroNoteAction: vi.fn(),
+  removeZoteroListAction: vi.fn(),
+  saveZoteroListSettingsAction: vi.fn(),
+  syncZoteroListAction: vi.fn(),
+}));

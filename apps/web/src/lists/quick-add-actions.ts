@@ -43,10 +43,13 @@ async function listQuickAddQuests(): Promise<QuickAddQuest[]> {
           id,
           name,
           sharing,
-          lists: lists.map(({ id: listId, name: listName }) => ({
-            id: listId,
-            name: listName,
-          })),
+          // A Zotero Collection list takes no list items.
+          lists: lists
+            .filter(({ type }) => type !== "zotero-collection")
+            .map(({ id: listId, name: listName }) => ({
+              id: listId,
+              name: listName,
+            })),
         };
       }),
   );
