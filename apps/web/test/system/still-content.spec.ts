@@ -199,57 +199,59 @@ async function shiftsOf(
   );
 }
 
-for (const [profile, device] of Object.entries(VIEWPORTS)) {
-  test.describe(`use_case_content_stays_still on a ${profile}`, () => {
-    test.use(device);
+test.describe("use_case_content_stays_still", () => {
+  for (const [profile, device] of Object.entries(VIEWPORTS)) {
+    test.describe(`on a ${profile}`, () => {
+      test.use(device);
 
-    for (const action of ACTION.options) {
-      test(`${action} moves nothing on the page`, async ({
-        page,
-        account,
-        testData,
-      }) => {
-        const path = await seedAction(action, testData, account.id);
-        await logIn(page, account);
-        if (path !== "/") {
-          await page.goto(path);
-        }
-        const { [action]: scenario } = ACTIONS;
-        const { target, outcome } = await scenario.prepare(page);
-        const addedTo = ADDS_TO[action]?.(page);
+      for (const action of ACTION.options) {
+        test(`${action} moves nothing on the page`, async ({
+          page,
+          account,
+          testData,
+        }) => {
+          const path = await seedAction(action, testData, account.id);
+          await logIn(page, account);
+          if (path !== "/") {
+            await page.goto(path);
+          }
+          const { [action]: scenario } = ACTIONS;
+          const { target, outcome } = await scenario.prepare(page);
+          const addedTo = ADDS_TO[action]?.(page);
 
-        expect(await shiftsOf(page, target, outcome, addedTo)).toStrictEqual(
-          [],
-        );
-      });
-    }
+          expect(await shiftsOf(page, target, outcome, addedTo)).toStrictEqual(
+            [],
+          );
+        });
+      }
 
-    for (const name of SIGNED_IN_PAGES) {
-      test(`following a link to ${name} moves nothing on the page`, async ({
-        page,
-        account,
-        testData,
-      }) => {
-        const seed = await seedPages(testData);
-        const { [name]: target } = auditPages(seed);
-        const { from, panel, link, to } = target.change;
-        await logIn(page, account);
-        await page.goto(from);
-        if (panel === true) {
-          await openSitePanel(page);
-        }
-        const destination = to ?? target;
+      for (const name of SIGNED_IN_PAGES) {
+        test(`following a link to ${name} moves nothing on the page`, async ({
+          page,
+          account,
+          testData,
+        }) => {
+          const seed = await seedPages(testData);
+          const { [name]: target } = auditPages(seed);
+          const { from, panel, link, to } = target.change;
+          await logIn(page, account);
+          await page.goto(from);
+          if (panel === true) {
+            await openSitePanel(page);
+          }
+          const destination = to ?? target;
 
-        expect(
-          await shiftsOf(
-            page,
-            page.getByRole("link", { name: link, exact: true }).first(),
-            async () => {
-              await expect(destination.marker(page)).toBeVisible();
-            },
-          ),
-        ).toStrictEqual([]);
-      });
-    }
-  });
-}
+          expect(
+            await shiftsOf(
+              page,
+              page.getByRole("link", { name: link, exact: true }).first(),
+              async () => {
+                await expect(destination.marker(page)).toBeVisible();
+              },
+            ),
+          ).toStrictEqual([]);
+        });
+      }
+    });
+  }
+});
