@@ -103,18 +103,10 @@
   --text-card-title--line-height: calc(1.75 / 1.125);
 }
 
-/* Menus and popovers open and close with these, under motion-safe:, and
-   the site panel's drawer slides in from the left edge with slide-in. */
+/* Menus and popovers open and close with these, under motion-safe:. */
 @theme {
   --animate-pop-in: pop-in 120ms ease-out;
   --animate-pop-out: pop-out 90ms ease-in;
-  --animate-slide-in: slide-in 180ms ease-out;
-
-  @keyframes slide-in {
-    from {
-      transform: translateX(-100%);
-    }
-  }
 
   @keyframes pop-in {
     from {
