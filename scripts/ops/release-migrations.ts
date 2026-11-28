@@ -6,7 +6,7 @@
 // type, sequence or enum value, a nullable or defaulted column, a plain
 // index, or a unique index or foreign key on a table the same release makes.
 // Anything else, such as a drop, a rename, a type change or a new NOT NULL,
-// needs a person: `mise deploy` stops and lists it.
+// needs a person: `mise run deploy` stops and lists it.
 
 const BREAKPOINT = "--> statement-breakpoint";
 const TRAILING_SEMICOLON = /;$/u;

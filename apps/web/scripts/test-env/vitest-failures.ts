@@ -11,12 +11,16 @@ function reportModule(module: TestModule): void {
   }
 
   const project = module.project.name;
-  const workspace = `apps/${basename(process.cwd())}`;
-  let command = `npm exec --workspace ${workspace} -- vitest run`;
+  const app = `//apps/${basename(process.cwd())}`;
+  let command = `mise run ${app}:test`;
   const args = [module.relativeModuleId];
   if (project === "server") {
-    command = "npm run --workspace @project-buddy/web test:server --";
+    command = `mise run ${app}:test:server`;
+  } else if (project.startsWith("browser")) {
+    command = `mise run ${app}:test:browser`;
+    args.push("--project", project);
   } else if (project !== "") {
+    command = `mise run ${app}:test:repository`;
     args.push("--project", project);
   }
 

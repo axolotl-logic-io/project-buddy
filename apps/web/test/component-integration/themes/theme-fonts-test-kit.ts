@@ -7,7 +7,7 @@
 // here. A theme's font token that names a variable no font defines is left
 // empty, and fails fontsLoaded. next/font's own wiring, each variable naming
 // the family whose @font-face loads its file, is checked against the build
-// by scripts/check-build-font-urls.ts, which `npm run test:e2e` runs.
+// by scripts/check-build-font-urls.ts, which `mise run //apps/web:test:system` runs.
 
 // Each font's URL, by its path under this folder.
 const FONT_URLS = import.meta.glob<string>("./fonts/*/*.woff2", {

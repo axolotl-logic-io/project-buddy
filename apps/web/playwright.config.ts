@@ -1,17 +1,18 @@
-// Playwright consumes the orchestrator-provided (or manually copied) .env.test.
-// npm test runs these tests after the server tests and a fresh database reset.
-// Pass a file to npm run test:system to run only that file.
+// The system tests, against the built site on this branch's system test
+// database and port (scripts/test-env/suite-environment.ts). The web server
+// script empties and migrates the database before it builds the site. Pass
+// a file to mise run //apps/web:test:system to run only that file.
 import {
   defineConfig,
   devices,
   type ReporterDescription,
 } from "@playwright/test";
-import { checkTestEnvironment } from "./scripts/test-db/test-database.ts";
+import { systemTestPort } from "./scripts/db/database-names.ts";
+import { applySuiteEnvironment } from "./scripts/test-env/suite-environment.ts";
 import {
   emailFromAddressEnvironment,
   isContinuousIntegration,
   readEmailFromAddress,
-  readEndToEndPort,
 } from "./src/env.ts";
 
 const SERVER_START_TIMEOUT_MS = 180_000;
@@ -51,8 +52,9 @@ function runSettings(): RunSettings {
   return LOCAL_RUN;
 }
 
-// Require an isolated local test database and email outbox before starting.
-checkTestEnvironment();
+// The runner, its workers and the web server all use the system suite's
+// database, port and email outbox.
+applySuiteEnvironment("system");
 
 // The sender the runner expects on every email (test/system/sign-in.spec.ts), given
 // to the web server too, so it doesn't take .env.local's real one instead.
@@ -61,7 +63,7 @@ const serverEmailEnvironment = emailFromAddressEnvironment(
 );
 
 const run = runSettings();
-const port = readEndToEndPort();
+const port = systemTestPort();
 const OWN_SERVER_LISTENING = new RegExp(
   `Local:\\s+http://localhost:${port}\\s[\\s\\S]*Ready in `,
   "u",

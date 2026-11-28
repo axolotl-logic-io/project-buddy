@@ -105,11 +105,11 @@ describe("release configuration", () => {
     expect(integrationWorkflow).not.toContain("drizzle-kit");
   });
 
-  test("no build script runs drizzle-kit", () => {
-    const scripts: Readonly<Record<string, string>> = packageJson.scripts;
-    for (const name of ["build", "vercel-build"]) {
-      expect(scripts[name] ?? "").not.toContain("drizzle-kit");
-    }
+  // With no npm scripts and no build command, Vercel builds with plain
+  // `next build`, which runs no migrations.
+  test("the Vercel build is plain next build", () => {
+    expect(packageJson).not.toHaveProperty("scripts");
+    expect(vercelJson).not.toHaveProperty("buildCommand");
   });
 });
 
