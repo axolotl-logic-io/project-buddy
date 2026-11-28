@@ -28,6 +28,8 @@ export default defineConfig({
     environment: "node",
     include: ["test/**/*.server.test.ts"],
     setupFiles: ["./vitest.server-setup.ts"],
+    // One fake Zotero for the run (test/support/zotero/fake-zotero.ts).
+    globalSetup: ["./test/support/zotero/fake-zotero-global-setup.ts"],
     maxWorkers: SERVER_TEST_FILES_AT_ONCE,
     testTimeout: SERVER_TEST_TIMEOUT_MS,
     hookTimeout: SERVER_TEST_TIMEOUT_MS,

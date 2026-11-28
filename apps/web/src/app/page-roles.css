@@ -3251,6 +3251,91 @@
       @apply z-20;
     }
   }
+
+  /* Zotero Collection lists: setup, the list's page and its section. */
+  .zotero-setup,
+  .zotero-list-page {
+    @apply flex flex-col gap-4;
+  }
+
+  .zotero-form,
+  .zotero-settings {
+    @apply flex flex-col gap-3;
+  }
+
+  .zotero-hint {
+    @apply text-muted text-sm;
+  }
+
+  .zotero-actions,
+  .zotero-account,
+  .zotero-sync {
+    @apply flex flex-wrap items-center gap-3;
+  }
+
+  .zotero-pending,
+  .zotero-reference-waiting {
+    @apply text-muted text-sm italic;
+  }
+
+  .zotero-choice {
+    min-block-size: var(--target-size);
+    @apply flex items-center gap-2;
+  }
+
+  .zotero-collection-choice,
+  .zotero-checkable {
+    @apply flex flex-col gap-1 border-0 p-0;
+  }
+
+  .zotero-collection-choice > legend {
+    @apply font-heading font-semibold;
+  }
+
+  /* Each subcollection sits under its parent, indented. */
+  .zotero-collections .zotero-collections {
+    @apply ps-6;
+  }
+
+  .zotero-skipped ul {
+    @apply list-disc ps-6;
+  }
+
+  .zotero-references {
+    @apply flex flex-col;
+  }
+
+  .zotero-reference {
+    @apply flex items-start gap-2 px-2.5 py-2;
+  }
+
+  .zotero-reference + .zotero-reference {
+    @apply border-line/30 border-t;
+  }
+
+  .zotero-reference-body {
+    @apply flex min-w-0 flex-1 flex-col gap-1;
+  }
+
+  /* A Works Cited entry hangs its lines after the first, as MLA sets it. */
+  .zotero-entry {
+    padding-inline-start: 2em;
+    text-indent: -2em;
+    @apply wrap-anywhere;
+  }
+
+  .zotero-reference-meta {
+    @apply flex flex-wrap gap-3 text-sm;
+  }
+
+  .zotero-reference-open {
+    @apply text-muted hover:text-foreground;
+  }
+
+  .add-box .add-box-zotero {
+    min-block-size: var(--target-size);
+    @apply inline-flex items-center gap-1.5 no-underline;
+  }
 }
 
 /* A running timer opened with ?mode=focus: only the timer shows. */

@@ -336,6 +336,23 @@
       }
     },
 
+    // The fake Zotero is an HTTP server of its own, as the real one is, so
+    // the tests reach it the way the site reaches Zotero. Its command prints
+    // the origin it listens on for Playwright to read.
+    {
+      "includes": [
+        "test/support/zotero/fake-zotero.ts",
+        "test/support/zotero/fake-zotero-global-setup.ts",
+        "test/support/zotero/fake-zotero-state.ts",
+        "test/support/zotero/serve-fake-zotero.ts"
+      ],
+      "linter": {
+        "rules": {
+          "correctness": { "noNodejsModules": "off" }
+        }
+      }
+    },
+
     // Vitest and Playwright load reporters through the default export.
     {
       "includes": ["scripts/test-env/*-failures.ts"],

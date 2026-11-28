@@ -13,6 +13,7 @@ import {
   readEmailFromAddress,
   readEndToEndPort,
 } from "./src/env.ts";
+import { fakeZoteroClientEnvironment } from "./test/support/zotero/fake-zotero-client.ts";
 
 const SERVER_START_TIMEOUT_MS = 180_000;
 // Next emits this only after its own listening event. URL health alone could
@@ -66,6 +67,8 @@ const OWN_SERVER_LISTENING = new RegExp(
   `Local:\\s+http://localhost:${port}\\s[\\s\\S]*Ready in `,
   "u",
 );
+const FAKE_ZOTERO_LISTENING =
+  /ZOTERO_API_ORIGIN=(?<zotero_api_origin>\S+) ZOTERO_OAUTH_ORIGIN=(?<zotero_oauth_origin>\S+)/u;
 const baseUrl = `http://localhost:${port}`;
 export default defineConfig({
   testDir: "./test/system",
@@ -86,12 +89,28 @@ export default defineConfig({
       use: { ...devices["Desktop Chrome"] },
     },
   ],
-  webServer: {
-    command: `bash scripts/test-env/start-system-server.sh ${port}`,
-    wait: { stdout: OWN_SERVER_LISTENING },
-    // Never use URL health as readiness: this process must bind successfully.
-    reuseExistingServer: false,
-    timeout: SERVER_START_TIMEOUT_MS,
-    env: serverEmailEnvironment,
-  },
+  webServer: [
+    // The fake Zotero (test/support/zotero/fake-zotero.ts) starts first.
+    // Playwright copies its origin from the line it prints into
+    // ZOTERO_API_ORIGIN and ZOTERO_OAUTH_ORIGIN, which the site's server
+    // below and the tests then read.
+    {
+      command:
+        "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON test/support/zotero/serve-fake-zotero.ts",
+      wait: { stdout: FAKE_ZOTERO_LISTENING },
+      reuseExistingServer: false,
+      timeout: SERVER_START_TIMEOUT_MS,
+    },
+    {
+      command: `bash scripts/test-env/start-system-server.sh ${port}`,
+      wait: { stdout: OWN_SERVER_LISTENING },
+      // Never use URL health as readiness: this process must bind successfully.
+      reuseExistingServer: false,
+      timeout: SERVER_START_TIMEOUT_MS,
+      env: {
+        ...serverEmailEnvironment,
+        ...fakeZoteroClientEnvironment(),
+      },
+    },
+  ],
 });

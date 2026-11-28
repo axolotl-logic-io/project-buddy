@@ -11,6 +11,8 @@ import { QuestPanel } from "@/components/quest-panel.tsx";
 import { QuestSharingMark } from "@/components/quest-sharing-mark.tsx";
 import { QuestSidePanel } from "@/components/quest-side-panel.tsx";
 import { Notice } from "@/components/ui/form-message.tsx";
+import { ZoteroListPage } from "@/components/zotero/zotero-list-page.tsx";
+import { ZoteroSetupSection } from "@/components/zotero/zotero-setup.tsx";
 import { getConstruct } from "@/constructs/index.ts";
 import type { QuestId } from "@/ids.ts";
 import { LIST_ID, type ListId } from "@/lists/list.ts";
@@ -29,8 +31,15 @@ import { readQuestTallies } from "@/tallies/tally-store.ts";
 import { PERFORMANCE_COPY } from "@/ui/copy/performances.ts";
 import { QUEST_OVERVIEW_COPY } from "@/ui/copy/quest-overview.ts";
 import { QUEST_STATUS_COPY } from "@/ui/copy/quest-status.ts";
+import { readZoteroSetup } from "@/zotero/zotero-connection.ts";
+import {
+  readZoteroLists,
+  type ZoteroList,
+} from "@/zotero/zotero-list-store.ts";
 
-const SECTION = z.enum(["members"]);
+const SECTION = z.enum(["members", "zotero"]);
+// What Zotero answered when it sent the owner back to setup or a list.
+const ZOTERO_OUTCOME = z.enum(["connected", "failed"]);
 type Section = z.infer<typeof SECTION>;
 
 function sectionPath(id: QuestId, section?: Section | ListId): Route {
@@ -38,6 +47,14 @@ function sectionPath(id: QuestId, section?: Section | ListId): Route {
     return `/quests/${id}`;
   }
   return `/quests/${id}?section=${section}`;
+}
+
+// Zotero setup's path, for the quest's owner alone.
+function zoteroSetupPath(quest: Quest): Route | undefined {
+  if (quest.sharing.kind === "joined") {
+    return undefined;
+  }
+  return sectionPath(quest.id, "zotero");
 }
 
 // The quest's overview, in the page's frame: its title, status and
@@ -49,19 +66,28 @@ async function overviewOf({
   lists,
   history,
   runningContent,
+  zoteroLists,
 }: {
   readonly user: User["id"];
   readonly quest: Quest;
   readonly lists: readonly List[];
   readonly history: TaskHistory | undefined;
   readonly runningContent: ReactNode;
+  readonly zoteroLists: readonly ZoteroList[];
 }): Promise<JSX.Element> {
   let talliesRead: ReturnType<typeof readQuestTallies> | undefined;
   if (lists.some(({ type }) => type === "tally")) {
     talliesRead = readQuestTallies(user, quest.id);
   }
   const [contents, nextTasks, rites, tallies] = await Promise.all([
-    Promise.all(lists.map(({ id }) => readListItems(user, quest.id, id))),
+    Promise.all(
+      lists.map(({ id, type }) => {
+        if (type === "zotero-collection") {
+          return [];
+        }
+        return readListItems(user, quest.id, id);
+      }),
+    ),
     readNextTasks(user, quest.id, 1),
     listRites(user),
     talliesRead,
@@ -106,11 +132,13 @@ async function overviewOf({
           list,
           contents: contents[index] ?? [],
           href: sectionPath(quest.id, list.id),
+          zotero: zoteroLists.find(({ list: { id } }) => id === list.id),
         }))}
         history={history}
         tallies={tallies}
         next={nextTasks[0]?.id}
         rites={sectionRites}
+        zoteroSetup={zoteroSetupPath(quest)}
       />
     </div>
   );
@@ -120,6 +148,7 @@ async function questPage(
   viewer: User,
   questId: string,
   section: unknown,
+  zoteroOutcome?: unknown,
 ): Promise<JSX.Element | undefined> {
   const user = viewer.id;
   const quest = await getQuest(user, questId);
@@ -132,11 +161,34 @@ async function questPage(
     readLists(user, quest.id),
     listPerformances(user, quest.id),
   ]);
+  const zoteroLists = await readZoteroLists(
+    user,
+    quest.id,
+    lists.flatMap(({ id, type }) => {
+      if (type === "zotero-collection") {
+        return [id];
+      }
+      return [];
+    }),
+  );
+  const owner = quest.sharing.kind !== "joined";
   const listId = LIST_ID.safeParse(section).data;
   const list = lists.find(({ id }) => id === listId);
   const running = performances.find(({ endedAt }) => endedAt === null);
   let listPage: JSX.Element | undefined;
-  if (list !== undefined) {
+  const zotero = zoteroLists.find(({ list: { id } }) => id === list?.id);
+  if (zotero !== undefined) {
+    listPage = (
+      <ZoteroListPage
+        key={zotero.list.id}
+        questId={quest.id}
+        quest={quest.name}
+        back={sectionPath(quest.id)}
+        zotero={zotero}
+        owner={owner}
+      />
+    );
+  } else if (list !== undefined && list.type !== "zotero-collection") {
     let talliesRead: ReturnType<typeof readQuestTallies> | undefined;
     if (list.type === "tally") {
       talliesRead = readQuestTallies(user, quest.id);
@@ -159,7 +211,9 @@ async function questPage(
         back={sectionPath(quest.id)}
         list={list}
         contents={contents}
-        destinations={lists.filter(({ id }) => id !== list.id)}
+        destinations={lists.filter(
+          ({ id, type }) => id !== list.id && type !== "zotero-collection",
+        )}
         history={history}
         tallies={tallies}
         next={nextTasks[0]?.id}
@@ -195,7 +249,10 @@ async function questPage(
   }
   const current = SECTION.safeParse(section).data;
 
-  const onOverview = current === undefined && list === undefined;
+  // Zotero setup is the owner's alone: members see the overview there.
+  const onOverview =
+    (current === undefined || (current === "zotero" && !owner)) &&
+    list === undefined;
   let overview: JSX.Element | undefined;
   if (onOverview) {
     overview = await overviewOf({
@@ -204,7 +261,21 @@ async function questPage(
       lists,
       history,
       runningContent,
+      zoteroLists,
     });
+  }
+  let zoteroSetup: JSX.Element | undefined;
+  if (current === "zotero" && owner) {
+    zoteroSetup = (
+      <ZoteroSetupSection
+        questId={quest.id}
+        quest={quest.name}
+        back={sectionPath(quest.id)}
+        setup={await readZoteroSetup(user)}
+        outcome={ZOTERO_OUTCOME.safeParse(zoteroOutcome).data}
+        shared={quest.sharing.kind === "shared"}
+      />
+    );
   }
   return (
     <QuestSidePanel
@@ -220,6 +291,7 @@ async function questPage(
           <Notice>{QUEST_STATUS_COPY.effects}</Notice>
         )}
         {listPage}
+        {zoteroSetup}
         {current === "members" && people !== undefined && (
           <QuestMembers
             viewer={user}

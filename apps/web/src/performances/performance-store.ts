@@ -205,7 +205,8 @@ function startPerformance(
             listOpenTo(user),
           ),
         );
-      if (list === undefined) {
+      // A rite adds list items, which a Zotero Collection list never takes.
+      if (list === undefined || list.type === "zotero-collection") {
         return;
       }
       const previous = await active(tx, user, questId);

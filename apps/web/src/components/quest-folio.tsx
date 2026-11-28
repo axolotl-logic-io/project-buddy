@@ -1,6 +1,7 @@
 "use client";
 
 import type { Route } from "next";
+import Link from "next/link";
 import {
   type ChangeEvent,
   type JSX,
@@ -20,6 +21,7 @@ import { Button } from "@/components/ui/button.tsx";
 import type { EditorOptions } from "@/components/ui/editable-list-contract.ts";
 import { Icon } from "@/components/ui/icon.tsx";
 import { useEntry } from "@/components/use-entry.ts";
+import { ZoteroListSection } from "@/components/zotero/zotero-list-section.tsx";
 import type { QuestId } from "@/ids.ts";
 import { LIST_ID, LIST_SETTINGS, type ListId } from "@/lists/list.ts";
 import { saveListAction } from "@/lists/list-actions.ts";
@@ -31,6 +33,9 @@ import type { TaskHistory } from "@/streaks/streaks.ts";
 import type { TallyQuest } from "@/tallies/tally.ts";
 import { LIST_PAGE_COPY } from "@/ui/copy/list-page.ts";
 import { QUEST_OVERVIEW_COPY } from "@/ui/copy/quest-overview.ts";
+import { ZOTERO_COPY } from "@/ui/copy/zotero.ts";
+import { entryHolds } from "@/zotero/works-cited.ts";
+import type { ZoteroList } from "@/zotero/zotero-list-store.ts";
 
 const COPY: typeof QUEST_OVERVIEW_COPY.addBox = QUEST_OVERVIEW_COPY.addBox;
 
@@ -39,6 +44,8 @@ interface FolioList {
   readonly list: List;
   readonly contents: readonly ListItem[];
   readonly href: Route;
+  // The list's references, when it is a Zotero Collection list.
+  readonly zotero?: ZoteroList | undefined;
 }
 
 // The list the add box starts on: the first task list, else the first.
@@ -71,6 +78,7 @@ function AddBox({
   onTarget,
   onMade,
   onSearch,
+  zoteroSetup,
 }: {
   readonly questId: QuestId;
   readonly lists: readonly List[];
@@ -84,6 +92,9 @@ function AddBox({
   readonly onMade: (known: readonly ListId[]) => void;
   // Called with the field's search, or "" while it names a new list.
   readonly onSearch: (search: string) => void;
+  // Where the quest's owner adds a Zotero Collection list; undefined for
+  // its members.
+  readonly zoteroSetup: Route | undefined;
 }): JSX.Element {
   const groupLabelId = useId();
   const hintId = useId();
@@ -264,6 +275,12 @@ function AddBox({
           <Icon name="plus" />
           {COPY.newList}
         </Button>
+        {zoteroSetup !== undefined && (
+          <Link className="add-box-new add-box-zotero" href={zoteroSetup}>
+            <Icon name="book" />
+            {ZOTERO_COPY.addCollection}
+          </Link>
+        )}
       </div>
       <p id={hintId} className={hintClass} aria-live="polite">
         {hint}
@@ -290,6 +307,7 @@ function QuestFolio({
   tallies,
   next,
   rites,
+  zoteroSetup,
 }: {
   readonly questId: QuestId;
   readonly lists: readonly FolioList[];
@@ -297,13 +315,21 @@ function QuestFolio({
   readonly tallies: TallyQuest | undefined;
   readonly next: ListItemId | undefined;
   readonly rites: readonly Rite[] | undefined;
+  readonly zoteroSetup: Route | undefined;
 }): JSX.Element {
   const [chosen, setChosen] = useState<ListId | undefined>();
   const [search, setSearch] = useState("");
   // The quest's lists when a new list was asked for; the first list not
   // among them is the new one, which the add box moves to.
   const [awaited, setAwaited] = useState<readonly ListId[] | undefined>();
-  const plain = lists.map(({ list }) => list);
+  // The lists the add box adds to: all but Zotero Collection lists, whose
+  // references come from Zotero.
+  const plain = lists.flatMap(({ list, zotero }) => {
+    if (zotero !== undefined) {
+      return [];
+    }
+    return [list];
+  });
   if (awaited !== undefined) {
     const made = plain.find(({ id }) => !awaited.includes(id));
     if (made !== undefined) {
@@ -315,9 +341,13 @@ function QuestFolio({
   const taken = lists.find(({ list }) => list.id === target?.id)?.contents;
   let matches = 0;
   if (search !== "") {
-    matches = lists
-      .flatMap(({ list, contents }) => shownItems(list, contents))
-      .filter((item) => holds(item, search)).length;
+    matches =
+      lists
+        .flatMap(({ list, contents }) => shownItems(list, contents))
+        .filter((item) => holds(item, search)).length +
+      lists
+        .flatMap(({ zotero }) => zotero?.references ?? [])
+        .filter((reference) => entryHolds(reference.entry, search)).length;
   }
   return (
     <>
@@ -330,23 +360,38 @@ function QuestFolio({
         onTarget={setChosen}
         onMade={setAwaited}
         onSearch={setSearch}
+        zoteroSetup={zoteroSetup}
       />
-      {lists.flatMap(({ list, contents, href }) => [
-        <FolioDivider key={`${list.id}-rule`} />,
-        <QuestListSection
-          key={list.id}
-          questId={questId}
-          list={list}
-          contents={contents}
-          href={href}
-          history={history}
-          tallies={tallies}
-          next={next}
-          rites={rites}
-          target={list.id === target?.id}
-          search={search}
-        />,
-      ])}
+      {lists.flatMap(({ list, contents, href, zotero }) => {
+        const rule = <FolioDivider key={`${list.id}-rule`} />;
+        if (zotero !== undefined) {
+          return [
+            rule,
+            <ZoteroListSection
+              key={list.id}
+              zotero={zotero}
+              href={href}
+              search={search}
+            />,
+          ];
+        }
+        return [
+          rule,
+          <QuestListSection
+            key={list.id}
+            questId={questId}
+            list={list}
+            contents={contents}
+            href={href}
+            history={history}
+            tallies={tallies}
+            next={next}
+            rites={rites}
+            target={list.id === target?.id}
+            search={search}
+          />,
+        ];
+      })}
     </>
   );
 }

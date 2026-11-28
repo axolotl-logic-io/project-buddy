@@ -26,6 +26,8 @@ The user adds a list to a quest and sets it up.
   - The user chooses New list in Overview's add box and names the list. It is a task list.
   - Later, they open the list's settings with the gear on its page and change its name or type.
 - **Outcome:** the new list appears on Overview after the quest's other lists, and can be chosen for a performance. Its pages, menus, feedback and the site's messages during a performance name its items for its type. A name that is empty, longer than one line or too long is refused with the reason, and the draft stays. Everyone in the quest sees the same list.
+- **Next:**
+  - [`use_case_connect_zotero`](zotero.md#use_case_connect_zotero): make a list from a Zotero collection instead.
 
 ## use_case_split_list_item
 
