@@ -516,7 +516,7 @@
     --site-panel-width: 18rem;
     --quest-panel-width: 22rem;
     /* How long a side panel takes to slide in or out. */
-    --panel-slide-time: 200ms;
+    --panel-slide-time: 100ms;
     /* A side panel slows as it arrives and speeds up as it leaves. */
     --panel-slide-in: ease-out;
     --panel-slide-out: ease-in;

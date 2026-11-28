@@ -18,7 +18,7 @@ import { closeButton, panelButton, sitePanel } from "./site-panel-test-kit.ts";
 
 vi.mock("next/navigation", () => import("./router-test-kit.ts"));
 
-const SLIDE_MS = 200;
+const SLIDE_MS = 100;
 const MS_PER_SECOND = 1000;
 // A panel slows as it arrives and speeds up as it leaves.
 const ARRIVING = "ease-out";
