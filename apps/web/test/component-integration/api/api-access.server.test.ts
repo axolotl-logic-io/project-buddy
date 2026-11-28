@@ -15,7 +15,6 @@ import { SIGN_IN_PATH } from "@/routes.ts";
 import { testData } from "../../support/test-database/data-test-kit.ts";
 import { testUser } from "../../support/test-database/user-test-kit.ts";
 import { addInvitee, addMember } from "../quests/quest-members-test-kit.ts";
-import { formOf } from "../test-database/form-test-kit.ts";
 import { expectRedirect } from "../test-database/navigation-test-kit.ts";
 import { signIn } from "../test-database/session-test-kit.ts";
 import type { SendEmail } from "../test-database/sign-in-link-test-kit.ts";
@@ -42,7 +41,7 @@ describe("a session signed out everywhere", () => {
     });
     await expect(
       expectRedirect(
-        () => startQuestAction({ kind: "idle" }, formOf({ name: "Mine" })),
+        () => startQuestAction({ id: crypto.randomUUID(), name: "Mine" }),
         SIGN_IN_PATH,
       ),
     ).resolves.toBeUndefined();
