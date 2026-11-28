@@ -5,12 +5,13 @@
 // the same request: a Server Action's own page re-renders with the change
 // and every other reader gets it on their next render.
 //
-// Two tags cover every read:
+// Tags identify what a read depends on:
 //   the account tag  everything of one user's own, and which quests and
 //                    invitations are open to them. Every cached read has
 //                    its reader's.
 //   a quest tag      everything reached through one quest, for everyone it
 //                    is open to.
+//   the wide tag     reads across too many quests to tag individually.
 // The store modules build both through quest-reads.ts and the functions
 // here; nothing else names a tag.
 //
@@ -31,6 +32,7 @@ const READ_STALE_SECONDS = 300;
 const READ_REVALIDATE_SECONDS = 3600;
 // Next keeps up to this many tags on one cache entry.
 const MAX_TAGS = 128;
+const WIDE_READ_TAG = "wide-quest-reads";
 
 function accountTag(user: UserId): string {
   return `account:${user}`;
@@ -53,14 +55,12 @@ function keepRead(
   if (!isNextServer()) {
     return;
   }
-  const tags = [accountTag(user), ...quests.map(questTag)];
-  if (tags.length > MAX_TAGS) {
-    // Too many quests to tag: keep the read for the shortest time a
-    // prefetch can use it instead.
-    cacheLife("seconds");
-    return;
+  const tags = new Set([accountTag(user), ...quests.map(questTag)]);
+  if (tags.size > MAX_TAGS) {
+    cacheTag(accountTag(user), WIDE_READ_TAG);
+  } else {
+    cacheTag(...tags);
   }
-  cacheTag(...tags);
   if (secondsLeft === undefined) {
     cacheLife({
       stale: READ_STALE_SECONDS,
@@ -91,6 +91,9 @@ function expireReads({ accounts = [], quests = [] }: Changed): void {
     return;
   }
   const tags = new Set([...accounts.map(accountTag), ...quests.map(questTag)]);
+  if (quests.length > 0) {
+    tags.add(WIDE_READ_TAG);
+  }
   for (const tag of tags) {
     revalidateTag(tag, { expire: 0 });
   }

@@ -41,6 +41,7 @@ const sent = vi.hoisted(() => ({ sendEmail: vi.fn<SendEmail>() }));
 vi.mock("@/email/send-email.ts", () => sent);
 
 const SECONDS_IN_A_DAY = 86_400;
+const QUESTS_OVER_TAG_LIMIT = 128;
 
 // The Tasks list of the quest, as user reads it.
 async function tasksListOf(user: UserId, quest: Quest): Promise<ListId> {
@@ -123,6 +124,33 @@ describe("a shared quest's kept reads", () => {
       quest.id,
     );
     expect(await readListItems(member.id, quest.id, listId)).toEqual([]);
+  });
+
+  test("a removal expires Quests for a member with more quests than cache tags", async () => {
+    const [owner, member] = [await testUser(), await testUser()];
+    const quest = await testData(owner).quest("Fox den");
+    await addMember(owner, quest.id, member);
+    await Promise.all(
+      Array.from({ length: QUESTS_OVER_TAG_LIMIT }, () =>
+        testData(member).quest(),
+      ),
+    );
+
+    expect(
+      await writeExpiresRead(
+        () => listQuests(member.id),
+        () => renameQuest(owner.id, quest.id, QUEST_NAME.parse("Owl roost")),
+      ),
+    ).toBe(true);
+    expect(
+      await writeExpiresRead(
+        () => listQuests(member.id),
+        () => removeFromQuest(owner.id, { questId: quest.id, person: member.id }),
+      ),
+    ).toBe(true);
+    expect((await listQuests(member.id)).map(({ id }) => id)).not.toContain(
+      quest.id,
+    );
   });
 
   test("an invitation expires the invitee's pending quests, and opens nothing else", async () => {
